@@ -1,0 +1,5 @@
+UPDATE costwork a, tmp_works b
+SET a.stavka_grn=b.stavka,a.time_transp=b.time_transp
+WHERE trim(a.work)=trim(b.work) and trim(a.brig)=trim(b.brig)
+
+select distinct brig from costwork order by 1 

@@ -4,15 +4,27 @@
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 
-$this->title = 'Полезные мелочи';
+$this->title = 'Полезные инструменты';
 ?>
 <? $this->beginBlock('block1'); ?>
+<? if($vid==1): ?>
     <div id="content_container">
         <div id="header"> <div class="header_content_mainline"> Проверка символов </div>
             <div id="header_content_tagline">  </div>
         </div>
+         <? echo Html::img('./check2.png'); ?>
+        <!--<img src="./ulibka.gif">-->
+    </div>
+<? endif; ?>
+
+<? if($vid==2): ?>
+    <div id="content_container">
+        <div id="header"> <div class="header_content_mainline"> Кодирование строки </div>
+            <div id="header_content_tagline">  </div>
+        </div>
         <img src="./ulibka.gif">
     </div>
+<? endif; ?>
 
 <? $this->endBlock(); ?>
 

@@ -6,7 +6,7 @@ use yii\bootstrap\ActiveForm;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 
-$this->title = 'Полезные мелочи';
+$this->title = 'Полезные инструменты';
 
 //$this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -16,7 +16,8 @@ $this->title = 'Полезные мелочи';
         <div id="header"> <div class="header_content_mainline"> Преобразователь чисел </div>
             <div id="header_content_tagline">  </div>
         </div>
-        <img src="./ulibka.gif">
+      <? echo Html::img('./conv.png'); ?>
+        <!--<img src="./ulibka.gif">-->
     </div>
 
 <? $this->endBlock(); ?>

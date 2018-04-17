@@ -1,0 +1,102 @@
+<p><a href="https://www.esfmc.com/ua/investirovanie/elektroenergetika.html" target="blank"> <img src="images/logo_ESFL.jpg" alt="logo_ESFL.jpg - 14.46 kB" width="144" height="53" style="display: block; margin-left: auto; margin-right: auto;" /> <label style="font-size: 0.75em; text-align: center; line-height: 1.1em; margin-top: 5em; margin-left: 2em;">Входить&nbsp;до&nbsp;групи</label> <label style="font-size: 0.7em; text-align: center; line-height: 1em;">Енергетичний стандарт</label> </a></p>
+
+
+  n_hour_1 = "H" + Trim(Str(x))
+                hour_1 = Range(n_hour_1).Value
+                Sum = Sum + hour_1
+           
+                n_hour_2 = "I" + Trim(Str(x))
+                hour_2 = Range(n_hour_2).Value
+                Sum = Sum + hour_2
+                
+                n_hour_3 = "J" + Trim(Str(x))
+                hour_3 = Range(n_hour_3).Value
+                Sum = Sum + hour_3
+                
+                n_hour_4 = "K" + Trim(Str(x))
+                hour_4 = Range(n_hour_4).Value
+                Sum = Sum + hour_4
+                
+                n_hour_5 = "L" + Trim(Str(x))
+                hour_5 = Range(n_hour_5).Value
+                Sum = Sum + hour_5
+                
+                n_hour_6 = "M" + Trim(Str(x))
+                hour_6 = Range(n_hour_6).Value
+                Sum = Sum + hour_6
+                
+                n_hour_7 = "N" + Trim(Str(x))
+                hour_1 = Range(n_hour_7).Value
+                Sum = Sum + hour_7
+                
+                n_hour_8 = "O" + Trim(Str(x))
+                hour_8 = Range(n_hour_8).Value
+                Sum = Sum + hour_8
+                
+                n_hour_9 = "P" + Trim(Str(x))
+                hour_9 = Range(n_hour_9).Value
+                Sum = Sum + hour_9
+                
+                n_hour_10 = "Q" + Trim(Str(x))
+                hour_10 = Range(n_hour_10).Value
+                Sum = Sum + hour_10
+                
+                n_hour_11 = "R" + Trim(Str(x))
+                hour_11 = Range(n_hour_11).Value
+                Sum = Sum + hour_11
+                
+                n_hour_12 = "S" + Trim(Str(x))
+                hour_12 = Range(n_hour_12).Value
+                Sum = Sum + hour_12
+                
+                n_hour_13 = "T" + Trim(Str(x))
+                hour_13 = Range(n_hour_13).Value
+                Sum = Sum + hour_13
+                
+                n_hour_14 = "U" + Trim(Str(x))
+                hour_14 = Range(n_hour_14).Value
+                Sum = Sum + hour_14
+                
+                n_hour_15 = "V" + Trim(Str(x))
+                hour_15 = Range(n_hour_15).Value
+                Sum = Sum + hour_15
+                
+                n_hour_16 = "W" + Trim(Str(x))
+                hour_16 = Range(n_hour_16).Value
+                Sum = Sum + hour_16
+                
+                n_hour_17 = "X" + Trim(Str(x))
+                hour_17 = Range(n_hour_17).Value
+                Sum = Sum + hour_17
+                
+                n_hour_18 = "Y" + Trim(Str(x))
+                hour_18 = Range(n_hour_18).Value
+                Sum = Sum + hour_18
+                
+                n_hour_19 = "Z" + Trim(Str(x))
+                hour_19 = Range(n_hour_19).Value
+                Sum = Sum + hour_19
+                
+                n_hour_20 = "AA" + Trim(Str(x))
+                hour_20 = Range(n_hour_20).Value
+                Sum = Sum + hour_20
+                
+                n_hour_21 = "AB" + Trim(Str(x))
+                hour_21 = Range(n_hour_21).Value
+                Sum = Sum + hour_21
+                
+                n_hour_22 = "AC" + Trim(Str(x))
+                hour_22 = Range(n_hour_22).Value
+                Sum = Sum + hour_22
+                
+                n_hour_23 = "AD" + Trim(Str(x))
+                hour_23 = Range(n_hour_23).Value
+                Sum = Sum + hour_23
+                
+                n_hour_24 = "AE" + Trim(Str(x))
+                hour_24 = Range(n_hour_24).Value
+                Sum = Sum + hour_24
+                
+                n_hour_25 = "AF" + Trim(Str(x))
+                hour_25 = Range(n_hour_25).Value
+                Sum = Sum + hour_25

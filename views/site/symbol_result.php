@@ -43,7 +43,7 @@ use yii\widgets\DetailView;
                 }
             }
             ?>
-            <tr>
+            </tr>
             <tr class="tbl_row">
             <?php
 
@@ -55,6 +55,7 @@ use yii\widgets\DetailView;
             }}
             ?>
             </tr>
+            <tr class="tbl_row">
             <?php
             if(!empty($r)) {
                 //  Отображение раскладки для каждого символа
@@ -65,7 +66,20 @@ use yii\widgets\DetailView;
                     echo('<td align="center">' . $raskl . '</td>');
                 }}
           ?>
-        </tr>
+           </tr>
+           <tr class="tbl_row">
+            <?php
+            if(!empty($r)) {
+                //  Отображение кода каждого символа
+                for($i=0;$i<$kol;$i++) {
+                                                            
+                    $s = mb_substr($r,$i,1,"UTF-8");
+                    $c = uniord($s);  // Получение UTF-8 кода символа
+                    echo('<td align="center">' . $c . '</td>');
+                }}
+          ?>
+           </tr>
+           
     </table>
 
 

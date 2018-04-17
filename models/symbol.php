@@ -12,12 +12,14 @@ use yii\base\Model;
 class Symbol extends Model
 {
     public $str='' ;
+    public $passwd='' ;
 
     
     public function attributeLabels()
     {
         return [
             'str' => 'Введите строку:',
+            'passwd' => 'Введите пароль:',
 
         ];
     }
@@ -27,7 +29,7 @@ class Symbol extends Model
         return [
            
             [['str'], 'required'],
-
+            [['passwd'], 'safe'],
             
         ];
     }

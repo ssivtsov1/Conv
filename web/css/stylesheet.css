@@ -176,6 +176,15 @@ body {
 	border-radius: 10px;
 	float: left;
 }
+#tbl_rez1 {
+	width: 700px;
+	/*padding-top: 40px;*/
+	margin-left: 22%;
+	border: 1px solid #4893ed;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	clear: left;
+}
 .tbl_header {
 	color: white;
 	background-color: #4893ed;
@@ -188,6 +197,12 @@ body {
 	font-family: verdana;
 	font-size: 13px;
 	background: #ededed;
+}
+.tbl_row1 {
+	color: black;
+	font-family: verdana;
+	font-size: 15px;
+	/*background: #ededed;*/
 }
 
 #tbl_rez .tbl_row  td {
@@ -205,6 +220,11 @@ body {
 	border: 1px dotted #4893ed;
 	border-right: none;
 }
+.p_right{
+    clear: both;
+    margin-left: 21%;
+    padding-top: 10px;
+}
 
 .base_head{
 	font-family: verdana;
@@ -217,4 +237,21 @@ body {
 }
 .about{
 	margin-top: 80px;
+}
+.modal_help{
+   /*text-align: center;*/
+   width: 500px;
+}
+.main_blk,.about_site {
+    float: right;
+    margin-right: 30%;
+}
+.clear_fix{
+    margin-bottom: 10px;
+    margin-left: 22%;
+    margin-top: 20px;
+    width:200px;
+    height:40px;
+    clear: both;
+    font-size: 15px;
 }
