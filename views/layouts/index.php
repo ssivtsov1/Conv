@@ -56,10 +56,11 @@ AppAsset::register($this);
                                 ['label' => 'Импорт списка работников во врем. таблицу', 'url' => ['/site/import_list_new']],
                                 ['label' => 'Импорт списка новых работников во врем. таблицу', 'url' => ['/site/import_new']],
                                 ['label' => 'Импорт населенных пунктов Украины в таблицу на MySQL', 'url' => ['/site/import_towns']],
-                                ['label' => 'Импорт отчета Киевстар 03.2018', 'url' => ['/site/import_ks_0318']],
+                                ['label' => 'Импорт отчета Киевстар 04.2018', 'url' => ['/site/import_ks_0418']],
                                 ['label' => 'Импорт таблицы лиценз. работ для 1Click', 'url' => ['/site/import_lic']],
                                 ['label' => 'Импорт таблицы не лиценз. работ для 1Click', 'url' => ['/site/import_notlic']],
                                 ['label' => 'Импорт транспорт 1Click', 'url' => ['/site/import_transport']],
+                                ['label' => 'Импорт MTS в phone', 'url' => ['/site/import_mts']],
                                 
                             ]
                     ],

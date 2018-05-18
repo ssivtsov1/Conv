@@ -76,10 +76,10 @@ class SiteController extends Controller
     }
     
     
-    // Импорт отчета по КиевСтар за март 2018 года для выявления штрафников
-    public function actionImport_ks_0318()
+    // Импорт отчета по КиевСтар за апрель 2018 года для выявления штрафников
+    public function actionImport_ks_0418()
     {
-        $sql = "CREATE TABLE tmp_ks0318 (
+        $sql = "CREATE TABLE tmp_ks0418 (
               tel varchar(10) NOT NULL,
               cost_plan varchar(20) DEFAULT NULL,
               cost_all varchar(10) DEFAULT NULL,
@@ -90,23 +90,23 @@ class SiteController extends Controller
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('Rep0318.csv','r');
+        $f = fopen('Rep0418.csv','r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
+            //if($i==1) continue;
             $data = explode(";",$s);
             
             if(empty($data[0])) break;
             $data[0] = str_replace('"','',$data[0]);
             $data[0] = str_replace('+380','',$data[0]);
-            $data[1] = str_replace('"','',$data[1]);
-            $data[2] = str_replace('"','',$data[2]);
+            $data[3] = str_replace('"','',$data[3]);
+            $data[9] = str_replace('"','',$data[9]);
             $e=1;
              
-                    $sql = "INSERT INTO tmp_ks0318 (tel,cost_plan,cost_all) VALUES(".
-                        "'".$data[0]."'".","."'".$data[1]."'".","."'".$data[2]."'".')';
+                    $sql = "INSERT INTO tmp_ks0418 (tel,cost_plan,cost_all) VALUES(".
+                        "'".$data[0]."'".","."'".$data[3]."'".","."'".$data[9]."'".')';
 
             Yii::$app->db_phone->createCommand($sql)->execute();
         }
@@ -741,6 +741,45 @@ class SiteController extends Controller
             $sql = "INSERT INTO tmp_transport (transport,nomer,prostoy,proezd,rabota) VALUES(".$v.')';
             //echo $sql;
             Yii::$app->db->createCommand($sql)->execute();
+            }
+
+        fclose($f);
+                
+        echo "Інформацію записано";
+     }
+     
+     
+      // Импорт данных по MTS
+    // в справочник телефонов   
+    public function actionImport_mts()
+    {
+       $sql = "CREATE TABLE mts (
+              tel varchar(10) NOT NULL,
+              tarif varchar(80) NOT NULL,
+              fio varchar(80) NOT NULL,
+              post varchar(80) NOT NULL,
+              id int(11) NOT NULL AUTO_INCREMENT,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        Yii::$app->db_phone_loc->createCommand($sql)->execute();
+        $f = fopen('mts.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            if($i==1) continue;
+            $data = explode(",",$s);
+            $tel = $data[0];
+            $tarif = $data[1];
+            $fio = $data[2];
+            $post = $data[3];
+                      
+            $v = "'".$tel."'".","."'".$tarif."'".","."'".$fio."'".","."'".$post."'";
+            
+            if(empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;         
+            
+            $sql = "INSERT INTO mts (tel,tarif,fio,post) VALUES(".$v.')';
+            Yii::$app->db_phone_loc->createCommand($sql)->execute();
             }
 
         fclose($f);
