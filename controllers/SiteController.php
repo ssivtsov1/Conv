@@ -120,13 +120,12 @@ class SiteController extends Controller
        
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('new_list.csv','r');
+        $f = fopen('new_list1.csv','r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
             if($i==1) continue;
-           // if(empty($data[0])) break;
             $data = explode(";",$s);
              $data[1] = str_replace("'",'`',$data[1]);
              $date=date("Y-m-d", strtotime($data[2]));
@@ -467,6 +466,8 @@ class SiteController extends Controller
     // Импорт списка рабочих из файла ОК во врем. табл.
     public function actionImport_list_new()
     {
+        $sql = "DROP TABLE tmp_works";
+        Yii::$app->db_phone_loc->createCommand($sql)->execute();
         $sql = "CREATE TABLE tmp_works (
               tab_nom varchar(255) NOT NULL,
               email varchar(255) DEFAULT NULL,
@@ -484,7 +485,7 @@ class SiteController extends Controller
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('list_new.csv','r');
+        $f = fopen('new_list1.csv','r');
         $i = 0;
         while (!feof($f)) {
             $i++;
@@ -494,33 +495,37 @@ class SiteController extends Controller
             $s=substr($s,1);
             $data = explode(";",$s);
             if(empty($data[0])) break;
-            $data[3] = str_replace('"',' ',$data[3]);
+            $data[5] = str_replace('"',' ',$data[5]);
+            $data[5] = str_replace('i','і',$data[5]);
+            $data[5] = str_replace('c','с',$data[5]);
+            $data[6] = str_replace('i','і',$data[6]);
+            $data[6] = str_replace('c','с',$data[6]);
             $e=1;
             while($e==1)
             {
-                $pos = strpos($data[5], "'");
+                $pos = strpos($data[2], "'");
                 if(!$pos)
                     {$sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
-                        "'".$data[0]."'".","."'".$data[1]."'".","."'".$data[5]."'".","."'".$data[3]."'".","."'".$data[2]."'".
-                        ",".'null'.",".'null'.","."'".$data[4]."'".')';
+                        "'".$data[0]."'".","."'".$data[2]."'".","."'".$data[6]."'".","."'".$data[5]."'".","."'".$data[4]."'".
+                        ",".'null'.",".'null'.","."'".""."'".')';
 
                     }
                 else
                     {$sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
-                        "'".$data[0]."'".",".'"'.$data[1].'"'.","."'".$data[5]."'".","."'".$data[3]."'".","."'".$data[2]."'".
-                        ",".'null'.",".'null'.","."'".$data[4]."'".')';
+                        "'".$data[0]."'".",".'"'.$data[2].'"'.","."'".$data[6]."'".","."'".$data[5]."'".","."'".$data[4]."'".
+                        ",".'null'.",".'null'.","."'".""."'".')';
                      break;
                     }
 
-                $pos = strpos($data[1], "'");
-                if(!$pos)
-                    $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
-                        "'".$data[0]."'".","."'".$data[1]."'".","."'".$data[5]."'".","."'".$data[3]."'".","."'".$data[2]."'".
-                        ",".'null'.",".'null'.","."'".$data[4]."'".')';
-                else
-                    $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
-                        "'".$data[0]."'".",".'"'.$data[1].'"'.","."'".$data[5]."'".",".'"'.$data[3].'"'.","."'".$data[2]."'".
-                        ",".'null'.",".'null'.","."'".$data[4]."'".')';
+//                $pos = strpos($data[1], "'");
+//                if(!$pos)
+//                    $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
+//                        "'".$data[0]."'".","."'".$data[1]."'".","."'".$data[5]."'".","."'".$data[3]."'".","."'".$data[2]."'".
+//                        ",".'null'.",".'null'.","."'".$data[4]."'".')';
+//                else
+//                    $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
+//                        "'".$data[0]."'".",".'"'.$data[1].'"'.","."'".$data[5]."'".",".'"'.$data[3].'"'.","."'".$data[2]."'".
+//                        ",".'null'.",".'null'.","."'".$data[4]."'".')';
                 $e=0;
             }
 
