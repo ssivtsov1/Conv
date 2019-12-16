@@ -1011,7 +1011,8 @@ function gen16($n) {
 
 // Функции для САП
 function f_partner($n_struct,$rem,$v) {
-    $oldkey_const='04_CK'.$rem.'_';
+
+    $oldkey_const='04_C'.$rem.'B_';
         $r = $v['id'];
         $tax_number=trim($v['tax_number']);
         $last_name=$v['last_name'];
@@ -1031,15 +1032,15 @@ function f_partner($n_struct,$rem,$v) {
         if(!empty($tel_number)) $tel_mobile='3';
         else  $tel_mobile='';
 
-        if(empty($tax_number)) {
+        if(empty($tax_number) || is_null($tax_number)) {
             $tax_number=$pasport;
-            $id_type='FS0002';
-        }
+            $id_type='FS0002';}
+
         else{
             $id_type='FS0001';
         }
-
-        if((empty($tax_number) || isnull($tax_number)) && (empty($pasport) || isnull($pasport))) {
+        
+        if((empty($tax_number) || is_null($tax_number)) && (empty($pasport) || is_null($pasport))) {
             $tax_number='~';
             $id_type='~';
         }
@@ -1051,18 +1052,20 @@ function f_partner($n_struct,$rem,$v) {
                     values('$oldkey','$n_struct','1','01','0001','МКК','','00010101','I','','')";
 
         if($n_struct=='EKUN')
-            $z = "insert into sap_ekun(old_key1,dat_type1,fkua_rsd,fkua_ris)
+
+            $z = "insert into sap_ekun(old_key,dat_type1,fkua_rsd,fkua_ris)
                     values('$oldkey','$n_struct','1','3')";
 
         if($n_struct=='BUT000')
-            $z = "insert into sap_but000(old_key2,dat_type2,bu_sort1,bu_sort2,source,augrp,name_last,
+            $z = "insert into sap_but000(old_key,dat_type2,bu_sort1,bu_sort2,source,augrp,name_last,
                                        name_first,xsexm,xsexf,birthdt,namemiddle,xsexu,zprocind)
                     values('$oldkey','$n_struct','$tax_number','~','0006','LED',$$$last_name$$,$$$name_first$$,
                            '~','~','~',$$$namemiddle$$,'X','X')";
 
 
         if($n_struct=='BUT020')
-            $z = "insert into sap_but020(old_key3,dat_type3,adext_addr,chind_addr,city1,post_code1,
+
+            $z = "insert into sap_but020(old_key,dat_type3,adext_addr,chind_addr,city1,post_code1,
                                          post_code2,po_box,street,house_num1,house_num2,str_suppl1,
                                          str_suppl2,roomnumber,region,chind_tel,tel_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
@@ -1071,7 +1074,8 @@ function f_partner($n_struct,$rem,$v) {
                           '$smtp_addr','$tel_mobile','$iuru_pro')";
 
        if($n_struct=='BUT0ID')
-        $z = "insert into sap_but0id(old_key4,dat_type4,idnumber,id_type)
+
+        $z = "insert into sap_but0id(old_key,dat_type4,idnumber,id_type)
                     values('$oldkey','$n_struct','$tax_number','$id_type')";
 
      Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
