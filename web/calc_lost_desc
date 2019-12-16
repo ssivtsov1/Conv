@@ -1,0 +1,383 @@
+-- Function: public.calc_lost_desc(integer)
+
+-- DROP FUNCTION public.calc_lost_desc(integer);
+
+CREATE OR REPLACE FUNCTION public.calc_lost_desc(integer)
+  RETURNS boolean AS
+$BODY$
+Declare
+
+idpnt Alias for $1; -- код точки учета
+
+rs boolean; -- возвращаемое значение, если обнаружена ошибка, то False
+rs1 boolean;
+r record;
+r1 record;
+r2 record;
+r3 record;
+rz record;
+calc_dem record;
+sum_l int;
+abn_l int;
+inres_l int;
+outres_l int;
+idres int;
+test record;
+dcalc int;
+isdouble int;
+
+begin
+  raise notice '+++++++++++++++++++++++calc_lost_desc+++++++++++++++++++++++++++';  
+  raise notice 'start   calc_lost_desc(idpnt)';
+  raise notice 'start  calc_lost_desc(%)',idpnt;
+  select into idres int4(value_ident) from syi_sysvars_tbl where ident='id_res';
+
+  for r in select a.* from act_point_branch_tbl as a 
+  inner join (select id_point,count(*) as cnt from act_losts_eqm_tbl 
+   group by id_point) as b on a.id_point=b.id_point where a.id_p_point=idpnt loop
+     raise notice 'recurs() ';
+     rs1:=calc_lost_desc(r.id_point); 
+  end loop;
+
+  for rz in select distinct d.id_point,d.kind_energy,d.id_zone,d.dat_b,dat_e 
+   from act_pwr_demand_tbl d where d.id_point=idpnt and d.ident<>2 
+   loop 
+
+   select into calc_dem    d.id_point,d.kind_energy,d.dat_b,d.dat_e,
+    count(d.id_point) as calc 
+    from act_pwr_demand_tbl d 
+   where d.id_point=idpnt and d.kind_energy=rz.kind_energy 
+     and d.dat_b=rz.dat_b and d.dat_e=rz.dat_e  and d.ident<>2
+     group by d.id_point,d.kind_energy,d.dat_b,d.dat_e; 
+
+     raise notice 'calc_dem___ d.id_point %,d.kind_energy %,d.dat_b %,d.dat_e %, calc %',calc_dem.id_point,calc_dem.kind_energy,calc_dem.dat_b,calc_dem.dat_e,calc_dem.calc;
+     isdouble=0;
+    select into isdouble count(*) from  act_2point_branch_tbl where id_point=idpnt or id_p_point=idpnt;   
+    if isdouble>0  then
+      raise notice 'isdouble>0  id_pnt =  % ',idpnt; 
+ raise notice 'isdouble++++++++++++++++++++++++++++++++++ '; 
+    
+     update act_pwr_demand_tbl set id_bill=cou,fact_losts=coalesce(fact_losts,0)-coalesce(round(round(k.s_l,0)::int*k.perc,0),0)::int 
+      from 
+           (select k1.*,k2.perc as perc from 
+           (select sum(sum_losts+in_res_losts+abn_losts)/cou*1 as s_l,cou,idpnt as id_point,a.kind_energy as kind_energy,rz.id_zone as id_zone
+             ,a.dat_b as dat_b,a.dat_e as dat_e 
+             from 
+--             act_pwr_demand_tbl as a
+          (select distinct d.*,coalesce(d4.cou,1) as cou from act_pwr_demand_tbl d
+           left join  
+          (select d3.*,d2.cou from  
+          (select id_point,count(*) as cou from act_2point_branch_tbl group by id_point) d2
+         left join (select id_p_point,id_point from  act_2point_branch_tbl ) d3
+         on d2.id_point=d3.id_point 
+        ) d4 on d4.id_point=d.id_point) as a
+        inner join (select * from act_point_branch_tbl where id_p_point=idpnt) as b on a.id_point=b.id_point 
+        where (a.ident<>2 or (a.ident=2 and a.sum_demand=0))
+        group by a.kind_energy,cou,a.dat_b,a.dat_e) as k1 
+       inner join 
+                (select b.*,coalesce(a.perc,1) as perc from 
+        (select rz.id_point as id_point,rz.kind_energy as kind_energy,rz.dat_e as dat_e,rz.dat_b as dat_b 
+                ,rz.id_zone as id_zone ) as b
+       left join 
+        (select a1.id_zone,round(a1.hours::numeric/24,2) as perc        
+         from acd_zone_tbl as a1 where dt_begin=
+          (select max(a11.dt_begin) from acd_zone_tbl as a11 
+            where a11.id_zone=rz.id_zone and a11.dt_begin<rz.dat_e)) as a 
+       on a.id_zone=b.id_zone) as k2
+       on  k1.id_point=k2.id_point and k1.kind_energy=k2.kind_energy and k1.dat_b=k2.dat_b and k1.dat_e=k2.dat_e
+            and k1.id_zone=k2.id_zone) as k
+
+      where act_pwr_demand_tbl.id_point=idpnt 
+       and k.kind_energy=act_pwr_demand_tbl.kind_energy and k.id_zone=act_pwr_demand_tbl.id_zone 
+       and k.dat_b=act_pwr_demand_tbl.dat_b and k.dat_e=act_pwr_demand_tbl.dat_e 
+       and (act_pwr_demand_tbl.ident<>2 or (act_pwr_demand_tbl.ident=2 and act_pwr_demand_tbl.sum_demand=0));
+
+    else
+
+       raise notice 'ELSW isdouble== 0   id_pnt =  % ',idpnt; 
+      update act_pwr_demand_tbl set fact_losts=coalesce(fact_losts,0)-coalesce(round(round(k.s_l,0)::int*k.perc,0),0)::int 
+      from 
+           (select k1.*,k2.perc as perc from 
+           (select sum(sum_losts+in_res_losts+abn_losts) as s_l,idpnt as id_point,a.kind_energy as kind_energy,rz.id_zone as id_zone
+             ,a.dat_b as dat_b,a.dat_e as dat_e 
+             from act_pwr_demand_tbl as a 
+       inner join (select * from act_point_branch_tbl where id_p_point=idpnt) as b on a.id_point=b.id_point 
+        where (a.ident<>2 or (a.ident=2 and a.sum_demand=0))
+        group by a.kind_energy,a.dat_b,a.dat_e) as k1 
+
+      inner join 
+                (select b.*,coalesce(a.perc,1) as perc from 
+        (select rz.id_point as id_point,rz.kind_energy as kind_energy,rz.dat_e as dat_e,rz.dat_b as dat_b 
+                ,rz.id_zone as id_zone ) as b
+       left join 
+        (select a1.id_zone,round(a1.hours::numeric/24,2) as perc        
+         from acd_zone_tbl as a1 where dt_begin=
+          (select max(a11.dt_begin) from acd_zone_tbl as a11 
+            where a11.id_zone=rz.id_zone and a11.dt_begin<rz.dat_e)) as a 
+       on a.id_zone=b.id_zone) as k2
+       on  k1.id_point=k2.id_point and k1.kind_energy=k2.kind_energy and k1.dat_b=k2.dat_b 
+             and (k1.dat_e=k2.dat_e OR (K2.DAT_E- INTERVAL '1 DAY'=k1.dat_e) ) 
+             --k1.dat_e=k2.dat_e 2012-03-19 WAS NO MINUS LOST ABON 
+            and k1.id_zone=k2.id_zone) as k
+        where act_pwr_demand_tbl.id_point=idpnt 
+       and k.kind_energy=act_pwr_demand_tbl.kind_energy and k.id_zone=act_pwr_demand_tbl.id_zone 
+       and k.dat_b=act_pwr_demand_tbl.dat_b and k.dat_e=act_pwr_demand_tbl.dat_e 
+       and (act_pwr_demand_tbl.ident<>2 or (act_pwr_demand_tbl.ident=2 and act_pwr_demand_tbl.sum_demand=0));
+   
+   /*   */
+
+   --    raise notice 'RZ.DAT_B    ________                % ',RZ.DAT_B;
+   --    raise notice 'RZ.DAT_E    ________                % ',RZ.DAT_E;
+       
+      for test in  select k1.*,k2.perc as perc from 
+           (select sum(sum_losts+in_res_losts+abn_losts) as s_l,idpnt as id_point,a.kind_energy as kind_energy,rz.id_zone as id_zone
+             ,a.dat_b as dat_b,a.dat_e as dat_e 
+             from act_pwr_demand_tbl as a 
+       inner join (select * from act_point_branch_tbl where id_p_point=idpnt) as b on a.id_point=b.id_point 
+        where (a.ident<>2 or (a.ident=2 and a.sum_demand=0))
+        group by a.kind_energy,a.dat_b,a.dat_e) as k1 
+
+      inner join 
+                (select b.*,coalesce(a.perc,1) as perc from 
+        (select rz.id_point as id_point,rz.kind_energy as kind_energy,rz.dat_e as dat_e,rz.dat_b as dat_b 
+                ,rz.id_zone as id_zone ) as b
+       left join 
+        (select a1.id_zone,round(a1.hours::numeric/24,2) as perc        
+         from acd_zone_tbl as a1 where dt_begin=
+          (select max(a11.dt_begin) from acd_zone_tbl as a11 
+            where a11.id_zone=rz.id_zone and a11.dt_begin<rz.dat_e)) as a 
+       on a.id_zone=b.id_zone) as k2
+       on  k1.id_point=k2.id_point and k1.kind_energy=k2.kind_energy and k1.dat_b=k2.dat_b 
+          --   and (k1.dat_e=k2.dat_e OR (K2.DAT_E- INTERVAL '1 DAY'=k1.dat_e) )  
+            and k1.id_zone=k2.id_zone loop
+             --raise notice 'test.id_point in      ________     % ,test.s_l %',test.id_point,test.s_l;
+        end loop;
+
+
+      /* */
+
+
+   end if;
+
+  end loop;
+
+  for r1 in select count(*),id_point,kind_energy,dat_b,dat_e from act_pwr_demand_tbl 
+         where id_point=idpnt and (ident<>2 or (ident=2 and sum_demand=0)) 
+         group by id_point,kind_energy,dat_b,dat_e order by  id_point,kind_energy,dat_b,dat_e
+     loop
+
+   select into calc_dem    d.id_point,d.kind_energy,d.dat_b,d.dat_e,
+     count(d.id_point) as calc 
+     from act_pwr_demand_tbl d 
+     where d.id_point=idpnt and d.kind_energy=r1.kind_energy 
+      and d.dat_b=r1.dat_b and d.dat_e=r1.dat_e  and d.ident<>2
+      group by d.id_point,d.kind_energy,d.dat_b,d.dat_e; 
+
+         rs:=clc_lost(r1.id_point,r1.dat_b,r1.dat_e,r1.kind_energy);
+      
+     for r2 in select * from act_pwr_demand_tbl where id_point=r1.id_point and dat_b=r1.dat_b 
+          and dat_e=r1.dat_e and kind_energy=r1.kind_energy loop 
+
+
+     raise notice 'r2.id_point %,r2.kind_energy %, r2.id_zone  %,r2.dat_b %,r2.dat_e %, sum_demand %,fact_demand %,sum_losts %, fact_losts  %',      
+       r2.id_point ,r2.kind_energy ,r2.id_zone ,r2.dat_b ,r2.dat_e , r2.sum_demand ,r2.fact_demand ,r2.sum_losts , r2.fact_losts;
+
+        select into sum_l coalesce(sum(a.dw),0) from act_calc_losts_tbl as a 
+            where id_point=idpnt
+            and res_l=0 and a.dat_b=r1.dat_b and a.dat_e=r1.dat_e 
+            and a.kind_energy=r1.kind_energy 
+            and a.kind_energy=calc_dem.kind_energy
+             and a.dat_b=calc_dem.dat_b
+            and a.dat_e=calc_dem.dat_e
+            and is_use<1 and in_demand<calc_dem.calc;
+            dcalc=0;
+
+            for test in select * from act_calc_losts_tbl  where id_point=idpnt  loop
+             raise notice 'calc sum_l  test.id_point    %   dw  % kind_energy %, in_demand %,  ',test.id_point, test.dw,test.kind_energy,test.in_demand;
+           end loop;
+
+
+       for dcalc in select coalesce(is_use,0) as is_use  
+                 from act_calc_losts_tbl cl,
+                     act_2point_branch_tbl pb 
+                 where cl.id_point=idpnt and cl.dat_b=r1.dat_b and cl.dat_e=r1.dat_e 
+                  and cl.kind_energy=r1.kind_energy and cl.id_point=pb.id_point loop
+           raise notice '_(((((((((((((dcalc )))))))))))  %',dcalc ;
+       end loop; 
+
+       select into isdouble count(*) from  act_2point_branch_tbl where id_point=idpnt or id_p_point=idpnt;   
+       if isdouble>0  then
+         update act_calc_losts_tbl set is_use=coalesce(is_use,0)+1 
+          where id_point=idpnt and   dat_b=r1.dat_b  and dat_e=r1.dat_e;
+       end if;
+
+      update act_pwr_demand_tbl set sum_losts=coalesce(sum_losts,0)+coalesce(round(round(sum_l,0)::int*k.perc,0),0)::int 
+                                 ,fact_losts=coalesce(fact_losts,0)+coalesce(round(round(sum_l,0)::int*k.perc,0),0)::int    
+       from    
+        (select r2.id_zone as id_zone,coalesce(a.perc,1) as perc from 
+         --     (select id_zone,dat_b,dat_e from act_pwr_demand_tbl  
+         --       where id_point=r1.id_point  and dat_b=r1.dat_b and dat_e=r1.dat_e and kind_energy=r1.kind_energy 
+         --      and (ident<>2 or (ident=2 and sum_demand=0))) as b 
+         (select r2.id_zone as id_zone ) as b
+           left join 
+           (select a1.id_zone,round(a1.hours::numeric/24,2) as perc        
+            from acd_zone_tbl as a1 where dt_begin=
+             (select max(a11.dt_begin) from acd_zone_tbl as a11 
+             where a11.id_zone=r2.id_zone and a11.dt_begin<r1.dat_e)) as a 
+           on a.id_zone=b.id_zone) as k
+          where act_pwr_demand_tbl.id_point=r1.id_point and act_pwr_demand_tbl.kind_energy=r1.kind_energy 
+             and act_pwr_demand_tbl.id_zone=k.id_zone 
+             and act_pwr_demand_tbl.dat_b=r1.dat_b and act_pwr_demand_tbl.dat_e=r1.dat_e; 
+           
+     for test in select * from act_pwr_demand_tbl where id_point=50123  loop
+             raise notice 'first upd test.id_point in      ________                % ',test.id_point;
+             raise notice 'first upd test.fact_losts in  ________                % ',test.fact_losts;
+             raise notice 'first upd test.sum_lost in      ________                % ',test.sum_losts;
+             raise notice 'first upd test.out_lost in      ________                % ',test.out_res_losts;
+           end loop;
+
+
+ -- end if;   ???
+/* 
+          for test in select * from  act_calc_losts_tbl  where id_point=idpnt  loop
+             raise notice '1   test.id_point    %    in_demand %    dw  %',test.id_point,test.in_demand, test.dw;
+           end loop;
+        */
+
+
+      /* 
+          for test in select * from  act_calc_losts_tbl  where id_point=idpnt  loop
+             raise notice '1   test.id_point    %    in_demand %    dw  %',test.id_point,test.in_demand, test.dw;
+           end loop;
+        */
+
+
+   select into abn_l coalesce(sum(a.dw),0) from act_calc_losts_tbl as a where id_point=idpnt
+            and res_l=3 and a.dat_b=r1.dat_b and a.dat_e=r1.dat_e 
+            and a.kind_energy=r1.kind_energy 
+            and a.kind_energy=calc_dem.kind_energy
+             and a.dat_b=calc_dem.dat_b
+            and a.dat_e=calc_dem.dat_e
+            and --a.in_demand<=calc_dem.calc;--
+               a.in_demand=0;
+             --raise notice 'abn_l     ________                % ',abn_l;
+
+                                                                                                   --*k.pers OSA 2014-06-03
+   update act_pwr_demand_tbl set abn_losts=coalesce(abn_losts,0)+coalesce(round(round(abn_l,0)::int*1,0),0)::int
+      from    
+        (select r2.id_zone as id_zone,coalesce(a.perc,1) as perc from 
+        (select r2.id_zone as id_zone ) as b
+       left join 
+        (select a1.id_zone,round(a1.hours::numeric/24,2) as perc        
+         from acd_zone_tbl as a1 where dt_begin=
+          (select max(a11.dt_begin) from acd_zone_tbl as a11 
+            where a11.id_zone=r2.id_zone and a11.dt_begin<r1.dat_e)) as a 
+       on a.id_zone=b.id_zone) as k
+      where act_pwr_demand_tbl.id_point=r1.id_point and act_pwr_demand_tbl.kind_energy=r1.kind_energy 
+            and act_pwr_demand_tbl.id_zone=k.id_zone 
+            and act_pwr_demand_tbl.dat_b=r1.dat_b and act_pwr_demand_tbl.dat_e=r1.dat_e; 
+  
+
+   select into inres_l coalesce(sum(a.dw),0) from act_calc_losts_tbl as a 
+             where id_point=idpnt
+            and res_l=1 and a.dat_b=r1.dat_b and a.dat_e=r1.dat_e and a.kind_energy=r1.kind_energy 
+            and a.kind_energy=calc_dem.kind_energy
+             and a.dat_b=calc_dem.dat_b
+            and a.dat_e=calc_dem.dat_e
+            and --a.in_demand<=calc_dem.calc;--
+            a.in_demand=0;            -- raise notice 'inres_l     ________                % ',inres_l;
+                                                                                                       --*k.pers OSA 2014-06-03
+    update act_pwr_demand_tbl set in_res_losts=coalesce(in_res_losts,0)+coalesce(round(round(inres_l,0)::int*1,0),0)::int
+      from    
+        (select r2.id_zone as id_zone,coalesce(a.perc,1) as perc from 
+        (select r2.id_zone as id_zone ) as b
+       left join 
+        (select a1.id_zone,round(a1.hours::numeric/24,2) as perc        
+         from acd_zone_tbl as a1 where dt_begin=
+          (select max(a11.dt_begin) from acd_zone_tbl as a11 
+            where a11.id_zone=r2.id_zone and a11.dt_begin<r1.dat_e)) as a 
+       on a.id_zone=b.id_zone) as k
+      where act_pwr_demand_tbl.id_point=r1.id_point and act_pwr_demand_tbl.kind_energy=r1.kind_energy 
+            and act_pwr_demand_tbl.id_zone=k.id_zone 
+            and act_pwr_demand_tbl.dat_b=r1.dat_b and act_pwr_demand_tbl.dat_e=r1.dat_e; 
+
+
+    select into outres_l coalesce(sum(a.dw),0) from act_calc_losts_tbl as a where id_point=idpnt
+            and res_l=2 and a.dat_b=r1.dat_b and a.dat_e=r1.dat_e and a.kind_energy=r1.kind_energy 
+            and a.kind_energy=calc_dem.kind_energy
+             and a.dat_b=calc_dem.dat_b
+            and a.dat_e=calc_dem.dat_e
+          and --a.in_demand<=calc_dem.calc;--
+          a.in_demand=0;
+
+     --raise notice 'outres_l     ________                % ',outres_l; 
+
+                                                                                                            --*k.pers OSA 2014-06-03
+    update act_pwr_demand_tbl set out_res_losts=coalesce(out_res_losts,0)+coalesce(round(round(outres_l,0)::int*1,0),0)::int
+      from    
+       (select r2.id_zone as id_zone,coalesce(a.perc,1) as perc from 
+        (select r2.id_zone as id_zone ) as b
+       left join 
+        (select a1.id_zone,round(a1.hours::numeric/24,2) as perc        
+         from acd_zone_tbl as a1 where dt_begin=
+          (select max(a11.dt_begin) from acd_zone_tbl as a11 
+            where a11.id_zone=r2.id_zone and a11.dt_begin<r1.dat_e)) as a 
+       on a.id_zone=b.id_zone) as k
+      where act_pwr_demand_tbl.id_point=r1.id_point and act_pwr_demand_tbl.kind_energy=r1.kind_energy 
+            and act_pwr_demand_tbl.id_zone=k.id_zone 
+            and act_pwr_demand_tbl.dat_b=r1.dat_b and act_pwr_demand_tbl.dat_e=r1.dat_e;
+
+    
+  
+      raise notice 'upd in_demand  idpnt %,r1.dat_b  %,r1.dat_e  %, r1.kind_energy %',idpnt,r1.dat_b,r1.dat_e, r1.kind_energy;
+
+           for test in select * from act_calc_losts_tbl  where id_point=idpnt  loop
+             --raise notice '1  test.id_point    %   dw  % kind_energy %, in_demand %',test.id_point, test.dw,test.kind_energy,test.in_demand;
+           end loop;
+
+        update act_calc_losts_tbl set in_demand=in_demand+1 where id_point=idpnt
+           and dat_b=r1.dat_b and dat_e=r1.dat_e and r1.kind_energy=kind_energy;
+          
+           for test in select * from act_calc_losts_tbl  where id_point=idpnt  loop
+             --raise notice '2  test.id_point    %   dw  % kind_energy %, in_demand %',test.id_point, test.dw,test.kind_energy,test.in_demand;
+           end loop;
+
+           
+   for r3 in  select distinct a.id_point,a.id_client,a.id_rclient from act_point_branch_tbl as a 
+          where a.id_point=idpnt and (a.id_client<>a.id_rclient and a.id_rclient=idres )
+   loop
+
+--                   and a.id_rclient=idres
+-- ) 
+         raise notice 'minus lost res lost   id_point  %    id_client %    id_r_client  %',r3.id_point,r3.id_client,r3.id_rclient;
+    ------ потери РЭС с минусом в фактические потери, если учет на стороне РЭС
+     update act_pwr_demand_tbl set fact_losts=coalesce(fact_losts,0)-coalesce(round(round(in_res_losts,0)::int*k.perc,0),0)::int
+      from    
+       (select r2.id_zone as id_zone,coalesce(a.perc,1) as perc from 
+        (select r2.id_zone as id_zone ) as b
+       left join 
+        (select a1.id_zone,round(a1.hours::numeric/24,2) as perc        
+         from acd_zone_tbl as a1 where dt_begin=
+          (select max(a11.dt_begin) from acd_zone_tbl as a11 
+            where a11.id_zone=r2.id_zone and a11.dt_begin<r1.dat_e)) as a 
+       on a.id_zone=b.id_zone) as k
+      where act_pwr_demand_tbl.id_point=r1.id_point and act_pwr_demand_tbl.kind_energy=r1.kind_energy 
+            and act_pwr_demand_tbl.id_zone=k.id_zone 
+            and act_pwr_demand_tbl.dat_b=r1.dat_b and act_pwr_demand_tbl.dat_e=r1.dat_e;
+
+   end loop;
+
+
+
+ end loop;
+end loop;
+raise notice 'end  calc_lost_desc()';
+Return true;
+  
+end;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION public.calc_lost_desc(integer)
+  OWNER TO local;
+

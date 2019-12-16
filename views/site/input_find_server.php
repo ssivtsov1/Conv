@@ -37,7 +37,9 @@ $this->params['breadcrumbs'][] = $this->title;
              <?php
              echo $form->field($model, 'server')->dropDownList([
                 '1' => 'Тестовый',
-                '2' => 'Реальный'],['onchange' => 'show_net($(this).val())']);
+                '2' => 'Реальный',
+                '3' => 'Кол-центр'
+             ],['onchange' => 'show_net($(this).val())']);
                 
                  
              echo $form->field($model, 'net')->dropDownList([

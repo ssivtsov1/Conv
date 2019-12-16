@@ -6,6 +6,397 @@ function debug($var)
     print_r($var);
     echo '</pre>';
 }
+// Удаление определенных символов из строки
+function del_symb($s)
+{
+    $s=str_replace('нн','',$s);
+    $s=str_replace('сс','',$s);
+//    $s=str_replace(',','.',$s);
+    $y=mb_strlen($s,"UTF-8");
+
+    $s=mb_strtolower($s,"UTF-8");
+    $ss='';
+    $j=0;
+
+    $pos1 = strpos($s, '(');
+    $p1=0;
+    if (!$pos1 === false) {
+        $p1=1;
+    }
+    $pos2 = strpos($s, ')');
+    $p2=0;
+    if (!$pos2 === false) {
+        $p2=1;
+    }
+    $p=$p1*$p2;
+
+    $let=0;
+    for($i=0;$i<$y;$i++)
+    {
+      $flag = 0;
+      $c=mb_substr($s,$i,1,"UTF-8");
+      if($c==')') $let=0;
+
+          if ($c == '(' && $p==1) $let = 1;
+          if (($c >= 'a' && $c<='z') || ($c >= 'A' && $c<='Z')) $flag = 1;
+
+//        echo $c;
+          switch ($c) {
+              case 'а':
+                  $flag = 1;
+                  break;
+              case 'о':
+                  $flag = 1;
+                  break;
+              case 'и':
+                  $flag = 1;
+                  break;
+              case 'е':
+                  $flag = 1;
+                  break;
+              case 'ё':
+                  $flag = 1;
+                  break;
+              case 'ы':
+                  $flag = 1;
+                  break;
+              case 'у':
+                  $flag = 1;
+                  break;
+              case 'ю':
+                  $flag = 1;
+                  break;
+              case 'я':
+                  $flag = 1;
+                  break;
+              case 'і':
+                  $flag = 1;
+                  break;
+              case 'є':
+                  $flag = 1;
+                  break;
+              case 'э':
+                  $flag = 1;
+                  break;
+              case ' ':
+                  $flag = 1;
+                  break;
+              case '_':
+                  $flag = 1;
+                  break;
+              case '№':
+                  $flag = 1;
+                  break;
+              case '%':
+                  $flag = 1;
+                  break;
+              case '!':
+                  $flag = 1;
+                  break;
+              case ';':
+                  $flag = 1;
+                  break;
+              case ':':
+                  $flag = 1;
+                  break;
+              case '#':
+                  $flag = 1;
+                  break;
+              case '$':
+                  $flag = 1;
+                  break;
+              case '^':
+                  $flag = 1;
+                  break;
+              case '&':
+                  $flag = 1;
+                  break;
+              case '*':
+                  $flag = 1;
+                  break;
+              case '(':
+                  $flag = 1;
+                  break;
+              case ')':
+                  $flag = 1;
+                  break;
+              case '[':
+                  $flag = 1;
+                  break;
+              case ']':
+                  $flag = 1;
+                  break;
+              case '{':
+                  $flag = 1;
+                  break;
+              case '}':
+                  $flag = 1;
+                  break;
+              case '<':
+                  $flag = 1;
+                  break;
+              case '>':
+                  $flag = 1;
+                  break;
+              case '?':
+                  $flag = 1;
+                  break;
+              case '/':
+                  $flag = 1;
+                  break;
+              case '~':
+                  $flag = 1;
+                  break;
+              case '"':
+                  $flag = 1;
+                  break;
+              case "'":
+                  $flag = 1;
+                  break;
+              case 'ї':
+                  $flag = 1;
+                  break;
+              case '|':
+                  $flag = 1;
+                  break;
+              case "\\":
+                  $flag = 1;
+                  break;
+              case "-":
+                  $flag = 1;
+                  break;
+              case "+":
+                  $flag = 1;
+                  break;
+              case "x":
+                  $flag = 1;
+                  break;
+              case "=":
+                  $flag = 1;
+                  break;
+          }
+          if ($flag == 0 && $let==0) {
+
+              $ss = $ss . $c;
+              $a[$j] = $c;
+              $j++;
+          }
+
+    }
+    if($j>0)
+        sort($a);
+    else
+        $a=[];
+//  echo $ss;
+    return  implode('',$a);
+}
+
+// Удаление определенных символов из строки
+function del_symb1($s)
+{
+    $s=str_replace('нн','',$s);
+    $s=str_replace('сс','',$s);
+
+    $s=str_replace(',','',$s);
+    $y=mb_strlen($s,"UTF-8");
+
+    $s=mb_strtolower($s,"UTF-8");
+    $s=str_replace('кррем','',$s);
+    $s=str_replace('інрем','',$s);
+    $s=str_replace('жврем','',$s);
+    $s=str_replace('днрем','',$s);
+    $s=str_replace('вгрем','',$s);
+    $s=str_replace('пврем','',$s);
+    $s=str_replace('гврем','',$s);
+    $s=str_replace('апрем','',$s);
+    $s=str_replace('зпрем','',$s);
+    $s=str_replace('днрэс','',$s);
+    $s=str_replace('инрэс','',$s);
+    $s=str_replace('кррэс','',$s);
+    $s=str_replace('жврэс','',$s);
+    $s=str_replace('стіл','',$s);
+    $s=str_replace('спс','',$s);
+    $s=str_replace('сдізп','',$s);
+    $s=str_replace('промбаза','',$s);
+    $s=str_replace('стп','',$s);
+    $s=str_replace('ситис','',$s);
+    $s=str_replace('дільниця гвард. пврем','',$s);
+    $ss='';
+    $j=0;
+
+    $pos1 = strpos($s, '(');
+    $p1=0;
+    if (!$pos1 === false) {
+        $p1=1;
+    }
+    $pos2 = strpos($s, ')');
+    $p2=0;
+    if (!$pos2 === false) {
+        $p2=1;
+    }
+    $p=$p1*$p2;
+
+    $let=0;
+    for($i=0;$i<$y;$i++)
+    {
+        $flag = 0;
+        $c=mb_substr($s,$i,1,"UTF-8");
+        if($c==')') $let=0;
+
+        if ($c == '(' && $p==1) $let = 1;
+       // if (($c >= 'a' && $c<='z') || ($c >= 'A' && $c<='Z')) $flag = 1;
+
+//        echo $c;
+        switch ($c) {
+            case 'а':
+                $flag = 1;
+                break;
+            case 'о':
+                $flag = 1;
+                break;
+            case 'и':
+                $flag = 1;
+                break;
+            case 'е':
+                $flag = 1;
+                break;
+            case 'ё':
+                $flag = 1;
+                break;
+            case 'ы':
+                $flag = 1;
+                break;
+            case 'у':
+                $flag = 1;
+                break;
+            case 'ю':
+                $flag = 1;
+                break;
+            case 'я':
+                $flag = 1;
+                break;
+            case 'і':
+                $flag = 1;
+                break;
+            case 'є':
+                $flag = 1;
+                break;
+            case 'э':
+                $flag = 1;
+                break;
+            case ' ':
+                $flag = 1;
+                break;
+            case '_':
+                $flag = 1;
+                break;
+            case '№':
+                $flag = 1;
+                break;
+            case '%':
+                $flag = 1;
+                break;
+            case '!':
+                $flag = 1;
+                break;
+            case ';':
+                $flag = 1;
+                break;
+            case ':':
+                $flag = 1;
+                break;
+            case '#':
+                $flag = 1;
+                break;
+            case '$':
+                $flag = 1;
+                break;
+            case '^':
+                $flag = 1;
+                break;
+            case '&':
+                $flag = 1;
+                break;
+            case '*':
+                $flag = 1;
+                break;
+            case '(':
+                $flag = 1;
+                break;
+            case ')':
+                $flag = 1;
+                break;
+            case '[':
+                $flag = 1;
+                break;
+            case ']':
+                $flag = 1;
+                break;
+            case '{':
+                $flag = 1;
+                break;
+            case '}':
+                $flag = 1;
+                break;
+            case '<':
+                $flag = 1;
+                break;
+            case '>':
+                $flag = 1;
+                break;
+            case '?':
+                $flag = 1;
+                break;
+            case '/':
+                $flag = 1;
+                break;
+            case '~':
+                $flag = 1;
+                break;
+            case '"':
+                $flag = 1;
+                break;
+            case "'":
+                $flag = 1;
+                break;
+            case 'ї':
+                $flag = 1;
+                break;
+            case '|':
+                $flag = 1;
+                break;
+            case "\\":
+                $flag = 1;
+                break;
+            case "-":
+                $flag = 1;
+                break;
+            case "+":
+                $flag = 1;
+                break;
+            case "x":
+                $flag = 1;
+                break;
+            case "=":
+                $flag = 1;
+                break;
+        }
+        if ($flag == 0 && $let==0) {
+
+            $ss = $ss . $c;
+            $a[$j] = $c;
+            $j++;
+        }
+
+    }
+    if($j>0)
+        sort($a);
+    else
+        $a=[];
+//  echo $ss;
+    return  implode('',$a);
+}
+
 
 function Arr2Tab($arr,$tab){
     $db = new sqlite_db("db.sqlite");
@@ -592,5 +983,102 @@ function str_decode($r,$shift,$type=0) {
         }
         return $s;
     }
+
+function translit($s) {
+    $s = (string) $s; // преобразуем в строковое значение
+    $s = strip_tags($s); // убираем HTML-теги
+    $s = str_replace(array("\n", "\r"), " ", $s); // убираем перевод каретки
+    $s = preg_replace("/\s+/", ' ', $s); // удаляем повторяющие пробелы
+    $s = trim($s); // убираем пробелы в начале и конце строки
+   // $s = function_exists('mb_strtolower') ? mb_strtolower($s) : strtolower($s); // переводим строку в нижний регистр (иногда надо задать локаль)
+    $s = strtr($s, array('а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'e','ж'=>'j','з'=>'z','и'=>'i','і'=>'i','й'=>'y','к'=>'k','л'=>'l','м'=>'m','н'=>'n','о'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u','ф'=>'f','х'=>'h','ц'=>'c','ч'=>'ch','ш'=>'sh','щ'=>'shch','ы'=>'y','э'=>'e','ю'=>'yu','я'=>'ya','ъ'=>'','ь'=>'','.'=>'.'));
+    $s = strtr($s, array('А'=>'A','Б'=>'B','В'=>'V','Г'=>'G','Д'=>'D','Е'=>'E','ё'=>'E','Ж'=>'J','З'=>'Z','И'=>'I','І'=>'I','Й'=>'Y','К'=>'K','Л'=>'L','М'=>'M','Н'=>'N','О'=>'O','П'=>'P','Р'=>'R','С'=>'S','Т'=>'T','У'=>'U','Ф'=>'F','Х'=>'H','Ц'=>'C','Ч'=>'Ch','Ш'=>'Sh','Щ'=>'Shch','Ы'=>'Y','Э'=>'E','Ю'=>'Yu','Я'=>'Ya','Ъ'=>'','Ь'=>'','.'=>'.'));
+//    $s = preg_replace("/[^0-9a-z-_ ]/i", "", $s); // очищаем строку от недопустимых символов
+//    $s = str_replace(" ", "-", $s); // заменяем пробелы знаком минус
+    return $s; // возвращаем результат
+}
+
+// Генерация n-битного 16 ричного случайного числа
+function gen16($n) {
+    $res='';
+    for($i=0;$i<$n;$i++){
+        $r=rand(0,15);
+        $r= base_convert($r, 10, 16);
+        $res.=$r;
+    }
+    return $res;
+}
+
+// Функции для САП
+function f_partner($n_struct,$rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+        $r = $v['id'];
+        $tax_number=trim($v['tax_number']);
+        $last_name=$v['last_name'];
+        $name_first=$v['name'];
+        $namemiddle=$v['patron_name'];
+        $town=$v['town'];
+        $post_code1=$v['indx'];
+        $street = $v['street'];
+        $house_num1 =$v['house'];
+        $roomnumber=$v['flat'];
+        $region=$v['region'];
+        $tel_number=$v['mob_phone'];
+        $smtp_addr=$v['e_mail'];
+        $iuru_pro=$v['kod_reg'];
+        $pasport=$v['pasport'];
+
+        if(!empty($tel_number)) $tel_mobile='3';
+        else  $tel_mobile='';
+
+        
+        if(empty($tax_number) || is_null($tax_number)) {
+            $tax_number=$pasport;
+            $id_type='FS0002';}
+
+        else{
+            $id_type='FS0001';
+        }
+        
+        if((empty($tax_number) || is_null($tax_number)) && (empty($pasport) || is_null($pasport))) {
+            $tax_number='~';
+            $id_type='~';
+        }
+
+        $oldkey = $oldkey_const . $r;
+
+        if($n_struct=='INIT')
+                $z = "insert into sap_init(old_key,dat_type,bu_type,bu_group,bpkind,role1,role2,valid_from_1,chind_1,valid_from_2,chind_2)
+                    values('$oldkey','$n_struct','1','01','0001','МКК','','00010101','I','','')";
+
+        if($n_struct=='EKUN')
+            $z = "insert into sap_ekun(old_key,dat_type1,fkua_rsd,fkua_ris)
+                    values('$oldkey','$n_struct','1','3')";
+
+        if($n_struct=='BUT000')
+            $z = "insert into sap_but000(old_key,dat_type2,bu_sort1,bu_sort2,source,augrp,name_last,
+                                       name_first,xsexm,xsexf,birthdt,namemiddle,xsexu,zprocind)
+                    values('$oldkey','$n_struct','$tax_number','~','0006','LED',$$$last_name$$,$$$name_first$$,
+                           '~','~','~',$$$namemiddle$$,'X','X')";
+
+
+        if($n_struct=='BUT020')
+            $z = "insert into sap_but020(old_key,dat_type3,adext_addr,chind_addr,city1,post_code1,
+                                         post_code2,po_box,street,house_num1,house_num2,str_suppl1,
+                                         str_suppl2,roomnumber,region,chind_tel,tel_number,chind_smtp,
+                                         smtp_addr,tel_mobile,iuru_pro)
+                    values('$oldkey','$n_struct','$r','I','$town','$post_code1','~','~','$street',
+                          '$house_num1','~','~','~','$roomnumber','$region','I','$tel_number','I',
+                          '$smtp_addr','$tel_mobile','$iuru_pro')";
+
+       if($n_struct=='BUT0ID')
+        $z = "insert into sap_but0id(old_key,dat_type4,idnumber,id_type)
+                    values('$oldkey','$n_struct','$tax_number','$id_type')";
+
+     Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
+
+}
+
+
 
 ?>
