@@ -1011,7 +1011,8 @@ function gen16($n) {
 
 // Функции для САП
 function f_partner($n_struct,$rem,$v) {
-
+    // Это комментарий для git
+    // Видишь Егор все работает.
     $oldkey_const='04_C'.$rem.'B_';
         $r = $v['id'];
         $tax_number=trim($v['tax_number']);
