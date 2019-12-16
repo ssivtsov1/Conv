@@ -1,0 +1,134 @@
+-- Function: public.up_pnt(integer, integer, date, date)
+
+-- DROP FUNCTION public.up_pnt(integer, integer, date, date);
+
+CREATE OR REPLACE FUNCTION public.up_pnt(
+    integer,
+    integer,
+    date,
+    date)
+  RETURNS boolean AS
+$BODY$
+
+Declare
+
+id_eqp Alias for $1;
+
+id_deqp Alias for $2;
+
+dtb Alias for $3;
+
+dte Alias for $4;
+
+r record;
+
+rs boolean;
+
+pnt int;
+
+cnt int;
+
+begin
+
+pnt:=id_deqp;
+
+
+
+  -- Raise Notice '-   find p point, eqp %',id_eqp;
+
+
+
+for r in select code_eqp,id_p_eqp,id_client,id_rclient,type_eqp,line_no
+
+   ,case when dat_b<=dtb then dtb else dat_b end as dat_b
+
+   ,case when dat_e>=dte then dte else dat_e end as dat_e 
+
+   ,id_tree
+
+   from act_eqp_branch_tbl where code_eqp=id_eqp and dat_b<dte 
+
+   and dat_e>dtb and line_no=0 order by code_eqp,line_no
+
+
+
+loop
+
+
+
+   select into cnt count(*) from act_point_branch_tbl where 
+
+    id_point=r.code_eqp and dat_b<=r.dat_b and dat_e>=r.dat_e;
+
+
+
+if cnt>0  then
+
+if r.line_no<>0 then
+
+ Raise Notice ' ***************** cnt % ',cnt;
+
+ Raise Notice 'dtb % ',dtb;
+
+ Raise Notice '- - - find p point, eqp %',r.id_p_eqp;
+
+ Raise Notice '- - - find point, eqp %',r.code_eqp;
+
+ Raise Notice '- - - idcl % idrcl %',r.id_client,r.id_rclient;
+
+end if;
+
+end if;
+
+
+
+ 
+
+   if r.type_eqp=12 then
+
+    if cnt<=0 then
+
+     insert into act_point_branch_tbl(id_point,id_p_point,dat_b,dat_e,id_client
+
+      ,id_rclient,id_tree) 
+
+     values(r.code_eqp,null,r.dat_b,r.dat_e,r.id_client,r.id_rclient,r.id_tree); 
+
+   end if;
+
+
+
+   if r.line_no=0 then
+
+     Raise Notice '-  upd  p point, eqp %  p_eqp %',id_eqp,id_deqp;
+
+    update act_point_branch_tbl set id_p_point=id_eqp where id_point=id_deqp; 
+
+   end if;
+
+    pnt:=id_eqp;
+
+  end if;
+
+  if r.id_p_eqp is not null then  
+
+    rs:=up_pnt(r.id_p_eqp,pnt,r.dat_b,r.dat_e);
+
+  end if; 
+
+end loop;
+
+
+
+
+
+Return true;
+
+end;
+
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION public.up_pnt(integer, integer, date, date)
+  OWNER TO local;
+

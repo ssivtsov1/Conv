@@ -70,6 +70,16 @@ class Input_find_server extends Model
                 where table_schema='public'
                 and data_type='character varying' and character_maximum_length>=".$len.
                  ' order by 1';
+
+             if($this->server==3)
+                 $sql = "select table_name, column_name 
+                from information_schema.columns 
+                where table_schema='public'
+                 and data_type='text' --and character_maximum_length>=5
+                 and table_name not like 'f_%' and table_name not in('ProfileData','Sessions','v_accident')
+                
+                        order by 1";
+
          
          }
         
@@ -293,6 +303,13 @@ class Input_find_server extends Model
              }
              }
         }
+
+         if($this->server==3) { // Поиск на сервере Кол-центра
+
+             $f=fopen('aaa',"w+");
+             fputs($f,$sql);
+             $data = \Yii::$app->db_pg_call->createCommand($sql)->queryAll();
+         }
          
          if($this->fwhere==1)
          {
@@ -328,7 +345,17 @@ class Input_find_server extends Model
                         $sql = "select ".$col." from ".$tab." where ".$col." in (".$s.')';
                 } 
              }
-             
+
+//             debug($sql);
+//             return;
+
+                if($this->server==3) { // Поиск на сервере Кол-центра
+
+                    $f=fopen('aaa',"w+");
+                    fputs($f,$sql);
+                    $data_f = \Yii::$app->db_pg_call->createCommand($sql)->queryAll();
+                }
+
              if($this->server==1) { // Поиск на тестовом сервере
              if($this->net==1) {
              if($this->db==2){

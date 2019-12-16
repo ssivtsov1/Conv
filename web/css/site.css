@@ -225,3 +225,19 @@ width: 220px;
     background-size:100% 770px;
     overflow: hidden;
 }
+
+.field-addquestions-a1,
+.field-addquestions-a2,
+.field-addquestions-a3,
+.field-addquestions-a4,
+.field-addquestions-a5 {
+    float: left;
+}
+
+#addquestions-c1,
+#addquestions-c2,
+#addquestions-c3,
+#addquestions-c4,
+#addquestions-c5 {
+    margin-top: 30px;
+}

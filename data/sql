@@ -3,3 +3,274 @@ SET a.stavka_grn=b.stavka,a.time_transp=b.time_transp
 WHERE trim(a.work)=trim(b.work) and trim(a.brig)=trim(b.brig)
 
 select distinct brig from costwork order by 1 
+
+Уволенные
+SELECT * FROM `1c` WHERE
+ tab_nom<1840 and trim(tab_nom) not in (select trim(tab_nom) as tab_nom from tmp_works where tab_nom<1840)
+
+Новые сотрудники
+select * from tmp_works where tab_nom>=1840 and fio not in (select fio from 1c) order by tab_nom 
+
+сотрудники переоформленные
+select * from tmp_works where tab_nom>=1840 and fio in (select fio from 1c) order by tab_nom
+
+--- 15.01.2019 ------------
+
+select s.doc_num, trim(s.okpo_num) as okpo_num,c.*,s.doc_dat,s.phone,s.inspector, s.operator, s.tax_num,s.flag_taxpay,
+                s.flag_budjet,s.licens_num,s.flag_ed,s.flag_jur, s.fl_cabinet,
+                a.adr::varchar,a.dom_reg,
+                define_geo(a.dom_reg,1) as obl, define_geo(a.dom_reg,2) as region,define_geo(a.adr,0) as type_town,
+                define_geo(a.adr,3) as town,define_geo(a.adr,4) as street,define_geo(a.adr,5) as name_street,
+                define_geo(a.adr,6) as house,define_geo(a.adr,7) as flat,case when length(trim(substr(a.full_adr,1,5)))=5 then trim(substr(a.full_adr,1,5)) else '' end as zip,
+                cast(trim(define_geo(a.dom_reg,1)) as varchar) as oblast,o.smb as kod_obl
+                 from clm_client_tbl c 
+                 left join (select s.id,s.id_client,s.okpo_num,s.doc_num,s.doc_dat,s.id_position,
+                 s.phone, s.fl_cabinet , tax_num,flag_taxpay,flag_budjet,licens_num, p.represent_name as inspector,
+                  pp.represent_name as operator, s.flag_ed,s.flag_jur 
+                  from clm_statecl_tbl s 
+                  left join clm_position_tbl p on (s.id_position=p.id) 
+                  left join clm_position_tbl pp on (s.id_kur=pp.id) ) s on (s.id_client=c.id)
+                  left join adv_address_tbl a on c.id_addres=a.id
+                  left join _obl o on o.name like '%'||cast(trim(define_geo(a.dom_reg,1)) as varchar)||'%'
+                   where ((book<0) AND id_state<>50 and c.id_state<>99
+                  and idk_work<>0 and c.name not like '%Населення%' and c.name not like '%население%' and trim(okpo_num)<>'0' and trim(okpo_num)<>'000000000') or (c.id=getsysvarn('id_res') 
+                  or c.id=999999999 or c.id=getsysvarn('id_chnoe')) 
+                   --and c.name not like '%населення%'
+                  order by book,code
+
+create table _obl(smb varchar,name varchar)     
+
+insert into _obl(smb,name)
+select 'VIN','Вінницька'
+
+delete from _obl
+
+
+---------------------------------- 16.01.19 ---------------------------------
+
+select s.doc_num, trim(s.okpo_num) as okpo_num,c.*,s.doc_dat,s.phone,substr(del_symb(s.phone,1),1,10) as phone_c,def_tel(substr(del_symb(s.phone,1),1,10),1) as priz_mob,s.inspector, s.operator, trim(s.tax_num) as tax_num,s.flag_taxpay,
+                s.flag_budjet,s.licens_num,s.flag_ed,s.flag_jur, s.fl_cabinet,
+                a.adr::varchar,a.dom_reg,
+                define_geo(a.dom_reg,1) as obl, define_geo(a.dom_reg,2) as region,define_geo(a.adr,0) as type_town,
+                define_geo(a.adr,3) as town,define_geo(a.adr,4) as street,define_geo(a.adr,5) as name_street,
+                define_geo(a.adr,6) as house,define_geo(a.adr,7) as flat,trim(substr(a.full_adr,1,5))  as zip,
+                cast(trim(define_geo(a.dom_reg,1)) as varchar) as oblast,o.smb as kod_obl,r.id as kod_region,
+                case when c.name like 'Фізична%' then '03' else '02' end as bu_group
+                 from clm_client_tbl c 
+                 left join (select s.id,s.id_client,s.okpo_num,s.doc_num,s.doc_dat,s.id_position,
+                 s.phone, s.fl_cabinet , tax_num,flag_taxpay,flag_budjet,licens_num, p.represent_name as inspector,
+                  pp.represent_name as operator, s.flag_ed,s.flag_jur 
+                  from clm_statecl_tbl s 
+                  left join clm_position_tbl p on (s.id_position=p.id) 
+                  left join clm_position_tbl pp on (s.id_kur=pp.id) ) s on (s.id_client=c.id)
+                  left join adv_address_tbl a on c.id_addres=a.id
+                  left join _obl o on o.name like '%'||cast(trim(define_geo(a.dom_reg,1)) as varchar)||'%'
+		left join _region r on r.name_obl like '%'||cast(trim(define_geo(a.dom_reg,1)) as varchar)||'%' and case when trim(r.name) like 'Дніпровський%' then 'Дніпропетровський' else r.name end like '%'||cast(trim(define_geo(a.dom_reg,2)) as varchar)||'%'
+                   where ((book<0) AND id_state<>50 and c.id_state<>99
+                  and idk_work<>0 and c.name not like '%Населення%' and c.name not like '%население%' and trim(okpo_num)<>'0' and trim(okpo_num)<>'000000000') or (c.id=getsysvarn('id_res') 
+                  or c.id=999999999 or c.id=getsysvarn('id_chnoe')) 
+                   --and c.name not like '%населення%'
+                  order by book,code
+
+------- 17/01/2019 ----------------
+Sub Energo_data()
+    Application.ScreenUpdating = 0
+    Sheets("askoe").Select
+    'Worksheets(2).Activate
+    'Set WS1 = ActiveSheet
+    'WS1.Activate
+    ' Ecaeaeaai ec eieiiee B1 (eiia?iay aaoa) - aaiu, ianyo e aia
+    'n_day = "B1"
+    'ddate = Trim(Range(n_day).Value)
+    'pos = InStr(1, ddate, ".", vbTextCompare)
+   ' dday = Mid(ddate, 1, pos - 1)
+    'orig_dday = dday
+   ' first = Mid(dday, 1, 1)
+   ' If first = "0" Then dday = Mid(dday, 2, 1)
+   ' ddate = Mid(ddate, pos + 1)
+   ' pos = InStr(1, ddate, ".", vbTextCompare)
+   ' dmonth = Mid(ddate, 1, pos - 1)
+   ' dyear = Mid(ddate, pos + 1)
+       
+    ' I?iaa?ea ia iaee?ea eenoa n iiia?ii ?enea aiy (ia?aiaiiay dday)
+    ' - yoi i?iaa?ea ia oieeaeuiinou ?enea a iacaaieyo eenoia
+    'Worksheets(2).Activate
+    flag_lst = 0
+   ' Dim i As Integer
+   ' For i = Worksheets.Count To 2 Step -1
+    '    If Worksheets(i).Name = dday Then flag_lst = 1
+   ' Next i
+  
+    
+    'Workbooks.Open Filename:="E:\askoe.xls"
+    'Set WS2 = ActiveSheet
+    Dim x As Integer
+    Dim y As Integer
+      ' Ii?iaeecaoey eieiiee n iacaaieai o?ainoi?iaoi?iie iianoaioee
+      NumRows = Cells(Rows.Count, 1).End(xlUp).Row
+      Range("A1").Select
+      For x = 2 To NumRows + 1
+         'Worksheets(2).Activate
+         Sheets("askoe").Select
+         n1 = "B" + Trim(str(x))
+         code1 = Trim(Range(n1).Value)
+         strS1 = InStr(strText, " ")
+       
+        'Neeaeaaai eoiaiao? no?i?eo
+         code1 = Mid(code1, 1, Len(code1))
+         If Len(code1) > 0 Then code1 = Mid(code1, 2, Len(code1) - 2)
+         'code1 = delstr(code1, Chr(160), "")
+        
+         n2 = "C" + Trim(str(x))
+         code2 = Trim(Range(n2).Value)
+         If Len(code2) > 0 Then code2 = Mid(code2, 2, Len(code2) - 2)
+         'code2 = delstr(code2, Chr(160), "")
+         If code2 = "190000" Then
+            q = 1
+         End If
+         
+         
+         
+         ' Caiiieiaai aaiiua ca ea?aue ?an
+         c1 = "E" + Trim(str(x))
+         h1 = Range(c1).Value
+         c2 = "F" + Trim(str(x))
+         h2 = Range(c2).Value
+         c3 = "G" + Trim(str(x))
+         h3 = Range(c3).Value
+         c4 = "H" + Trim(str(x))
+         h4 = Range(c4).Value
+         c5 = "I" + Trim(str(x))
+         h5 = Range(c5).Value
+         c6 = "J" + Trim(str(x))
+         h6 = Range(c6).Value
+         c7 = "K" + Trim(str(x))
+         h7 = Range(c7).Value
+         c8 = "L" + Trim(str(x))
+         h8 = Range(c8).Value
+         c9 = "M" + Trim(str(x))
+         h9 = Range(c9).Value
+         c10 = "N" + Trim(str(x))
+         h10 = Range(c10).Value
+         c11 = "O" + Trim(str(x))
+         h11 = Range(c11).Value
+         c12 = "P" + Trim(str(x))
+         h12 = Range(c12).Value
+         c13 = "Q" + Trim(str(x))
+         h13 = Range(c13).Value
+         c14 = "R" + Trim(str(x))
+         h14 = Range(c14).Value
+         c15 = "S" + Trim(str(x))
+         h15 = Range(c15).Value
+         c16 = "T" + Trim(str(x))
+         h16 = Range(c16).Value
+         c17 = "U" + Trim(str(x))
+         h17 = Range(c17).Value
+         c18 = "V" + Trim(str(x))
+         h18 = Range(c18).Value
+         c19 = "W" + Trim(str(x))
+         h19 = Range(c19).Value
+         c20 = "X" + Trim(str(x))
+         h20 = Range(c20).Value
+         c21 = "Y" + Trim(str(x))
+         h21 = Range(c21).Value
+         c22 = "Z" + Trim(str(x))
+         h22 = Range(c22).Value
+         c23 = "AA" + Trim(str(x))
+         h23 = Range(c23).Value
+         c24 = "AB" + Trim(str(x))
+         h24 = Range(c24).Value
+         c25 = "AC" + Trim(str(x))
+         h25 = Range(c25).Value
+         
+         'Worksheets(3).Activate
+         Sheets("GRAFIK").Select
+         Range("A1").Select
+         NumRows_1 = Cells(Rows.Count, 1).End(xlUp).Row
+         For y = 3 To NumRows_1 + 1
+         n1_1 = "D" + Trim(str(y))
+         code1_1 = Trim(Range(n1_1).Value)
+         n2_1 = "E" + Trim(str(y))
+         code2_1 = Trim(Range(n2_1).Value)
+         
+         'Caiieiyai aaiiua i?e niaiaaaiee eiaia
+         If code1 = code1_1 And code2 = code2_1 Then
+            c1_1 = "G" + Trim(str(y))
+            Range(c1_1).Value = h1
+            c2_1 = "H" + Trim(str(y))
+            Range(c2_1).Value = h2
+            c3_1 = "I" + Trim(str(y))
+            Range(c3_1).Value = h3
+            c4_1 = "J" + Trim(str(y))
+            Range(c4_1).Value = h4
+            c5_1 = "K" + Trim(str(y))
+            Range(c5_1).Value = h5
+            c6_1 = "L" + Trim(str(y))
+            Range(c6_1).Value = h6
+            c7_1 = "M" + Trim(str(y))
+            Range(c7_1).Value = h7
+            c8_1 = "N" + Trim(str(y))
+            Range(c8_1).Value = h8
+            c9_1 = "O" + Trim(str(y))
+            Range(c9_1).Value = h9
+            c10_1 = "P" + Trim(str(y))
+            Range(c10_1).Value = h10
+            c11_1 = "Q" + Trim(str(y))
+            Range(c11_1).Value = h11
+            c12_1 = "R" + Trim(str(y))
+            Range(c12_1).Value = h12
+            c13_1 = "S" + Trim(str(y))
+            Range(c13_1).Value = h13
+            c14_1 = "T" + Trim(str(y))
+            Range(c14_1).Value = h14
+            c15_1 = "U" + Trim(str(y))
+            Range(c15_1).Value = h15
+            c16_1 = "V" + Trim(str(y))
+            Range(c16_1).Value = h16
+            c17_1 = "W" + Trim(str(y))
+            Range(c17_1).Value = h17
+            c18_1 = "X" + Trim(str(y))
+            Range(c18_1).Value = h18
+            c19_1 = "Y" + Trim(str(y))
+            Range(c19_1).Value = h19
+            c20_1 = "Z" + Trim(str(y))
+            Range(c20_1).Value = h20
+            c21_1 = "AA" + Trim(str(y))
+            Range(c21_1).Value = h21
+            c22_1 = "AB" + Trim(str(y))
+            Range(c22_1).Value = h22
+            c23_1 = "AC" + Trim(str(y))
+            Range(c23_1).Value = h23
+            c24_1 = "AD" + Trim(str(y))
+            Range(c24_1).Value = h24
+            c25_1 = "AE" + Trim(str(y))
+            Range(c25_1).Value = h25
+         End If
+         
+        Next y
+        
+      Next x
+      'Worksheets(3).Activate
+      Sheets("GRAFIK").Select
+      ActiveCell.Offset(1, 0).Select
+      
+         
+    Application.ScreenUpdating = 1
+    
+End Sub
+
+Function delstr(str As String, str1 As String, str2 As String) As String
+Dim i As Integer
+Dim LenW As Integer
+Dim ch As String
+    LenW = Len(str)
+    tochkaSTR = ""
+    For i = 1 To LenW
+        ch = Mid(str, i, 1)
+        If ch = str1 Then ch = str2
+        tochkaSTR = tochkaSTR & ch
+    Next i
+End Function
+
+
+

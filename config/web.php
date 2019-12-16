@@ -47,6 +47,7 @@ $config = [
         ],
         'db' => require(__DIR__ . '/db.php'),
         'db_phone' => require(__DIR__ . '/db_phone.php'),
+        'db_info' => require(__DIR__ . '/db_info.php'),
         'db_phone_loc' => require(__DIR__ . '/db_phone_loc.php'),
         'db_connect' => require(__DIR__ . '/db_connect.php'),
         'db_pg_dn_energo' => require(__DIR__ . '/db_pg_dn_energo.php'),
@@ -68,6 +69,8 @@ $config = [
         
         'db_pg_ap_abn_test'    => require(__DIR__ . '/db_pg_ap_abn_test.php'),
         'db_pg_ap_energo_test'    => require(__DIR__ . '/db_pg_ap_energo_test.php'),
+        'db_pg_test_energo'    => require(__DIR__ . '/db_pg_test_energo.php'),
+        'db_pg_energo'    => require(__DIR__ . '/db_pg_test_energo.php'),
         'db_pg_dn_abn_test'    => require(__DIR__ . '/db_pg_dn_abn_test.php'),
         'db_pg_dn_energo_test'    => require(__DIR__ . '/db_pg_dn_energo_test.php'),
         'db_pg_gv_abn_test'    => require(__DIR__ . '/db_pg_gv_abn_test.php'),
@@ -99,12 +102,18 @@ $config = [
         'db_pg_vg_energo_test_2'    => require(__DIR__ . '/db_pg_vg_energo_test_2.php'),
         'db_pg_zv_abn_test_2'    => require(__DIR__ . '/db_pg_zv_abn_test_2.php'),
         'db_pg_zv_energo_test_2'    => require(__DIR__ . '/db_pg_zv_energo_test_2.php'),
-        
+
+        'db_pg_im_db'    => require(__DIR__ . '/db_pg_im_db.php'),
+        'db_pg_local_energo'    => require(__DIR__ . '/db_pg_local_energo.php'),
         
         'db_mysql_loc' => require(__DIR__ . '/db_mysql_loc.php'),
         'db_mysql_1'   => require(__DIR__ . '/db_mysql_1.php'),
         'db_mysql_2'   => require(__DIR__ . '/db_mysql_2.php'),
-        
+        'db_budget'   => require(__DIR__ . '/db_budget.php'),
+        'db_pg_call'    => require(__DIR__ . '/db_pg_call.php'),
+        'db_pools'    => require(__DIR__ . '/db_pools.php'),
+        'db_sap'    => require(__DIR__ . '/db_sap.php'),
+
         'formatter' => [
         'class' => 'yii\i18n\Formatter',
         'decimalSeparator' => '.',

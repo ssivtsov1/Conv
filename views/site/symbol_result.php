@@ -35,6 +35,7 @@ use yii\widgets\DetailView;
 
             <?php
 //            Отображение № символа в шапке таблицы
+            //echo chr(1442);
             $r = trim($model->str);
             $kol = mb_strlen($r,"UTF-8");
             if(!empty($r)) {
