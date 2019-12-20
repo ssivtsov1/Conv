@@ -89,6 +89,7 @@ AppAsset::register($this);
                                 ['label' => 'Закачка таблицы wo', 'url' => ['/site/wosootv']],
                                 ['label' => 'Преобразование таблицы инструмента', 'url' => ['/site/do_mshp']],
                                 ['label' => 'Установка даты для инструмента', 'url' => ['/site/set_date']],
+                                ['label' => 'Тест', 'url' => ['/site/check']],
 
                             ]
                     ],
@@ -103,9 +104,10 @@ AppAsset::register($this);
                                 ['label' => 'Импорт address с Ингульца [Энерго]', 'url' => ['/site/imp_address']],
                                 ['label' => 'Импорт готовой таблицы street в базы РЭСов', 'url' => ['/site/imp_street_in_bd']],
                                 ['label' => 'Форматирование csv файла', 'url' => ['/site/prepare_csv']],
-                                ['label' => 'Формирование файла partner для САП', 'url' => ['/site/sap_partner']],
-                                ['label' => 'Формирование файла partner для САП бытовые', 'url' => ['/site/sap_partner_abn1']],
+                                ['label' => 'Формирование файла partner для САП [бытовые]', 'url' => ['/site/sap_partner_ind']],
+                                ['label' => 'Формирование файла partner для САП [юридические]', 'url' => ['/site/sap_partner']],
                                 ['label' => 'Формирование вопросов для опросника', 'url' => ['/site/form_quest']],
+                                ['label' => 'Експорт в САП', 'url' => ['/site/cek2sap']],
 
                             ]
                     ],

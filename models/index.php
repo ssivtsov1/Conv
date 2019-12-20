@@ -16,9 +16,6 @@ class Index extends Model
     public $sys_res=2 ;
     public $number ;
 
-
-
-
     public function attributeLabels()
     {
         return [

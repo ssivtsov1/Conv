@@ -21,6 +21,8 @@ use app\models\cmp_str;
 use app\models\addquestions;
 use app\models\project_polls;
 use app\models\quest;
+use app\models\info;
+use app\models\export_sap;
 use app\models\answer;
 use app\models\sets;
 //use app\models\pract;
@@ -745,221 +747,447 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
-    // Форматирование файла partner для САП
-    public function actionSap_partner()
+    // Експорт в САП
+    public function actionCek2sap()
     {
-        $rem = '06';  // Код РЭС
-        $sql = "select s.doc_num, trim(s.okpo_num) as okpo_num,c.*,s.doc_dat,s.phone,s.inspector, s.operator, s.tax_num,s.flag_taxpay,
-                s.flag_budjet,s.licens_num,s.flag_ed,s.flag_jur, s.fl_cabinet,
-                a.adr::varchar,a.dom_reg,
-                define_geo(a.dom_reg,1) as obl, define_geo(a.dom_reg,2) as region,define_geo(a.adr,0) as type_town,
-                define_geo(a.adr,3) as town,define_geo(a.adr,4) as street,define_geo(a.adr,5) as name_street,
-                define_geo(a.adr,6) as house,define_geo(a.adr,7) as flat,substr(a.full_adr,1,5) as zip
-                 from clm_client_tbl c 
-                 left join (select s.id,s.id_client,s.okpo_num,s.doc_num,s.doc_dat,s.id_position,
-                 s.phone, s.fl_cabinet , tax_num,flag_taxpay,flag_budjet,licens_num, p.represent_name as inspector,
-                  pp.represent_name as operator, s.flag_ed,s.flag_jur 
-                  from clm_statecl_tbl s 
-                  left join clm_position_tbl p on (s.id_position=p.id) 
-                  left join clm_position_tbl pp on (s.id_kur=pp.id) ) s on (s.id_client=c.id)
-                  left join adv_address_tbl a on c.id_addres=a.id
-                  where ((book<0) AND id_state<>50 and c.id_state<>99
-                  and idk_work<>0 and c.name not like '%Населення%' and c.name not like '%население%' and trim(okpo_num)<>'0' and trim(okpo_num)<>'000000000') or (c.id=getsysvarn('id_res') 
-                  or c.id=999999999 or c.id=getsysvarn('id_chnoe')) 
-                   --and c.name not like '%населення%'
-                  order by book,code";
+        $model = new export_sap();
 
-        // Получаем необходимые данные
-        $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
-        // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'.txt';
-        $f = fopen($fname,'w+');
-        $i = 1;
-        $flag=0;
-        // Формируем oldkey
-        $oldkey_const='04_CK'.$rem.'_';
-        $rand1=random_int(100000,999999);
-        $rand2=random_int(100000,999999);
-        $rand3=random_int(100000,999999);
-        $rand4=random_int(1000,9999);
-        $oldkey=$oldkey_const.$rand1.$rand2.$rand3.$rand4;
-        // Формируем строки файла
-        foreach($data as $v) {
-            //$rand = 10000 + $i;
-            $rand = 10000 + $v['id'];
-            $rand = sprintf("%s",$rand);
-            $rand=substr($rand,1);
-            $rand='000000000000000000'.$rand;
-            $oldkey=$oldkey_const.$rand;
-
-            $s1 = $oldkey . "\tINIT" . "\t2" . "\t02" . "\t0002" . "\t МКК" . "\t00010101" . "\tI";
-            $s2 = $oldkey . "\tEKUN" . "\t1" . "\t3";
-            $s3 = $oldkey . "\tBUT000" . "\t".trim($v['code_okpo']). "\t". "\t0006"."\tLEG"."\t".$v['name']."\t"."\t01".
-                "\t"."\t"."\t"."\t"."\t"."\t"."\t"."\t".$v['short_name'];
-
-            $rand1 = 100000 + $i;
-            $rand1 = sprintf("%s",$rand1);
-            $rand1=substr($rand1,1);
-            $rand1='0000000'.$rand1;
-            $oldkey1=$oldkey_const.$rand1;
-            //$house=preg_replace('/\d+-[а-яА-Я]/i', '$\d+[а-яА-Я]$', $v['house']);
-            preg_match('/\d+-[а-яА-Я]/i', $v['house'], $matches, PREG_OFFSET_CAPTURE);
-            if(!empty($matches))
-            {
-                $house=str_replace('-','',$v['house']);
+        if ($model->load(Yii::$app->request->post()))
+        {
+            switch ($model->id_oper) {
+                case 1:
+                    return $this->redirect(['sap_partner_ind', 'res' => $model->rem]);
+                    break;
+                case 2:
+                    return $this->redirect(['sap_partner', 'res' => $model->rem]);
+                    break;
             }
-            else
-                $house=$v['house'];
-
-            $phone = explode(",", $v['phone']);
-            $phone = $phone[0];
-
-            if(!empty($v['name_street'])) {
-                $s4 = $oldkey . "\tBUT020" . "\t" . $oldkey1 . "\tI" . "\t" . trim($v['type_town']) . ' ' . trim($v['town']) .
-                    "\t" . trim($v['zip']) . "\t" . "\t" . "\t" . trim($v['street']) . ' ' . trim($v['name_street']) . "\t" . trim($house) .
-                    "\t" . trim($v['flat']);
-                if (!empty($v['phone']))
-                    $s4 .= "\tI" . "\t" . $phone;
-            }
-            if(empty($v['name_street']) || ctype_digit($v['name_street'])) {
-                $s4 = $oldkey . "\tBUT020" . "\t" . $oldkey1 . "\tI" . "\t" . trim($v['type_town']) . ' ' . trim($v['town']) .
-                    "\t" . trim($v['zip']) . "\t" . "\t" . "\t"  . "\t". trim($house) .
-                    "\t" . trim($v['flat']);
-                if (!empty($v['phone']))
-                    $s4 .= "\tI" . "\t" . $phone;
-            }
-
-            $s5 = $oldkey . "\tBUT021" . "\t" . $oldkey1 . "\tVOEPOST"."\tX";
-            $s6 = $oldkey . "\tBUT0ID" . "\t" .trim($v['code_okpo']). "\tEDRPOU";
-            $flag7=0;
-            if(!empty($v['tax_num']) || strlen(trim($v['tax_num']))>7) {
-                $s7 = $oldkey . "\tBUT0ID" . "\t" . trim($v['tax_num']) . "\tTAXRU";
-                $flag7=1;
-            }
-
-            $s8 = $oldkey . "\t&ENDE" ;
-
-//            $s1 = iconv("UTF-8","WINDOWS-1251",  $s1);
-//            $s2 = iconv("UTF-8","WINDOWS-1251",  $s2);
-//            $s3 = iconv("UTF-8","WINDOWS-1251",  $s3);
-//            $s4 = iconv("UTF-8","WINDOWS-1251",  $s4);
-//            $s5 = iconv("UTF-8","WINDOWS-1251",  $s5);
-//            $s6 = iconv("UTF-8","WINDOWS-1251",  $s6);
-//            $s7 = iconv("UTF-8","WINDOWS-1251",  $s7);
-//            $s8 = iconv("UTF-8","WINDOWS-1251",  $s8);
-
-            fputs($f, $s1);
-            fputs($f, "\n");
-            fputs($f, $s2);
-            fputs($f, "\n");
-            fputs($f, $s3);
-            fputs($f, "\n");
-            fputs($f, $s4);
-            fputs($f, "\n");
-            fputs($f, $s5);
-            fputs($f, "\n");
-            fputs($f, $s6);
-            fputs($f, "\n");
-            if($flag7) {
-                fputs($f, $s7);
-                fputs($f, "\n");
-            }
-            fputs($f, $s8);
-            fputs($f, "\n");
-            $i++;
         }
-        fclose($f);
-        echo "Інформацію записано";
+        else {
+
+            return $this->render('export_sap', [
+                'model' => $model,
+            ]);
+        }
     }
 
-    // Форматирование файла partner для САП для бытовых
-    public function actionSap_partner_abn()
-    {
-        $rem = '04';  // Код РЭС
-        $sql = "select a.id,a.activ,b.tax_number,b.last_name,
-                b.name,b.patron_name,c.town,c.indx,c.street,
-                c.house,c.flat,b.mob_phone,b.e_mail from clm_paccnt_tbl a
-        left join clm_abon_tbl b on
-        a.id=b.id
-        left join vw_address c on
-        a.id=c.id";
-
-        // Получаем необходимые данные
-        $data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
-        // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'.txt';
-        $f = fopen($fname,'w+');
-        $i = 1;
-        $flag=0;
-        // Формируем oldkey
-        $oldkey_const='04_CK'.$rem.'_';
-
-        // Формируем строки файла
-        foreach($data as $v) {
-            //$rand = 10000 + $i;
-            $rand = $v['id'];
-             $oldkey=$oldkey_const.$rand;
-
-             $initials=mb_substr($v['name'], 0, 1,'UTF-8').'.'.
-                 mb_substr($v['patron_name'], 0, 1,'UTF-8');
-
-            $s1 = $oldkey . "\tINIT" . "\t2" . "\t02" . "\t0002" . "\t МКК" . "\t00010101" . "\tI";
-            $s2 = $oldkey . "\tEKUN" . "\t1" . "\t3";
-            $s3 = $oldkey . "\tBUT000" . "\t".trim($v['tax_number']). "\t". "\t0006"."\tLEG"."\t".$v['last_name']."\t".$v['name'].
-                "\t"."\t"."\t".$v['patron_name']."\t".$initials."\t"."\t".$v['last_name'].' '.$initials;
-
-            $rand = random_int(100000,999999);
-
-            if(!empty($v['mob_phone'])) $tel_type='3';
-            else  $tel_type='';
-
-                $s4 = $oldkey . "\tBUT020" . "\t" . $rand . "\tI" . "\t" .  trim($v['town']) .
-                    "\t" . trim($v['indx']) . "\t" . "\t" . "\t" . trim($v['street']) . "\t" . trim($v['house']) .
-                    "\t" . trim($v['flat'])."\t" .'UA'."\t".'REG'.$rand. "\tI"."\t" .trim($v['mob_phone']). "\tI".
-                    "\t" .trim($v['e_mail'])."\t" .$tel_type."\t00010101";
-
-
-
-            $s6 = $oldkey . "\tBUT0ID" . "\tI" . "\t01.01.0001"."\t".trim($v['tax_number'])."\tFS0002".
-                "\t01.01.0001". "\t31.12.9999";
-
-            $s8 = $oldkey . "\t&ENDE" ;
-
-
-            fputs($f, $s1);
-            fputs($f, "\n");
-            fputs($f, $s2);
-            fputs($f, "\n");
-            fputs($f, $s3);
-            fputs($f, "\n");
-            fputs($f, $s4);
-            fputs($f, "\n");
-
-            fputs($f, $s6);
-            fputs($f, "\n");
-
-            fputs($f, $s8);
-            fputs($f, "\n");
-            $i++;
-        }
-        fclose($f);
-        echo "Інформацію записано";
-    }
-
-    // Форматирование файла partner для САП для бытовых
-    public function actionSap_partner_abn1()
+    // Форматирование файла partner для САП для юридических партнеров
+    public function actionSap_partner($res)
     {
         ini_set('memory_limit', '-1');
-        $rem = '04';  // Код РЭС
-        $res=4;
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        $sql = "select a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
+case when coalesce(b.FLAG_JUR,0)= 1  then '02' when coalesce(b.FLAG_JUR,0)= 1  then '04' when coalesce(b.FLAG_JUR,0)= 0 then  '03'  else '02' end as BU_GROUP,
+case when coalesce(b.FLAG_JUR,0)= 1 then '0002' when coalesce(b.FLAG_JUR,0)= 0 then  '0003' else '0001' end as BPKIND,
+'MKK' as ROLE1,
+case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end  as ROLE2,
+'00010101' as VALID_FROM_1,
+'I' as CHIND_1,
+case when coalesce(a.id_state,0) in (80,49) then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end  as VALID_FROM_2,
+case when coalesce(a.id_state,0) in (80,49) then 'I' else '' end  as CHIND_2,
+'1' as FKUA_RSD,
+'3' as FKUA_RIS,
+case when coalesce(b.FLAG_JUR,0)= 1 then 
+
+	a.code_okpo
+        
+else 
+	case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000' then trim(coalesce (a.code_okpo, b.okpo_num))
+	 when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))='0000000000' then a.code_okpo else '' end
+end  as BU_SORT1,
+'' as BU_SORT2,
+'0006' as SOURCE,
+'LEG' as AUGRP,
+substr(trim(a.name),1,40) as name_org1,
+substr(trim(a.name),41,40) as name_org2,
+substr(trim(a.name),81,40) as name_org3,
+substr(trim(a.name),121,40) as name_org4,
+case when coalesce(b.FLAG_JUR,0)= 1 then  
+     case 
+     when upper(trim(a.name)) LIKE  'ФЕРМЕР%' AND upper(trim(a.name)) LIKE '%ГОСП%' then '02' 
+     when (upper(trim(a.name)) LIKE  'ПРИВАТ%' OR  upper(trim(a.name)) LIKE  '%ПРИВАТ%') AND upper(trim(a.name)) LIKE '%ПІДПР%' then '03' 
+     when upper(trim(a.name)) LIKE 'КОЛЕКТИВ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '04' 
+     when upper(trim(a.name)) LIKE 'ДЕРЖ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '05' 
+     when (upper(trim(a.name)) LIKE  'КОМУНАЛЬНЕ%' AND upper(trim(a.name)) LIKE '%ПІДПР%') then '07' 
+     when ((upper(trim(a.name)) LIKE 'ДОЧІРНЄ%' OR upper(trim(a.name)) LIKE 'ДОЧІРНЕ%') AND upper(trim(a.name)) LIKE '%ПІДПР%') then '08' 
+     when upper(trim(a.name)) LIKE  'РЕЛІГ%' or  upper(trim(a.name)) LIKE '%РЕЛІГ%' then '10' 
+     when upper(trim(a.name)) LIKE  'ПІДПР%' AND  upper(trim(a.name)) LIKE '%СПОЖИВ%' AND  upper(trim(a.name)) LIKE '%КООП%' then '11' 
+     when (upper(trim(a.name)) LIKE  'АКЦІОНЕРНЕ ТОВАРИСТВО%' or ((upper(trim(a.name)) LIKE  'ПУБЛІЧНЕ%' OR upper(trim(a.name)) LIKE  'ПРИВАТНЕ%') and  upper(trim(a.name)) LIKE  '%АКЦІОНЕРНЕ%' and upper(trim(a.name)) LIKE  '%ТОВАРИСТВО%')) then '17' 
+     when upper(trim(a.name)) LIKE 'ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО%' then '18' 
+     when upper(trim(a.name)) LIKE 'ЗАКРИТЕ%' AND upper(trim(a.name)) LIKE  '%АКЦІОНЕР%' AND  upper(trim(a.name)) LIKE '%ТОВ%' then '19' 
+     when (upper(trim(a.name)) LIKE  'ТОВ%' AND upper(trim(a.name)) LIKE '%ОБМЕЖ%' AND upper(trim(a.name))  LIKE '%ВІДП%') OR upper(trim(a.name)) LIKE  'ТОВ %' then '21' 
+     when upper(trim(a.name)) LIKE  'ТОВ%' AND upper(trim(a.name)) LIKE '%ДОД%' AND upper(trim(a.name))  LIKE '%ВІДП%' then '22'
+     when upper(trim(a.name)) LIKE  'ПОВНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '23' 
+     when upper(trim(a.name)) LIKE  'КОМАНДИТНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '24' 
+     when upper(trim(a.name)) like 'АВТОКООПЕРАТИВ%'  OR upper(trim(a.name)) like '%АВТОКООПЕРАТИВ%' OR (upper(trim(a.name))  like 'АВТО%' AND upper(trim(a.name))  like '%КООПЕРАТИВ%') then '25' 
+     when upper(trim(a.name)) LIKE  'ВИРОБНИЧ%' AND upper(trim(a.name)) LIKE '%КООП%' then '26' 
+     when upper(trim(a.name)) LIKE  'ОБСЛУГОВ%' AND upper(trim(a.name)) LIKE '%КООП%' then '27'   
+     WHEN (upper(trim(a.name)) like 'ДЕРЖАВНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name))  like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name))  like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '35'
+     WHEN (upper(trim(a.name)) like 'КОМУНАЛЬНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name))  like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name))  like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '36'
+     WHEN (upper(trim(a.name)) like 'ПРИВАТНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name))  like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name))  like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '37'
+     when upper(trim(a.name)) LIKE  'ГРОМАДСЬКА%' AND upper(trim(a.name)) LIKE '%ОРГ%' then '38' 
+     when (upper(trim(a.name)) LIKE  'КОРПОРАЦІЯ%' OR upper(trim(a.name)) LIKE 'КООРПОРАЦІЯ%') then '43' 
+     when upper(trim(a.name)) LIKE  'КОНЦЕРН%' AND upper(trim(a.name)) LIKE '%КОНЦЕРН%' then '45' 
+     else '01'
+     end
+else '' 
+end as LEGAL_ENTY,
+case when coalesce(a.id_state,0) in (80,49)  then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end as LIQUID_DAT,
+''::char(4) as ZFILCODE,
+'' as ZFILHEAD,
+case when coalesce(b.FLAG_JUR,0)= 0 then  'X' else '' end as ZPROCIND,
+'' as ZCODEFORMOWN,
+'' as ZCODESPODU,
+'' as ZCODEBANKROOT,
+'' as ZCODELICENSE,
+case when length(trim(a.name))> 160 then trim(a.name) else '' end as ZNAMEALL,
+replace(replace(replace(trim(a.short_name),'   ',' '),'  ',' '),'''','’') as ZZ_NAMESHORT,
+b.doc_ground as ZZ_DOCUMENT,
+'' as ADEXT_ADDR,
+'I' as CHIND_ADDR,
+'' as POST_CODE2,
+'' as PO_BOX,
+am.building as HOUSE_NUM1,
+am.office as HOUSE_NUM2,
+'UA' as COUNTRY,
+case when substring(trim(b.phone),1,30) <> '' then 'I' else '' end as CHIND_TEL,
+case when position(',' in trim(b.phone))>0 then substr(trim(b.phone),1,position(',' in trim(b.phone))-1) else
+case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')) =10 then
+		regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')
+		 else '' end end as TEL_NUMBER,
+'' as CHIND_FAX,
+'' as FAX_NUMBER,
+case when trim(a.email) <>'' then 'I' else '' end as CHIND_SMTP,
+trim(a.email) as SMTP_ADDR,
+
+case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')) =10 then
+	case when regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '039%'
+	or	
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '050%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '063%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '066%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '067%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '068%'
+        or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '073%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '091%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '092%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '093%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '094%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '095%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '096%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '097%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '098%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '099%'
+	then '3'
+	else '1' end
+
+	else '' end as TEL_MOBILE,
+	'CEKPOST' as ADR_KIND,
+	'X' as XDFADU,
+	case when (length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000')
+	   then trim(coalesce (a.code_okpo, b.okpo_num)) end as IDNUMBER,
+	   case when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=8 then 'EDRPOU'
+	    when (coalesce(b.FLAG_JUR,0)= 0 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10)
+	     then  'FS0001' else '' end as ID_TYPE,
+kt.shot_name||' '||t.name as town,am.post_index,ks.shot_name||' '||s.name as street,am.building as house,am.office as flat,
+b.phone,b.e_mail
+ from clm_client_tbl a
+        left join clm_statecl_tbl b on
+        a.id=b.id_client
+        LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+        LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+        LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+        LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+        LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+   ";
+
+        $sql_c = "select * from sap_export where objectsap='PARTNER' order by id_object";
+        $zsql = 'delete from sap_init';
+        $zsql1 = 'delete from sap_but000';
+        $zsql2 = 'delete from sap_ekun';
+        $zsql3 = 'delete from sap_but020';
+        $zsql4 = 'delete from sap_but0id';
+        $zsql5 = 'delete from sap_but021';
+
+
+        if(1==1) {
+            // Получаем необходимые данные
+            switch ($res) {
+                case 1:
+                    $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql5)->execute();
+                    break;
+
+                case 2:
+                    $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql5)->execute();
+                    break;
+                case 3:
+                    $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql5)->execute();
+                    break;
+                case 4:
+                    $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql5)->execute();
+                    break;
+                case 5:
+                    $data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krr_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql5)->execute();
+                    break;
+                case 6:
+                    $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_ap_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_ap_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_ap_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_ap_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_ap_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_ap_energo->createCommand($zsql5)->execute();
+                    break;
+                case 7:
+                    $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_gv_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_gv_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_gv_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_gv_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_gv_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_gv_energo->createCommand($zsql5)->execute();
+                    break;
+                case 8:
+                    $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_in_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_in_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_in_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_in_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_in_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_in_energo->createCommand($zsql5)->execute();
+                    break;
+            }
+            $i = 0;
+            // Заполняем структуры
+            foreach ($data as $w) {
+                $i = 0;
+                foreach ($cnt as $v) {
+                    $n_struct = trim($v['dattype']);
+                    $i++;
+                    f_partner($n_struct, $rem, $w);
+                }
+            }
+        }
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $fname='PARTNER_04'.'_CK'.$rem.'_P'.$fd.'.txt';
+        $f = fopen($fname,'w+');
+        // Считываем данные в файл с каждой таблицы
+        $i=0;
+//        foreach ($cnt as $v) {
+//            $table_struct = 'sap_' . trim($v['dattype']);
+//            $i++;
+//            $k=$i-1;
+//            if($i==1)
+//                $sql = "select a.*,'|' as sep1,a1.*,'|' as sep2,
+//                        a2.*,'|' as sep3,a3.*,'|' as sep4,a4.*,'|' as sep5 from " . $table_struct.' a ';
+//            else{
+//                $sql.="join $table_struct a$k on a.old_key=a$k.old_key$k ";
+//            }
+//        }
+//
+////        debug($sql);
+////        return;
+//
+//                $struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+//
+//                foreach ($struct_data as $d) {
+//
+//                    $s=implode("\t", $d);
+//                    //echo($s);
+//                    $s=str_replace("~","",$s);
+//                    $s=str_replace("|","\n",$s);
+//                    fputs($f, ltrim($s," \t"));
+////                    fputs($f, "\n");
+//                }
+        $sql = "select * from sap_init";
+        switch ($res) {
+            case 1:
+                $struct_data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                break;
+            case 2:
+                $struct_data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                break;
+            case 3:
+                $struct_data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                break;
+            case 4:
+                $struct_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                break;
+            case 5:
+                $struct_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                break;
+            case 6:
+                $struct_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                break;
+            case 7:
+                $struct_data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                break;
+            case 8:
+                $struct_data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                break;
+        }
+
+        $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $sql = "select * from $table_struct where oldkey='$old_key'";
+
+                    switch ($res) {
+                        case 1:
+                            $cur_data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 2:
+                            $cur_data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 3:
+                            $cur_data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 4:
+                            $cur_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 5:
+                            $cur_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 6:
+                            $cur_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 7:
+                            $cur_data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 8:
+                            $cur_data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                            break;
+                    }
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+
+//        fputs($f, "\t&ENDE");
+//        fputs($f, "\n");
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    public function actionCheck(){
+
+        $last_name='(099) 164 3707                  ';
+        preg_match_all('/[\d]+/', $last_name, $matches);
+        $s='';
+        foreach ($matches[0] as $v)
+            $s.=$v;
+        debug($s);
+
+    }
+
+    // Форматирование файла partner для САП для бытовых
+    public function actionSap_partner_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
 
 
         $sql = "select a.id,a.activ,b.tax_number,b.last_name,
                 b.name,b.patron_name,c.town,c.indx,c.street,
                 c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
-                const.region,d.kod_reg,b.s_doc||b.n_doc as pasport from clm_paccnt_tbl a
+                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
         left join vw_address c on
@@ -969,10 +1197,10 @@ WHERE year_p=0 and year_q>0';
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region";
 
-        $sql_c = "select * from sap_export where objectsap='PARTNER' order by id_object";
+        $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
         $cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
 
-        if(1==2) {
+        if(1==1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
@@ -1023,13 +1251,13 @@ WHERE year_p=0 and year_q>0';
                 foreach ($cnt as $v) {
                     $n_struct = trim($v['dattype']);
                     $i++;
-                    f_partner($n_struct, $rem, $w);
+                    f_partner_ind($n_struct, $rem, $w);
                 }
             }
         }
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
-        $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'.txt';
+        $fname='PARTNER_04'.'_CK'.$rem.'_B'.$fd.'.txt';
         $f = fopen($fname,'w+');
         // Считываем данные в файл с каждой таблицы
         $i=0;
@@ -1095,7 +1323,15 @@ WHERE year_p=0 and year_q>0';
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
         fclose($f);
-        echo "Інформацію записано";
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
     }
 
 

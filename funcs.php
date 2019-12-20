@@ -1010,28 +1010,40 @@ function gen16($n) {
 }
 
 // Функции для САП
-function f_partner($n_struct,$rem,$v) {
-    // Это комментарий для git
-    // Видишь Егор все работает.
-    $oldkey_const='04_C'.$rem.'B_';
+// Выгрузка по бытовым партнерам
+function f_partner_ind($n_struct,$rem,$v) {
+        $oldkey_const='04_C'.$rem.'B_';
         $r = $v['id'];
         $tax_number=trim($v['tax_number']);
         $last_name=$v['last_name'];
-        $name_first=$v['name'];
+        preg_match("/[А-Яа-яіІєЄїЇ'\s]+/u", $last_name, $matches,PREG_OFFSET_CAPTURE);
+        if(isset($matches[0][0]))
+            $last_name=$matches[0][0];
+        $name_first=str_replace('"','',$v['name']);
+
+        preg_match("/[А-Яа-яіІєЄїЇ'\s]+/u", $name_first, $matches,PREG_OFFSET_CAPTURE);
+        if(isset($matches[0][0]))
+            $name_first=$matches[0][0];
         $namemiddle=$v['patron_name'];
+        preg_match("/[А-Яа-яіІєЄїЇ'\s]+/u", $namemiddle, $matches,PREG_OFFSET_CAPTURE);
+        if(isset($matches[0][0]))
+            $namemiddle=$matches[0][0];
+
         $town=$v['town'];
         $post_code1=$v['indx'];
         $street = $v['street'];
         $house_num1 =$v['house'];
         $roomnumber=$v['flat'];
         $region=$v['region'];
-        $tel_number=$v['mob_phone'];
+        $tel_number=normal_tel($v['mob_phone']);
         $smtp_addr=$v['e_mail'];
         $iuru_pro=$v['kod_reg'];
         $pasport=$v['pasport'];
 
         if(!empty($tel_number)) $tel_mobile='3';
         else  $tel_mobile='';
+
+        if(strlen($tax_number)<>10) $tax_number='';
 
         if(empty($tax_number) || is_null($tax_number)) {
             $tax_number=$pasport;
@@ -1050,7 +1062,7 @@ function f_partner($n_struct,$rem,$v) {
 
         if($n_struct=='INIT')
                 $z = "insert into sap_init(old_key,dat_type,bu_type,bu_group,bpkind,role1,role2,valid_from_1,chind_1,valid_from_2,chind_2)
-                    values('$oldkey','$n_struct','1','01','0001','МКК','','00010101','I','','')";
+                    values('$oldkey','$n_struct','1','01','0001','MKK','','00010101','I','','')";
 
         if($n_struct=='EKUN')
 
@@ -1060,7 +1072,7 @@ function f_partner($n_struct,$rem,$v) {
         if($n_struct=='BUT000')
             $z = "insert into sap_but000(old_key,dat_type2,bu_sort1,bu_sort2,source,augrp,name_last,
                                        name_first,xsexm,xsexf,birthdt,namemiddle,xsexu,zprocind)
-                    values('$oldkey','$n_struct','$tax_number','~','0006','LED',$$$last_name$$,$$$name_first$$,
+                    values('$oldkey','$n_struct','$tax_number','~','0006','IND',$$$last_name$$,$$$name_first$$,
                            '~','~','~',$$$namemiddle$$,'X','X')";
 
 
@@ -1081,6 +1093,198 @@ function f_partner($n_struct,$rem,$v) {
 
      Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
 
+}
+
+// Выгрузка по юридическим партнерам
+/**
+ * @param $n_struct
+ * @param $rem
+ * @param $v
+ */
+function f_partner($n_struct, $rem, $v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $r = $v['id'];
+
+   // -------------------------
+
+   $bu_type = $v['bu_type'];
+   $bu_group = $v['bu_group'];
+   $bpkind = $v['bpkind'];
+   $role1 = $v['role1'];
+   $role2 = $v['role2'];
+   $valid_from_1=$v['valid_from_1'];
+   $valid_from_2=$v['valid_from_2'];
+   $chind_2 = $v['chind_2'];
+   $bu_sort1 = $v['bu_sort1'];
+   $bu_sort2 = $v['bu_sort2'];
+   $name_org1 = $v['name_org1'];
+   $name_org2 = $v['name_org2'];
+   $name_org3 = $v['name_org3'];
+   $name_org4 = $v['name_org4'];
+   $legal_enty = $v['legal_enty'];
+   $liquid_dat = $v['liquid_dat'];
+   $zfilcode = $v['zfilcode'];
+   $zfilhead = $v['zfilhead'];
+   $zprocind = $v['zprocind'];
+   $zcodeformown=$v['zcodeformown'];
+   $zcodebankroot=$v['zcodebankroot'];
+   $zcodelicense=$v['zcodelicense'];
+   $znameall=$v['znameall'];
+   $zz_nameshort=$v['zz_nameshort'];
+   $zz_document=$v['zz_document'];
+   $chind_smtp=$v['chind_smtp'];
+   $tel_number=normal_tel($v['tel_number']);
+   if(empty($tel_mobile))
+        $tel_mobile=define_type_tel(substr($v['tel_number'],0,3));
+   $idnumber=$v['idnumber'];
+   $id_type=$v['id_type'];
+
+   // ------------------------
+
+    $town=$v['town'];
+    $post_code1=$v['post_index'];
+    $street = $v['street'];
+    $house_num1 =$v['house'];
+    $roomnumber=$v['flat'];
+    $region='~';
+
+    $smtp_addr=$v['e_mail'];
+    $iuru_pro='~';
+
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='INIT')
+        $z = "insert into sap_init(oldkey,dat_type,bu_type,bu_group,bpkind,role1,role2,valid_from_1,chind_1,valid_from_2,chind_2)
+                    values('$oldkey','$n_struct','$bu_type','$bu_group','$bpkind','$role1','$role2','$valid_from_1',
+                    'I','$valid_from_2','$chind_2')";
+
+    if($n_struct=='EKUN')
+
+        $z = "insert into sap_ekun(oldkey,dat_type,fkua_rsd,fkua_ris)
+                    values('$oldkey','$n_struct','1','3')";
+
+    if($n_struct=='BUT000')
+        $z = "insert into sap_but000(oldkey,dat_type,bu_sort1,bu_sort2,source,augrp,name_org1,
+                                       name_org2,name_org3,name_org4,legal_enty,liquid_dat,zfilcode,zfilhead,
+                                       zprocind,zcodeformown,zcodebankroot,zcodelicense,znameall,zz_nameshort,zz_document)
+                    values('$oldkey','$n_struct','$bu_sort1','$bu_sort2','0006','LEG',$$$name_org1$$,$$$name_org2$$,
+                           $$$name_org3$$,$$$name_org4$$,'$legal_enty','$liquid_dat','$zfilcode','$zfilhead',
+                           '$zprocind','$zcodeformown','$zcodebankroot',
+                           '$zcodelicense','$znameall','$zz_nameshort','$zz_document')";
+
+
+    if($n_struct=='BUT020')
+        $z = "insert into sap_but020(oldkey,dat_type,adext_addr,chind_addr,city1,post_code1,
+                                         post_code2,po_box,street,house_num1,house_num2,str_supll1,
+                                         str_supll2,region,chind_tel,tel_number,chind_fax,
+                                         fax_number,chind_smtp,
+                                         smtp_addr,tel_mobile,iuru_pro)
+                    values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
+                          '$house_num1','~','~','~','$region','I','$tel_number','~','~',
+                          '$chind_smtp','$smtp_addr','$tel_mobile','$iuru_pro')";
+
+    if($n_struct=='BUT021')
+
+        $z = "insert into sap_but021(oldkey,dat_type,adext_advw,adr_kind,xdfadu)
+                    values('$oldkey','$n_struct','$r','CEKPOST','X')";
+
+    if($n_struct=='BUT0ID')
+
+        $z = "insert into sap_but0id(oldkey,dat_type,idnumber,id_type)
+                    values('$oldkey','$n_struct','$idnumber','$id_type')";
+
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+            break;
+        case 2:
+            Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+            break;
+    }
+
+}
+
+// Осталяет только цифры в № телефона
+function normal_tel($tel){
+    preg_match_all('/[\d]+/', $tel, $matches);
+    $s='';
+    foreach ($matches[0] as $v)
+        $s.=$v;
+    return $s;
+}
+
+function define_type_tel($oper)
+{   $flag = 1;
+    switch ($oper) {
+        case '039':
+            $flag = 3;
+            break;
+       case '050':
+           $flag = 3;
+           break;
+        case '063':
+            $flag = 3;
+            break;
+        case '066':
+            $flag = 3;
+            break;
+        case '067':
+            $flag = 3;
+            break;
+        case '068':
+            $flag = 3;
+            break;
+        case '073':
+            $flag = 3;
+            break;
+        case '091':
+            $flag = 3;
+            break;
+        case '092':
+            $flag = 3;
+            break;
+        case '093':
+            $flag = 3;
+            break;
+        case '094':
+            $flag = 3;
+            break;
+        case '095':
+            $flag = 3;
+            break;
+        case '096':
+            $flag = 3;
+            break;
+        case '097':
+            $flag = 3;
+            break;
+        case '098':
+            $flag = 3;
+            break;
+        case '099':
+            $flag = 3;
+            break;
+
+    }
+    return $flag;
 }
 
 
