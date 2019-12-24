@@ -7,6 +7,10 @@ $this->title = $model->title;
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <!--<div class="site-about">-->
+<br>
+<br>
+<br>
+<br>
 <div class=<?= $model->style_title ?> >
     <h3><?= Html::encode($this->title) ?></h3>
     </div>

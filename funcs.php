@@ -1102,7 +1102,7 @@ function f_partner_ind($n_struct,$rem,$v) {
  * @param $v
  */
 function f_partner($n_struct, $rem, $v) {
-    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey_const='04_C'.$rem.'P_';
     $r = $v['id'];
 
    // -------------------------
@@ -1132,6 +1132,7 @@ function f_partner($n_struct, $rem, $v) {
    $znameall=$v['znameall'];
    $zz_nameshort=$v['zz_nameshort'];
    $zz_document=$v['zz_document'];
+   $chind_tel=$v['chind_tel'];
    $chind_smtp=$v['chind_smtp'];
    $tel_number=normal_tel($v['tel_number']);
    if(empty($tel_mobile))
@@ -1141,11 +1142,11 @@ function f_partner($n_struct, $rem, $v) {
 
    // ------------------------
 
-    $town=$v['town'];
-    $post_code1=$v['post_index'];
-    $street = $v['street'];
-    $house_num1 =$v['house'];
-    $roomnumber=$v['flat'];
+    $town=trim($v['town']);
+    $post_code1=trim($v['post_index']);
+    $street = trim($v['street']);
+    $house_num1 =trim($v['house']);
+    $house_num2=trim($v['flat']);
     $region='~';
 
     $smtp_addr=$v['e_mail'];
@@ -1180,7 +1181,7 @@ function f_partner($n_struct, $rem, $v) {
                                          fax_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
-                          '$house_num1','~','~','~','$region','I','$tel_number','~','~',
+                          '$house_num1','$house_num2','~','~','$region','$chind_tel','$tel_number','~','~',
                           '$chind_smtp','$smtp_addr','$tel_mobile','$iuru_pro')";
 
     if($n_struct=='BUT021')
@@ -1221,6 +1222,171 @@ function f_partner($n_struct, $rem, $v) {
     }
 
 }
+
+// Выгрузка по объектам соединения бытовые
+function f_connobj_ind($n_struct,$rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $r = $v['id'];
+    $town=$v['town'];
+    $post_code1=$v['indx'];
+    $street = $v['street'];
+    $house_num1 =$v['house'];
+    $roomnumber=$v['flat'];
+    $region=$v['region'];
+    $iuru_pro=$v['kod_reg'];
+    $pltxt=$v['pltxt'];
+    $begru=$v['begru'];
+    $swerk=$v['swerk'];
+    $stort=$v['stort'];
+
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='CO_EHA')
+        $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
+                    values('$oldkey','$n_struct','$pltxt','$begru','$swerk','$stort')";
+
+
+    if($n_struct=='CO_ADR')
+
+        $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
+                                         street,house_num1,str_suppl1,str_suppl2,region,iuru_pro)
+                    values('$oldkey','$n_struct','$town','$post_code1','$street',
+                          '$house_num1','~','~','$region','$iuru_pro')";
+
+    Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
+
+}
+
+// Выгрузка по объектам соединения юридические
+function f_connobj($n_struct,$rem,$v) {
+    $oldkey_const='04_C'.$rem.'P_';
+    $r = $v['id'];
+    $town=$v['town'];
+    $post_code1=trim($v['post_index']);
+    $street = $v['street'];
+    $house_num1 =$v['house'];
+    $roomnumber=$v['flat'];
+    $house_num2=$v['house_num2'];
+    $region=$v['region'];
+    //$iuru_pro=$v['kod_reg'];
+    $iuru_pro='';
+    $pltxt=$v['pltxt'];
+    $begru=$v['begru'];
+    $swerk=$v['swerk'];
+    $stort=$v['stort'];
+
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='CO_EHA')
+        $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
+                    values('$oldkey','$n_struct','$pltxt','$begru','$swerk','$stort')";
+
+
+    if($n_struct=='CO_ADR')
+
+        $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
+                                         street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,house_num2)
+                    values('$oldkey','$n_struct',$$$town$$,'$post_code1',$$$street$$,
+                          '$house_num1','~','~','~','~','$house_num2')";
+
+    //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+            break;
+        case 2:
+            Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+            break;
+    }
+
+}
+
+// Выгрузка по premise бытовые
+function f_premise_ind($n_struct,$rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $r = $v['id'];
+    $town=$v['town'];
+    $post_code1=$v['indx'];
+    $street = $v['street'];
+    $house_num1 =$v['house'];
+    $roomnumber=$v['flat'];
+    $region=$v['region'];
+    $iuru_pro=$v['kod_reg'];
+    $pltxt=$v['pltxt'];
+    $begru=$v['begru'];
+    $swerk=$v['swerk'];
+    $stort=$v['stort'];
+
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='EVBSD')
+        $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru)
+                    values('$oldkey','$n_struct','$oldkey','$roomnumber','~','~','$pltxt')";
+
+    Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
+
+}
+
+// Выгрузка по premise юридические
+function f_premise($n_struct,$rem,$v) {
+    $haus=$v['haus'];
+    $zz_nameplvn = $v['name_eqp'];
+    $house_num2 =$v['house_num2'];
+    $pltxt=$v['pltxt'];
+    $oldkey = $v['oldkey'];
+
+    if($n_struct=='EVBSD')
+        $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru,zz_nameplvm)
+                    values('$oldkey','$n_struct','$haus','$house_num2','~','~','$pltxt',$$$zz_nameplvn$$)";
+
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+            break;
+        case 2:
+            Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+            break;
+    }
+
+}
+
+
 
 // Осталяет только цифры в № телефона
 function normal_tel($tel){
