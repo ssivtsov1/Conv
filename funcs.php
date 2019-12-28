@@ -1121,6 +1121,7 @@ function f_partner($n_struct, $rem, $v) {
    $name_org2 = $v['name_org2'];
    $name_org3 = $v['name_org3'];
    $name_org4 = $v['name_org4'];
+   $roomnumber = $v['flat'];
    $legal_enty = $v['legal_enty'];
    $liquid_dat = $v['liquid_dat'];
    $zfilcode = $v['zfilcode'];
@@ -1177,11 +1178,11 @@ function f_partner($n_struct, $rem, $v) {
     if($n_struct=='BUT020')
         $z = "insert into sap_but020(oldkey,dat_type,adext_addr,chind_addr,city1,post_code1,
                                          post_code2,po_box,street,house_num1,house_num2,str_supll1,
-                                         str_supll2,region,chind_tel,tel_number,chind_fax,
+                                         str_supll2,roomnumber,region,chind_tel,tel_number,chind_fax,
                                          fax_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
-                          '$house_num1','$house_num2','~','~','$region','$chind_tel','$tel_number','~','~',
+                          '$house_num1','$house_num2','~','~','$roomnumber','$region','$chind_tel','$tel_number','~','~',
                           '$chind_smtp','$smtp_addr','$tel_mobile','$iuru_pro')";
 
     if($n_struct=='BUT021')
@@ -1223,37 +1224,207 @@ function f_partner($n_struct, $rem, $v) {
 
 }
 
-// Выгрузка по объектам соединения бытовые
-function f_connobj_ind($n_struct,$rem,$v) {
-    $oldkey_const='04_C'.$rem.'B_';
+function f_account($n_struct, $rem, $v) {
+    $oldkey_const='04_C'.$rem.'P_';
     $r = $v['id'];
-    $town=$v['town'];
-    $post_code1=$v['indx'];
-    $street = $v['street'];
-    $house_num1 =$v['house'];
-    $roomnumber=$v['flat'];
-    $region=$v['region'];
-    $iuru_pro=$v['kod_reg'];
-    $pltxt=$v['pltxt'];
-    $begru=$v['begru'];
-    $swerk=$v['swerk'];
-    $stort=$v['stort'];
+    $gpart = $v['gpart'];
+    $vktyp = $v['vktyp'];
+
+    $vkona = $v['vkona'];
+    $zdaterep = $v['zdaterep'];
+    $partner=$v['partner'];
+    $opbuk=$v['opbuk'];
+    $ebvty = '';
+    $abvty = '';
+    $abwvk = '';
+    $fkkvkp = '';
+    $ikey = $v['ikey'];
+
+    $mahnv = $v['mahnv'];
+    $begru = $v['begru'];
+    $adrnb_ext = $v['adrnb_ext'];
+    $zahlkond = $v['zahlkond'];
+    $vertyp = $v['vertyp'];
+
+    $kofiz_sd = $v['kofiz_sd'];
+    $stdbk = $v['stdbk'];
+    $fkru_fis = $v['fkru_fis'];
+    $zsector=$v['zsector'];
+    $zz_ministry=$v['zz_ministry'];
+    $zz_start=$v['zz_start'];
+    $zz_end=$v['zz_end'];
+    $zz_budget=$v['zz_budget'];
+    $zz_territory=$v['zz_territory'];
+
+    $date_from=$v['date_from'];
+    $date_to=$v['date_to'];
+    $obj=$v['obj'];
+    $status=$v['status'];
+    $date_reg=$v['date_reg'];
+    $price=$v['price'];
+    $comments=$v['comments'];
+    $loevm=$v['loevm'];
 
     $oldkey = $oldkey_const . $r;
 
+    if($n_struct=='INIT')
+        $z = "insert into sap_init_acc(oldkey,dat_type,gpart,vktyp,vkona)
+                    values('$oldkey','$n_struct','$gpart','$vktyp','$vkona')";
+
+    if($n_struct=='VK')
+        $z = "insert into sap_vk(oldkey,dat_type,zdaterep,znodev)
+                    values('$oldkey','$n_struct','$zdaterep','~')";
+
+    if($n_struct=='VKP')
+        $z = "insert into sap_vkp(oldkey,dat_type,partner,opbuk,ebvty,abvty,abwvk,
+                                       fkkvkp,ikey,mahnv,begru,adrnb_ext,
+                                       zahlkond,vertyp,kofiz_sd,stdbk,fkru_fis,zsector,zz_ministry,
+                                       zz_start,zz_end,zz_budget,zz_territory)
+                    values('$oldkey','$n_struct','$partner','$opbuk','$ebvty','$abvty',$$$abwvk$$,$$$fkkvkp$$,
+                           $$$ikey$$,$$$mahnv$$,'$begru','$adrnb_ext','$zahlkond','$vertyp',
+                           '$kofiz_sd','$stdbk','$fkru_fis',
+                           '$zsector','$zz_ministry','$zz_start','$zz_end','$zz_budget','$zz_territory')";
+
+
+    if($n_struct=='KVV')
+        $z = "insert into sap_kvv(oldkey,dat_type,date_from,date_to)
+                    values('$oldkey','$n_struct','$date_from','$date_to')";
+
+    if($n_struct=='ZSTAT')
+
+        $z = "insert into sap_zstat(oldkey,dat_type,obj,status,date_reg,date_to,price,comments,loevm)
+                    values('$oldkey','$n_struct','$obj','$status','$date_reg',
+                    '$date_to','$price','$comments','$loevm')";
+
+
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+            break;
+        case 2:
+            Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+            break;
+    }
+
+}
+
+
+// Выгрузка по объектам соединения бытовые
+function f_connobj_ind($n_struct,$rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+//    $r = $v['id'];
+    $r = hash('crc32', $v['kod_reg'].'~'.$v['town'].'~'.$v['type_street'].'~'.
+        $v['street'].'~'.$v['house']);
+
+    $town=$v['town'];
+    $id=$v['id'];
+    $street = $v['street'];
+    $house_num1 =$v['house'];
+    $region=$v['region'];
+    $iuru_pro=$v['kod_reg'];
+
+    $begru=$v['begru'];
+    $swerk=$v['swerk'];
+    $stort=$v['stort'];
+    $type_street=$v['type_street'];
+
+    $oldkey = $oldkey_const . strtoupper($r);
+
+    $sql="select c.indx
+        from clm_paccnt_tbl a
+        left join vw_address c on
+        a.id=c.id where a.id=$id";
+
+    // Получаем необходимые данные
+    switch ($rem) {
+        case 1:
+            $data1 = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
+            break;
+
+        case 2:
+            $data1 = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+            break;
+        case 3:
+            $data1 = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
+            break;
+        case 4:
+            $data1 = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
+            break;
+        case 5:
+            $data1 = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+            break;
+        case 6:
+            $data1 = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
+            break;
+        case 7:
+            $data1 = \Yii::$app->db_pg_gv_abn->createCommand($sql)->queryAll();
+            break;
+        case 8:
+            $data1 = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
+            break;
+    }
+
+    $post_code1=$data1[0]['indx'];
+
     if($n_struct=='CO_EHA')
         $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
-                    values('$oldkey','$n_struct','$pltxt','$begru','$swerk','$stort')";
+                    values('$oldkey','$n_struct','~','$begru','$swerk','$stort')";
 
 
     if($n_struct=='CO_ADR')
 
         $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
-                                         street,house_num1,str_suppl1,str_suppl2,region,iuru_pro)
+                                         street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street)
                     values('$oldkey','$n_struct','$town','$post_code1','$street',
-                          '$house_num1','~','~','$region','$iuru_pro')";
+                          '$house_num1','~','~','$region','$iuru_pro','$type_street')";
 
-    Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
+    //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_abn->createCommand($z)->queryAll();
+            break;
+
+        case 2:
+            Yii::$app->db_pg_yv_abn->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_abn->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_abn->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krr_abn->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_abn->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_abn->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_abn->createCommand($z)->queryAll();
+            break;
+    }
+
 
 }
 
@@ -1326,11 +1497,11 @@ function f_premise_ind($n_struct,$rem,$v) {
     $town=$v['town'];
     $post_code1=$v['indx'];
     $street = $v['street'];
-    $house_num1 =$v['house'];
+    $haus =$v['haus'];
     $roomnumber=$v['flat'];
     $region=$v['region'];
     $iuru_pro=$v['kod_reg'];
-    $pltxt=$v['pltxt'];
+    $pltxt='C01B';
     $begru=$v['begru'];
     $swerk=$v['swerk'];
     $stort=$v['stort'];
@@ -1339,9 +1510,36 @@ function f_premise_ind($n_struct,$rem,$v) {
 
     if($n_struct=='EVBSD')
         $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru)
-                    values('$oldkey','$n_struct','$oldkey','$roomnumber','~','~','$pltxt')";
+                    values('$oldkey','$n_struct','$haus','$roomnumber','~','B0001','$pltxt')";
 
-    Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
+
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_abn->createCommand($z)->queryAll();
+            break;
+
+        case 2:
+            Yii::$app->db_pg_yv_abn->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_abn->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_abn->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krr_abn->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_abn->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_abn->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_abn->createCommand($z)->queryAll();
+            break;
+    }
 
 }
 

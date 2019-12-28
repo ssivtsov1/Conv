@@ -773,6 +773,15 @@ WHERE year_p=0 and year_q>0';
                 case 6:
                     return $this->redirect(['sap_premise', 'res' => $model->rem]);
                     break;
+                case 7:
+                    return $this->redirect(['sap_account', 'res' => $model->rem]);
+                    break;
+                case 8:
+                    return $this->redirect(['sap_account_ind', 'res' => $model->rem]);
+                    break;
+                case 9:
+                    return $this->redirect(['sap_devloc', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -791,8 +800,8 @@ WHERE year_p=0 and year_q>0';
         $rem = '0'.$res;  // Код РЭС
 
         $sql = "select a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
-case when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 0 then  '02'  else '03' end as BU_GROUP,
-case when coalesce(b.FLAG_JUR,0)= 1 then '0003' when coalesce(b.FLAG_JUR,0)= 0 then  '0002' else '0003' end as BPKIND,
+case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '03' else '02' end as BU_GROUP,
+case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '0003' else '0002' end as BPKIND,
 'MKK' as ROLE1,
 case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end  as ROLE2,
 '00010101' as VALID_FROM_1,
@@ -1188,12 +1197,11 @@ b.phone,b.e_mail
 
     public function actionCheck(){
 
-        $last_name='(099) 164 3707                  ';
-        preg_match_all('/[\d]+/', $last_name, $matches);
-        $s='';
-        foreach ($matches[0] as $v)
-            $s.=$v;
-        debug($s);
+        $r = hash('crc32', '111111111111111111111111111111111111111111111111111111111111111111111111111111111122');
+        debug($r);
+        $r = hash('crc32', '111111111111111111111111111111111111111111111111111111111111111111111111111111111121');
+        debug($r);
+
 
     }
 
@@ -1363,11 +1371,11 @@ b.phone,b.e_mail
         $rem = '0'.$res;  // Код РЭС
 
 
-        $sql = "select a.id,a.activ,'CK04' as pltxt,b.tax_number,b.last_name,
-                b.name,b.patron_name,c.town,c.indx,c.street,
-                c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
+        $sql = "select min(a.id) as id,
+                c.town,c.street,c.type_street,
+                c.house,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
-                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
+                const.region,d.kod_reg from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
         left join vw_address c on
@@ -1375,46 +1383,94 @@ b.phone,b.e_mail
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
-        trim(c.district)=d.region";
+        trim(c.district)=d.region
+        group by 2,3,4,5,6,7,8,9,10,11,12
+        ";
 
         $sql_c = "select * from sap_export where objectsap='CONNOBJ_IND' order by id_object";
-        $cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
+//        $cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
 
         if(1==1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
                     $data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_dn_abn->createCommand($sql_c)->queryAll();
                     break;
 
                 case 2:
                     $data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_yv_abn->createCommand($sql_c)->queryAll();
                     break;
                 case 3:
                     $data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_vg_abn->createCommand($sql_c)->queryAll();
                     break;
                 case 4:
                     $data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_pv_abn->createCommand($sql_c)->queryAll();
                     break;
                 case 5:
                     $data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krr_abn->createCommand($sql_c)->queryAll();
                     break;
                 case 6:
                     $data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_ap_abn->createCommand($sql_c)->queryAll();
                     break;
                 case 7:
                     $data = \Yii::$app->db_pg_gv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_gv_abn->createCommand($sql_c)->queryAll();
                     break;
                 case 8:
                     $data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_in_abn->createCommand($sql_c)->queryAll();
                     break;
             }
+
+//            debug($data);
+//            return;
+
             // Удаляем данные в таблицах
             $zsql = 'delete from sap_co_eha';
-            Yii::$app->db_pg_pv_abn_test->createCommand($zsql)->execute();
+            $zsql1 = 'delete from sap_co_adr';
 
-            $zsql = 'delete from sap_co_adr';
-            Yii::$app->db_pg_pv_abn_test->createCommand($zsql)->execute();
+            switch ($res) {
+                case 1:
+                    Yii::$app->db_pg_dn_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_dn_abn->createCommand($zsql1)->execute();
+                    break;
+
+                case 2:
+                    Yii::$app->db_pg_yv_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_yv_abn->createCommand($zsql1)->execute();
+                    break;
+                case 3:
+                    Yii::$app->db_pg_vg_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_vg_abn->createCommand($zsql1)->execute();
+                    break;
+                case 4:
+                    Yii::$app->db_pg_pv_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_pv_abn->createCommand($zsql1)->execute();
+                    break;
+                case 5:
+                    Yii::$app->db_pg_krr_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_krr_abn->createCommand($zsql1)->execute();
+                    break;
+                case 6:
+                    Yii::$app->db_pg_ap_abn_test->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_ap_abn_test->createCommand($zsql1)->execute();
+                    break;
+                case 7:
+                    Yii::$app->db_pg_gv_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_gv_abn->createCommand($zsql1)->execute();
+                    break;
+                case 8:
+                    Yii::$app->db_pg_in_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_in_abn->createCommand($zsql1)->execute();
+                    break;
+            }
+
 
 
             $i = 0;
@@ -1438,7 +1494,35 @@ b.phone,b.e_mail
         // Считываем данные в файл с каждой таблицы
         $i=0;
         $sql = "select * from sap_co_eha";
-        $struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+
+        switch ($res) {
+            case 1:
+                $struct_data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
+                break;
+            case 2:
+                $struct_data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                break;
+            case 3:
+                $struct_data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
+                break;
+            case 4:
+                $struct_data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
+                break;
+            case 5:
+                $struct_data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                break;
+            case 6:
+                $struct_data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
+                break;
+            case 7:
+                $struct_data = \Yii::$app->db_pg_gv_abn->createCommand($sql)->queryAll();
+                break;
+            case 8:
+                $struct_data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
+                break;
+        }
+
+
         foreach ($struct_data as $d) {
             $old_key=trim($d['oldkey']);
             $d = array_map('trim', $d);
@@ -1453,9 +1537,40 @@ b.phone,b.e_mail
                 $i++;
                 if($i>1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
-                    $cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+                    //$cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+
+                    switch ($res) {
+                        case 1:
+                            $cur_data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 2:
+                            $cur_data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 3:
+                            $cur_data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 4:
+                            $cur_data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 5:
+                            $cur_data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 6:
+                            $cur_data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 7:
+                            $cur_data = \Yii::$app->db_pg_gv_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 8:
+                            $cur_data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
+                            break;
+                    }
+
                     foreach ($cur_data as $d1) {
+                        if(strtolower($table_struct)=='sap_co_adr')
+                            $d1=array_slice($d1, 0, 9);
                         $d1 = array_map('trim', $d1);
+//                        $d1['oldkey']=substr($d1['oldkey'],0,10);
                         $s1=implode("\t", $d1);
                         $s1=str_replace("~","",$s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
@@ -2066,55 +2181,75 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         $rem = '0'.$res;  // Код РЭС
 
 
-        $sql = "select a.id,a.activ,'CK04' as pltxt,b.tax_number,b.last_name,
+        $sql = "select a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
                 b.name,b.patron_name,c.town,c.indx,c.street,
                 c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
-                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
+                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport,dd.oldkey as haus from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
         left join vw_address c on
         a.id=c.id
+        left join sap_co_adr dd on
+        dd.city1=c.town and dd.street=c.street and dd.house_num1=c.house and dd.cek_type_street=c.type_street
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region";
 
         $sql_c = "select * from sap_export where objectsap='PREMISE_IND' order by id_object";
-        $cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
+        $zsql = 'delete from sap_evbsd';
+        //$cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
 
         if(1==1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
                     $data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_dn_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_dn_abn->createCommand($zsql)->execute();
                     break;
 
                 case 2:
                     $data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_yv_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_yv_abn->createCommand($zsql)->execute();
                     break;
                 case 3:
                     $data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_vg_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_vg_abn->createCommand($zsql)->execute();
                     break;
                 case 4:
                     $data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_pv_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_pv_abn->createCommand($zsql)->execute();
                     break;
                 case 5:
                     $data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krr_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_krr_abn->createCommand($zsql)->execute();
                     break;
                 case 6:
                     $data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_ap_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_ap_abn->createCommand($zsql)->execute();
                     break;
                 case 7:
                     $data = \Yii::$app->db_pg_gv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_gv_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_gv_abn->createCommand($zsql)->execute();
                     break;
                 case 8:
                     $data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_in_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_in_abn->createCommand($zsql)->execute();
                     break;
             }
+
             // Удаляем данные в таблицах
-            $zsql = 'delete from sap_evbsd';
-            Yii::$app->db_pg_pv_abn_test->createCommand($zsql)->execute();
+//            $zsql = 'delete from sap_evbsd';
+//            Yii::$app->db_pg_pv_abn_test->createCommand($zsql)->execute();
 
             $i = 0;
             // Заполняем структуры
@@ -2137,7 +2272,35 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         // Считываем данные в файл с каждой таблицы
         $i=0;
         $sql = "select * from sap_evbsd";
-        $struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+        //$struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+
+        switch ($res) {
+            case 1:
+                $struct_data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
+                break;
+            case 2:
+                $struct_data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                break;
+            case 3:
+                $struct_data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
+                break;
+            case 4:
+                $struct_data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
+                break;
+            case 5:
+                $struct_data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                break;
+            case 6:
+                $struct_data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
+                break;
+            case 7:
+                $struct_data = \Yii::$app->db_pg_gv_abn->createCommand($sql)->queryAll();
+                break;
+            case 8:
+                $struct_data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
+                break;
+        }
+
         foreach ($struct_data as $d) {
             $old_key=trim($d['oldkey']);
             $d = array_map('trim', $d);
@@ -2152,7 +2315,372 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                 $i++;
                 if($i>1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
-                    $cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+//                    $cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+
+                    switch ($res) {
+                        case 1:
+                            $cur_data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 2:
+                            $cur_data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 3:
+                            $cur_data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 4:
+                            $cur_data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 5:
+                            $cur_data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 6:
+                            $cur_data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 7:
+                            $cur_data = \Yii::$app->db_pg_gv_abn->createCommand($sql)->queryAll();
+                            break;
+                        case 8:
+                            $cur_data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
+                            break;
+                    }
+
+                    foreach ($cur_data as $d1) {
+
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+
+//        fputs($f, "\t&ENDE");
+//        fputs($f, "\n");
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    // Форматирование файла partner для САП для юридических партнеров
+    public function actionSap_account($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        $sql = "-- INIT
+select s1.*,s2.*,s3.*,s4.*,s5.*
+from
+(select 'INIT' as struct,a.id,a.code as vkona,const.vktyp as vktyp,'04_C04P_'||a.id as gpart
+from clm_client_tbl as a
+left join clm_statecl_tbl as b on a.id = b.id_client
+inner join sap_const const on 1=1
+WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
+        and a.code_okpo<>'0000000'
+	    and a.code_okpo<>'000000') s1
+left join
+--VK
+(select 'VK' as struct,cl.id,
+case when length((case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar)=1 
+then '0'||(case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar 
+else (case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar end   as ZDATEREP
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+        and cl.code_okpo<>'0000000'
+	    and cl.code_okpo<>'000000') s2 on s1.id=s2.id
+left join
+-- VKP
+(select distinct 'VKP' as struct,cl.id,vktyp as vktyp,'04_C04P_'||cl.id as partner,const.opbuk,51 as ikey,13 as mahnv,
+const.begru_all as begru,b.adext_addr as adrnb_ext,
+'0005' as ZAHLKOND,'0002' as VERTYP,
+case when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99  then '04' 
+     when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)<>99  then '02'
+     when coalesce(st.flag_budjet,0)=1 then '03' 
+     else '02' 
+     end as KOFIZ_SD,
+     const.opbuk as stdbk,
+     case when coalesce(st.flag_budjet,0)=1 then
+     case when st.id_budjet=1000510 or st.id_section =211 then '1'
+          when st.id_budjet=1000521 or st.id_section =213 then '2'
+          when st.id_budjet=1000522 or st.id_section =215 then '3'
+          when st.id_budjet=1000523 or st.id_section =214 then '4'	
+          when st.id_budjet=1000520 or st.id_section is null then
+	  case when st.id_section=213 then '2'
+	       when st.id_section=214 then '4'
+	       when st.id_section=215 then '3'
+	  else ''
+	  end
+     else '' end
+else '5' end as FKRU_FIS,
+case when st.id_section in(210,211) then '10'
+     when st.id_section=212 then '20'
+     when st.id_section=213 then '21'
+     when st.id_section=214 then '22'
+     when st.id_section=215 then '23'
+     when st.id_section=203 then '30'
+     when st.id_section=201 then '40'
+     when st.id_section=202 then '60'
+     when st.id_section=205 then '81'
+     when st.id_section=207 then '82'
+     when st.id_section=206 then '83'
+     when st.id_section=204 then '50'
+     else '' end as ZSECTOR,
+     ''  as ZZ_MINISTRY,
+     replace((case when st.doc_dat<'2019-01-01' then '2019-01-01' else st.doc_dat end)::varchar ,'-','') as ZZ_START,
+     '' as ZZ_END,''  as ZZ_BUDGET,'' as ZZ_TERRITORY
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+left join sap_but020 b on '04_C04P_'||cl.id=b.oldkey
+WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+        and cl.code_okpo<>'0000000'
+	    and cl.code_okpo<>'000000') s3 on s2.id=s3.id
+
+left join
+-- KVV
+(select 'KVV' as struct,cl.id,'20200501' as date_from,'99991231' as date_to
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+        and cl.code_okpo<>'0000000'
+	    and cl.code_okpo<>'000000') s4 on s3.id=s4.id
+left join
+--ZSTAT
+(select 'ZSTAT' as struct,cl.id,'' as obj,'CON003' as status,
+'20200501' as date_reg,'99991231' as date_to,'' as price,
+'' as COMMENTS,'' as LOEVM
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+        and cl.code_okpo<>'0000000'
+	    and cl.code_okpo<>'000000') s5 on s4.id=s5.id
+";
+
+        $sql_c = "select * from sap_export where objectsap='ACCOUNT' order by id_object";
+//        $zsql =  'delete from sap_vk';
+//        $zsql1 = 'delete from sap_but000';
+//        $zsql2 = 'delete from sap_ekun';
+//        $zsql3 = 'delete from sap_but020';
+//        $zsql4 = 'delete from sap_but0id';
+//        $zsql5 = 'delete from sap_but021';
+
+
+        if(1==1) {
+            // Получаем необходимые данные
+            switch ($res) {
+                case 1:
+                    $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    foreach ($cnt as $v){
+                        if(trim($v['dattype'])=='INIT')
+                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                        else
+                            $z='delete from sap_'.trim($v['dattype']);
+
+                        Yii::$app->db_pg_dn_energo->createCommand($z)->execute();
+                    }
+                    break;
+
+                case 2:
+                    $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    foreach ($cnt as $v){
+                        if(trim($v['dattype'])=='INIT')
+                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                        else
+                            $z='delete from sap_'.trim($v['dattype']);
+
+                        Yii::$app->db_pg_zv_energo->createCommand($z)->execute();
+                    }
+                    break;
+                case 3:
+                    $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    foreach ($cnt as $v){
+                        if(trim($v['dattype'])=='INIT')
+                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                        else
+                            $z='delete from sap_'.trim($v['dattype']);
+                        Yii::$app->db_pg_vg_energo->createCommand($z)->execute();
+                    }
+                    break;
+                case 4:
+                    $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    foreach ($cnt as $v){
+                        if(trim($v['dattype'])=='INIT')
+                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                        else
+                            $z='delete from sap_'.trim($v['dattype']);
+
+                        Yii::$app->db_pg_pv_energo->createCommand($z)->execute();
+                    }
+                    break;
+                case 5:
+                    $data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krr_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    foreach ($cnt as $v){
+                        if(trim($v['dattype'])=='INIT')
+                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                        else
+                            $z='delete from sap_'.trim($v['dattype']);
+                        Yii::$app->db_pg_krr_energo->createCommand($z)->execute();
+                    }
+                    break;
+                case 6:
+                    $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    foreach ($cnt as $v){
+                        if(trim($v['dattype'])=='INIT')
+                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                        else
+                            $z='delete from sap_'.trim($v['dattype']);
+                        Yii::$app->db_pg_ap_energo->createCommand($z)->execute();
+                    }
+                    break;
+                case 7:
+                    $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    foreach ($cnt as $v){
+                        if(trim($v['dattype'])=='INIT')
+                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                        else
+                            $z='delete from sap_'.trim($v['dattype']);
+                        Yii::$app->db_pg_gv_energo->createCommand($z)->execute();
+                    }
+                    break;
+                case 8:
+                    $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    foreach ($cnt as $v){
+                        if(trim($v['dattype'])=='INIT')
+                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                        else
+                            $z='delete from sap_'.trim($v['dattype']);
+                        Yii::$app->db_pg_in_energo->createCommand($z)->execute();
+                    }
+                    break;
+            }
+            $i = 0;
+//            debug($data);
+//            return;
+
+            // Заполняем структуры
+            foreach ($data as $w) {
+                $i = 0;
+                foreach ($cnt as $v) {
+                    $n_struct = trim($v['dattype']);
+                    $i++;
+                    f_account($n_struct, $rem, $w);
+                }
+            }
+        }
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $fname='ACCOUNT_04'.'_CK'.$rem.'_'.$fd.'_08'.'_L'.'.txt';
+        $f = fopen($fname,'w+');
+        // Считываем данные в файл с каждой таблицы
+        $i=0;
+
+        $sql = "select * from sap_init_acc";
+        switch ($res) {
+            case 1:
+                $struct_data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                break;
+            case 2:
+                $struct_data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                break;
+            case 3:
+                $struct_data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                break;
+            case 4:
+                $struct_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                break;
+            case 5:
+                $struct_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                break;
+            case 6:
+                $struct_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                break;
+            case 7:
+                $struct_data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                break;
+            case 8:
+                $struct_data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                break;
+        }
+
+        $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $sql = "select * from $table_struct where oldkey='$old_key'";
+
+                    switch ($res) {
+                        case 1:
+                            $cur_data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 2:
+                            $cur_data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 3:
+                            $cur_data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 4:
+                            $cur_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 5:
+                            $cur_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 6:
+                            $cur_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 7:
+                            $cur_data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 8:
+                            $cur_data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                            break;
+                    }
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
                         $s1=implode("\t", $d1);
@@ -2183,6 +2711,195 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             'model' => $model]);
     }
 
+    // Формирование файла devloc для САП для Юридических потребителей
+    public function actionSap_devloc($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        $sql = "";
+
+        $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";
+        $zsql = 'delete from sap_egpld';
+
+
+        if(1==1) {
+            // Получаем необходимые данные
+            switch ($res) {
+                case 1:
+                    $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql)->execute();
+                    break;
+
+                case 2:
+                    $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql)->execute();
+                    break;
+                case 3:
+                    $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql)->execute();
+                    break;
+                case 4:
+                    $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
+                    break;
+                case 5:
+                    $data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krr_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql)->execute();
+                    break;
+                case 6:
+                    $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_ap_energo->createCommand($zsql)->execute();
+                    break;
+                case 7:
+                    $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_gv_energo->createCommand($zsql)->execute();
+                    break;
+                case 8:
+                    $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_in_energo->createCommand($zsql)->execute();
+                    break;
+            }
+            $i = 0;
+
+            // Заполняем структуры
+            foreach ($data as $w) {
+                $i = 0;
+                foreach ($cnt as $v) {
+                    $n_struct = trim($v['dattype']);
+                    $i++;
+                    f_devloc($n_struct, $rem, $w);
+                }
+            }
+        }
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname='DEVLOC_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_L'.'.txt';
+        $f = fopen($fname,'w+');
+        // Считываем данные в файл с каждой таблицы
+        $i=0;
+        $sql = "select * from sap_egpld";
+        switch ($res) {
+            case 1:
+                $struct_data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                break;
+            case 2:
+                $struct_data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                break;
+            case 3:
+                $struct_data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                break;
+            case 4:
+                $struct_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                break;
+            case 5:
+                $struct_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                break;
+            case 6:
+                $struct_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                break;
+            case 7:
+                $struct_data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                break;
+            case 8:
+                $struct_data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                break;
+        }
+
+//        $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $sql = "select * from $table_struct where oldkey='$old_key'";
+
+                    switch ($res) {
+                        case 1:
+                            $cur_data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 2:
+                            $cur_data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 3:
+                            $cur_data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 4:
+                            $cur_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 5:
+                            $cur_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 6:
+                            $cur_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 7:
+                            $cur_data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                            break;
+                        case 8:
+                            $cur_data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                            break;
+                    }
+
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+
+//        fputs($f, "\t&ENDE");
+//        fputs($f, "\n");
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
 
     // Импорт готовой таблицы street в базы РЭСов
     public function actionImp_street_in_bd()
@@ -2329,8 +3046,8 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
     }
     // --------------------------------------------------------------------------------------------------------
     
-    // Импорт отчета по КиевСтар за август 2019 года для выявления штрафников
-    public function actionImport_ks_0819()
+    // Импорт отчета по КиевСтар за ноябрь 2019 года для выявления штрафников
+    public function actionImport_ks_1119()
     {
         /*
         $f = fopen('Rep01118.csv','r');
@@ -2345,7 +3062,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         return;
         */
 
-        $sql = "CREATE TABLE tmp_ks0819 (
+        $sql = "CREATE TABLE tmp_ks1119 (
               tel varchar(10) NOT NULL,
               cost_plan varchar(20) DEFAULT NULL,
               cost_all varchar(10) DEFAULT NULL,
@@ -2356,7 +3073,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('Rep0819.csv','r');
+        $f = fopen('Rep1119.csv','r');
         $i = 0;
         while (!feof($f)) {
             $i++;
@@ -2371,7 +3088,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             $data[9] = str_replace('"','',$data[9]);
             $e=1;
              
-                    $sql = "INSERT INTO tmp_ks0819 (tel,cost_plan,cost_all) VALUES(".
+                    $sql = "INSERT INTO tmp_ks1119 (tel,cost_plan,cost_all) VALUES(".
                         "'".$data[0]."'".","."'".$data[3]."'".","."'".$data[9]."'".')';
 
             Yii::$app->db_phone->createCommand($sql)->execute();
