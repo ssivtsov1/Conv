@@ -1488,8 +1488,8 @@ b.phone,b.e_mail
         $rem = '0'.$res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
         $method=__FUNCTION__;
-
         if(substr($method,-4)=='_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -1534,11 +1534,13 @@ b.phone,b.e_mail
                 on q.id=a.id) s2
                 on s1.id=s2.id";
 
+            // Запрос для получения списка необходимых
+            // для экспорта структур
             $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
             // Получаем необходимые данные
-            $data = data_from_server($sql,$res,$vid);
-            $cnt = data_from_server($sql_c,$res,$vid);
+            $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+            $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
 
             // Удаляем данные в таблицах
             $zsql = 'delete from sap_init_acc';
@@ -1548,11 +1550,9 @@ b.phone,b.e_mail
 
             // Заполняем структуры
             foreach ($data as $w) {
-                $i = 0;
                 foreach ($cnt as $v) {
                     $n_struct = trim($v['dattype']);
-                    $i++;
-                    f_account_ind($n_struct, $rem, $w, $vid);
+                    f_account_ind($n_struct, $rem, $w, $vid);  // Функция заполнения структур
                 }
             }
 
@@ -1582,7 +1582,6 @@ b.phone,b.e_mail
                     $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
                     $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
-
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
                         $s1=implode("\t", $d1);
