@@ -1489,12 +1489,18 @@ b.phone,b.e_mail
 
         // Определяем тип базы 1-abn, 2-energo
         $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind')
+
+        if(substr($method,-4)=='_ind') {
             $vid = 1;
-        else
+            $_suffix = '_R';
+        }
+        else {
             $vid = 2;
+            $_suffix = '_L';
+        }
         // Получаем название подпрограммы
         $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select s1.*,s2.*
@@ -1554,7 +1560,7 @@ b.phone,b.e_mail
         $fd=date('Ymd');
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
-        $fname='ACCOUNT_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
         $f = fopen($fname,'w+');
 
         // Считываем данные в файл с каждой таблицы

@@ -2063,5 +2063,19 @@ function gen_vars($w)
     return 0;
 }
 
+// Получение название подпрограммы
+function get_routine($s)
+{
+    if(substr($s,-4)=='_ind') {
+        $r = substr($s, 10);
+        $r = str_replace('_ind', '', $r);
+    }
+    else
+        $r = substr($s, 10);
+    return(strtoupper($r));
+
+}
+
+
 
 ?>
