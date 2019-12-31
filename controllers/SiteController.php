@@ -782,6 +782,12 @@ WHERE year_p=0 and year_q>0';
                 case 9:
                     return $this->redirect(['sap_devloc', 'res' => $model->rem]);
                     break;
+                case 10:
+                    return $this->redirect(['sap_devloc_ind', 'res' => $model->rem]);
+                    break;
+                case 11:
+                    return $this->redirect(['sap_device_ind', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -1370,7 +1376,14 @@ b.phone,b.e_mail
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind')
+            $vid = 1;
+        else
+            $vid = 2;
 
+        // Главный запрос со всеми необходимыми данными
         $sql = "select min(a.id) as id,
                 c.town,c.street,c.type_street,
                 c.house,const.id_res,
@@ -1388,6 +1401,329 @@ b.phone,b.e_mail
         ";
 
         $sql_c = "select * from sap_export where objectsap='CONNOBJ_IND' order by id_object";
+
+        if(1==1) {
+            // Получаем необходимые данные
+            $data = data_from_server($sql,$res,$vid);
+            $cnt = data_from_server($sql_c,$res,$vid);
+
+            // Удаляем данные в таблицах
+            $zsql = 'delete from sap_co_eha';
+            $zsql1 = 'delete from sap_co_adr';
+            exec_on_server($zsql,$res,$vid);
+            exec_on_server($zsql1,$res,$vid);
+
+            $i = 0;
+            // Заполняем структуры
+            foreach ($data as $w) {
+                $i = 0;
+                foreach ($cnt as $v) {
+                    $n_struct = trim($v['dattype']);
+                    $i++;
+                    f_connobj_ind($n_struct, $rem, $w);
+                }
+            }
+        }
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname='CONNOBJ_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с каждой таблицы
+        $sql = "select * from sap_co_eha";
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                      $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+
+                    foreach ($cur_data as $d1) {
+                        if(strtolower($table_struct)=='sap_co_adr')
+                            $d1=array_slice($d1, 0, 9);
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    // Формирование файла account для САП для бытовых
+    public function actionSap_account_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind')
+            $vid = 1;
+        else
+            $vid = 2;
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select s1.*,s2.*
+                from
+                --INIT
+                (select 'INIT' as struct,a.id,a.code as vkona,
+                const.vktyp as vktyp,'04_C04В_'||a.id as gpart,const.ver
+                from clm_paccnt_tbl as a
+                left join clm_abon_tbl as b on a.id = b.id
+                inner join sap_const const on 1=1) s1
+                left join
+                --VKP
+                (select distinct 'VKP' as struct,a.id,'04_C04B_'||a.id as partner,const.opbuk,51 as ikey,
+                const.begru_all as begru,c.adext_addr as adrnb_ext,
+                '0010' as ZAHLKOND,'0001' as VERTYP,
+                     '5' as KZABSVER,
+                     const.opbuk as stdbk,
+                     ''  as ZZ_MINISTRY,
+                     replace((case when (a.dt_b<'2019-01-01' or a.dt_b is null) then '2019-01-01' else a.dt_b end)::varchar ,'-','') as ZZ_START,
+                     '' as ZZ_END,''  as ZZ_BEGIN,q.ZZ_TERRITORY
+                from clm_paccnt_tbl as a
+                left join clm_abon_tbl as b on a.id = b.id
+                inner join sap_const const on 1=1
+                left join sap_but020 c on '04_C04B_'||a.id=c.old_key
+                left join
+                (select id,w,case
+                when w like 'м.%' then '1'
+                when w not like 'м.%' then '2'
+                END as zz_territory
+                from (select id,get_address(addr,3) as w from clm_paccnt_tbl) s) q
+                on q.id=a.id) s2
+                on s1.id=s2.id";
+
+            $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+            // Получаем необходимые данные
+            $data = data_from_server($sql,$res,$vid);
+            $cnt = data_from_server($sql_c,$res,$vid);
+
+            // Удаляем данные в таблицах
+            $zsql = 'delete from sap_init_acc';
+            $zsql1 = 'delete from sap_vkp';
+            exec_on_server($zsql,$res,$vid);
+            exec_on_server($zsql1,$res,$vid);
+
+            // Заполняем структуры
+            foreach ($data as $w) {
+                $i = 0;
+                foreach ($cnt as $v) {
+                    $n_struct = trim($v['dattype']);
+                    $i++;
+                    f_account_ind($n_struct, $rem, $w, $vid);
+                }
+            }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname='ACCOUNT_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с каждой таблицы
+        $sql = "select * from sap_init_acc";
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    // Формирование файла devloc для САП для бытовых
+    public function actionSap_devloc_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind')
+            $vid = 1;
+        else
+            $vid = 2;
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
+                  const.stort,const.begru_b as begru,const.ver
+                from clm_paccnt_tbl as a
+                left join sap_evbsd b on b.oldkey='04_C04B_'||a.id
+                inner join sap_const const on 1=1";
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);
+        $cnt = data_from_server($sql_c,$res,$vid);
+
+        // Удаляем данные в таблицах
+        $zsql = 'delete from sap_egpld';
+        exec_on_server($zsql,$res,$vid);
+
+        // Заполняем структуры
+        foreach ($data as $w) {
+            $i = 0;
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $i++;
+                f_devloc_ind($n_struct, $rem, $w, $vid);
+            }
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname='DEVLOC_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с каждой таблицы
+        $sql = "select * from sap_init_acc";
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    // Формирование файла device для САП для бытовых
+    public function actionSap_device_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        $sql = "select distinct a.id,'4000' as eqart,'1980' as baujj,'20200501' as datab,'' as matnr,
+                'CCNN232820' as kostl,a.num_meter as sernr,'CK_RANDOM' as zz_pernr,
+                replace(a.dt_control::char(10),'-','') as cert_date,b.id as id_meter,
+                date_part('year', a.dt_control) as bgljahr,sd.group_schet as zwgruppe,
+                const.swerk,const.stort,const.ver,const.begru_b as begru,sd.sap_meter_name as matnr
+                from clm_meterpoint_tbl a
+                left join (select distinct id from eqi_meter_tbl) b on a.id_type_meter=b.id
+                inner join sap_const const on
+                1=1
+                left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=a.id_type_meter
+                left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
+                --where s.sap_meter_id<>'' and s.sap_meter_id is not null and sd.sap_meter_id is not null 
+                order by sd.sap_meter_name
+                ";
+
+        $sql_c = "select * from sap_export where objectsap='DEVICE_IND' order by id_object";
 //        $cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
 
         if(1==1) {
@@ -1432,8 +1768,8 @@ b.phone,b.e_mail
 //            return;
 
             // Удаляем данные в таблицах
-            $zsql = 'delete from sap_co_eha';
-            $zsql1 = 'delete from sap_co_adr';
+            $zsql = 'delete from sap_equi';
+            $zsql1 = 'delete from sap_egers';
 
             switch ($res) {
                 case 1:
@@ -1480,20 +1816,20 @@ b.phone,b.e_mail
                 foreach ($cnt as $v) {
                     $n_struct = trim($v['dattype']);
                     $i++;
-                    f_connobj_ind($n_struct, $rem, $w);
+                    f_device_ind($n_struct, $rem, $w);
                 }
             }
         }
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
-       // $fname='PARTNER_04'.'_CK'.$rem.'_B'.$fd.'.txt';
+        // $fname='PARTNER_04'.'_CK'.$rem.'_B'.$fd.'.txt';
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
-        $fname='CONNOBJ_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
+        $fname='DEVICE_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
         $f = fopen($fname,'w+');
         // Считываем данные в файл с каждой таблицы
         $i=0;
-        $sql = "select * from sap_co_eha";
+        $sql = "select * from sap_equi";
 
         switch ($res) {
             case 1:
@@ -1598,6 +1934,7 @@ b.phone,b.e_mail
         return $this->render('info', [
             'model' => $model]);
     }
+
 
     // Формирование файла connobj для САП для Юридических потребителей
     public function actionSap_connobj($res)
@@ -2414,6 +2751,7 @@ case when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99  then '04'
      when coalesce(st.flag_budjet,0)=1 then '03' 
      else '02' 
      end as KOFIZ_SD,
+     '5' as KZABSVER,
      const.opbuk as stdbk,
      case when coalesce(st.flag_budjet,0)=1 then
      case when st.id_budjet=1000510 or st.id_section =211 then '1'
@@ -2718,7 +3056,16 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
-        $sql = "";
+        $sql = "select cl.id,'04_C04P_'||cl.id as haus,b.oldkey as vstelle,const.swerk,
+                  const.stort,const.begru_all as begru,const.ver
+                from clm_client_tbl as cl
+                left join clm_statecl_tbl as st on cl.id = st.id_client
+                left join sap_evbsd b on b.haus='04_C04P_'||cl.id
+                inner join sap_const const on 1=1
+                WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+                        and cl.code_okpo<>'0000000'
+                        and cl.code_okpo<>'000000'
+                and b.oldkey is not null";
 
         $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";
         $zsql = 'delete from sap_egpld';

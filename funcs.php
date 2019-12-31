@@ -1,4 +1,5 @@
 <?php
+
 // Отображение массива в удобном для просмотра виде
 function debug($var)
 {
@@ -1237,7 +1238,6 @@ function f_account($n_struct, $rem, $v) {
     $ebvty = '';
     $abvty = '';
     $abwvk = '';
-    $fkkvkp = '';
     $ikey = $v['ikey'];
 
     $mahnv = $v['mahnv'];
@@ -1247,6 +1247,7 @@ function f_account($n_struct, $rem, $v) {
     $vertyp = $v['vertyp'];
 
     $kofiz_sd = $v['kofiz_sd'];
+    $kzabsver = $v['kzabsver'];
     $stdbk = $v['stdbk'];
     $fkru_fis = $v['fkru_fis'];
     $zsector=$v['zsector'];
@@ -1277,24 +1278,24 @@ function f_account($n_struct, $rem, $v) {
 
     if($n_struct=='VKP')
         $z = "insert into sap_vkp(oldkey,dat_type,partner,opbuk,ebvty,abvty,abwvk,
-                                       fkkvkp,ikey,mahnv,begru,adrnb_ext,
-                                       zahlkond,vertyp,kofiz_sd,stdbk,fkru_fis,zsector,zz_ministry,
+                                       ikey,mahnv,begru,adrnb_ext,
+                                       zahlkond,vertyp,kofiz_sd,kzabsver,stdbk,fkru_fis,zsector,zz_ministry,
                                        zz_start,zz_end,zz_budget,zz_territory)
-                    values('$oldkey','$n_struct','$partner','$opbuk','$ebvty','$abvty',$$$abwvk$$,$$$fkkvkp$$,
+                    values('$oldkey','$n_struct','$partner','$opbuk','$ebvty','$abvty',$$$abwvk$$,
                            $$$ikey$$,$$$mahnv$$,'$begru','$adrnb_ext','$zahlkond','$vertyp',
-                           '$kofiz_sd','$stdbk','$fkru_fis',
+                           '$kofiz_sd','$kzabsver','$stdbk','$fkru_fis',
                            '$zsector','$zz_ministry','$zz_start','$zz_end','$zz_budget','$zz_territory')";
 
 
-    if($n_struct=='KVV')
-        $z = "insert into sap_kvv(oldkey,dat_type,date_from,date_to)
-                    values('$oldkey','$n_struct','$date_from','$date_to')";
-
-    if($n_struct=='ZSTAT')
-
-        $z = "insert into sap_zstat(oldkey,dat_type,obj,status,date_reg,date_to,price,comments,loevm)
-                    values('$oldkey','$n_struct','$obj','$status','$date_reg',
-                    '$date_to','$price','$comments','$loevm')";
+//    if($n_struct=='KVV')
+//        $z = "insert into sap_kvv(oldkey,dat_type,date_from,date_to)
+//                    values('$oldkey','$n_struct','$date_from','$date_to')";
+//
+//    if($n_struct=='ZSTAT')
+//
+//        $z = "insert into sap_zstat(oldkey,dat_type,obj,status,date_reg,date_to,price,comments,loevm)
+//                    values('$oldkey','$n_struct','$obj','$status','$date_reg',
+//                    '$date_to','$price','$comments','$loevm')";
 
 
     switch ((int) $rem) {
@@ -1326,11 +1327,66 @@ function f_account($n_struct, $rem, $v) {
 
 }
 
+function f_account_ind($n_struct, $rem, $v,$vid) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $r = $v['id'];
+    $gpart = $v['gpart'];
+    $vktyp = $v['vktyp'];
+    $vkona = $v['vkona'];
+    $partner=$v['partner'];
+    $opbuk=$v['opbuk'];
+    $ikey = $v['ikey'];
+    $begru = $v['begru'];
+    $adrnb_ext = $v['adrnb_ext'];
+    $zahlkond = $v['zahlkond'];
+    $kzabsver = $v['kzabsver'];
+    $stdbk = $v['stdbk'];
+    $zz_start=$v['zz_start'];
+    $zz_end=$v['zz_end'];
+    $zz_begin=$v['zz_begin'];
+    $zz_territory=$v['zz_territory'];
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='INIT')
+        $z = "insert into sap_init_acc(oldkey,dat_type,gpart,vktyp,vkona)
+                    values('$oldkey','$n_struct','$gpart','$vktyp','$vkona')";
+
+    if($n_struct=='VKP')
+        $z = "insert into sap_vkp(oldkey,dat_type,partner,opbuk,ikey,begru,adrnb_ext,
+                                  zahlkond,kzabsver,stdbk,zz_start,zz_end,zz_begin,zz_territory)
+                    values('$oldkey','$n_struct','$partner','$opbuk',$$$ikey$$,'$begru','$adrnb_ext','$zahlkond',
+                           '$kzabsver','$stdbk','$zz_start','$zz_end','$zz_begin','$zz_territory')";
+
+    exec_on_server($z,(int) $rem,$vid);
+}
+
+function f_devloc_ind($n_struct, $rem, $v,$vid) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $r = $v['id'];
+    $haus = $v['haus'];
+    $vstelle = $v['vstelle'];
+    $swerk = $v['swerk'];
+    $stort=$v['stort'];
+    $begru = $v['begru'];
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='EGPLD')
+        $z = "insert into sap_egpld(oldkey,dat_type,haus,vstelle,swerk,stort,begru,pltxt)
+                    values('$oldkey','$n_struct','$haus','$vstelle','$swerk','$stort','$begru','~')";
+
+    exec_on_server($z,(int) $rem,$vid);
+}
 
 // Выгрузка по объектам соединения бытовые
 function f_connobj_ind($n_struct,$rem,$v) {
     $oldkey_const='04_C'.$rem.'B_';
 //    $r = $v['id'];
+    // Создание переменных
+    foreach($v as $k=>$v1) {
+        eval('$'.$k.'='.'"'.$v1.'"'.';');
+
+    }
+
     $r = hash('crc32', $v['kod_reg'].'~'.$v['town'].'~'.$v['type_street'].'~'.
         $v['street'].'~'.$v['house']);
 
@@ -1382,12 +1438,20 @@ function f_connobj_ind($n_struct,$rem,$v) {
             break;
     }
 
+
     $post_code1=$data1[0]['indx'];
 
-    if($n_struct=='CO_EHA')
+    if($n_struct=='CO_EHA') {
         $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
                     values('$oldkey','$n_struct','~','$begru','$swerk','$stort')";
 
+        // Создание строки INSERT
+//        $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
+//        $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
+//
+//        $z = "insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
+
+    }
 
     if($n_struct=='CO_ADR')
 
@@ -1543,6 +1607,73 @@ function f_premise_ind($n_struct,$rem,$v) {
 
 }
 
+// Выгрузка по device бытовые
+function f_device_ind($n_struct,$rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $r = $v['id'];
+    $eqart=$v['eqart'];
+    $baujj=$v['baujj'];
+    $datab = $v['datab'];
+    $kostl =$v['kostl'];
+    $bukrs='~';
+    $matnr=$v['matnr'];
+    $sernr=$v['sernr'];
+    $zz_pernr=$v['zz_pernr'];
+    $cert_date=$v['cert_date'];
+    $bgljahr=$v['bgljahr'];
+    $begru=$v['begru'];
+    $swerk=$v['swerk'];
+    $stort=$v['stort'];
+    $zwgruppe=$v['zwgruppe'];
+
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='EQUI')
+        $z = "insert into sap_equi(oldkey,dat_type,begru,eqart,baujj,datab,swerk,stort,kostl,bukrs,
+                                    matnr,sernr,zz_pernr,cert_date)
+                    values('$oldkey','$n_struct','$begru','$eqart','$baujj','$datab','$swerk','$stort',
+                            '$kostl','$bukrs','$matnr','$sernr','$zz_pernr','$cert_date')";
+    if($n_struct=='EGERS')
+        $z = "insert into sap_egers(oldkey,dat_type,bgljahr)
+                    values('$oldkey','$n_struct','$bgljahr')";
+
+    if($n_struct=='EGERH')
+        $z = "insert into sap_egerh(oldkey,dat_type,ab,zwgruppe,wgruppe)
+                    values('$oldkey','$n_struct','$datab','$zwgruppe','~')";
+
+
+
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_abn->createCommand($z)->queryAll();
+            break;
+
+        case 2:
+            Yii::$app->db_pg_yv_abn->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_abn->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_abn->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krr_abn->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_abn->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_abn->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_abn->createCommand($z)->queryAll();
+            break;
+    }
+
+}
+
+
 // Выгрузка по premise юридические
 function f_premise($n_struct,$rem,$v) {
     $haus=$v['haus'];
@@ -1583,6 +1714,49 @@ function f_premise($n_struct,$rem,$v) {
     }
 
 }
+
+// Выгрузка по devloc юридические
+function f_devloc($n_struct,$rem,$v) {
+    $haus=$v['haus'];
+    $vstelle = $v['vstelle'];
+    $swerk =$v['swerk'];
+    $stort = $v['stort'];
+    $begru = $v['begru'];
+    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'].random_int(100,1000000)));
+
+    if($n_struct=='EGPLD')
+        $z = "insert into sap_egpld(oldkey,dat_type,haus,vstelle,swerk,stort,begru,pltxt)
+                    values('$oldkey','$n_struct','$haus','$vstelle','$swerk','$stort','$begru','~')";
+
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+            break;
+        case 2:
+            Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+            break;
+    }
+
+}
+
 
 
 
@@ -1650,7 +1824,244 @@ function define_type_tel($oper)
     }
     return $flag;
 }
+// Cоздание строки всех колонок таблицы
+// Аргументы:
+// $table - имя таблицы
+// $rem -РЭС
+// $type - тип (1- abn, 2 - energo)
+// $arr - массив для исключения колонок, например:
+// gen_column('sap_co_eha',$res,[0=>'swerk',1=>'dat_type']); - будут исключены поля swerk и dat_type
+function gen_column($table,$rem,$type,$arr=[])
+{
+    $sql = "select * from $table limit 1";
+    $struct_data=data_from_server($sql,$rem,$type);
+    $s='';
+    foreach($struct_data[0] as $k=>$v) {
+        $flag=0;
+        foreach ($arr as $a) {
+             if($a==$k) $flag=1;
+            }
+        if(!$flag)
+            $s=$s.$k.',';
+    }
+    $s=substr($s,0,strlen($s)-1);
+    return $s;
 
+}
+// Cоздание строки всех колонок таблицы для выражения в insert запросе
+// Аргументы:
+// $table - имя таблицы
+// $rem -РЭС
+// $type - тип (1- abn, 2 - energo)
+// $arr - массив для исключения колонок, например:
+// gen_column('sap_co_eha',$res,[0=>'swerk',1=>'dat_type']); - будут исключены поля swerk и dat_type
+function gen_column_insert($table,$rem,$type,$arr=[])
+{
+    $sql = "SELECT ordinal_position, column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name='$table'
+            ORDER BY 1";
+    $struct_data=data_from_server($sql,$rem,$type);
+    $s='';
+    foreach($struct_data as $v) {
+        $flag=0;
+        foreach ($arr as $a) {
+            if($a==$v['column_name']) $flag=1;
+        }
+        if(!$flag)
+            $s=$s.$v['column_name'].',';
+    }
+    $s=substr($s,0,strlen($s)-1);
+    return $s;
+
+}
+
+
+// Cоздание строки всех колонок таблицы для выражения values в insert запросе
+// Аргументы:
+// $table - имя таблицы
+// $rem -РЭС
+// $type - тип (1- abn, 2 - energo)
+// $arr - массив для исключения колонок, например:
+// gen_column('sap_co_eha',$res,[0=>'swerk',1=>'dat_type']); - будут исключены поля swerk и dat_type
+function gen_column_values($table,$rem,$type,$arr=[])
+{
+    $sql = "SELECT ordinal_position, column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name='$table'
+            ORDER BY 1";
+    $struct_data=data_from_server($sql,$rem,$type);
+    $s='';
+    foreach($struct_data as $v) {
+        $flag=0;
+        foreach ($arr as $a) {
+            if($a==$v['column_name']) $flag=1;
+        }
+        if(!$flag)
+            $s=$s.'$$$'.$v['column_name'].'$$,';
+    }
+    $s=substr($s,0,strlen($s)-1);
+    return $s;
+
+}
+
+// $s=$s.'$$$'.$k.'$$,';
+
+// Получение данных с сервера (выполнение select команды)
+// Аргументы:
+// $sql - запрос
+// $rem - код РЭСа
+// $type - тип (1- abn, 2 - energo)
+function data_from_server($sql,$rem,$type)
+{
+    $sql='"'.$sql.'"';
+    if($type==1) {
+        switch ($rem) {
+            case 1:
+                $base = 'db_pg_dn_abn';
+                break;
+            case 2:
+                $base = 'db_pg_zv_abn';
+                break;
+            case 3:
+                $base = 'db_pg_vg_abn';
+                break;
+            case 4:
+                $base = 'db_pg_pv_abn';
+                break;
+            case 5:
+                $base = 'db_pg_krr_abn';
+                break;
+            case 6:
+                $base = 'db_pg_ap_abn';
+                break;
+            case 7:
+                $base = 'db_pg_gv_abn';
+                break;
+            case 8:
+                $base = 'db_pg_in_abn';
+                break;
+        }
+    }
+    if($type==2) {
+        switch ($rem) {
+            case 1:
+                $base = 'db_pg_dn_energo';
+                break;
+            case 2:
+                $base = 'db_pg_zv_energo';
+                break;
+            case 3:
+                $base = 'db_pg_vg_energo';
+                break;
+            case 4:
+                $base = 'db_pg_pv_energo';
+                break;
+            case 5:
+                $base = 'db_pg_krr_energo';
+                break;
+            case 6:
+                $base = 'db_pg_ap_energo';
+                break;
+            case 7:
+                $base = 'db_pg_gv_energo';
+                break;
+            case 8:
+                $base = 'db_pg_in_energo';
+                break;
+        }
+    }
+    $data='$data='." \Yii::".'$app'."->".$base."->createCommand($sql)"."->queryAll();";
+    eval($data);
+
+
+    return($data);
+
+}
+
+// Выполнение комманды sql на сервере (выполнение любых команд кроме select)
+// Аргументы:
+// $sql - запрос
+// $rem - код РЭСа
+// $type - тип (1- abn, 2 - energo)
+function exec_on_server($sql,$rem,$type)
+{
+    $sql='"'.$sql.'"';
+    if($type==1) {
+        switch ($rem) {
+            case 1:
+                $base = 'db_pg_dn_abn';
+                break;
+            case 2:
+                $base = 'db_pg_zv_abn';
+                break;
+            case 3:
+                $base = 'db_pg_vg_abn';
+                break;
+            case 4:
+                $base = 'db_pg_pv_abn';
+                break;
+            case 5:
+                $base = 'db_pg_krr_abn';
+                break;
+            case 6:
+                $base = 'db_pg_ap_abn';
+                break;
+            case 7:
+                $base = 'db_pg_gv_abn';
+                break;
+            case 8:
+                $base = 'db_pg_in_abn';
+                break;
+        }
+    }
+    if($type==2) {
+        switch ($rem) {
+            case 1:
+                $base = 'db_pg_dn_energo';
+                break;
+            case 2:
+                $base = 'db_pg_zv_energo';
+                break;
+            case 3:
+                $base = 'db_pg_vg_energo';
+                break;
+            case 4:
+                $base = 'db_pg_pv_energo';
+                break;
+            case 5:
+                $base = 'db_pg_krr_energo';
+                break;
+            case 6:
+                $base = 'db_pg_ap_energo';
+                break;
+            case 7:
+                $base = 'db_pg_gv_energo';
+                break;
+            case 8:
+                $base = 'db_pg_in_energo';
+                break;
+        }
+    }
+    $data="Yii::".'$app'."->".$base."->createCommand($sql)"."->execute();";
+    eval($data);
+    return;
+
+}
+// Создание глобальных переменных
+function gen_vars($w)
+{   error_reporting( E_ERROR);
+
+    foreach($w as $k=>$v) {
+
+        eval('static $'.$k.'='.'"'.$v.'"'.';');
+//        IF($k=='street') {
+//            debug($street);
+//            return;
+//        }
+    }
+    return 0;
+}
 
 
 ?>
