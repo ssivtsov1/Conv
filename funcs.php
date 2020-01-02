@@ -1673,6 +1673,44 @@ function f_device_ind($n_struct,$rem,$v) {
 
 }
 
+// Выгрузка по device юридические
+function f_device($n_struct,$rem,$v,$vid) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $r = $v['id'];
+    $eqart=$v['eqart'];
+    $baujj=$v['baujj'];
+    $datab = $v['datab'];
+    $kostl =$v['kostl'];
+    $bukrs='~';
+    $matnr=$v['matnr'];
+    $sernr=$v['sernr'];
+    $zz_pernr=$v['zz_pernr'];
+    $cert_date=$v['cert_date'];
+//    $bgljahr=$v['bgljahr'];
+    $bgljahr=$datab;
+    $begru=$v['begru'];
+    $swerk=$v['swerk'];
+    $stort=$v['stort'];
+    $zwgruppe=$v['zwgruppe'];
+
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='EQUI')
+        $z = "insert into sap_equi(oldkey,dat_type,begru,eqart,baujj,datab,swerk,stort,kostl,bukrs,
+                                    matnr,sernr,zz_pernr,cert_date)
+                    values('$oldkey','$n_struct','$begru','$eqart','$baujj','$datab','$swerk','$stort',
+                            '$kostl','$bukrs','$matnr','$sernr','$zz_pernr','$cert_date')";
+    if($n_struct=='EGERS')
+        $z = "insert into sap_egers(oldkey,dat_type,bgljahr)
+                    values('$oldkey','$n_struct','$bgljahr')";
+
+    if($n_struct=='EGERH')
+        $z = "insert into sap_egerh(oldkey,dat_type,ab,zwgruppe,wgruppe)
+                    values('$oldkey','$n_struct','$datab','$zwgruppe','~')";
+
+    exec_on_server($z,(int) $rem,$vid);
+}
+
 
 // Выгрузка по premise юридические
 function f_premise($n_struct,$rem,$v) {

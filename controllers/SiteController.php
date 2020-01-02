@@ -788,6 +788,9 @@ WHERE year_p=0 and year_q>0';
                 case 11:
                     return $this->redirect(['sap_device_ind', 'res' => $model->rem]);
                     break;
+                case 12:
+                    return $this->redirect(['sap_device', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -1609,6 +1612,130 @@ b.phone,b.e_mail
             'model' => $model]);
     }
 
+    // Формирование файла device для САП для юридических потребителей
+    public function actionSap_device($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select distinct m.code_eqp as id,case when length(m.code_eqp::varchar)<8 then 
+                 (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
+                'EQUI' as EQUI,
+                case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
+                 substring(m.dt_control::varchar,1,4) as BAUJJ, 
+                '20200501' as datab,
+                 '' as EQKTX,
+                case  when coalesce(eq.is_owner,0) = 0 then 'CCNN232820' else '' end as KOSTL, 
+                 trim(eq.num_eqp) as SERNR,
+                 'CK_RANDOM' as zz_pernr,
+                  substring(replace(m.dt_control::varchar,'-',''),1,8) as CERT_DATE,'' as matnr,'' as zwgruppe,
+                  const.swerk,const.stort,const.ver,const.begru_b as begru
+                from eqm_meter_tbl as m 
+                join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
+                left join eqm_equipment_h as hm on (hm.id = eq.id) 
+                left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+                inner join sap_const const on 1=1
+                --left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=m.id_type_eqp
+                --left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id";
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+        // Удаляем данные в таблицах структур
+        $i=0;
+        foreach ($cnt as $v) {
+            $i++;
+            $n_struct = trim($v['dattype']);
+            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_".strtolower($n_struct);
+            exec_on_server($zsql,$res,$vid);
+        }
+
+        // Заполняем структуры
+        foreach ($data as $w) {
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                eval($func_fill);
+            }
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с каждой таблицы
+        $sql = "select * from sap_$first_struct";
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+
     // Формирование файла devloc для САП для бытовых
     public function actionSap_devloc_ind($res)
     {
@@ -1713,7 +1840,7 @@ b.phone,b.e_mail
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
-        $sql = "select distinct a.id,'4000' as eqart,'1980' as baujj,'20200501' as datab,'' as matnr,
+        $sql = "select distinct a.id,'4000' as eqart,'1980' as baujj,'20200501' as datab,
                 'CCNN232820' as kostl,a.num_meter as sernr,'CK_RANDOM' as zz_pernr,
                 replace(a.dt_control::char(10),'-','') as cert_date,b.id as id_meter,
                 date_part('year', a.dt_control) as bgljahr,sd.group_schet as zwgruppe,
