@@ -1221,6 +1221,14 @@ b.phone,b.e_mail
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind')
+            $vid = 1;
+        else
+            $vid = 2;
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
 
         $sql = "select a.id,a.activ,b.tax_number,b.last_name,
                 b.name,b.patron_name,c.town,c.indx,c.street,
@@ -1233,55 +1241,30 @@ b.phone,b.e_mail
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
-        trim(c.district)=d.region";
+        trim(c.district)=d.region where a.archive='0'";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
-        $cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
+        //$cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
 
-        if(1==1) {
-            // Получаем необходимые данные
-            switch ($res) {
-                case 1:
-                    $data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
-                    break;
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);
+        $cnt = data_from_server($sql_c,$res,$vid);
 
-                case 2:
-                    $data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
-                    break;
-                case 3:
-                    $data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
-                    break;
-                case 4:
-                    $data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
-                    break;
-                case 5:
-                    $data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
-                    break;
-                case 6:
-                    $data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
-                    break;
-                case 7:
-                    $data = \Yii::$app->db_pg_gv_abn->createCommand($sql)->queryAll();
-                    break;
-                case 8:
-                    $data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
-                    break;
-            }
             // Удаляем данные в таблицах
             $zsql = 'delete from sap_init';
-            Yii::$app->db_pg_pv_abn_test->createCommand($zsql)->execute();
+            exec_on_server($zsql,$res,$vid);
 
             $zsql = 'delete from sap_but000';
-            Yii::$app->db_pg_pv_abn_test->createCommand($zsql)->execute();
+             exec_on_server($zsql,$res,$vid);
 
             $zsql = 'delete from sap_ekun';
-            Yii::$app->db_pg_pv_abn_test->createCommand($zsql)->execute();
+            exec_on_server($zsql,$res,$vid);
 
             $zsql = 'delete from sap_but020';
-            Yii::$app->db_pg_pv_abn_test->createCommand($zsql)->execute();
+            exec_on_server($zsql,$res,$vid);
 
             $zsql = 'delete from sap_but0id';
-            Yii::$app->db_pg_pv_abn_test->createCommand($zsql)->execute();
+            exec_on_server($zsql,$res,$vid);
             $i = 0;
             // Заполняем структуры
             foreach ($data as $w) {
@@ -1292,41 +1275,14 @@ b.phone,b.e_mail
                     f_partner_ind($n_struct, $rem, $w);
                 }
             }
-        }
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
         $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'_07'.'_R'.'.txt';
         $f = fopen($fname,'w+');
-        // Считываем данные в файл с каждой таблицы
         $i=0;
-//        foreach ($cnt as $v) {
-//            $table_struct = 'sap_' . trim($v['dattype']);
-//            $i++;
-//            $k=$i-1;
-//            if($i==1)
-//                $sql = "select a.*,'|' as sep1,a1.*,'|' as sep2,
-//                        a2.*,'|' as sep3,a3.*,'|' as sep4,a4.*,'|' as sep5 from " . $table_struct.' a ';
-//            else{
-//                $sql.="join $table_struct a$k on a.old_key=a$k.old_key$k ";
-//            }
-//        }
-//
-////        debug($sql);
-////        return;
-//
-//                $struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
-//
-//                foreach ($struct_data as $d) {
-//
-//                    $s=implode("\t", $d);
-//                    //echo($s);
-//                    $s=str_replace("~","",$s);
-//                    $s=str_replace("|","\n",$s);
-//                    fputs($f, ltrim($s," \t"));
-////                    fputs($f, "\n");
-//                }
         $sql = "select * from sap_init";
-        $struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+        //$struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
         foreach ($struct_data as $d) {
             $old_key=trim($d['old_key']);
             $d = array_map('trim', $d);
@@ -1341,7 +1297,8 @@ b.phone,b.e_mail
                 $i++;
                 if($i>1) {
                     $sql = "select * from $table_struct where old_key='$old_key'";
-                    $cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+                    //$cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
                         $s1=implode("\t", $d1);
@@ -1785,7 +1742,6 @@ b.phone,b.e_mail
         if ($ver<10) $ver='0'.$ver;
         $fname='DEVLOC_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
         $f = fopen($fname,'w+');
-
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_init_acc";
         $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос

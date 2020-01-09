@@ -1014,6 +1014,7 @@ function gen16($n) {
 // Выгрузка по бытовым партнерам
 function f_partner_ind($n_struct,$rem,$v) {
         $oldkey_const='04_C'.$rem.'B_';
+
         $r = $v['id'];
         $tax_number=trim($v['tax_number']);
         $last_name=$v['last_name'];
@@ -1092,7 +1093,34 @@ function f_partner_ind($n_struct,$rem,$v) {
         $z = "insert into sap_but0id(old_key,dat_type4,idnumber,id_type)
                     values('$oldkey','$n_struct','$tax_number','$id_type')";
 
-     Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
+     //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_abn->createCommand($z)->queryAll();
+            break;
+
+        case 2:
+            Yii::$app->db_pg_yv_abn->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_abn->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_abn->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krr_abn->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_abn->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_abn->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_abn->createCommand($z)->queryAll();
+            break;
+    }
 
 }
 
