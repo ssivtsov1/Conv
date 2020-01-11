@@ -1,0 +1,22 @@
+$scode=$v['scode']
+$place=$v['place']
+$scat=$v['scat']
+$id_type=$v['id_type']
+$dt_on=$v['dt_on']
+$id=$v['id']
+$status=$v['status']
+$color=$v['color']
+$utmas=$v['utmas']
+$reper=$v['reper']
+$dpurch=$v['dpurch']
+$dissue=$v['dissue']
+$dinst=$v['dinst']
+$sernr=$v['sernr']
+$matnr=$v['matnr']
+$ver=$v['ver']
+
+if ($n_struct=='AUTO') {
+     $z = " insert into sap_auto(oldkey,dat_type,scat,scode,status,color,utmas,dpurch,reper,dissue,matnr,sernr,place,dinst)  
+     values($$$oldkey$$,$$$dat_type$$,$$$scat$$,$$$scode$$,$$$status$$,$$$color$$,$$$utmas$$,$$$dpurch$$,$$$reper$$,$$$dissue$$,$$$matnr$$,$$$sernr$$,$$$place$$,$$$dinst$$)";
+ exec_on_server($z,(int) $rem,$vid);
+}

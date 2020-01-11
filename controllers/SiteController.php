@@ -791,6 +791,15 @@ WHERE year_p=0 and year_q>0';
                 case 12:
                     return $this->redirect(['sap_device', 'res' => $model->rem]);
                     break;
+                case 13:
+                    return $this->redirect(['sap_seal_ind', 'res' => $model->rem]);
+                    break;
+                case 14:
+                    return $this->redirect(['sap_seals', 'res' => $model->rem]);
+                    break;
+                case 15:
+                    return $this->redirect(['sap_seals2', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -1318,6 +1327,475 @@ b.phone,b.e_mail
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
         fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    // Формирование файла пломб(seal) для САП для бытовых потребителей
+    public function actionSap_seal_ind($res)
+    {
+        $helper=1; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select distinct a.plomb_num as scode,coalesce(b.id_sap,'8') as place,coalesce(sp.short_name,'СЕЙФ-ПАКЕТ') as scat,a.id_type,a.dt_on,a.id,
+                'I' as status,'3' as color,'Іванов І.І.' as utmas,'Романов Р.Р.' as reper,
+                substring(replace(a.dt_on::varchar, '-',''),1,8) as DPURCH,
+                substring(replace(a.dt_on::varchar, '-',''),1,8) as dissue,
+                substring(replace(a.dt_on::varchar, '-',''),1,8) as dinst,
+                a.num_meter as sernr,d.matnr as matnr,const.ver
+                from clm_plomb_tbl a
+                left join clm_meterpoint_tbl w on w.id_paccnt=a.id_paccnt
+                left join sap_plomb_place b on
+                a.id_place=b.idcek::integer
+                left join plomb_type c on
+                a.id_type=c.id
+                left join sap_equi d on
+                trim(w.num_meter)=trim(d.sernr)
+                inner join sap_const const on 1=1
+                left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
+                where dt_off is null
+                ";
+
+        if($helper==1)
+            $sql = $sql.' LIMIT 1';
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+        // Включение режима помощника
+        if($helper==1){
+            $fhelper=$routine.'_HELPER'.'.txt';
+            $ff = fopen($fhelper,'w+');
+            // Создание переменных
+            foreach ($data as $v) {
+                foreach ($v as $k => $v1) {
+                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    fputs($ff, $var);
+                    fputs($ff, "\n");
+
+                }
+            }
+            $i=0;
+            foreach ($cnt as $v) {
+                $i++;
+                $n_struct = trim($v['dattype']);
+                fputs($ff, "\n");
+                $var='if ($n_struct=='."'$n_struct') {";
+                fputs($ff, $var);
+                fputs($ff, "\n");
+                //Создание строки INSERT
+                $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
+                $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
+//                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
+                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = ' exec_on_server($z,(int) $rem,$vid);';
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = "}";
+                fputs($ff, $z);
+                fputs($ff, "\n");
+            }
+
+            // Выдаем предупреждение на экран об окончании формирования файла для помощи
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл допомоги $fhelper сформовано.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        }
+
+        // Удаляем данные в таблицах структур
+        $i=0;
+        foreach ($cnt as $v) {
+            $i++;
+            $n_struct = trim($v['dattype']);
+            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_".strtolower($n_struct);
+            exec_on_server($zsql,$res,$vid);
+        }
+
+        // Заполняем структуры
+        foreach ($data as $w) {
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                eval($func_fill);
+            }
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с каждой таблицы
+        $sql = "select * from sap_$first_struct";
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+
+    // Формирование файла пломб(seal) для САП для юр. потребителей
+    public function actionSap_seals($res)
+    {
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0' . $res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method, 10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select distinct 
+        p.id,'AUTO' as AUTO, 
+        p.id_type as SCAT,
+        --t_p.kateg_sap as SCAT,
+        trim(p.plomb_num) as SCODE,
+        'I' as STATUS,
+        '3' as COLOR,
+        '' as UTMAS, 
+        substring(replace(p.dt_b::varchar, '-',''),1,8) as DPURCH,
+        '' as REPER,
+        substring(replace(p.dt_b::varchar, '-',''),1,8) as DISSUE,
+        u.matnr as MATNR,
+        u.sernr as SERNR,
+        --coalesce(obj.id_sap,8) as PLACE,
+        left(p.object_name,8) as PLACE,
+        substring(replace(p.dt_b::varchar, '-',''),1,8) as DINST,const.ver
+        from clm_plomb_tbl as p 
+        left join cli_plomb_type_tbl as t on (t.id = p.id_type) 
+        left join clm_position_tbl as cp on (cp.id = p.id_position) 
+        left join clm_position_tbl as cp2 on (cp2.id = p.id_person) 
+        left join clm_client_tbl as c on (c.id = p.id_client ) 
+        left join clm_statecl_tbl as st on st.id_client = c.id
+        left join eqm_equipment_h as eq on (eq.id = p.id_point) 
+        left join adv_address_tbl as adr on (adr.id = eq.id_addres ) 
+         inner join sap_const const on 1=1
+         left join (select oldkey,get_tu(substr(oldkey,9)::integer) as id_tu,matnr,sernr from sap_equi) u on u.id_tu=eq.id
+          ";
+
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
+
+        // Включение режима помощника
+        if ($helper == 1) {
+            $fhelper = $routine . '_HELPER' . '.txt';
+            $ff = fopen($fhelper, 'w+');
+            // Создание переменных
+            foreach ($data as $v) {
+                foreach ($v as $k => $v1) {
+                    $var = '$' . $k . '=$v' . '[' . "'" . $k . "']";
+                    fputs($ff, $var);
+                    fputs($ff, "\n");
+
+                }
+            }
+            $i = 0;
+            foreach ($cnt as $v) {
+                $i++;
+                $n_struct = trim($v['dattype']);
+                fputs($ff, "\n");
+                $var = 'if ($n_struct==' . "'$n_struct') {";
+                fputs($ff, $var);
+                fputs($ff, "\n");
+                //Создание строки INSERT
+                $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
+                $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
+//                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
+                $z = '     $z = "' . " insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values . ")" . '";';
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = ' exec_on_server($z,(int) $rem,$vid);';
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = "}";
+                fputs($ff, $z);
+                fputs($ff, "\n");
+            }
+
+            // Выдаем предупреждение на экран об окончании формирования файла для помощи
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл допомоги $fhelper сформовано.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        }
+    }
+
+        // Формирование файла заводских пломб (seals) для САП для юр. потребителей
+        public function actionSap_seals2($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select * from
+        (select distinct 
+        p.id,'AUTO' as AUTO,
+        u.matnr as MATNR,
+        u.sernr as SERNR,
+        substring(replace(p.dt_b::varchar, '-',''),1,8) as INSTDATE,
+        p.plomb_owner,
+        case when upper(trim(p.plomb_owner)) ~'ДЕР' or upper(trim(p.plomb_owner)) ~'ЦСМ' then 'VER.OFF.' when upper(trim(p.plomb_owner)) ~'ЗАВОД' or upper(trim(p.plomb_owner)) ~'НІК' or upper(trim(p.plomb_owner)) ~'ВИРОБН' then 'PLANT' else 'VER.OFF.' end as EMPLOYEE,
+        '1' as INSTREASON,
+        '' as PLIERS,const.ver
+        from clm_plomb_tbl as p 
+        left join cli_plomb_type_tbl as t on (t.id = p.id_type) 
+        left join clm_position_tbl as cp on (cp.id = p.id_position) 
+        left join clm_position_tbl as cp2 on (cp2.id = p.id_person) 
+        left join clm_client_tbl as c on (c.id = p.id_client ) 
+        left join clm_statecl_tbl as st on st.id_client = c.id
+        left join eqm_equipment_h as eq on (eq.id = p.id_point) 
+        --left join eqm_equipment_tbl as eq1 on (eq.id = eq1.id) 
+        left join adv_address_tbl as adr on (adr.id = eq.id_addres ) 
+        --left join sap_plomb_workers as w on cp.num_tab = w.tabel_numb
+        left join (select oldkey,get_tu(substr(oldkey,9)::integer) as id_tu,matnr,sernr from sap_equi) u on u.id_tu=eq.id
+        inner join sap_const const on 1=1
+        ) r 
+        where employee='PLANT'
+         ";
+
+        if($helper==1)
+            $sql = $sql.' LIMIT 1';
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+        // Включение режима помощника
+        if($helper==1){
+            $fhelper=$routine.'_HELPER'.'.txt';
+            $ff = fopen($fhelper,'w+');
+            // Создание переменных
+            foreach ($data as $v) {
+                foreach ($v as $k => $v1) {
+                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    fputs($ff, $var);
+                    fputs($ff, "\n");
+
+                }
+            }
+            $i=0;
+            foreach ($cnt as $v) {
+                $i++;
+                $n_struct = trim($v['dattype']);
+                fputs($ff, "\n");
+                $var='if ($n_struct=='."'$n_struct') {";
+                fputs($ff, $var);
+                fputs($ff, "\n");
+                //Создание строки INSERT
+                $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
+                $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
+//                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
+                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = ' exec_on_server($z,(int) $rem,$vid);';
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = "}";
+                fputs($ff, $z);
+                fputs($ff, "\n");
+            }
+
+            // Выдаем предупреждение на экран об окончании формирования файла для помощи
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл допомоги $fhelper сформовано.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        }
+
+        // Удаляем данные в таблицах структур
+        $i=0;
+        foreach ($cnt as $v) {
+            $i++;
+            $n_struct = trim($v['dattype']);
+            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_".strtolower($n_struct);
+            exec_on_server($zsql,$res,$vid);
+        }
+
+        // Заполняем структуры
+        foreach ($data as $w) {
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                eval($func_fill);
+            }
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с каждой таблицы
+        $sql = "select * from sap_$first_struct";
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
         $model = new info();
         $model->title = 'УВАГА!';
         $model->info1 = "Файл сформовано.";

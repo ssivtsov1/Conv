@@ -1823,7 +1823,79 @@ function f_devloc($n_struct,$rem,$v) {
 
 }
 
+// Выгрузка по пломбам бытовые
+function f_seal_ind($n_struct,$rem,$v,$vid) {
+    $oldkey_const='04_C'.$rem.'B_01_';
+    $r = $v['id'];
+    $scat=$v['scat'];
+    $scode=$v['scode'];
+    $status = $v['status'];
+    $color =$v['color'];
+    $utmas=$v['utmas'];
+    $dpurch=$v['dpurch'];
+    $reper=$v['reper'];
+    $dissue=$v['dissue'];
+    $matnr=$v['matnr'];
+    $sernr=$v['sernr'];
+    $place=$v['place'];
+    $dinst=$v['dinst'];
 
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='AUTO')
+        $z = "insert into sap_auto(oldkey,dat_type,scat,scode,status,color,utmas,dpurch,reper,dissue,
+                                    matnr,sernr,place,dinst)
+                    values('$oldkey','$n_struct','$scat','$scode','$status','$color','$utmas','$dpurch',
+                            '$reper','$dissue','$matnr','$sernr','$place','$dinst')";
+
+    exec_on_server($z,(int) $rem,$vid);
+}
+// Выгрузка по пломбам  юридич.
+function f_seals($n_struct,$rem,$v,$vid) {
+    $oldkey_const='04_C'.$rem.'B_01_';
+    $r = $v['id'];
+    $scat=$v['scat'];
+    $scode=$v['scode'];
+    $status = $v['status'];
+    $color =$v['color'];
+    $utmas=$v['utmas'];
+    $dpurch=$v['dpurch'];
+    $reper=$v['reper'];
+    $dissue=$v['dissue'];
+    $matnr=$v['matnr'];
+    $sernr=$v['sernr'];
+    $place=$v['place'];
+    $dinst=$v['dinst'];
+
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='AUTO')
+        $z = "insert into sap_auto(oldkey,dat_type,scat,scode,status,color,utmas,dpurch,reper,dissue,
+                                    matnr,sernr,place,dinst)
+                    values('$oldkey','$n_struct','$scat','$scode','$status','$color','$utmas','$dpurch',
+                            '$reper','$dissue','$matnr','$sernr','$place','$dinst')";
+
+    exec_on_server($z,(int) $rem,$vid);
+}
+
+// Выгрузка по ЗАВОДСКИМ пломбам  юридич.
+function f_seals2($n_struct,$rem,$v,$vid) {
+    $oldkey_const='04_C'.$rem.'B_01_';
+    $r = $v['id'];
+    $instdate=$v['instdate'];
+    $employee=$v['employee'];
+    $instreason = $v['instreason'];
+    $pliers =$v['pliers'];
+    $matnr=$v['matnr'];
+    $sernr=$v['sernr'];
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='AUTO1')
+        $z = "insert into sap_auto1(oldkey,dat_type,matnr,sernr,instdate,employee,instreason,pliers)
+                    values('$oldkey','AUTO','$matnr','$sernr','$instdate','$employee','$instreason','$pliers')";
+
+    exec_on_server($z,(int) $rem,$vid);
+}
 
 
 // Осталяет только цифры в № телефона
