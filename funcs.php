@@ -2242,6 +2242,18 @@ function get_routine($s)
 
 }
 
+function get_routine1($s)
+{
+    if(substr($s,-4)=='_ind') {
+        $r = substr($s, 13);
+        $r = str_replace('_ind', '', $r);
+    }
+    else
+        $r = substr($s, 13);
+    return(strtoupper($r));
+
+}
+
 
 
 ?>

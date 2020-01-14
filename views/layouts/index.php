@@ -107,6 +107,7 @@ AppAsset::register($this);
                                 ['label' => 'Формирование файла partner для САП [бытовые]', 'url' => ['/site/sap_partner_ind']],
                                 ['label' => 'Формирование файла partner для САП [юридические]', 'url' => ['/site/sap_partner']],
                                 ['label' => 'Формирование вопросов для опросника', 'url' => ['/site/form_quest']],
+                                ['label' => 'SAP идентификации данных', 'url' => ['/site/idfile']],
                                 ['label' => 'Експорт в САП', 'url' => ['/site/cek2sap']],
 
                             ]

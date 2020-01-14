@@ -812,7 +812,28 @@ WHERE year_p=0 and year_q>0';
             ]);
         }
     }
+    //формирование файлов индентификации данных ЦЕК в системе САП
+public function actionIdfile()
+        
+    {
+        $model = new export_sap();
 
+        if ($model->load(Yii::$app->request->post()))
+        {
+            switch ($model->id_oper) {
+                case 1:
+                    return $this->redirect(['idfile_partner_ind', 'res' => $model->rem]);
+                    break;
+                }
+        }
+        else {
+
+            return $this->render('idfile', [
+                'model' => $model,
+            ]);
+        }
+    }
+    
     // Форматирование файла partner для САП для юридических партнеров
     public function actionSap_partner($res)
     {
@@ -1341,6 +1362,65 @@ b.phone,b.e_mail
             'model' => $model]);
     }
 
+    //формирование файла идентификации
+        // Формирование файла partner для САП для бытовых
+    public function actionIdfile_partner_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select '$routine' as OM,old_key,b.code,(b.last_name||' '||substr(b.name, 1, 1)||'.'||substr(b.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_init as sap
+left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as const on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    }
+    
     // Формирование файла пломб(seal) для САП для бытовых потребителей
     public function actionSap_seal_ind($res)
     {
