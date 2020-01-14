@@ -1,0 +1,23 @@
+$zz_eic=$v['zz_eic']
+$data=$v['data']
+$vstelle=$v['vstelle']
+$spebene=$v['spebene']
+$anlart=$v['anlart']
+$ablesartst=$v['ablesartst']
+$zz_nametu=$v['zz_nametu']
+$zz_fider=$v['zz_fider']
+$ab=$v['ab']
+$tariftyp=$v['tariftyp']
+$branche=$v['branche']
+$aklasse=$v['aklasse']
+$ableinh=$v['ableinh']
+$zzcode4nkre=$v['zzcode4nkre']
+$zzcode4nkre_dop=$v['zzcode4nkre_dop']
+$zzotherarea=$v['zzotherarea']
+$begru=$v['begru']
+$sort=$v['sort']
+
+if ($n_struct=='DATA') {
+     $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,aklasse,ableinh,begru,zz_eic)  values($$$oldkey$$,$$$dat_type$$,$$$sparte$$,$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,$$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,$$$tariftyp$$,$$$aklasse$$,$$$ableinh$$,$$$begru$$,$$$zz_eic$$)";
+ exec_on_server($z,(int) $rem,$vid);
+}

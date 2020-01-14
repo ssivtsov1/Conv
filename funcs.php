@@ -1903,6 +1903,38 @@ if ($n_struct == 'DATA')
     exec_on_server($z, (int)$rem, $vid);
 }
 
+// Выгрузка instln юридические потребители
+function f_instln($n_struct,$rem,$v,$vid) {
+    $oldkey_const='04_C'.$rem.'B_01_';
+    $sparte = $v['sparte'];
+    $spebene = $v['spebene'];
+    $anlart = $v['anlart'];
+    $vstelle = $v['vstelle'];
+    $ablesartst = $v['ablesartst'];
+    $zz_nametu = $v['zz_nametu'];
+    $zz_fider = $v['zz_fider'];
+    $ab = $v['ab'];
+    $tariftyp = $v['tariftyp'];
+    $branche = $v['branche'];
+    $aklasse = $v['aklasse'];
+    $ableinh = $v['ableinh'];
+    $zzcode4nkre = $v['zzcode4nkre'];
+    $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+    $zzotherarea = $v['zzotherarea'];
+    $begru = $v['begru'];
+    $zz_eic = $v['eic'];
+    $oldkey = $oldkey_const . $v['id'];;
+
+    if ($n_struct == 'DATA')
+        $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
+                tariftyp,branche,aklasse,ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
+     values($$$oldkey$$,'$n_struct',$$$sparte$$,$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
+     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
+     '$zzcode4nkre','$zzcode4nkre_dop',$zzotherarea',$begru',$$$zz_eic$$)";
+
+    exec_on_server($z, (int)$rem, $vid);
+}
+
 // Выгрузка по ЗАВОДСКИМ пломбам  юридич.
 function f_seals2($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'B_01_';
