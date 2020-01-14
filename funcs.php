@@ -1877,8 +1877,8 @@ function f_seals($n_struct,$rem,$v,$vid) {
 
     exec_on_server($z,(int) $rem,$vid);
 }
-function f_instln_ind($n_struct,$rem,$v,$vid)
-{
+// Выгрузка instln бытовые
+function f_instln_ind($n_struct,$rem,$v,$vid) {
 $oldkey_const='04_C'.$rem.'B_01_';
 $sparte = $v['sparte'];
 $spebene = $v['spebene'];
@@ -1894,20 +1894,14 @@ $ableinh = $v['ableinh'];
 $begru = $v['begru'];
 $zz_eic = $v['eic'];
 $oldkey = $oldkey_const . $v['id'];;
-$xxx='DATA1';
 
 if ($n_struct == 'DATA')
     $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,aklasse,ableinh,begru,zz_eic) 
      values($$$oldkey$$,'$n_struct',$$$sparte$$,$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
      $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp',$$$aklasse$$,'$ableinh','$begru',$$$zz_eic$$)";
 
-//    debug($z);
-//    return;
-
     exec_on_server($z, (int)$rem, $vid);
-
 }
-
 
 // Выгрузка по ЗАВОДСКИМ пломбам  юридич.
 function f_seals2($n_struct,$rem,$v,$vid) {
