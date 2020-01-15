@@ -824,7 +824,34 @@ public function actionIdfile()
                 case 1:
                     return $this->redirect(['idfile_partner_ind', 'res' => $model->rem]);
                     break;
-                }
+                case 2:
+                    return $this->redirect(['idfile_partner', 'res' => $model->rem]);
+                    break;
+                case 3:
+                    return $this->redirect(['idfile_premise_ind', 'res' => $model->rem]);
+                    break;
+                case 4:
+                    return $this->redirect(['idfile_premise', 'res' => $model->rem]);
+                    break;
+                case 5:
+                    return $this->redirect(['idfile_account_ind', 'res' => $model->rem]);
+                    break;
+                case 6:
+                    return $this->redirect(['idfile_account', 'res' => $model->rem]);
+                    break;
+                case 7:
+                    return $this->redirect(['idfile_devloc_ind', 'res' => $model->rem]);
+                    break;                
+                case 8:
+                    return $this->redirect(['idfile_devloc', 'res' => $model->rem]);
+                    break;
+                case 9:
+                    return $this->redirect(['idfile_device_ind', 'res' => $model->rem]);
+                    break;
+                case 10:
+                    return $this->redirect(['idfile_device', 'res' => $model->rem]);
+                    break;
+                }                
         }
         else {
 
@@ -1236,6 +1263,66 @@ b.phone,b.e_mail
         return $this->render('info', [
             'model' => $model]);
     }
+        //формирование файла идентификации
+        // Формирование файла partner для САП для юридических лиц
+    public function actionIdfile_partner($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+        $sql = "select 'PARTER' as OM,oldkey,code,short_name,const.ver from sap_init as i 
+        left join clm_client_tbl as c
+        on substr(i.oldkey,9)::int=c.id
+        join sap_const as const on 1=1";
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);     
+    }
+    
+    
+    
 
     public function actionCheck(){
 
@@ -1383,7 +1470,7 @@ b.phone,b.e_mail
         $routine = strtoupper(substr($method,13));
         $filename = get_routine1($method);
 
-        $sql = "select '$routine' as OM,old_key,b.code,(b.last_name||' '||substr(b.name, 1, 1)||'.'||substr(b.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_init as sap
+        $sql = "select 'PARTNER' as OM,old_key,b.code,(b.last_name||' '||substr(b.name, 1, 1)||'.'||substr(b.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_init as sap
 left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as const on 1=1";
 
         // Получаем необходимые данные
@@ -2352,6 +2439,68 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         return $this->render('info', [
             'model' => $model]);
     }
+    
+    //формирование файла идентификации
+        // Формирование файла account для САП для бытовых абонентов
+    public function actionIdfile_account_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'ACCOUNT' as OM,a.oldkey,b.code,(ad.last_name||' '||substr(ad.name, 1, 1)||'.'||substr(ad.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_init_acc as a
+                left join clm_paccnt_tbl as b
+                on substr(a.oldkey,9)::int=b.id
+                left join vw_address as ad on b.id=ad.id
+                join sap_const as const on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    }    
 
     // Формирование файла device для САП для юридических потребителей
     public function actionSap_device($res)
@@ -2477,6 +2626,75 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
             'model' => $model]);
     }
 
+    //формирование файла идентификации
+        // Формирование файла device для САП для ЮР.лиц
+    public function actionIdfile_device($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select om,oldkey,sernr,qui.code,const.ver from (
+                select f.*,u1.code from (
+                select 'DEVICE' as OM,a.oldkey,a.sernr,get_tu(eq.id) as tu from sap_equi as a
+                join eqm_equipment_tbl as eq on (substr(a.oldkey,9)::int = eq.id)
+                ) f
+                left join eqm_equipment_tbl as v
+                on f.tu=v.id
+                left JOIN eqm_compens_station_inst_tbl AS area ON (f.tu=area.code_eqp)
+                left JOIN eqm_equipment_tbl AS eq2 ON (area.code_eqp_inst=eq2.id)
+                left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
+                left join clm_client_tbl u1 on u1.id=u.id_client
+                ) qui
+                join sap_const as const on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    }    
 
     // Формирование файла devloc для САП для бытовых
     public function actionSap_devloc_ind($res)
@@ -2573,6 +2791,69 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         return $this->render('info', [
             'model' => $model]);
     }
+    
+    //формирование файла идентификации
+        // Формирование файла devloc для САП для бытовых абонентов
+    public function actionIdfile_devloc_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'DEVLOC' as OM,a.oldkey,b.code,(ad.last_name||' '||substr(ad.name, 1, 1)||'.'||substr(ad.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_egpld as a
+                left join clm_paccnt_tbl as b
+                on substr(a.oldkey,9)::int=b.id
+                left join vw_address as ad on b.id=ad.id
+                join sap_const as const on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    }    
+    
 
     // Формирование файла device для САП для бытовых
     public function actionSap_device_ind($res)
@@ -2808,6 +3089,68 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
             'model' => $model]);
     }
 
+        //формирование файла идентификации
+        // Формирование файла devloc для САП для бытовых абонентов
+    public function actionIdfile_device_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'DEVICE' as OM,a.oldkey,b.code,(ad.last_name||' '||substr(ad.name, 1, 1)||'.'||substr(ad.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_equi as a
+                left join clm_paccnt_tbl as b
+                on substr(a.oldkey,9)::int=b.id
+                left join vw_address as ad on b.id=ad.id
+                join sap_const as const on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    } 
+    
 
     // Формирование файла connobj для САП для Юридических потребителей
     public function actionSap_connobj($res)
@@ -3381,7 +3724,67 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         return $this->render('info', [
             'model' => $model]);
     }
+    
+    //формирование файлов идентификации в САП абонентов ЕНЕРГО структруры "премайс"
+    //юридические лица
+    public function actionIdfile_premise ($res){
+        
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
 
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'PREMISE' as OM,a.oldkey,b.code,trim(a.zz_nameplvm),const.ver from sap_EVBSD as a 
+                left join clm_client_tbl as b
+                on substr(a.haus,9)::int=b.id
+                join sap_const as const on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    }
 
     // Формирование файла connobj для САП для бытовых
     public function actionSap_premise_ind($res)
@@ -3584,6 +3987,71 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         return $this->render('info', [
             'model' => $model]);
     }
+    
+    //формирование файлов идентификации в САП абонентов АБН структруры "премайс"
+    //бытовые абоненты
+    public function actionIdfile_premise_ind ($res){
+        
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'PREMISE' as OM,a.oldkey,b.code,a.haus_num2,const.ver from sap_EVBSD as a
+                left join clm_paccnt_tbl as b
+                on substr(a.oldkey,9)::int=b.id
+                join sap_const as const on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    }
+
+
+    
+    
 
     // Форматирование файла partner для САП для юридических партнеров
     public function actionSap_account($res)
@@ -3922,6 +4390,67 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
             'model' => $model]);
     }
 
+    //формирование файла идентификации
+        // Формирование файла account для САП для Юр.лиц
+    public function actionIdfile_account($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'ACCOUNT' as OM,a.oldkey,b.code,b.short_name,const.ver from sap_init_acc as a
+                left join  clm_client_tbl b 
+                on a.vkona::int=b.code
+                join sap_const as const on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    }    
+
     // Формирование файла devloc для САП для Юридических потребителей
     public function actionSap_devloc($res)
     {
@@ -4121,6 +4650,67 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
             'model' => $model]);
     }
 
+        //формирование файла идентификации
+        // Формирование файла devloc для САП для Юр.лиц
+    public function actionIdfile_devloc($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'DEVLOC' as OM,a.oldkey,b.code,b.short_name,const.ver from sap_egpld as a
+                left join clm_client_tbl as b
+                on substr(a.haus,9)::int=b.id
+                join sap_const as const on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    } 
+    
     // Импорт готовой таблицы street в базы РЭСов
     public function actionImp_street_in_bd()
     {
