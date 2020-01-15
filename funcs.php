@@ -1911,7 +1911,10 @@ function f_instln($n_struct,$rem,$v,$vid) {
     $anlart = $v['anlart'];
     $vstelle = $v['vstelle'];
     $ablesartst = $v['ablesartst'];
-    $zz_nametu = $v['zz_nametu'];
+    $zz_nametu = str_replace('"',' ',$v['zz_nametu']);
+    $zz_nametu = str_replace('`',"'",$zz_nametu);
+    $zz_nametu = str_replace("'","",$zz_nametu);
+//    $zz_nametu = 'weqq';
     $zz_fider = $v['zz_fider'];
     $ab = $v['ab'];
     $tariftyp = $v['tariftyp'];
@@ -1922,15 +1925,28 @@ function f_instln($n_struct,$rem,$v,$vid) {
     $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
     $zzotherarea = $v['zzotherarea'];
     $begru = $v['begru'];
-    $zz_eic = $v['eic'];
+    $zz_eic = substr($v['zz_eic'],0,16);
     $oldkey = $oldkey_const . $v['id'];;
 
-    if ($n_struct == 'DATA')
+    if ($n_struct == 'DATA') {
+        $pos = strpos($zz_nametu, "'");
+
+        if(!$pos)
         $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
                 tariftyp,branche,aklasse,ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
      values($$$oldkey$$,'$n_struct',$$$sparte$$,$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
-     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
-     '$zzcode4nkre','$zzcode4nkre_dop',$zzotherarea',$begru',$$$zz_eic$$)";
+     '$zz_nametu','$zz_fider',$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
+     '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic')";
+        else
+            $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
+     tariftyp,branche,aklasse,ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
+     values($$$oldkey$$,'$n_struct',$$$sparte$$,$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,".
+    '$$'.$zz_nametu.'$$'.",'$zz_fider',$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
+     '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic')";
+    }
+
+//    debug($z);
+//    return;
 
     exec_on_server($z, (int)$rem, $vid);
 }

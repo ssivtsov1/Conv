@@ -1776,10 +1776,13 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select distinct q1.num_eqp as zz_eic,q.* from
-(select distinct '10' as sparte,const.ver,
-'DATA' as DATA,
-'' as VSTELLE,
+        $sql = "select distinct on(zz_eic) case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+www.short_name as real_name,const.ver,const.begru,
+'10' as sparte,qqq.* from
+(select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,
+case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
+q1.num_eqp as zz_eic,q.* from
+(select  distinct 'DATA' as DATA,c.id as id_cl,
 case when p.voltage_max = 0.22 then '02'
      when p.voltage_max = 0.4 then '03'
      when p.voltage_max = 10.00 then '05' 
@@ -1806,7 +1809,7 @@ case when st.id_section = 201 then '02'
      when c2.idk_work = 99 then '72'
      else '67' end  as BRANCHE,
 --case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
-case when c.code = '999' then '0004' else '0002' end as AKLASSE,
+case when c.code = '900' then '0004' else '0002' end as AKLASSE,
      '' as ABLEINH,
 case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
      when tgr.ident in('tgr2') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '012'
@@ -1849,7 +1852,6 @@ when tgr.ident in('tgr8_101') then '666'
  else '' end as ZZCODE4NKRE,
 '' as ZZCODE4NKRE_DOP,
 '' as ZZOTHERAREA,
-'' as BEGRU,
 '1' as sort 
 from (select dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, 
 dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
@@ -1868,7 +1870,7 @@ dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, 
 	left join clm_position_tbl as cp on (cp.id = dt.id_position) ) as p 
 join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp) 
 join eqm_tree_tbl as t on (t.id = tt.id_tree) 
-join clm_client_tbl as c on (c.id = t.id_client) 
+join (select distinct id,code,idk_work from clm_client_tbl) as c on (c.id = t.id_client) 
 left join eqm_eqp_use_tbl as use on (use.code_eqp = p.code_eqp) 
 left join clm_client_tbl as c2 on (c2.id = coalesce (use.id_client, t.id_client)) 
 left join clm_statecl_tbl as st on (st.id_client = c2.id) 
@@ -1881,10 +1883,22 @@ left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name fro
 left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
 ) q 
 left join eqm_equipment_tbl q1 
-on q.zz_nametu=q1.name_eqp and substr(q1.num_eqp,1,3)='62Z'
-inner join sap_const const on 1=1
- left join sap_evbsd c on a.id=substr(c.oldkey,9)::integer
-where SPEBENE<>'' and q1.num_eqp is not null ";
+on q.zz_nametu::text=q1.name_eqp::text and substr(q1.num_eqp::text,1,3)='62Z'
+left join eqm_area_tbl ar on ar.code_eqp=q1.id
+left join sap_evbsd x on substr(x.haus,9)::integer=q.id_cl
+left join clm_client_tbl as cc on cc.id = q.id_cl
+left join 
+(select u.id_client,a.id from eqm_equipment_tbl a
+   left join eqm_point_tbl tu1 on tu1.code_eqp=a.id 
+   left JOIN eqm_compens_station_inst_tbl AS area ON (a.id=area.code_eqp)
+   left JOIN eqm_equipment_tbl AS eq2 ON (area.code_eqp_inst=eq2.id)
+   left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
+   left join clm_client_tbl u1 on u1.id=u.id_client) rr 
+   on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
+where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
+left join sap_evbsd yy on substr(yy.haus,9)::integer=qqq.id_potr
+left join clm_client_tbl www on www.id=qqq.id_potr
+inner join sap_const const on 1=1";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
@@ -3467,6 +3481,9 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                  and cl1.id <> syi_resid_fun() 
                  and cl1.id <>999999999
             order by 5 ";
+
+//        debug($sql);
+//        return;
 
         $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
         $zsql = 'delete from sap_evbsd';
