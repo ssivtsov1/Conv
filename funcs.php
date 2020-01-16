@@ -1035,6 +1035,7 @@ function f_partner_ind($n_struct,$rem,$v) {
         $post_code1=$v['indx'];
         $street = $v['street'];
         $house_num1 =$v['house'];
+        $house_num1 =str_replace(' ','',$house_num1);
         $roomnumber=$v['flat'];
         $region=$v['region'];
         $tel_number=normal_tel($v['mob_phone']);
@@ -1374,15 +1375,21 @@ function f_account_ind($n_struct, $rem, $v,$vid) {
     $zz_begin=$v['zz_begin'];
     $zz_territory=$v['zz_territory'];
     $oldkey = $oldkey_const . $r;
+    $kofiz_sd=$r;
+
 
     if($n_struct=='INIT')
         $z = "insert into sap_init_acc(oldkey,dat_type,gpart,vktyp,vkona)
                     values('$oldkey','$n_struct','$gpart','$vktyp','$vkona')";
 
+    if($n_struct=='VK')
+        $z = "insert into sap_init_acc(oldkey,znodev)
+                    values('$oldkey','~')";
+
     if($n_struct=='VKP')
         $z = "insert into sap_vkp(oldkey,dat_type,partner,opbuk,ikey,begru,adrnb_ext,
-                                  zahlkond,kzabsver,stdbk,zz_start,zz_end,zz_begin,zz_territory)
-                    values('$oldkey','$n_struct','$partner','$opbuk',$$$ikey$$,'$begru','$adrnb_ext','$zahlkond',
+                                  zahlkond,kofiz_sd,kzabsver,stdbk,zz_start,zz_end,zz_begin,zz_territory)
+                    values('$oldkey','$n_struct','$partner','$opbuk',$$$ikey$$,'$begru','$adrnb_ext','$zahlkond','$kofiz_sd',
                            '$kzabsver','$stdbk','$zz_start','$zz_end','$zz_begin','$zz_territory')";
 
     exec_on_server($z,(int) $rem,$vid);
@@ -1426,7 +1433,8 @@ function f_connobj_ind($n_struct,$rem,$v) {
     $iuru_pro=$v['kod_reg'];
 
     $begru=$v['begru'];
-    $swerk=$v['swerk'];
+//    $swerk=$v['swerk'];
+    $swerk='C01M';  // ??? Быстрая правка
     $stort=$v['stort'];
     $type_street=$v['type_street'];
 
@@ -1535,7 +1543,8 @@ function f_connobj($n_struct,$rem,$v) {
     $iuru_pro='';
     $pltxt=$v['pltxt'];
     $begru=$v['begru'];
-    $swerk=$v['swerk'];
+//    $swerk=$v['swerk'];
+    $swerk='C01M';
     $stort=$v['stort'];
 
     $oldkey = $oldkey_const . $r;
@@ -1643,14 +1652,15 @@ function f_device_ind($n_struct,$rem,$v) {
     $baujj=$v['baujj'];
     $datab = $v['datab'];
     $kostl =$v['kostl'];
-    $bukrs='~';
+    $bukrs='CK01';
     $matnr=$v['matnr'];
     $sernr=$v['sernr'];
     $zz_pernr=$v['zz_pernr'];
     $cert_date=$v['cert_date'];
     $bgljahr=$v['bgljahr'];
     $begru=$v['begru'];
-    $swerk=$v['swerk'];
+//    $swerk=$v['swerk'];
+    $swerk='C01M';
     $stort=$v['stort'];
     $zwgruppe=$v['zwgruppe'];
 
@@ -1668,8 +1678,6 @@ function f_device_ind($n_struct,$rem,$v) {
     if($n_struct=='EGERH')
         $z = "insert into sap_egerh(oldkey,dat_type,ab,zwgruppe,wgruppe)
                     values('$oldkey','$n_struct','$datab','$zwgruppe','~')";
-
-
 
     switch ((int) $rem) {
         case 1:
@@ -1709,7 +1717,7 @@ function f_device($n_struct,$rem,$v,$vid) {
     $baujj=$v['baujj'];
     $datab = $v['datab'];
     $kostl =$v['kostl'];
-    $bukrs='~';
+    $bukrs='CK01';
     $matnr=$v['matnr'];
     $sernr=$v['sernr'];
     $zz_pernr=$v['zz_pernr'];
@@ -1717,7 +1725,8 @@ function f_device($n_struct,$rem,$v,$vid) {
 //    $bgljahr=$v['bgljahr'];
     $bgljahr=$datab;
     $begru=$v['begru'];
-    $swerk=$v['swerk'];
+//    $swerk=$v['swerk'];
+    $swerk='C01M';
     $stort=$v['stort'];
     $zwgruppe=$v['zwgruppe'];
 

@@ -2806,14 +2806,15 @@ inner join sap_const const on 1=1";
         // Получаем название подпрограммы
         $routine = strtoupper(substr($method,10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
-
+        $day=((int) date('d'))-1;  // УЧЕСТЬ!!!! ДАЛЬШЕ
+        $datab = date('Ymd', strtotime("-$day day")); // УЧЕСТЬ!!!! ДАЛЬШЕ
         // Главный запрос со всеми необходимыми данными
         $sql = "select distinct m.code_eqp as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
                  substring(m.dt_control::varchar,1,4) as BAUJJ, 
-                '20200501' as datab,
+                '$datab' as datab,
                  '' as EQKTX,
                 case  when coalesce(eq.is_owner,0) = 0 then 'CCNN232820' else '' end as KOSTL, 
                  trim(eq.num_eqp) as SERNR,
@@ -3029,7 +3030,7 @@ inner join sap_const const on 1=1";
         $fname='DEVLOC_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
         $f = fopen($fname,'w+');
         // Считываем данные в файл с каждой таблицы
-        $sql = "select * from sap_init_acc";
+        $sql = "select * from sap_egpld";
         $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
         foreach ($struct_data as $d) {
             $old_key=trim($d['oldkey']);
@@ -3136,7 +3137,6 @@ inner join sap_const const on 1=1";
             'model' => $model]);
         
     }    
-    
 
     // Формирование файла device для САП для бытовых
     public function actionSap_device_ind($res)
@@ -3144,8 +3144,12 @@ inner join sap_const const on 1=1";
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
+        $day=((int) date('d'))-1;
+        $datab = date('Ymd', strtotime("-$day day"));
 
-        $sql = "select distinct a.id,'4000' as eqart,'1980' as baujj,'20200501' as datab,
+        $baujj=random_int(1979, 2006);
+
+        $sql = "select distinct a.id,'4000' as eqart,'1980' as baujj,'$datab' as datab,
                 'CCNN232820' as kostl,a.num_meter as sernr,'CK_RANDOM' as zz_pernr,
                 replace(a.dt_control::char(10),'-','') as cert_date,b.id as id_meter,
                 date_part('year', a.dt_control) as bgljahr,sd.group_schet as zwgruppe,
