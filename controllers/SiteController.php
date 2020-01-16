@@ -3149,7 +3149,7 @@ inner join sap_const const on 1=1";
 
         $baujj=random_int(1979, 2006);
 
-        $sql = "select distinct a.id,'4000' as eqart,'1980' as baujj,'$datab' as datab,
+        $sql = "select distinct a.id,'4000' as eqart,'$baujj' as baujj,'$datab' as datab,
                 'CCNN232820' as kostl,a.num_meter as sernr,'CK_RANDOM' as zz_pernr,
                 replace(a.dt_control::char(10),'-','') as cert_date,b.id as id_meter,
                 date_part('year', a.dt_control) as bgljahr,sd.group_schet as zwgruppe,
