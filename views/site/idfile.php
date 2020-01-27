@@ -11,18 +11,17 @@ $this->title = 'Полезные инструменты';
 
 //$this->params['breadcrumbs'][] = $this->title;
 ?>
-
 <? $this->beginBlock('block1'); ?>
     <div id="content_container">
-        <div id="header"> <div class="header_content_mainline"> Експорт в САП </div>
+        <div id="header"> <div class="header_content_mainline"> Експорт idfile в САП </div>
             <div id="header_content_tagline">  </div>
         </div>
       <?
       $r=random_int(1,100);
       if($r%2==0)
-         echo Html::img('./eksport.jpg', ['class' => 'img_exportsap']);
+         echo Html::img('./Data-Export-icon.png', ['class' => 'img_exportsap']);
       else
-          echo Html::img('./export_sap.jpeg', ['class' => 'img_exportsap']);
+          echo Html::img('./Data-Export-icon.png', ['class' => 'img_exportsap']);
       ?>
         <!--<img src="./ulibka.gif">-->
     </div>
@@ -66,6 +65,9 @@ $this->title = 'Полезные инструменты';
                     '8' => 'DEVLOC [Споживачі юридичні]',
                     '9' => 'DEVICE_IND [Споживачі юридичні]',
                     '10' => 'DEVICE [Споживачі юридичні]',
+                    '11' =>'SEALS_IND  [Споживачі побутові]',
+                    '12' =>'SEALS  [Споживачі юридичні]',
+                    '13' =>'SEALS2  [Споживачі юридичні]',                     
                 ],
                     [
                         'prompt' => 'Виберіть файл для формування'

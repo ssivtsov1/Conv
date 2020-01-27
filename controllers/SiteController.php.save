@@ -1,0 +1,1100 @@
+
+<?php
+
+namespace app\controllers;
+
+use app\models\Pract1;
+use Yii;
+use yii\filters\AccessControl;
+use yii\web\Controller;
+use yii\web\Response;
+use yii\filters\VerbFilter;
+use yii\data\ArrayDataProvider;
+use app\models\index;
+use app\models\input_find_server;
+use app\models\input_find_server_mysql;
+use app\models\code_file;
+use app\models\decode_file;
+use app\models\input_array;
+use app\models\input;
+use app\models\symbol;
+use app\models\cmp_str;
+use app\models\addquestions;
+use app\models\project_polls;
+use app\models\quest;
+use app\models\info;
+use app\models\export_sap;
+use app\models\answer;
+use app\models\sets;
+//use app\models\pract;
+use app\models\works;
+use app\models\all_tmc;
+use app\models\tmp_works;
+use app\models\tmp_works_1;
+use yii\web\UploadedFile;
+
+
+class SiteController extends Controller
+{  /**
+ * 
+ * @return type
+ */
+    public $layout = 'index';
+    //public $layout = 'index_prod';
+//    public $layout = 'main';
+
+    public function behaviors()
+    {
+        return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'only' => ['logout'],
+                'rules' => [
+                    [
+                        'actions' => ['logout'],
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'logout' => ['post'],
+                ],
+            ],
+        ];
+    }
+
+    public function actions()
+    {
+        return [
+            'error' => [
+                'class' => 'yii\web\ErrorAction',
+            ],
+            'captcha' => [
+                'class' => 'yii\captcha\CaptchaAction',
+                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
+            ],
+        ];
+    }
+
+    public function actionIndex()
+    {
+
+            return $this->render('base');
+
+    }
+
+    // Импорт бюджета
+    public function actionImport_budget()
+    {
+        $f = fopen('budget_18.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            if($i==1) continue;
+            $data = explode(";",$s);
+            if(!isset($data[1])) continue;
+            //if ($i==16832) {echo $i; echo "<br>";debug($data);return;}
+
+            $data[9] = trim(str_replace('"',"'",$data[9]));
+            $data[7] = trim(str_replace('"',"'",$data[7]));
+            $data[5] = trim(str_replace('"',"'",$data[5]));
+
+
+            if(is_null($data[8])  || $data[8]=='') $data[8]=0;
+            if(is_null($data[12])  || $data[12]=='') $data[12]=0;
+            if(is_null($data[13])  || $data[13]=='') $data[13]=0;
+            $data[12] = trim(str_replace(',','.',$data[12]));
+            if(is_null($data[14])  || $data[14]=='') $data[14]=0;
+            $data[14] = trim(str_replace(',','.',$data[14]));
+            if(is_null($data[15])  || $data[15]=='') $data[15]=0;
+            if(is_null($data[16])  || $data[16]=='') $data[16]=0;
+            $data[16] = trim(str_replace(',','.',$data[16]));
+            if(is_null($data[17])  || $data[17]=='') $data[17]=0;
+            if(is_null($data[18])  || $data[18]=='') $data[18]=0;
+            if(is_null($data[19])  || $data[19]=='') $data[19]=0;
+            if(is_null($data[20])  || $data[20]=='') $data[20]=0;
+            $data[20] = trim(str_replace(',','.',$data[20]));
+            if(is_null($data[21])  || $data[21]=='') $data[21]=0;
+            if(is_null($data[22])  || $data[22]=='') $data[22]=0;
+            $data[22] = trim(str_replace(',','.',$data[22]));
+            if(is_null($data[23])  || $data[23]=='') $data[23]=0;
+            if(is_null($data[24])  || $data[24]=='') $data[24]=0;
+            $data[24] = trim(str_replace(',','.',$data[24]));
+            if(is_null($data[25])  || $data[25]=='') $data[25]=0;
+            if(is_null($data[26])  || $data[26]=='') $data[26]=0;
+            if(is_null($data[27])  || $data[27]=='') $data[27]=0;
+            if(is_null($data[28])  || $data[28]=='') $data[28]=0;
+            $data[28] = trim(str_replace(',','.',$data[28]));
+            if(is_null($data[29])  || $data[29]=='') $data[29]=0;
+            if(is_null($data[30])  || $data[30]=='') $data[30]=0;
+            $data[30] = trim(str_replace(',','.',$data[30]));
+            if(is_null($data[31])  || $data[31]=='') $data[31]=0;
+            if(is_null($data[32])  || $data[32]=='') $data[32]=0;
+            $data[32] = trim(str_replace(',','.',$data[32]));
+            if(is_null($data[33])  || $data[33]=='') $data[33]=0;
+            if(is_null($data[34])  || $data[34]=='') $data[34]=0;
+            if(is_null($data[35])  || $data[35]=='') $data[35]=0;
+            if(is_null($data[36])  || $data[36]=='') $data[36]=0;
+            $data[36] = trim(str_replace(',','.',$data[36]));
+            if(is_null($data[37])  || $data[37]=='') $data[37]=0;
+            if(is_null($data[38])  || $data[38]=='') $data[38]=0;
+            $data[38] = trim(str_replace(',','.',$data[38]));
+            if(is_null($data[39])  || $data[39]=='') $data[39]=0;
+            if(is_null($data[40])  || $data[40]=='') $data[40]=0;
+            $data[40] = trim(str_replace(',','.',$data[40]));
+            if(is_null($data[41])  || $data[41]=='') $data[41]=0;
+            if(is_null($data[42])  || $data[42]=='') $data[42]=0;
+            if(is_null($data[43])  || $data[43]=='') $data[43]=0;
+            if(is_null($data[44])  || $data[44]=='') $data[44]=0;
+            if(is_null($data[45])  || $data[45]=='') $data[45]=0;
+
+            $data[11] = trim(str_replace(',','.',$data[11]));
+            $data[11] = preg_replace("/[^x\d|*\.]/", "", $data[11]);
+            $data[13] = trim(str_replace(',','.',$data[13]));
+            $data[13] = preg_replace("/[^x\d|*\.]/", "", $data[13]);
+            $data[15] = trim(str_replace(',','.',$data[15]));
+            $data[15] = preg_replace("/[^x\d|*\.]/", "", $data[15]);
+            $data[17] = trim(str_replace(',','.',$data[17]));
+            $data[17] = preg_replace("/[^x\d|*\.]/", "", $data[17]);
+            $data[18] = trim(str_replace(',','.',$data[18]));
+            $data[18] = preg_replace("/[^x\d|*\.]/", "", $data[18]);
+            $data[19] = trim(str_replace(',','.',$data[19]));
+            $data[19] = preg_replace("/[^x\d|*\.]/", "", $data[19]);
+
+            $data[21] = trim(str_replace(',','.',$data[21]));
+            $data[21] = preg_replace("/[^x\d|*\.]/", "", $data[21]);
+            $data[23] = trim(str_replace(',','.',$data[23]));
+            $data[23] = preg_replace("/[^x\d|*\.]/", "", $data[23]);
+            $data[25] = trim(str_replace(',','.',$data[25]));
+            $data[25] = preg_replace("/[^x\d|*\.]/", "", $data[25]);
+            $data[26] = trim(str_replace(',','.',$data[26]));
+            $data[26] = preg_replace("/[^x\d|*\.]/", "", $data[26]);
+            $data[27] = trim(str_replace(',','.',$data[27]));
+            $data[27] = preg_replace("/[^x\d|*\.]/", "", $data[27]);
+
+            $data[29] = trim(str_replace(',','.',$data[29]));
+            $data[29] = preg_replace("/[^x\d|*\.]/", "", $data[29]);
+            $data[31] = trim(str_replace(',','.',$data[31]));
+            $data[31] = preg_replace("/[^x\d|*\.]/", "", $data[31]);
+            $data[33] = trim(str_replace(',','.',$data[33]));
+            $data[33] = preg_replace("/[^x\d|*\.]/", "", $data[33]);
+            $data[34] = trim(str_replace(',','.',$data[34]));
+            $data[34] = preg_replace("/[^x\d|*\.]/", "", $data[34]);
+            $data[35] = trim(str_replace(',','.',$data[35]));
+            $data[35] = preg_replace("/[^x\d|*\.]/", "", $data[35]);
+
+            $data[37] = trim(str_replace(',','.',$data[37]));
+            $data[37] = preg_replace("/[^x\d|*\.]/", "", $data[37]);
+            $data[39] = trim(str_replace(',','.',$data[39]));
+            $data[39] = preg_replace("/[^x\d|*\.]/", "", $data[39]);
+            $data[41] = trim(str_replace(',','.',$data[41]));
+            $data[41] = preg_replace("/[^x\d|*\.]/", "", $data[41]);
+            $data[42] = trim(str_replace(',','.',$data[42]));
+            $data[42] = preg_replace("/[^x\d|*\.]/", "", $data[42]);
+            $data[43] = trim(str_replace(',','.',$data[43]));
+            $data[43] = preg_replace("/[^x\d|*\.]/", "", $data[43]);
+            $data[44] = trim(str_replace(',','.',$data[44]));
+            $data[44] = preg_replace("/[^x\d|*\.]/", "", $data[44]);
+            $data[45] = trim(str_replace(',','.',$data[45]));
+            $data[45] = preg_replace("/[^x\d|*\.]/", "", $data[45]);
+
+
+            $sql = "INSERT INTO budget (type_act,vid_tmc,page,service,name_obj,dname_obj,vid_repair,
+                    name_spec,lot,name_tmc,ed_izm,price,
+                    q_1,p_1,q_2,p_2,q_3,p_3,aq_1,ap_1,q_4,p_4,q_5,p_5,q_6,p_6,aq_2,ap_2,
+                    q_7,p_7,q_8,p_8,q_9,p_9,aq_3,ap_3,q_10,p_10,q_11,p_11,q_12,p_12,aq_4,ap_4,
+                    year_q,year_p) VALUES(".
+                "'".$data[0]."'".",". "'".$data[1]. "'".",".'"'.$data[2]. '"'.",'".$data[3]. "'".",". "'".$data[4]."',".
+                '"'.$data[5]. '"'.",". "'".$data[6]. "'".",". '"'.$data[7]. '"'.",".$data[8].",". '"'
+                .$data[9]. '",'. "'".$data[10]. "'".",".$data[11].",".$data[12].","
+                .$data[13].",".$data[14].",".$data[15].",".$data[16].","
+                .$data[17].",".$data[18].",".$data[19].",".$data[20].",".
+                $data[21].",".$data[22].",".$data[23].",".$data[24].",".
+                $data[25].",".$data[26].",".$data[27].",".$data[28].",".
+                $data[29].",".$data[30].",".$data[31].",".$data[32].",".
+                $data[33].",".$data[34].",".$data[35].",".$data[36].",".
+                $data[37].",".$data[38].",".$data[39].",".$data[40].",".
+                $data[41].",".$data[42].",".$data[43].",".$data[44].",".
+                $data[45].
+                ')';
+
+            if ($i>19977)
+              Yii::$app->db_budget->createCommand($sql)->execute();
+//            if ($i>16825) {
+//                echo $sql;
+//                echo '<br>';
+//                echo '<br>';
+//                echo $i;
+////                echo  preg_replace("/[^x\d|*\.]/", "", $data[44]);
+////                exit;
+//            }
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
+    public function actionCorr_budget(){
+
+        $sql='update budget
+        set p_1=q_1*price/1000
+        WHERE p_1=0 and q_1>0';
+
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+        set p_2=q_2*price/1000
+        WHERE p_2=0 and q_2>0';
+
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+        set ap_2=aq_2*price/1000
+        WHERE ap_2=0 and aq_2>0';
+
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+        set p_3=q_3*price/1000
+        WHERE p_3=0 and q_3>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+        set ap_3=aq_3*price/1000
+        WHERE ap_3=0 and aq_3>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set p_4=q_4*price/1000
+WHERE p_4=0 and q_4>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set ap_4=aq_4*price/1000
+WHERE ap_4=0 and aq_4>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set p_5=q_5*price/1000
+WHERE p_5=0 and q_5>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set p_6=q_6*price/1000
+WHERE p_6=0 and q_6>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set p_7=q_7*price/1000
+WHERE p_7=0 and q_7>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set p_8=q_8*price/1000
+WHERE p_8=0 and q_8>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set p_9=q_9*price/1000
+WHERE p_9=0 and q_9>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set p_10=q_10*price/1000
+WHERE p_10=0 and q_10>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set p_11=q_11*price/1000
+WHERE p_11=0 and q_11>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set p_12=q_12*price/1000
+WHERE p_12=0 and q_12>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget
+set year_p=year_q*price/1000
+WHERE year_p=0 and year_q>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+//-------------------------------------------------------------------------
+
+        $sql='update budget 
+        set q_1=p_1*1000/price
+        WHERE p_1<>0 and q_1=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_2=p_2*1000/price
+        WHERE p_2<>0 and q_2=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_3=p_3*1000/price
+        WHERE p_3<>0 and q_3=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_4=p_4*1000/price
+        WHERE p_4<>0 and q_4=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_5=p_5*1000/price
+        WHERE p_5<>0 and q_5=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_6=p_6*1000/price
+        WHERE p_6<>0 and q_6=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_7=p_7*1000/price
+        WHERE p_7<>0 and q_7=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_8=p_8*1000/price
+        WHERE p_8<>0 and q_8=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_9=p_9*1000/price
+        WHERE p_9<>0 and q_9=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_10=p_10*1000/price
+        WHERE p_10<>0 and q_10=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_11=p_11*1000/price
+        WHERE p_11<>0 and q_11=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set q_12=p_12*1000/price
+        WHERE p_12<>0 and q_12=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set aq_1=ap_1*1000/price
+        WHERE ap_1<>0 and aq_1=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set aq_2=ap_2*1000/price
+        WHERE ap_2<>0 and aq_2=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set aq_3=ap_3*1000/price
+        WHERE ap_3<>0 and aq_3=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set aq_4=ap_1*1000/price
+        WHERE ap_4<>0 and aq_4=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql='update budget 
+        set year_q=year_p*1000/price
+        WHERE year_p<>0 and year_q=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+
+
+        echo "Інформацію записано";
+    }
+
+    // Импорт бюджета за 2019 год
+    public function actionImport_budget19()
+    {
+        $f = fopen('budget_19.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            if($i==1) continue;
+            $data = explode(";",$s);
+            //if(!isset($data[1])) continue;
+            //if ($i==16832) {echo $i; echo "<br>";debug($data);return;}
+
+            $data[9] = trim(str_replace('"',"'",$data[9]));
+            $data[7] = trim(str_replace('"',"'",$data[7]));
+            $data[5] = trim(str_replace('"',"'",$data[5]));
+
+
+            if(is_null($data[8])  || $data[8]=='') $data[8]=0;
+            if(is_null($data[11])  || $data[11]=='' || trim($data[11])=='-') $data[11]=0;
+            if(is_null($data[12])  || $data[12]=='' || trim($data[12])=='-') $data[12]=0;
+
+            if(is_null($data[13])  || $data[13]=='' || trim($data[13])=='-') $data[13]=0;
+            $data[12] = trim(str_replace(',','.',$data[12]));
+            if(is_null($data[14])  || $data[14]=='' || trim($data[14])=='-') $data[14]=0;
+            $data[14] = trim(str_replace(',','.',$data[14]));
+
+            if(is_null($data[15])  || $data[15]=='' || trim($data[15])=='-') $data[15]=0;
+            if(is_null($data[16])  || $data[16]=='' || trim($data[16])=='-') $data[16]=0;
+            $data[16] = trim(str_replace(',','.',$data[16]));
+            if(is_null($data[17])  || $data[17]=='' || trim($data[17])=='-') $data[17]=0;
+            if(is_null($data[18])  || $data[18]=='' || trim($data[18])=='-') $data[18]=0;
+            if(is_null($data[19])  || $data[19]=='' || trim($data[19])=='-') $data[19]=0;
+            if(is_null($data[20])  || $data[20]=='' || trim($data[20])=='-') $data[20]=0;
+            $data[20] = trim(str_replace(',','.',$data[20]));
+            if(is_null($data[21])  || $data[21]=='' || trim($data[21])=='-') $data[21]=0;
+            if(is_null($data[22])  || $data[22]=='' || trim($data[22])=='-') $data[22]=0;
+            $data[22] = trim(str_replace(',','.',$data[22]));
+            if(is_null($data[23])  || $data[23]=='' || trim($data[23])=='-') $data[23]=0;
+            if(is_null($data[24])  || $data[24]=='' || trim($data[24])=='-') $data[24]=0;
+            $data[24] = trim(str_replace(',','.',$data[24]));
+            if(is_null($data[25])  || $data[25]=='' || trim($data[25])=='-') $data[25]=0;
+            if(is_null($data[26])  || $data[26]=='' || trim($data[26])=='-') $data[26]=0;
+            if(is_null($data[27])  || $data[27]=='' || trim($data[27])=='-') $data[27]=0;
+            if(is_null($data[28])  || $data[28]=='' || trim($data[28])=='-') $data[28]=0;
+            $data[28] = trim(str_replace(',','.',$data[28]));
+            if(is_null($data[29])  || $data[29]=='' || trim($data[29])=='-') $data[29]=0;
+            if(is_null($data[30])  || $data[30]=='' || trim($data[30])=='-') $data[30]=0;
+            $data[30] = trim(str_replace(',','.',$data[30]));
+            if(is_null($data[31])  || $data[31]=='' || trim($data[31])=='-') $data[31]=0;
+            if(is_null($data[32])  || $data[32]=='' || trim($data[32])=='-') $data[32]=0;
+            $data[32] = trim(str_replace(',','.',$data[32]));
+            if(is_null($data[33])  || $data[33]=='' || trim($data[33])=='-') $data[33]=0;
+            if(is_null($data[34])  || $data[34]=='' || trim($data[34])=='-') $data[34]=0;
+            if(is_null($data[35])  || $data[35]=='' || trim($data[35])=='-') $data[35]=0;
+            if(is_null($data[36])  || $data[36]=='' || trim($data[36])=='-') $data[36]=0;
+            $data[36] = trim(str_replace(',','.',$data[36]));
+            if(is_null($data[37])  || $data[37]=='' || trim($data[37])=='-') $data[37]=0;
+            if(is_null($data[38])  || $data[38]=='' || trim($data[38])=='-') $data[38]=0;
+            $data[38] = trim(str_replace(',','.',$data[38]));
+            if(is_null($data[39])  || $data[39]=='' || trim($data[39])=='-') $data[39]=0;
+            if(is_null($data[40])  || $data[40]=='' || trim($data[40])=='-') $data[40]=0;
+            $data[40] = trim(str_replace(',','.',$data[40]));
+            if(is_null($data[41])  || $data[41]=='' || trim($data[41])=='-') $data[41]=0;
+            if(is_null($data[42])  || $data[42]=='' || trim($data[42])=='-') $data[42]=0;
+            if(is_null($data[43])  || $data[43]=='' || trim($data[43])=='-') $data[43]=0;
+            if(is_null($data[44])  || $data[44]=='' || trim($data[44])=='-') $data[44]=0;
+//            if(is_null($data[45])  || $data[45]=='') $data[45]=0;
+
+            $data[10] = trim(str_replace(',','.',$data[10]));
+            //$data[10] = trim(str_replace(' ','',$data[10]));
+            $data[10] = preg_replace('/[^x\d|*\.]/', '', $data[10]);
+
+
+//            $data[11] = preg_replace("/[^x\d|*\.]/", "", $data[11]);
+            $data[11] = trim(str_replace(',','.',$data[11]));
+            $data[11] = preg_replace("/[^x\d|*\.]/", "", $data[11]);
+            $data[13] = trim(str_replace(',','.',$data[13]));
+            $data[13] = preg_replace("/[^x\d|*\.]/", "", $data[13]);
+            $data[15] = trim(str_replace(',','.',$data[15]));
+            $data[15] = preg_replace("/[^x\d|*\.]/", "", $data[15]);
+            $data[17] = trim(str_replace(',','.',$data[17]));
+            $data[17] = preg_replace("/[^x\d|*\.]/", "", $data[17]);
+            $data[18] = trim(str_replace(',','.',$data[18]));
+            $data[18] = preg_replace("/[^x\d|*\.]/", "", $data[18]);
+            $data[19] = trim(str_replace(',','.',$data[19]));
+            $data[19] = preg_replace("/[^x\d|*\.]/", "", $data[19]);
+
+            $data[21] = trim(str_replace(',','.',$data[21]));
+            $data[21] = preg_replace("/[^x\d|*\.]/", "", $data[21]);
+            $data[23] = trim(str_replace(',','.',$data[23]));
+            $data[23] = preg_replace("/[^x\d|*\.]/", "", $data[23]);
+            $data[25] = trim(str_replace(',','.',$data[25]));
+            $data[25] = preg_replace("/[^x\d|*\.]/", "", $data[25]);
+            $data[26] = trim(str_replace(',','.',$data[26]));
+            $data[26] = preg_replace("/[^x\d|*\.]/", "", $data[26]);
+            $data[27] = trim(str_replace(',','.',$data[27]));
+            $data[27] = preg_replace("/[^x\d|*\.]/", "", $data[27]);
+
+            $data[29] = trim(str_replace(',','.',$data[29]));
+            $data[29] = preg_replace("/[^x\d|*\.]/", "", $data[29]);
+            $data[31] = trim(str_replace(',','.',$data[31]));
+            $data[31] = preg_replace("/[^x\d|*\.]/", "", $data[31]);
+            $data[33] = trim(str_replace(',','.',$data[33]));
+            $data[33] = preg_replace("/[^x\d|*\.]/", "", $data[33]);
+            $data[34] = trim(str_replace(',','.',$data[34]));
+            $data[34] = preg_replace("/[^x\d|*\.]/", "", $data[34]);
+            $data[35] = trim(str_replace(',','.',$data[35]));
+            $data[35] = preg_replace("/[^x\d|*\.]/", "", $data[35]);
+
+            $data[37] = trim(str_replace(',','.',$data[37]));
+            $data[37] = preg_replace("/[^x\d|*\.]/", "", $data[37]);
+            $data[39] = trim(str_replace(',','.',$data[39]));
+            $data[39] = preg_replace("/[^x\d|*\.]/", "", $data[39]);
+            $data[41] = trim(str_replace(',','.',$data[41]));
+            $data[41] = preg_replace("/[^x\d|*\.]/", "", $data[41]);
+            $data[42] = trim(str_replace(',','.',$data[42]));
+            $data[42] = preg_replace("/[^x\d|*\.]/", "", $data[42]);
+            $data[43] = trim(str_replace(',','.',$data[43]));
+            $data[43] = preg_replace("/[^x\d|*\.]/", "", $data[43]);
+            $data[44] = trim(str_replace(',','.',$data[44]));
+            $data[44] = preg_replace("/[^x\d|*\.]/", "", $data[44]);
+//            $data[45] = trim(str_replace(',','.',$data[45]));
+//            $data[45] = preg_replace("/[^x\d|*\.]/", "", $data[45]);
+            if (empty($data[7]) || is_null($data[7])) $data[7]=0;
+
+           // debug($data);
+//            return;
+
+            $sql = "INSERT INTO budget (vid_tmc1,page1,service1,name_obj1,dname_obj,vid_repair1,
+                    name_spec1,lot,name_tmc,ed_izm1,price,
+                    q_1,p_1,q_2,p_2,q_3,p_3,aq_1,ap_1,q_4,p_4,q_5,p_5,q_6,p_6,aq_2,ap_2,
+                    q_7,p_7,q_8,p_8,q_9,p_9,aq_3,ap_3,q_10,p_10,q_11,p_11,q_12,p_12,aq_4,ap_4,
+                    year_q,year_p) VALUES(".
+                "'".$data[0]."'".",". '"'.$data[1]. '"'.",".'"'.$data[2]. '"'.",'".$data[3]. "'".",". '"'.$data[4].'",'.
+                '"'.$data[5]. '"'.",". '"'.$data[6]. '"'.",". '"'.$data[7]. '"'.",".'"'.$data[8].'"'.",". '"'
+                .$data[9]. '",'. $data[10]. ",".$data[11].",".$data[12].","
+                .$data[13].",".$data[14].",".$data[15].",".$data[16].","
+                .$data[17].",".$data[18].",".$data[19].",".$data[20].",".
+                $data[21].",".$data[22].",".$data[23].",".$data[24].",".
+                $data[25].",".$data[26].",".$data[27].",".$data[28].",".
+                $data[29].",".$data[30].",".$data[31].",".$data[32].",".
+                $data[33].",".$data[34].",".$data[35].",".$data[36].",".
+                $data[37].",".$data[38].",".$data[39].",".$data[40].",".
+                $data[41].",".$data[42].",".$data[43].",".$data[44].
+                ')';
+
+            //if ($i>16029)
+                Yii::$app->db_budget->createCommand($sql)->execute();
+//            if ($i>16825) {
+//                echo $sql;
+//                echo '<br>';
+//                echo '<br>';
+//                echo $i;
+////                echo  preg_replace("/[^x\d|*\.]/", "", $data[44]);
+////                exit;
+//            }
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
+
+
+    // Импорт областей
+    public function actionImp_obl()
+    {
+        $f = fopen('obl.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+
+            $data = explode(";",$s);
+            if(!isset($data[1])) continue;
+
+            $sql = "INSERT INTO _obl (smb,name) VALUES(".
+                '$$'.$data[0].'$$'.",". '$$'.$data[1].'$$'.
+                ')';
+
+                Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
+
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
+    // Импорт районов
+    public function actionImp_region()
+    {
+        $f = fopen('region.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+
+            $data = explode(";",$s);
+
+            $sql = "INSERT INTO _region (smb,name_obl,id,name) VALUES(".
+                '$$'.$data[0].'$$'.",". '$$'.$data[1].'$$'.",". $data[2].",".'$$'.$data[3].'$$'.
+                ')';
+
+            Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
+
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
+    // ---------------- ИМПОРТ ТАБЛИЦ В ДЛЯ НОВОЙ ПРОГРАММЫ С ВИННИЦЫ -----------------------------------------
+
+    // Импорт street с Ингульца [Энерго]
+    public function actionImp_street()
+    {
+
+
+            $sql = "select * from tmp_street_e";
+            //echo $sql;
+            $data_in = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+            $data_ap = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+            //debug($data);
+            $sql="CREATE TABLE tmp_street_e_in
+                    (
+                      town character varying(200),
+                      id_city character varying(200),
+                      type_street character varying(20),
+                      streettypecode integer,
+                      name_street character varying(200),
+                      citycoid character varying(200)
+                    )";
+        //Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+        $sql="CREATE TABLE tmp_street_e_ap
+                    (
+                      town character varying(200),
+                      id_city character varying(200),
+                      type_street character varying(20),
+                      streettypecode integer,
+                      name_street character varying(200),
+                      citycoid character varying(200)
+                    )";
+        //Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+        foreach($data_in as $in){
+            $town = $in['town'];
+            $id_city = $in['id_city'];
+            $type_street = $in['type_street'];
+            $streettypecode = $in['streettypecode'];
+            $name_street = $in['name_street'];
+            $citycoid = $in['citycoid'];
+            $sql = "INSERT INTO tmp_street_e_in (town,id_city,type_street,streettypecode,name_street,citycoid) VALUES(".
+                '$$'.$town.'$$'.","."'".$id_city."'".","."'".$type_street."'".",".$streettypecode.
+                ",".'$$'.$name_street.'$$'.","."'".$citycoid."'".')';
+            Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+
+            //debug($town);
+        }
+        foreach($data_ap as $ap){
+            $town = $ap['town'];
+            $id_city = $ap['id_city'];
+            $type_street = $ap['type_street'];
+            $streettypecode = $ap['streettypecode'];
+            $name_street = $ap['name_street'];
+            $citycoid = $ap['citycoid'];
+            $sql = "INSERT INTO tmp_street_e_ap (town,id_city,type_street,streettypecode,name_street,citycoid) VALUES(".
+                '$$'.$town.'$$'.","."'".$id_city."'".","."'".$type_street."'".",".$streettypecode.
+                ",".'$$'.$name_street.'$$'.","."'".$citycoid."'".')';
+            Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+
+            //debug($town);
+        }
+        echo "Інформацію записано";
+    }
+
+// Импорт address с Ингульца [Энерго]
+    public function actionImp_address()
+    {
+        $sql = "select * from tmp_address_e_in";
+        $data_in = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+        $sql = "select * from tmp_address_e_ap";
+        $data_ap = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+        //debug($data);
+        $sql="CREATE TABLE tmp_address_e_in
+                    (
+                      zip text,
+                      streetcode integer,
+                      locationhouse character varying(20),
+                      locationapp character varying(20)
+                    )";
+       // Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+        $sql="CREATE TABLE tmp_address_e_ap
+                    (
+                      zip text,
+                      streetcode integer,
+                      locationhouse character varying(20),
+                      locationapp character varying(20)
+                    )";
+        //Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+        foreach($data_in as $in){
+            $zip = $in['zip'];
+            $streetcode = $in['streetcode'];
+            if (is_null($streetcode)) $streetcode=0;
+            $locationhouse = $in['locationhouse'];
+            $locationapp = $in['locationapp'];
+
+            $sql = "INSERT INTO tmp_address_e_in (zip,streetcode,locationhouse,locationapp) VALUES(".
+                '$$'.$zip.'$$'.",".$streetcode.
+                ",".'$$'.$locationhouse.'$$'.","."'".$locationapp."'".')';
+           // Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+
+            //debug($town);
+        }
+        foreach($data_ap as $ap){
+            $zip = $ap['zip'];
+            $streetcode = $ap['streetcode'];
+            if (is_null($streetcode)) $streetcode=0;
+            $locationhouse = $ap['locationhouse'];
+            $locationapp = $ap['locationapp'];
+
+            $sql = "INSERT INTO tmp_address_e_ap (zip,streetcode,locationhouse,locationapp) VALUES(".
+                '$$'.$zip.'$$'.",".$streetcode.
+                ",".'$$'.$locationhouse.'$$'.","."'".$locationapp."'".')';
+            Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+
+            //debug($town);
+        }
+        echo "Інформацію записано";
+    }
+
+    // Експорт в САП
+    public function actionCek2sap()
+    {
+        $model = new export_sap();
+
+        if ($model->load(Yii::$app->request->post()))
+        {
+            switch ($model->id_oper) {
+                case 1:
+                    return $this->redirect(['sap_partner_ind', 'res' => $model->rem]);
+                    break;
+                case 2:
+                    return $this->redirect(['sap_partner', 'res' => $model->rem]);
+                    break;
+                case 3:
+                    return $this->redirect(['sap_connobj_ind', 'res' => $model->rem]);
+                    break;
+                case 4:
+                    return $this->redirect(['sap_connobj', 'res' => $model->rem]);
+                    break;
+                case 5:
+                    return $this->redirect(['sap_premise_ind', 'res' => $model->rem]);
+                    break;
+                case 6:
+                    return $this->redirect(['sap_premise', 'res' => $model->rem]);
+                    break;
+                case 7:
+                    return $this->redirect(['sap_account', 'res' => $model->rem]);
+                    break;
+                case 8:
+                    return $this->redirect(['sap_account_ind', 'res' => $model->rem]);
+                    break;
+                case 9:
+                    return $this->redirect(['sap_devloc', 'res' => $model->rem]);
+                    break;
+                case 10:
+                    return $this->redirect(['sap_devloc_ind', 'res' => $model->rem]);
+                    break;
+                case 11:
+                    return $this->redirect(['sap_device_ind', 'res' => $model->rem]);
+                    break;
+                case 12:
+                    return $this->redirect(['sap_device', 'res' => $model->rem]);
+                    break;
+                case 13:
+                    return $this->redirect(['sap_seal_ind', 'res' => $model->rem]);
+                    break;
+                case 14:
+                    return $this->redirect(['sap_seals', 'res' => $model->rem]);
+                    break;
+                case 15:
+                    return $this->redirect(['sap_seals2', 'res' => $model->rem]);
+                    break;
+                case 16:
+                    return $this->redirect(['sap_instln_ind', 'res' => $model->rem]);
+                    break;
+                case 17:
+                    return $this->redirect(['sap_instln', 'res' => $model->rem]);
+                    break;
+            }
+        }
+        else {
+
+            return $this->render('export_sap', [
+                'model' => $model,
+            ]);
+        }
+    }
+    //формирование файлов индентификации данных ЦЕК в системе САП
+public function actionIdfile()
+        
+    {
+        $model = new export_sap();
+
+        if ($model->load(Yii::$app->request->post()))
+        {
+            switch ($model->id_oper) {
+                case 1:
+                    return $this->redirect(['idfile_partner_ind', 'res' => $model->rem]);
+                    break;
+                case 2:
+                    return $this->redirect(['idfile_partner', 'res' => $model->rem]);
+                    break;
+                case 3:
+                    return $this->redirect(['idfile_premise_ind', 'res' => $model->rem]);
+                    break;
+                case 4:
+                    return $this->redirect(['idfile_premise', 'res' => $model->rem]);
+                    break;
+                case 5:
+                    return $this->redirect(['idfile_account_ind', 'res' => $model->rem]);
+                    break;
+                case 6:
+                    return $this->redirect(['idfile_account', 'res' => $model->rem]);
+                    break;
+                case 7:
+                    return $this->redirect(['idfile_devloc_ind', 'res' => $model->rem]);
+                    break;                
+                case 8:
+                    return $this->redirect(['idfile_devloc', 'res' => $model->rem]);
+                    break;
+                case 9:
+                    return $this->redirect(['idfile_device_ind', 'res' => $model->rem]);
+                    break;
+                case 10:
+                    return $this->redirect(['idfile_device', 'res' => $model->rem]);
+                    break;
+                case 11:
+                    return $this->redirect(['idfile_seals_ind', 'res' => $model->rem]);
+                    break;
+                case 12:
+                    return $this->redirect(['idfile_seals', 'res' => $model->rem]);
+                    break;
+                case 13:
+                    return $this->redirect(['idfile_seals2', 'res' => $model->rem]);
+                    break;                
+                }                
+        }
+        else {
+
+            return $this->render('idfile', [
+                'model' => $model,
+            ]);
+        }
+    }
+    
+    // Форматирование файла partner для САП для юридических партнеров
+    public function actionSap_partner($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        $sql = "select a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
+case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '03' else '02' end as BU_GROUP,
+case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '0003' else '0002' end as BPKIND,
+'MKK' as ROLE1,
+case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end  as ROLE2,
+'00010101' as VALID_FROM_1,
+'I' as CHIND_1,
+case when coalesce(a.id_state,0) in (80,49) then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end  as VALID_FROM_2,
+case when coalesce(a.id_state,0) in (80,49) then 'I' else '' end  as CHIND_2,
+'1' as FKUA_RSD,
+'3' as FKUA_RIS,
+case when coalesce(b.FLAG_JUR,0)= 1 then 
+
+	a.code_okpo
+        
+else 
+	case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000' then trim(coalesce (a.code_okpo, b.okpo_num))
+	 when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))='0000000000' then a.code_okpo else '' end
+end  as BU_SORT1,
+'' as BU_SORT2,
+'0006' as SOURCE,
+'LEG' as AUGRP,
+substr(trim(a.name),1,40) as name_org1,
+substr(trim(a.name),41,40) as name_org2,
+substr(trim(a.name),81,40) as name_org3,
+substr(trim(a.name),121,40) as name_org4,
+case when coalesce(b.FLAG_JUR,0)= 1 then  
+     case 
+     when upper(trim(a.name)) LIKE  'ФЕРМЕР%' AND upper(trim(a.name)) LIKE '%ГОСП%' then '02' 
+     when (upper(trim(a.name)) LIKE  'ПРИВАТ%' OR  upper(trim(a.name)) LIKE  '%ПРИВАТ%') AND upper(trim(a.name)) LIKE '%ПІДПР%' then '03' 
+     when upper(trim(a.name)) LIKE 'КОЛЕКТИВ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '04' 
+     when upper(trim(a.name)) LIKE 'ДЕРЖ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '05' 
+     when (upper(trim(a.name)) LIKE  'КОМУНАЛЬНЕ%' AND upper(trim(a.name)) LIKE '%ПІДПР%') then '07' 
+     when ((upper(trim(a.name)) LIKE 'ДОЧІРНЄ%' OR upper(trim(a.name)) LIKE 'ДОЧІРНЕ%') AND upper(trim(a.name)) LIKE '%ПІДПР%') then '08' 
+     when upper(trim(a.name)) LIKE  'РЕЛІГ%' or  upper(trim(a.name)) LIKE '%РЕЛІГ%' then '10' 
+     when upper(trim(a.name)) LIKE  'ПІДПР%' AND  upper(trim(a.name)) LIKE '%СПОЖИВ%' AND  upper(trim(a.name)) LIKE '%КООП%' then '11' 
+     when (upper(trim(a.name)) LIKE  'АКЦІОНЕРНЕ ТОВАРИСТВО%' or ((upper(trim(a.name)) LIKE  'ПУБЛІЧНЕ%' OR upper(trim(a.name)) LIKE  'ПРИВАТНЕ%') and  upper(trim(a.name)) LIKE  '%АКЦІОНЕРНЕ%' and upper(trim(a.name)) LIKE  '%ТОВАРИСТВО%')) then '17' 
+     when upper(trim(a.name)) LIKE 'ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО%' then '18' 
+     when upper(trim(a.name)) LIKE 'ЗАКРИТЕ%' AND upper(trim(a.name)) LIKE  '%АКЦІОНЕР%' AND  upper(trim(a.name)) LIKE '%ТОВ%' then '19' 
+     when (upper(trim(a.name)) LIKE  'ТОВ%' AND upper(trim(a.name)) LIKE '%ОБМЕЖ%' AND upper(trim(a.name))  LIKE '%ВІДП%') OR upper(trim(a.name)) LIKE  'ТОВ %' then '21' 
+     when upper(trim(a.name)) LIKE  'ТОВ%' AND upper(trim(a.name)) LIKE '%ДОД%' AND upper(trim(a.name))  LIKE '%ВІДП%' then '22'
+     when upper(trim(a.name)) LIKE  'ПОВНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '23' 
+     when upper(trim(a.name)) LIKE  'КОМАНДИТНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '24' 
+     when upper(trim(a.name)) like 'АВТОКООПЕРАТИВ%'  OR upper(trim(a.name)) like '%АВТОКООПЕРАТИВ%' OR (upper(trim(a.name))  like 'АВТО%' AND upper(trim(a.name))  like '%КООПЕРАТИВ%') then '25' 
+     when upper(trim(a.name)) LIKE  'ВИРОБНИЧ%' AND upper(trim(a.name)) LIKE '%КООП%' then '26' 
+     when upper(trim(a.name)) LIKE  'ОБСЛУГОВ%' AND upper(trim(a.name)) LIKE '%КООП%' then '27'   
+     WHEN (upper(trim(a.name)) like 'ДЕРЖАВНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name))  like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name))  like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '35'
+     WHEN (upper(trim(a.name)) like 'КОМУНАЛЬНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name))  like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name))  like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '36'
+     WHEN (upper(trim(a.name)) like 'ПРИВАТНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name))  like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name))  like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '37'
+     when upper(trim(a.name)) LIKE  'ГРОМАДСЬКА%' AND upper(trim(a.name)) LIKE '%ОРГ%' then '38' 
+     when (upper(trim(a.name)) LIKE  'КОРПОРАЦІЯ%' OR upper(trim(a.name)) LIKE 'КООРПОРАЦІЯ%') then '43' 
+     when upper(trim(a.name)) LIKE  'КОНЦЕРН%' AND upper(trim(a.name)) LIKE '%КОНЦЕРН%' then '45' 
+     else '01'
+     end
+else '' 
+end as LEGAL_ENTY,
+case when coalesce(a.id_state,0) in (80,49)  then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end as LIQUID_DAT,
+''::char(4) as ZFILCODE,
+'' as ZFILHEAD,
+case when coalesce(b.FLAG_JUR,0)= 0 then  'X' else '' end as ZPROCIND,
+'' as ZCODEFORMOWN,
+'' as ZCODESPODU,
+'' as ZCODEBANKROOT,
+'' as ZCODELICENSE,
+case when length(trim(a.name))> 160 then trim(a.name) else '' end as ZNAMEALL,
+replace(replace(replace(trim(a.short_name),'   ',' '),'  ',' '),'''','’') as ZZ_NAMESHORT,
+b.doc_ground as ZZ_DOCUMENT,
+'' as ADEXT_ADDR,
+'I' as CHIND_ADDR,
+'' as POST_CODE2,
+'' as PO_BOX,
+am.building as HOUSE_NUM1,
+am.office as HOUSE_NUM2,
+'UA' as COUNTRY,
+case when substring(trim(b.phone),1,30) <> '' then 'I' else '' end as CHIND_TEL,
+case when position(',' in trim(b.phone))>0 then substr(trim(b.phone),1,position(',' in trim(b.phone))-1) else
+case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')) =10 then
+		regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')
+		 else '' end end as TEL_NUMBER,
+'' as CHIND_FAX,
+'' as FAX_NUMBER,
+case when trim(a.email) <>'' then 'I' else '' end as CHIND_SMTP,
+trim(a.email) as SMTP_ADDR,
+
+case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')) =10 then
+	case when regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '039%'
+	or	
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '050%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '063%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '066%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '067%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '068%'
+        or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '073%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '091%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '092%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '093%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '094%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '095%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '096%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '097%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '098%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '099%'
+	then '3'
+	else '1' end
+
+	else '' end as TEL_MOBILE,
+	'CEKPOST' as ADR_KIND,
+	'X' as XDFADU,
+	case when (length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000')
+	   then trim(coalesce (a.code_okpo, b.okpo_num)) 
+	   when length(trim(coalesce (a.code_okpo, b.okpo_num)))=8 then trim(coalesce (a.code_okpo, b.okpo_num))
+	   end as IDNUMBER,
+	   case when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=8 then 'EDRPOU'
+	    when (coalesce(b.FLAG_JUR,0)= 0 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10) then  'FS0001' 
+	    when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then  'FS0001'
+	    else '' end as ID_TYPE,
+kt.shot_name||' '||t.name as town,am.post_index,ks.shot_name||' '||s.name as street,am.building as house,am.office as flat,
+b.phone,b.e_mail
+ from clm_client_tbl a
+        left join clm_statecl_tbl b on
+        a.id=b.id_client
+        LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+        LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+        LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+        LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+        LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+        WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
+        and a.code_okpo<>'0000000'
+	    and a.code_okpo<>'000000'
+   ";
+
+        $sql_c = "select * from sap_export where objectsap='PARTNER' order by id_object";
+        $zsql = 'delete from sap_init';
+        $zsql1 = 'delete from sap_but000';
+        $zsql2 = 'delete from sap_ekun';
+        $zsql3 = 'delete from sap_but020';
+        $zsql4 = 'delete from sap_but0id';
+        $zsql5 = 'delete from sap_but021';
+
+
+        if(1==1) {
+            // Получаем необходимые данные
+            switch ($res) {
+                case 1:
+                    $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql5)->execute();
+                    break;
+
+                case 2:
+                    $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql5)->execute();
+                    break;
+                case 3:
+                    $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql5)->execute();
+                    break;
+                case 4:
+                    $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql5)->execute();
+                    break;
+                case 5:
+                    $data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krr_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_krr_energo->createCommand($zsql5)->execute();
+                    break;
+                case 6:
+                    $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
+                    // Удаляем данные в таблицах
