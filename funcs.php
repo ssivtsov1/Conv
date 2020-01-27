@@ -1383,7 +1383,7 @@ function f_account_ind($n_struct, $rem, $v,$vid) {
                     values('$oldkey','$n_struct','$gpart','$vktyp','$vkona')";
 
     if($n_struct=='VK')
-        $z = "insert into sap_init_acc(oldkey,znodev)
+        $z = "insert into sap_vk(oldkey,znodev)
                     values('$oldkey','~')";
 
     if($n_struct=='VKP')
@@ -2311,6 +2311,99 @@ function get_routine1($s)
 
 }
 
+// Извлекаем из общего массива данных j-ю порцию полей, разделенных разделителями
+// Аргументы:
+// $data - массив данных с разделителями
+// $n - номер порции извлекаемых данных с массива $data
+function extract_p($data,$number){
+    $start='r' . $number;
+    $end='r' . ($number+1);
+    $flag=0;
+    $i=0;
+    foreach ($data as $k=>$v){
+        if($k==$start){
+            $flag=1;
+            continue;
+        }
+        if($k==$end){
+            break;
+        }
+        if($flag==1){
+            $result[$i]=$v[$k];
+            $i++;
+        }
+    }
+    return $result;
+}
 
+function extract_fields($data){
+    $i=0;
+    $result=[];
+    foreach ($data as $k=>$v){
+            $result[$i]=$k;
+            $i++;
+        }
+    return $result;
+}
+
+function array_part($data,$data_p){
+    foreach ($data as $k=>$d) {
+        foreach ($data_p as $v) {
+//            if (substr($v,0,8)=='data_type')
+//                $v='data_type';
+            if($k==$v)
+                $result[$k] = trim($d);
+        }
+    }
+    return $result;
+}
+// Ускоренная выгрузка данных в файл (настроена на выгрузку PARTNER_IND)
+function date2file_Partner_ind($res,$vid)
+{
+    $rem = '0'.$res;  // Код РЭС
+    $fd = date('Ymd');
+    $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'_07'.'_R'.'.txt';
+    $f = fopen($fname, 'w+');
+    $i = 0;
+    $sql = "select a.*,b.*,c.*,d.*,e.* from sap_init a  
+                    left join sap_ekun b on a.old_key=b.old_key
+                    left join sap_but000 c on a.old_key=c.old_key
+                    left join sap_but020 d on a.old_key=d.old_key
+                    left join sap_but0id e on a.old_key=e.old_key
+                ";
+    $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
+    $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
+    $cnt = data_from_server($sql_c, $res, $vid);
+//        Получаем массивы полей всех структур
+    $i = 0;
+    foreach ($cnt as $v) {
+        $i++;
+        $k = $i - 1;
+        $table_struct = 'sap_' . trim($v['dattype']);
+        $z = "select * from $table_struct limit 1";
+        $mas = data_from_server($z, $res, $vid);
+        $r = '$struct' . $i . '=$mas[0];';
+        eval($r);
+    }
+    $j = 0;
+    foreach ($struct_data as $d) {
+        $j = 0;
+        $old_key = $d['old_key'];
+        foreach ($cnt as $v) {
+            $j++;
+            // Извлекаем список полей в структуре
+            $data_p = extract_fields(${"struct" . $j});
+            $d1 = array_part($d, $data_p);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+        fputs($f, $old_key . "\t&ENDE");
+        fputs($f, "\n");
+    }
+    fclose($f);
+}
 
 ?>

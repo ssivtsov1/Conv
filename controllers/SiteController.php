@@ -1368,26 +1368,26 @@ b.phone,b.e_mail
 
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
         //$cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
-
-        // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);
-        $cnt = data_from_server($sql_c,$res,$vid);
+        if(3==4) {
+            // Получаем необходимые данные
+            $data = data_from_server($sql, $res, $vid);
+            $cnt = data_from_server($sql_c, $res, $vid);
 
             // Удаляем данные в таблицах
             $zsql = 'delete from sap_init';
-            exec_on_server($zsql,$res,$vid);
+            exec_on_server($zsql, $res, $vid);
 
             $zsql = 'delete from sap_but000';
-             exec_on_server($zsql,$res,$vid);
+            exec_on_server($zsql, $res, $vid);
 
             $zsql = 'delete from sap_ekun';
-            exec_on_server($zsql,$res,$vid);
+            exec_on_server($zsql, $res, $vid);
 
             $zsql = 'delete from sap_but020';
-            exec_on_server($zsql,$res,$vid);
+            exec_on_server($zsql, $res, $vid);
 
             $zsql = 'delete from sap_but0id';
-            exec_on_server($zsql,$res,$vid);
+            exec_on_server($zsql, $res, $vid);
             $i = 0;
             // Заполняем структуры
             foreach ($data as $w) {
@@ -1398,49 +1398,50 @@ b.phone,b.e_mail
                     f_partner_ind($n_struct, $rem, $w);
                 }
             }
+        } // endif 3==4
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'_07'.'_R'.'.txt';
-        $f = fopen($fname,'w+');
-        $i=0;
-        $sql = "select * from sap_init";
-        //$struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
-        foreach ($struct_data as $d) {
-            $old_key=trim($d['old_key']);
-            $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
-            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
-            fputs($f, $s);
-            fputs($f, "\n");
-            $i=0;
-            foreach ($cnt as $v) {
-                $table_struct = 'sap_' . trim($v['dattype']);
-                $i++;
-                if($i>1) {
-                    $sql = "select * from $table_struct where old_key='$old_key'";
-                    //$cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
-                    foreach ($cur_data as $d1) {
-                        $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
+        date2file_Partner_ind($res,$vid);  // Быстрая функция для записи в файл
+
+        if(1==2) {  // Так работала программа раньше - было существенно медленее
+            $fd = date('Ymd');
+            $fname = 'PARTNER_04' . '_CK' . $rem . '_' . $fd . '_07' . '_R' . '.txt';
+            $f = fopen($fname, 'w+');
+            $i = 0;
+            $sql = "select * from sap_init";
+            //$struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+            $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
+            foreach ($struct_data as $d) {
+                $old_key = trim($d['old_key']);
+                $d = array_map('trim', $d);
+                $s = implode("\t", $d);
+                $s = str_replace("~", "", $s);
+                $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+                fputs($f, $s);
+                fputs($f, "\n");
+                $i = 0;
+                foreach ($cnt as $v) {
+                    $table_struct = 'sap_' . trim($v['dattype']);
+                    $i++;
+                    if ($i > 1) {
+                        $sql = "select * from $table_struct where old_key='$old_key'";
+                        //$cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+                        $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
+                        foreach ($cur_data as $d1) {
+                            $d1 = array_map('trim', $d1);
+                            $s1 = implode("\t", $d1);
+                            $s1 = str_replace("~", "", $s1);
+                            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                            fputs($f, $s1);
+                            fputs($f, "\n");
+                        }
+
                     }
-
                 }
+                fputs($f, $old_key . "\t&ENDE");
+                fputs($f, "\n");
             }
-            fputs($f, $old_key . "\t&ENDE");
-            fputs($f, "\n");
-        }
+        }  //  endif  1==2
 
-
-//        fputs($f, "\t&ENDE");
-//        fputs($f, "\n");
-        fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
         $model->info1 = "Файл сформовано.";
@@ -1451,9 +1452,81 @@ b.phone,b.e_mail
         return $this->render('info', [
             'model' => $model]);
     }
+// Тестовая функция для записи в файл
+    public function actionTest_recfile()
+    {
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $fname = 'PARTNER_04_test.txt';
+        $f = fopen($fname, 'w+');
+        $i = 0;
+        $vid=1;
+        $res=4;
+        $sql = "select a.*,b.*,c.*,d.*,e.* from sap_init a  
+                    left join sap_ekun b on a.old_key=b.old_key
+                    left join sap_but000 c on a.old_key=c.old_key
+                    left join sap_but020 d on a.old_key=d.old_key
+                    left join sap_but0id e on a.old_key=e.old_key
+                ";
+        //$struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
+//        debug($struct_data);
+        $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
+        $cnt = data_from_server($sql_c,$res,$vid);
+// Тест
+//        Получаем массивы полей всех структур
+        $i=0;
+        foreach ($cnt as $v) {
+            $i++;
+            $k=$i-1;
+            $table_struct = 'sap_' . trim($v['dattype']);
+            $z="select * from $table_struct limit 1";
+            $mas = data_from_server($z,$res,$vid);
+            $r='$struct'.$i.'=$mas[0];';
+            eval($r);
+        }
 
-    //формирование файла идентификации
+        $j=0;
+//        debug($struct1);
+//         debug($struct2);
+//        debug($struct3);
+//        debug($struct4);
+//        debug($struct5);
+//        return;
+
+        foreach ($struct_data as $d) {
+            $j=0;
+            $old_key=$d['old_key'];
+            foreach ($cnt as $v) {
+                $j++;
+                // Извлекаем список полей в структуре
+                $data_p = extract_fields(${"struct".$j});
+//                $d1 = array_map('trim', $data_p);
+                $d1 = array_part($d,$data_p);
+                $s1 = implode("\t", $d1);
+                $s1 = str_replace("~", "", $s1);
+                $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                fputs($f, $s1);
+                fputs($f, "\n");
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        //формирование файла идентификации
         // Формирование файла partner для САП для бытовых
+    }
+
     public function actionIdfile_partner_ind($res)
     {
         ini_set('memory_limit', '-1');

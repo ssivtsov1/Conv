@@ -89,7 +89,7 @@ AppAsset::register($this);
                                 ['label' => 'Закачка таблицы wo', 'url' => ['/site/wosootv']],
                                 ['label' => 'Преобразование таблицы инструмента', 'url' => ['/site/do_mshp']],
                                 ['label' => 'Установка даты для инструмента', 'url' => ['/site/set_date']],
-                                ['label' => 'Тест', 'url' => ['/site/check']],
+                                ['label' => 'Тест', 'url' => ['/site/test_recfile']],
 
                             ]
                     ],
