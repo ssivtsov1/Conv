@@ -1039,7 +1039,9 @@ function f_partner_ind($n_struct,$rem,$v) {
         $roomnumber=$v['flat'];
         $region=$v['region'];
         $tel_number=normal_tel($v['mob_phone']);
+        if (!empty($tel_number)) $chind_tel="I"; else $chind_tel='~';
         $smtp_addr=$v['e_mail'];
+        if (!empty($smtp_addr)) $chind_smtp="I"; else $chind_smtp='~';
         $iuru_pro=$v['kod_reg'];
         $pasport=$v['pasport'];
 
@@ -1055,10 +1057,11 @@ function f_partner_ind($n_struct,$rem,$v) {
         else{
             $id_type='FS0001';
         }
-        
+        $flag_inn=1;
         if((empty($tax_number) || is_null($tax_number)) && (empty($pasport) || is_null($pasport))) {
             $tax_number='~';
             $id_type='~';
+            $flag_inn=0;
         }
 
         $oldkey = $oldkey_const . $r;
@@ -1086,13 +1089,15 @@ function f_partner_ind($n_struct,$rem,$v) {
                                          str_suppl2,roomnumber,region,chind_tel,tel_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
                     values('$oldkey','$n_struct','$r','I','$town','$post_code1','~','~','$street',
-                          '$house_num1','~','~','~','$roomnumber','$region','I','$tel_number','I',
+                          '$house_num1','~','~','~','$roomnumber','$region','$chind_tel','$tel_number','$chind_smtp',
                           '$smtp_addr','$tel_mobile','$iuru_pro')";
 
        if($n_struct=='BUT0ID')
-
+        if ($flag_inn)
         $z = "insert into sap_but0id(old_key,dat_type4,idnumber,id_type)
                     values('$oldkey','$n_struct','$tax_number','$id_type')";
+        else
+            return;
 
      //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
     switch ((int) $rem) {
@@ -1162,6 +1167,7 @@ function f_partner($n_struct, $rem, $v) {
    $zcodelicense=$v['zcodelicense'];
    $znameall=$v['znameall'];
    $zz_nameshort=$v['zz_nameshort'];
+    $zz_nameshort= str_replace('+','',$zz_nameshort);
    $zz_document=$v['zz_document'];
    $chind_tel=$v['chind_tel'];
    $chind_smtp=$v['chind_smtp'];

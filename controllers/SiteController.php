@@ -1369,13 +1369,17 @@ b.phone,b.e_mail
         $routine = strtoupper(substr($method,10));
 
         $sql = "select a.id,a.activ,b.tax_number,b.last_name,
-                b.name,b.patron_name,c.town,c.indx,c.street,
-                c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
+                b.name,b.patron_name,b1.town,c.town as town_cek,b2.post_index,c.indx as index_cek,b1.street,c.street as street_cek,
+                upper(c.house) as house,c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
         left join vw_address c on
         a.id=c.id
+        left join addr_sap b1 on
+         lower(c.street)=lower(b1.short_street) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
+         and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
+         left join post_index_sap b2 on b1.numtown=b2.numtown and b2.post_index=c.indx         
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
@@ -1383,7 +1387,7 @@ b.phone,b.e_mail
 
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
         //$cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
-        if(3==4) {
+//        if(3==4) {
             // Получаем необходимые данные
             $data = data_from_server($sql, $res, $vid);
             $cnt = data_from_server($sql_c, $res, $vid);
@@ -1413,7 +1417,7 @@ b.phone,b.e_mail
                     f_partner_ind($n_struct, $rem, $w);
                 }
             }
-        } // endif 3==4
+//        } // endif 3==4
         // Формируем имя файла и создаем файл
         date2file_Partner_ind($res,$vid);  // Быстрая функция для записи в файл
 
