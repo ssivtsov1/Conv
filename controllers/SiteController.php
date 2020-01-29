@@ -806,6 +806,12 @@ WHERE year_p=0 and year_q>0';
                 case 17:
                     return $this->redirect(['sap_instln', 'res' => $model->rem]);
                     break;
+                case 18:
+                    return $this->redirect(['sap_facts', 'res' => $model->rem]);
+                    break;
+                case 19:
+                    return $this->redirect(['sap_facts_ind', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -2263,6 +2269,215 @@ inner join sap_const const on 1=1";
         return $this->render('info', [
             'model' => $model]);
     }
+
+    // Формирование файла facts для САП для юридических потребителей
+    public function actionSap_facts($res)
+    {
+
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select distinct p.code_eqp as id,p.name_eqp,
+p.avg_dem::varchar as avg_dem,power_allow,power_con,
+value_r as tg_fi,round(p.wtm::numeric/30.0,0) as FACTOR_hour,p.safe_category,
+case when coalesce(p.count_lost,0)=1 then 'X' else '' end as count_lost,
+case when coalesce(p.lost_nolost,0)=0 then 'X' else '' end as no_lost,
+en.kind_energy, en1.kind_energy as react, en2.kind_energy as gen,
+me.kind_energy as react_,me1.kind_energy as gen_,const.ver
+from ( select dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg, --p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, 
+dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,  
+ dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
+dt.lost_nolost, dt.id_extra,dt.reserv,
+dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, bs.id_zone, round(sum(bs.demand_val)/30,0) as avg_dem,sum(bs.demand_val) as demand_val,
+coalesce(dt.power,0)::varchar as power_allow,
+case when coalesce(dt.con_power_kva,0) = 0 then coalesce(dt.connect_power,0)::varchar else '0' end as power_con,
+tg.value_r
+	from eqm_equipment_tbl as eq 
+	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id and dt_b < '2020-01-01' and dt_e is null order by dt_b desc limit 1) ) 
+	join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
+	join acd_billsum_tbl as bs on bs.id_point = dt.code_eqp and kind_energy = 1 and id_zone=0
+	left join eqk_tg_tbl as tg on (dt.id_tg=tg.id)
+	group by dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, 
+	dt.id_tg,dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,
+	dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,dt.con_power_kva, dt.safe_category,
+	 dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, bs.id_zone,tg.value_r
+	) as p 
+left join eqd_point_energy_h  as en on en.code_eqp=p.code_eqp and en.dt_e is null and en.kind_energy =1	
+left join eqd_point_energy_h  as en1 on en1.code_eqp=p.code_eqp and en1.dt_e is null and en1.kind_energy in (2,5)	
+left join eqd_point_energy_h  as en2 on en1.code_eqp=p.code_eqp and en2.dt_e is null and en2.kind_energy in (4,6)
+
+left join eqm_meter_point_h as mp on mp.id_point = p.code_eqp and mp.dt_e is null
+left join eqm_meter_tbl as m on m.code_eqp = mp.id_meter
+left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (2,5) )as me on me.code_eqp = mp.id_meter
+left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (4,6) )as me1 on me1.code_eqp = mp.id_meter
+inner join sap_const const on 1=1";
+
+        if($helper==1)
+            $sql = $sql.' LIMIT 1';
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        // Заполняем массив $facts
+        $i=0;
+        foreach ($data as $w) {
+                $facts[$i]=f_facts($rem,$w);
+                $i++;
+         }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с массива $facts
+        foreach ($facts as $d) {
+            foreach ($d as $v) {
+
+                $d1 = explode(';', $v);
+                $d1 = array_map('trim', $d1);
+                $s = implode("\t", $d1);
+                $s = str_replace("~", "", $s);
+                $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+                fputs($f, $s);
+                fputs($f, "\n");
+            }
+        }
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    // Формирование файла facts для САП для бытовых потребителей
+    public function actionSap_facts_ind($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
+        $sql = "select id,power,plita,opal,mmgg,mmgg_end,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
+sum(dem_10) as dem_10,sum(dem_6) as dem_6,sum(dem_7) as dem_7,sum(dem_8) as dem_8 from
+(select q.* from (
+select a.id_paccnt as id,b.dt_b,case when a.id_zone=0 then demand end as dem_0,
+case when a.id_zone=9 then demand end as dem_9,
+case when a.id_zone=10 then demand end as dem_10,
+case when a.id_zone=6 then demand end as dem_6,
+case when a.id_zone=7 then demand end as dem_7,
+case when a.id_zone=8 then demand end as dem_8,
+a.mmgg,(a.mmgg+interval '1 month'-interval '1 day') as mmgg_end,b.power,
+case when c.id_gtar in(3,5,16) then 1 end as plita,
+case when c.id_gtar in(4,6,14) then 1 end as opal,const.ver
+from clm_meterpoint_tbl b 
+left join clm_plandemand_tbl a on a.id_paccnt=b.id_paccnt
+inner join clm_paccnt_tbl c on c.id=a.id_paccnt and c.archive='0'
+left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1
+on 1=1
+inner join (select id_paccnt,mmgg,id_zone,max(dat_ind) as dat_ind from acm_indication_tbl 
+group by id_paccnt,id_zone,mmgg) j on j.id_paccnt=a.id_paccnt and j.mmgg=w1.mmgg_current and j.id_zone=a.id_zone
+inner join sap_const const on 1=1
+where a.mmgg=w1.mmgg_current 
+order by a.id_paccnt
+) q
+left join 
+(select (fun_mmgg() - interval '1 month')::date as mmgg_current) w
+on 1=1
+where mmgg=mmgg_current) s
+group by id,power,plita,opal,mmgg,mmgg_end,ver
+";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        // Заполняем массив $facts
+        $i=0;
+        foreach ($data as $w) {
+            $facts[$i]=f_facts_ind($rem,$w);
+            $i++;
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с массива $facts
+        foreach ($facts as $d) {
+            foreach ($d as $v) {
+
+                $d1 = explode(';', $v);
+                $d1 = array_map('trim', $d1);
+                $s = implode("\t", $d1);
+                $s = str_replace("~", "", $s);
+                $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+                fputs($f, $s);
+                fputs($f, "\n");
+            }
+        }
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
 
     // Формирование файла пломб(seal) для САП для юр. потребителей
     public function actionSap_seals($res)
