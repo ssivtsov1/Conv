@@ -886,7 +886,7 @@ public function actionIdfile()
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
-        $sql = "select a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
+        $sql = "select distinct a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
 case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '03' else '02' end as BU_GROUP,
 case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '0003' else '0002' end as BPKIND,
 'MKK' as ROLE1,
@@ -957,8 +957,8 @@ b.doc_ground as ZZ_DOCUMENT,
 'I' as CHIND_ADDR,
 '' as POST_CODE2,
 '' as PO_BOX,
-am.building as HOUSE_NUM1,
-am.office as HOUSE_NUM2,
+UPPER(am.building) as HOUSE_NUM1,
+UPPER(am.office) as HOUSE_NUM2,
 'UA' as COUNTRY,
 case when substring(trim(b.phone),1,30) <> '' then 'I' else '' end as CHIND_TEL,
 case when position(',' in trim(b.phone))>0 then substr(trim(b.phone),1,position(',' in trim(b.phone))-1) else
@@ -1016,7 +1016,9 @@ case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^
 	    when (coalesce(b.FLAG_JUR,0)= 0 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10) then  'FS0001' 
 	    when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then  'FS0001'
 	    else '' end as ID_TYPE,
-kt.shot_name||' '||t.name as town,am.post_index,ks.shot_name||' '||s.name as street,am.building as house,am.office as flat,
+	
+kt.shot_name||' '||t.name as town,ads.town as town_sap,am.post_index,b2.post_index as post_index_sap,ks.shot_name||' '||s.name as street,ads.street as street_sap,
+UPPER(am.building) as house,UPPER(am.office) as flat,
 b.phone,b.e_mail
  from clm_client_tbl a
         left join clm_statecl_tbl b on
@@ -1026,6 +1028,8 @@ b.phone,b.e_mail
         LEFT JOIN adi_town_tbl t ON t.id = s.id_town
         LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+        LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
+        LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
         and a.code_okpo<>'0000000'
 	    and a.code_okpo<>'000000'
@@ -2990,19 +2994,23 @@ public function actionIdfile_seals($res)
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select min(a.id) as id,
-                c.town,c.street,c.type_street,
+                c.town,b1.town as town_sap,c.street,b1.street as street_sap,c.type_street,
                 c.house,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
-                const.region,d.kod_reg from clm_paccnt_tbl a
+                const.region,d.kod_reg
+                 from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
         left join vw_address c on
         a.id=c.id
+        left join addr_sap b1 on
+         lower(c.street)=lower(b1.short_street) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
+         and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
-        group by 2,3,4,5,6,7,8,9,10,11,12
+        group by 2,3,4,5,6,7,8,9,10,11,12,13,14          
         ";
 
         $sql_c = "select * from sap_export where objectsap='CONNOBJ_IND' order by id_object";
@@ -3112,24 +3120,31 @@ public function actionIdfile_seals($res)
                 from
                 --INIT
                 (select 'INIT' as struct,a.id,a.code as vkona,
-                const.vktyp as vktyp,'04_C04В_'||a.id as gpart,const.ver
+                const.vktyp as vktyp,'04_C04B_'||a.id as gpart,const.ver
                 from clm_paccnt_tbl as a
                 left join clm_abon_tbl as b on a.id = b.id
-                inner join sap_const const on 1=1) s1
+                inner join sap_const const on 1=1
+		where a.archive='0'
+                ) s1
                 left join
                 --VKP
                 (select distinct 'VKP' as struct,a.id,'04_C04B_'||a.id as partner,const.opbuk,51 as ikey,
-                const.begru_all as begru,c.adext_addr as adrnb_ext,
+                const.begru_b as begru,c.adext_addr as adrnb_ext,
                 '0010' as ZAHLKOND,'0001' as VERTYP,
-                     '5' as KZABSVER,
+                     '0' as KZABSVER,
                      const.opbuk as stdbk,
                      ''  as ZZ_MINISTRY,
-                     replace((case when (a.dt_b<'2019-01-01' or a.dt_b is null) then '2019-01-01' else a.dt_b end)::varchar ,'-','') as ZZ_START,
-                     '' as ZZ_END,''  as ZZ_BEGIN,q.ZZ_TERRITORY
+                     '99991231' as ZZ_END,''  as ZZ_BEGIN,q.ZZ_TERRITORY,case when x.lic is not null then 'X' end as zz_is_pc,
+                     case when a.id_gtar in(4,6,14) then 'X' end as zz_is_eh,
+                     case when a.green_tarif='t' then 'X' end as zz_is_gf,
+                     const.area_id as zz_area_id,case when y.date_agreem is null then '2018-12-01'::date else y.date_agreem end as zz_start
                 from clm_paccnt_tbl as a
                 left join clm_abon_tbl as b on a.id = b.id
                 inner join sap_const const on 1=1
                 left join sap_but020 c on '04_C04B_'||a.id=c.old_key
+                left join a_cabinet_register_tbl x on trim(x.lic)=trim(a.code)
+                left join (select max(date_agreem) as date_agreem,id_paccnt from clm_agreem_tbl 
+				group by id_paccnt) y on y.id_paccnt=a.id
                 left join
                 (select id,w,case
                 when w like 'м.%' then '1'
@@ -3137,7 +3152,8 @@ public function actionIdfile_seals($res)
                 END as zz_territory
                 from (select id,get_address(addr,3) as w from clm_paccnt_tbl) s) q
                 on q.id=a.id) s2
-                on s1.id=s2.id";
+                on s1.id=s2.id
+";
 
             // Запрос для получения списка необходимых
             // для экспорта структур
@@ -3150,8 +3166,10 @@ public function actionIdfile_seals($res)
             // Удаляем данные в таблицах
             $zsql = 'delete from sap_init_acc';
             $zsql1 = 'delete from sap_vkp';
+            $zsql2 = 'delete from sap_vk';
             exec_on_server($zsql,$res,$vid);
             exec_on_server($zsql1,$res,$vid);
+            exec_on_server($zsql2,$res,$vid);
 
             // Заполняем структуры
             foreach ($data as $w) {
@@ -3171,6 +3189,7 @@ public function actionIdfile_seals($res)
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_init_acc";
         $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+
         foreach ($struct_data as $d) {
             $old_key=trim($d['oldkey']);
             $d = array_map('trim', $d);
@@ -3640,8 +3659,8 @@ public function actionIdfile_seals($res)
 
         $baujj=random_int(1979, 2006);
 
-        $sql = "select distinct a.id,'4000' as eqart,'$baujj' as baujj,'$datab' as datab,
-                'CCNN232820' as kostl,a.num_meter as sernr,'CK_RANDOM' as zz_pernr,
+        $sql = "select distinct w1.mmgg_current,(w1.mmgg_current- interval '4 month')::date as datab,a.id,'4001' as eqart,'$baujj' as baujj,
+                const.kostl as kostl,a.num_meter as sernr,'CK_RANDOM' as zz_pernr,
                 replace(a.dt_control::char(10),'-','') as cert_date,b.id as id_meter,
                 date_part('year', a.dt_control) as bgljahr,sd.group_schet as zwgruppe,
                 const.swerk,const.stort,const.ver,const.begru_b as begru,sd.sap_meter_name as matnr
@@ -3651,7 +3670,9 @@ public function actionIdfile_seals($res)
                 1=1
                 left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=a.id_type_meter
                 left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
-                --where s.sap_meter_id<>'' and s.sap_meter_id is not null and sd.sap_meter_id is not null 
+                left join (select (fun_mmgg())::date as mmgg_current) w1 on 1=1
+                left join clm_paccnt_tbl p on p.id=a.id_paccnt
+		        where p.archive='0'
                 order by sd.sap_meter_name
                 ";
 
@@ -3702,40 +3723,49 @@ public function actionIdfile_seals($res)
             // Удаляем данные в таблицах
             $zsql = 'delete from sap_equi';
             $zsql1 = 'delete from sap_egers';
+            $zsql2 = 'delete from sap_egerh';
 
             switch ($res) {
                 case 1:
                     Yii::$app->db_pg_dn_abn->createCommand($zsql)->execute();
                     Yii::$app->db_pg_dn_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_dn_abn->createCommand($zsql2)->execute();
                     break;
 
                 case 2:
                     Yii::$app->db_pg_yv_abn->createCommand($zsql)->execute();
                     Yii::$app->db_pg_yv_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_yv_abn->createCommand($zsql2)->execute();
                     break;
                 case 3:
                     Yii::$app->db_pg_vg_abn->createCommand($zsql)->execute();
                     Yii::$app->db_pg_vg_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_vg_abn->createCommand($zsql2)->execute();
                     break;
                 case 4:
                     Yii::$app->db_pg_pv_abn->createCommand($zsql)->execute();
                     Yii::$app->db_pg_pv_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_pv_abn->createCommand($zsql2)->execute();
                     break;
                 case 5:
                     Yii::$app->db_pg_krr_abn->createCommand($zsql)->execute();
                     Yii::$app->db_pg_krr_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_krr_abn->createCommand($zsql2)->execute();
                     break;
                 case 6:
-                    Yii::$app->db_pg_ap_abn_test->createCommand($zsql)->execute();
-                    Yii::$app->db_pg_ap_abn_test->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_ap_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_ap_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_ap_abn->createCommand($zsql2)->execute();
                     break;
                 case 7:
                     Yii::$app->db_pg_gv_abn->createCommand($zsql)->execute();
                     Yii::$app->db_pg_gv_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_gv_abn->createCommand($zsql2)->execute();
                     break;
                 case 8:
                     Yii::$app->db_pg_in_abn->createCommand($zsql)->execute();
                     Yii::$app->db_pg_in_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_in_abn->createCommand($zsql2)->execute();
                     break;
             }
 

@@ -1172,6 +1172,8 @@ function f_partner($n_struct, $rem, $v) {
    $chind_tel=$v['chind_tel'];
    $chind_smtp=$v['chind_smtp'];
    $tel_number=normal_tel($v['tel_number']);
+    if (!empty($tel_number)) $chind_tel="I"; else $chind_tel='~';
+
    if(empty($tel_mobile))
         $tel_mobile=define_type_tel(substr($v['tel_number'],0,3));
    $idnumber=$v['idnumber'];
@@ -1179,14 +1181,17 @@ function f_partner($n_struct, $rem, $v) {
 
    // ------------------------
 
-    $town=trim($v['town']);
-    $post_code1=trim($v['post_index']);
-    $street = trim($v['street']);
+    $town=trim($v['town_sap']);
+    $post_code1=trim($v['post_index_sap']);
+    $street = trim($v['street_sap']);
     $house_num1 =trim($v['house']);
     $house_num2=trim($v['flat']);
+    $house_num1=str_replace(' ','',$house_num1);
+    $house_num2=str_replace(' ','',$house_num2);
     $region='~';
 
     $smtp_addr=$v['e_mail'];
+    if (!empty($smtp_addr)) $chind_smtp="I"; else $chind_smtp='~';
     $iuru_pro='~';
 
     $oldkey = $oldkey_const . $r;
@@ -1370,16 +1375,22 @@ function f_account_ind($n_struct, $rem, $v,$vid) {
     $vkona = $v['vkona'];
     $partner=$v['partner'];
     $opbuk=$v['opbuk'];
-    $ikey = $v['ikey'];
+//    $ikey = $v['ikey'];
+    $ikey = '~';
     $begru = $v['begru'];
     $adrnb_ext = $v['adrnb_ext'];
     $zahlkond = $v['zahlkond'];
     $kzabsver = $v['kzabsver'];
     $stdbk = $v['stdbk'];
     $zz_start=$v['zz_start'];
+    $zz_start= str_replace('-','',$zz_start);
     $zz_end=$v['zz_end'];
     $zz_begin=$v['zz_begin'];
     $zz_territory=$v['zz_territory'];
+    $zz_is_pc=$v['zz_is_pc'];
+    $zz_is_eh=$v['zz_is_eh'];
+    $zz_is_gf=$v['zz_is_gf'];
+    $zz_area_id=$v['zz_area_id'];
     $oldkey = $oldkey_const . $r;
     $kofiz_sd=$r;
 
@@ -1389,14 +1400,16 @@ function f_account_ind($n_struct, $rem, $v,$vid) {
                     values('$oldkey','$n_struct','$gpart','$vktyp','$vkona')";
 
     if($n_struct=='VK')
-        $z = "insert into sap_vk(oldkey,znodev)
-                    values('$oldkey','~')";
+        $z = "insert into sap_vk(oldkey,dat_type,znodev)
+                    values('$oldkey','$n_struct','~')";
 
     if($n_struct=='VKP')
         $z = "insert into sap_vkp(oldkey,dat_type,partner,opbuk,ikey,begru,adrnb_ext,
-                                  zahlkond,kofiz_sd,kzabsver,stdbk,zz_start,zz_end,zz_begin,zz_territory)
-                    values('$oldkey','$n_struct','$partner','$opbuk',$$$ikey$$,'$begru','$adrnb_ext','$zahlkond','$kofiz_sd',
-                           '$kzabsver','$stdbk','$zz_start','$zz_end','$zz_begin','$zz_territory')";
+                                  zahlkond,kzabsver,stdbk,zz_start,zz_end,zz_begin,zz_territory,
+                                  zz_is_pc,zz_is_fc,zz_is_eh,zz_is_gf,zz_area_id)
+                    values('$oldkey','$n_struct','$partner','$opbuk','$ikey','$begru','$adrnb_ext','$zahlkond',
+                           '$kzabsver','$stdbk','$zz_start','$zz_end','$zz_begin','$zz_territory',
+                           '$zz_is_pc','~','$zz_is_eh','$zz_is_gf','$zz_area_id')";
 
     exec_on_server($z,(int) $rem,$vid);
 }
@@ -1431,25 +1444,30 @@ function f_connobj_ind($n_struct,$rem,$v) {
     $r = hash('crc32', $v['kod_reg'].'~'.$v['town'].'~'.$v['type_street'].'~'.
         $v['street'].'~'.$v['house']);
 
-    $town=$v['town'];
+    $town=$v['town_sap'];
     $id=$v['id'];
-    $street = $v['street'];
-    $house_num1 =$v['house'];
+    $street = $v['street_sap'];
+    $house_num1 =mb_strtoupper(trim($v['house']),'UTF-8');
+    $house_num1 = str_replace(' ','',$house_num1);
     $region=$v['region'];
     $iuru_pro=$v['kod_reg'];
 
     $begru=$v['begru'];
-//    $swerk=$v['swerk'];
-    $swerk='C01M';  // ??? Быстрая правка
+    $swerk=$v['swerk'];
     $stort=$v['stort'];
     $type_street=$v['type_street'];
 
     $oldkey = $oldkey_const . strtoupper($r);
 
-    $sql="select c.indx
+    $sql="select b2.post_index
         from clm_paccnt_tbl a
         left join vw_address c on
-        a.id=c.id where a.id=$id";
+        a.id=c.id 
+       left join addr_sap b1 on
+         lower(c.street)=lower(b1.short_street) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
+         and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
+         left join post_index_sap b2 on b1.numtown=b2.numtown and b2.post_index=c.indx --and c.indx is not null
+        where a.id=$id and b2.post_index is not null ";
 
     // Получаем необходимые данные
     switch ($rem) {
@@ -1480,8 +1498,10 @@ function f_connobj_ind($n_struct,$rem,$v) {
             break;
     }
 
-
-    $post_code1=$data1[0]['indx'];
+if(isset($data1[0]['post_index']))
+    $post_code1=$data1[0]['post_index'];
+else
+    $post_code1='';
 
     if($n_struct=='CO_EHA') {
         $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
@@ -1665,8 +1685,7 @@ function f_device_ind($n_struct,$rem,$v) {
     $cert_date=$v['cert_date'];
     $bgljahr=$v['bgljahr'];
     $begru=$v['begru'];
-//    $swerk=$v['swerk'];
-    $swerk='C01M';
+    $swerk=$v['swerk'];
     $stort=$v['stort'];
     $zwgruppe=$v['zwgruppe'];
 
