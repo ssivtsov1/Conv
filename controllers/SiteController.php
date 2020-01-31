@@ -1631,7 +1631,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select distinct a.plomb_num as scode,coalesce(b.id_sap,'8') as place,coalesce(sp.short_name,'СЕЙФ-ПАКЕТ') as scat,a.id_type,a.dt_on,a.id,
-                'I' as status,'3' as color,'Іванов І.І.' as utmas,'Романов Р.Р.' as reper,
+                'I' as status,'3' as color,'C010099' as utmas,'C010099' as reper,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as DPURCH,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as dissue,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as dinst,
@@ -3660,9 +3660,9 @@ public function actionIdfile_seals($res)
         $baujj=random_int(1979, 2006);
 
         $sql = "select distinct w1.mmgg_current,(w1.mmgg_current- interval '4 month')::date as datab,a.id,'4001' as eqart,'$baujj' as baujj,
-                const.kostl as kostl,a.num_meter as sernr,'CK_RANDOM' as zz_pernr,
+                const.kostl as kostl,a.num_meter as sernr,'00000334' as zz_pernr,
                 replace(a.dt_control::char(10),'-','') as cert_date,b.id as id_meter,
-                date_part('year', a.dt_control) as bgljahr,sd.group_schet as zwgruppe,
+                date_part('year', a.dt_control) as bgljahr,get_gen_cq(a.id_paccnt,a.carry) as zwgruppe,
                 const.swerk,const.stort,const.ver,const.begru_b as begru,sd.sap_meter_name as matnr
                 from clm_meterpoint_tbl a
                 left join (select distinct id from eqi_meter_tbl) b on a.id_type_meter=b.id

@@ -1032,7 +1032,7 @@ function f_partner_ind($n_struct,$rem,$v) {
             $namemiddle=$matches[0][0];
 
         $town=$v['town'];
-        $post_code1=$v['indx'];
+        $post_code1=$v['post_index'];
         $street = $v['street'];
         $house_num1 =$v['house'];
         $house_num1 =str_replace(' ','',$house_num1);
@@ -1695,7 +1695,7 @@ function f_device_ind($n_struct,$rem,$v) {
         $z = "insert into sap_equi(oldkey,dat_type,begru,eqart,baujj,datab,swerk,stort,kostl,bukrs,
                                     matnr,sernr,zz_pernr,cert_date)
                     values('$oldkey','$n_struct','$begru','$eqart','$baujj','$datab','$swerk','$stort',
-                            '$kostl','$bukrs','$matnr','$sernr','$zz_pernr','$cert_date')";
+                            '$kostl','$bukrs','$matnr','$sernr','~','$cert_date')";
     if($n_struct=='EGERS')
         $z = "insert into sap_egers(oldkey,dat_type,bgljahr)
                     values('$oldkey','$n_struct','$bgljahr')";
