@@ -1097,7 +1097,9 @@ function f_partner_ind($n_struct,$rem,$v) {
         $z = "insert into sap_but0id(old_key,dat_type4,idnumber,id_type)
                     values('$oldkey','$n_struct','$tax_number','$id_type')";
         else
-            return;
+            $z = "insert into sap_but0id(old_key,dat_type4,idnumber,id_type)
+                    values('$oldkey','$n_struct','~','~')";
+
 
      //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
     switch ((int) $rem) {
@@ -1676,7 +1678,7 @@ function f_device_ind($n_struct,$rem,$v) {
     $r = $v['id'];
     $eqart=$v['eqart'];
     $baujj=$v['baujj'];
-    $datab = $v['datab'];
+    $datab = str_replace('-','',$v['datab']);
     $kostl =$v['kostl'];
     $bukrs='CK01';
     $matnr=$v['matnr'];
@@ -1695,7 +1697,7 @@ function f_device_ind($n_struct,$rem,$v) {
         $z = "insert into sap_equi(oldkey,dat_type,begru,eqart,baujj,datab,swerk,stort,kostl,bukrs,
                                     matnr,sernr,zz_pernr,cert_date)
                     values('$oldkey','$n_struct','$begru','$eqart','$baujj','$datab','$swerk','$stort',
-                            '$kostl','$bukrs','$matnr','$sernr','~','$cert_date')";
+                            '$kostl','$bukrs','$matnr','$sernr','$zz_pernr','$cert_date')";
     if($n_struct=='EGERS')
         $z = "insert into sap_egers(oldkey,dat_type,bgljahr)
                     values('$oldkey','$n_struct','$bgljahr')";
@@ -1930,9 +1932,10 @@ $zz_eic = $v['eic'];
 $oldkey = $oldkey_const . $v['id'];;
 
 if ($n_struct == 'DATA')
-    $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,aklasse,ableinh,begru,zz_eic) 
-     values($$$oldkey$$,'$n_struct',$$$sparte$$,$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
-     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp',$$$aklasse$$,'$ableinh','$begru',$$$zz_eic$$)";
+    $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
+            ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
+     values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
+     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','70',$$$aklasse$$,'$ableinh','~','~','~','$begru',$$$zz_eic$$)";
 
     exec_on_server($z, (int)$rem, $vid);
 }
@@ -2258,7 +2261,9 @@ function f_facts_ind($rem,$v) {
     $plita = $v['plita'];
     $opal = $v['opal'];
     $datab = $v['mmgg'];
+    $datab = str_replace('-','',$datab);
     $datae1 = $v['mmgg_end'];
+    $datae1 = str_replace('-','',$datae1);
     $oldkey = $oldkey_const . $v['id'];
     $facts=[];
 
@@ -2299,6 +2304,150 @@ function f_facts_ind($rem,$v) {
     }
     $facts['data20'] =  $oldkey.';'.'&ENDE'.';'.' '.';'.' '.';'.' ';
     return $facts;
+}
+
+// Выгрузка inst_mgmt (заполнение структуры  di_int) быт.
+function f_inst_mgmt1_ind($rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey = $oldkey_const . $v['id'];
+    $di_int=[];
+    $di_int[0]=$oldkey;
+    $di_int[1]='DI_INT';
+    $di_int[2]=$v['devloc'];
+    $di_int[3]=$v['anlage'];
+    $di_int[4]=str_replace('-','',$v['eadat']);
+    $di_int[5]=$v['action'];
+    return $di_int;
+}
+
+// Выгрузка inst_mgmt (заполнение структуры  di_zw) быт.
+function f_inst_mgmt2_ind($rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey = $oldkey_const . $v['id'];
+    $zone=$v['zone'];
+    $di_zw=[];
+
+    if($zone==0){
+        $di_zw[0][0]=$oldkey;
+        $di_zw[0][1]='DI_ZW';
+        $di_zw[0][2]='001';
+        $di_zw[0][3]='0001';
+        $di_zw[0][4]=(int) $v['value_0'];
+        $di_zw[0][5]='~';
+        $di_zw[0][6]='А_13';
+        $di_zw[0][7]=$v['demand_0'];
+        $di_zw[0][8]=$v['equnre'];
+        $di_zw[0][9]='30';
+        $di_zw[0][10]='0001';
+
+        $di_zw[1][0]=$oldkey;
+        $di_zw[1][1]='DI_GER';
+        $di_zw[1][2]=$v['equnre'];
+
+        $di_zw[2][0]=$oldkey;
+        $di_zw[2][1]='&ENDE';
+    }
+    if($zone==9){
+        $di_zw[0][0]=$oldkey;
+        $di_zw[0][1]='DI_ZW';
+        $di_zw[0][2]='001';
+        $di_zw[0][3]='0001';
+        $di_zw[0][4]=(int) $v['value_10'];
+        $di_zw[0][5]='~';
+        $di_zw[0][6]='А_23Д';
+        $di_zw[0][7]=$v['demand_10'];
+        $di_zw[0][8]=$v['equnre'];
+        $di_zw[0][9]='30';
+        $di_zw[0][10]='0001';
+
+        $di_zw[1][0]=$oldkey;
+        $di_zw[1][1]='DI_ZW';
+        $di_zw[1][2]='002';
+        $di_zw[1][3]='0001';
+        $di_zw[1][4]=(int)  $v['value_9'];
+        $di_zw[1][5]='~';
+        $di_zw[1][6]='А_23Н';
+        $di_zw[1][7]=$v['demand_9'];
+        $di_zw[1][8]=$v['equnre'];
+        $di_zw[1][9]='30';
+        $di_zw[1][10]='0001';
+
+        $di_zw[2][0]=$oldkey;
+        $di_zw[2][1]='DI_ZW';
+        $di_zw[2][2]='003';
+        $di_zw[2][3]='~';
+        $di_zw[2][4]=(int)  $v['value_all'];
+        $di_zw[2][5]='X';
+        $di_zw[2][6]='~';
+        $di_zw[2][7]='~';
+        $di_zw[2][8]=$v['equnre'];
+        $di_zw[2][9]='30';
+        $di_zw[2][10]='0001';
+
+        $di_zw[3][0]=$oldkey;
+        $di_zw[3][1]='DI_GER';
+        $di_zw[3][2]=$v['equnre'];
+
+        $di_zw[4][0]=$oldkey;
+        $di_zw[4][1]='&ENDE';
+    }
+    if($zone==6){
+        $di_zw[0][0]=$oldkey;
+        $di_zw[0][1]='DI_ZW';
+        $di_zw[0][2]='001';
+        $di_zw[0][3]='0001';
+        $di_zw[0][4]=(int)  $v['value_8'];
+        $di_zw[0][5]='~';
+        $di_zw[0][6]='А_33П';
+        $di_zw[0][7]=$v['demand_8'];
+        $di_zw[0][8]=$v['equnre'];
+        $di_zw[0][9]='30';
+        $di_zw[0][10]='0001';
+
+        $di_zw[1][0]=$oldkey;
+        $di_zw[1][1]='DI_ZW';
+        $di_zw[1][2]='002';
+        $di_zw[1][3]='0001';
+        $di_zw[1][4]=(int)  $v['value_7'];
+        $di_zw[1][5]='~';
+        $di_zw[1][6]='А_33НП';
+        $di_zw[1][7]=$v['demand_7'];
+        $di_zw[1][8]=$v['equnre'];
+        $di_zw[1][9]='30';
+        $di_zw[1][10]='0001';
+
+        $di_zw[2][0]=$oldkey;
+        $di_zw[2][1]='DI_ZW';
+        $di_zw[2][2]='003';
+        $di_zw[2][3]='0001';
+        $di_zw[2][4]=(int)  $v['value_6'];
+        $di_zw[2][5]='~';
+        $di_zw[2][6]='А_33Н';
+        $di_zw[2][7]=$v['demand_6'];
+        $di_zw[2][8]=$v['equnre'];
+        $di_zw[2][9]='30';
+        $di_zw[2][10]='0001';
+
+        $di_zw[3][0]=$oldkey;
+        $di_zw[3][1]='DI_ZW';
+        $di_zw[3][2]='004';
+        $di_zw[3][3]='~';
+        $di_zw[3][4]=(int)  $v['value_all'];
+        $di_zw[3][5]='X';
+        $di_zw[3][6]='~';
+        $di_zw[3][7]='~';
+        $di_zw[3][8]=$v['equnre'];
+        $di_zw[3][9]='30';
+        $di_zw[3][10]='0001';
+
+        $di_zw[4][0]=$oldkey;
+        $di_zw[4][1]='DI_GER';
+        $di_zw[4][2]=$v['equnre'];
+
+        $di_zw[5][0]=$oldkey;
+        $di_zw[5][1]='&ENDE';
+    }
+    return $di_zw;
 }
 
 // Выгрузка instln юридические потребители
@@ -2740,7 +2889,7 @@ function array_part($data,$data_p){
         foreach ($data_p as $v) {
 //            if (substr($v,0,8)=='data_type')
 //                $v='data_type';
-            if($k==$v)
+            if(trim(strtoupper($k))==trim(strtoupper($v)))
                 $result[$k] = trim($d);
         }
     }
@@ -2783,6 +2932,10 @@ function date2file_Partner_ind($res,$vid)
             // Извлекаем список полей в структуре
             $data_p = extract_fields(${"struct" . $j});
             $d1 = array_part($d, $data_p);
+
+            if($j==5 && ($d1['idnumber']=="~" || empty($d1['idnumber'])))
+               continue;   // Не пишем структуру but0id если она пустая
+
             $s1 = implode("\t", $d1);
             $s1 = str_replace("~", "", $s1);
             $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
@@ -2793,6 +2946,7 @@ function date2file_Partner_ind($res,$vid)
         fputs($f, "\n");
     }
     fclose($f);
+    return $fname;
 }
 
 ?>

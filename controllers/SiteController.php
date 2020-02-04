@@ -812,6 +812,9 @@ WHERE year_p=0 and year_q>0';
                 case 19:
                     return $this->redirect(['sap_facts_ind', 'res' => $model->rem]);
                     break;
+                case 20:
+                    return $this->redirect(['sap_inst_mgmt_ind', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -1423,7 +1426,7 @@ b.phone,b.e_mail
             }
 //        } // endif 3==4
         // Формируем имя файла и создаем файл
-        date2file_Partner_ind($res,$vid);  // Быстрая функция для записи в файл
+        $fname = date2file_Partner_ind($res,$vid);  // Быстрая функция для записи в файл
 
         if(1==2) {  // Так работала программа раньше - было существенно медленее
             $fd = date('Ymd');
@@ -1437,6 +1440,7 @@ b.phone,b.e_mail
                 $old_key = trim($d['old_key']);
                 $d = array_map('trim', $d);
                 $s = implode("\t", $d);
+
                 $s = str_replace("~", "", $s);
                 $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
                 fputs($f, $s);
@@ -1467,13 +1471,17 @@ b.phone,b.e_mail
 
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл PARTNER_IND сформовано.";
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+
+//        return $this->render('info', [
+//            'model' => $model]);
     }
 // Тестовая функция для записи в файл
     public function actionTest_recfile()
@@ -2413,7 +2421,7 @@ inner join sap_const const on 1=1";
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select id,power,plita,opal,mmgg,mmgg_end,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
+        $sql = "select id,power,plita,opal,mmgg::date,mmgg_end::date,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
 sum(dem_10) as dem_10,sum(dem_6) as dem_6,sum(dem_7) as dem_7,sum(dem_8) as dem_8 from
 (select q.* from (
 select a.id_paccnt as id,b.dt_b,case when a.id_zone=0 then demand end as dem_0,
@@ -2482,10 +2490,141 @@ group by id,power,plita,opal,mmgg,mmgg_end,ver
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+
+//        return $this->render('info', [
+//            'model' => $model]);
     }
 
+    // Формирование файла inst_mgmt для САП для бытовых потребителей
+    public function actionSap_inst_mgmt_ind($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
+        $sql = "select id,sum(value_0) as value_0,
+sum(value_9) as value_9,sum(value_10) as value_10,
+sum(value_6) as value_6,sum(value_7) as value_7,sum(value_8) as value_8,
+sum(value_0+value_9+value_10+value_6+value_7+value_8) as value_all,
+dat_ind,devloc,anlage,equnre,action,
+sum(demand_0) as demand_0,
+sum(demand_9) as demand_9,
+sum(demand_10) as demand_10,
+sum(demand_6) as demand_6,
+sum(demand_7) as demand_7,
+sum(demand_8) as demand_8,
+eadat,ver,zone from
+(select distinct a.id_paccnt as id,
+case when a.id_zone=0 then a.value else 0.0000 end as value_0,
+case when a.id_zone=9 then a.value else 0.0000 end as value_9,
+case when a.id_zone=10 then a.value else 0.0000 end as value_10,
+case when a.id_zone=6 then a.value else 0.0000 end as value_6,
+case when a.id_zone=7 then a.value else 0.0000 end as value_7,
+case when a.id_zone=8 then a.value else 0.0000 end as value_8,
+a.dat_ind,
+'04_C04B_'||a.id_paccnt as devloc,'04_C04B_01_'||a.id_paccnt as anlage,'04_C04B_'||m.id as equnre,
+'01' as action,
+ case when a.id_zone=0 then p.demand else 0 end demand_0,
+ case when a.id_zone=9 then p.demand else 0 end demand_9,
+  case when a.id_zone=10 then p.demand else 0 end demand_10,
+  case when a.id_zone=6 then p.demand else 0 end demand_6,
+  case when a.id_zone=7 then p.demand else 0 end demand_7,
+  case when a.id_zone=8 then p.demand else 0 end demand_8,
+ (w1.mmgg_current + interval '1 month')::date as  eadat,const.ver,
+ case when a.id_zone=0 then 0 
+ when a.id_zone in(9,10) then 9
+ when a.id_zone in(6,7,8) then 6
+ end as zone
+ from acm_indication_tbl a 
+inner join
+(select max(dat_ind) as dat_ind,id_paccnt,id_zone,id_typemet from acm_indication_tbl group by id_paccnt,id_zone,id_typemet) b on
+a.id_paccnt=b.id_paccnt and a.id_zone=b.id_zone and a.dat_ind=b.dat_ind
+inner join (select  b.id_zone,a.id_paccnt,a.id_type_meter from clm_meterpoint_tbl a
+left join clm_meter_zone_h b on a.id=b.id_meter) d  on d.id_paccnt=b.id_paccnt and d.id_type_meter=b.id_typemet and d.id_zone=b.id_zone
+inner join clm_paccnt_tbl c on a.id_paccnt=c.id and c.archive='0'
+--left join sap_egpld devloc on devloc.oldkey='04_C04B_'||a.id_paccnt
+left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1
+on 1=1
+left join clm_meterpoint_tbl m on m.id_paccnt=a.id_paccnt 
+left join clm_plandemand_tbl p on p.id_paccnt=a.id_paccnt and p.id_zone=a.id_zone and p.mmgg=w1.mmgg_current 
+inner join sap_const const on 1=1
+where a.id_operation<>5 order by 1) t
+group by 1,9,10,11,12,13,20,21,22
+order by 1
+";
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        // Заполняем массивы структур: $di_int и $di_zw
+        $i=0;
+        foreach ($data as $w) {
+            $di_int[$i]=f_inst_mgmt1_ind($rem,$w);
+            $di_zw[$i]=f_inst_mgmt2_ind($rem,$w);
+            $i++;
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с массивов $di_int и $di_zw
+        $i=0;
+        foreach ($di_int as $d) {
+            $d1 = array_map('trim', $d);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            foreach ($di_zw[$i] as $v) {
+                $d1 = array_map('trim', $v);
+                $s = implode("\t", $d1);
+                $s = str_replace("~", "", $s);
+                $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+                fputs($f, $s);
+                fputs($f, "\n");
+            }
+            $i++;
+        }
+        fclose($f);
+
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//        return $this->render('info', [
+//            'model' => $model]);
+    }
 
     // Формирование файла пломб(seal) для САП для юр. потребителей
     public function actionSap_seals($res)
@@ -3229,8 +3368,11 @@ public function actionIdfile_seals($res)
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+//        return $this->render('info', [
+//            'model' => $model]);
     }
     
     //формирование файла идентификации
@@ -3511,7 +3653,8 @@ public function actionIdfile_seals($res)
                   const.stort,const.begru_b as begru,const.ver
                 from clm_paccnt_tbl as a
                 left join sap_evbsd b on b.oldkey='04_C04B_'||a.id
-                inner join sap_const const on 1=1";
+                inner join sap_const const on 1=1
+                where a.archive='0' ";
 
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
@@ -3574,16 +3717,21 @@ public function actionIdfile_seals($res)
         }
 
         fclose($f);
-        // Выдаем предупреждение на экран об окончании формирования файла
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+        else {
+            // Выдаем предупреждение на экран об окончании формирования файла
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Erorr.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
+            return $this->render('info', [
+                'model' => $model]);
+        }
     }
     
     //формирование файла идентификации
@@ -3886,15 +4034,36 @@ public function actionIdfile_seals($res)
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
         fclose($f);
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+        else {
+            // Выдаем предупреждение на экран об окончании формирования файла
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Erorr.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
+            return $this->render('info', [
+                'model' => $model]);
+        }
+
+
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
+
+//        return $this->render('info', [
+//            'model' => $model]);
     }
 
         //формирование файла идентификации
@@ -4604,7 +4773,6 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
-
         $sql = "select a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
                 b.name,b.patron_name,c.town,c.indx,c.street,
                 c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
@@ -4615,11 +4783,13 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         left join vw_address c on
         a.id=c.id
         left join sap_co_adr dd on
-        dd.city1=c.town and dd.street=c.street and dd.house_num1=c.house and dd.cek_type_street=c.type_street
+        dd.city1=c.type_city||' '||c.town and dd.street=c.type_street||' '||c.street and dd.house_num1=c.house -- and dd.cek_type_street=c.type_street
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
-        trim(c.district)=d.region";
+        trim(c.district)=d.region
+        where a.archive='0'
+        ";
 
         $sql_c = "select * from sap_export where objectsap='PREMISE_IND' order by id_object";
         $zsql = 'delete from sap_evbsd';
@@ -4783,20 +4953,23 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             fputs($f, $old_key . "\t&ENDE");
             fputs($f, "\n");
         }
-
+        fclose($f);
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
 
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
-        fclose($f);
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//
+//        return $this->render('info', [
+//            'model' => $model]);
     }
     
     //формирование файлов идентификации в САП абонентов АБН структруры "премайс"
