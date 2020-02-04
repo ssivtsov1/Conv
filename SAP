@@ -19,3 +19,18 @@ dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is
 	group by dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg,dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,
 	dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b,  bs.id_zone	
 	) as p 
+
+-- Монтажи
+
+select id_paccnt,count(*) as kol from
+(select distinct a.id_paccnt,a.id_zone,a.value,a.dat_ind from acm_indication_tbl a 
+inner join
+(select max(dat_ind) as dat_ind,id_paccnt,id_zone,id_typemet from acm_indication_tbl group by id_paccnt,id_zone,id_typemet) b on
+a.id_paccnt=b.id_paccnt and a.id_zone=b.id_zone and a.dat_ind=b.dat_ind
+inner join (select  b.id_zone,a.id_paccnt,a.id_type_meter from clm_meterpoint_tbl a
+left join clm_meter_zone_h b on a.id=b.id_meter) d  on d.id_paccnt=b.id_paccnt and d.id_type_meter=b.id_typemet and d.id_zone=b.id_zone
+inner join clm_paccnt_tbl c on a.id_paccnt=c.id and c.archive='0'
+where a.id_operation<>5 --and a.id_paccnt=400003193 
+) m
+group by id_paccnt
+having count(*)>3
