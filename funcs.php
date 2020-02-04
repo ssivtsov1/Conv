@@ -1383,7 +1383,6 @@ function f_account_ind($n_struct, $rem, $v,$vid) {
     $kzabsver = $v['kzabsver'];
     $stdbk = $v['stdbk'];
     $zz_start=$v['zz_start'];
-    $zz_start= str_replace('-','',$zz_start);
     $zz_end=$v['zz_end'];
     $zz_begin=$v['zz_begin'];
     $zz_territory=$v['zz_territory'];
@@ -1677,6 +1676,7 @@ function f_device_ind($n_struct,$rem,$v) {
     $eqart=$v['eqart'];
     $baujj=$v['baujj'];
     $datab = $v['datab'];
+    $datab = str_replace('-','',$datab);
     $kostl =$v['kostl'];
     $bukrs='CK01';
     $matnr=$v['matnr'];
