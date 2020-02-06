@@ -815,6 +815,9 @@ WHERE year_p=0 and year_q>0';
                 case 20:
                     return $this->redirect(['sap_inst_mgmt_ind', 'res' => $model->rem]);
                     break;
+                case 21:
+                    return $this->redirect(['sap_move_in_ind', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -2608,6 +2611,92 @@ order by 1
                 fputs($f, "\n");
             }
             $i++;
+        }
+        fclose($f);
+
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//        return $this->render('info', [
+//            'model' => $model]);
+    }
+
+    // Формирование файла imove_in для САП для бытовых потребителей
+    public function actionSap_move_in_ind($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
+        $sql = "select a.id,b.num_agreem as vrefer,'01' as kofiz,1 as gemfakt,const.begru as bukrs,const.begru_b as begru,const.ver,
+instln.oldkey as anlage,account.oldkey as vkonto,replace(w1.mmgg_current::char(10),'-','') as einzdat,
+'99991231' as auszdat,replace(w1.mmgg_current::char(10),'-','') as einzdat_alt,const.cokey,partner.old_key as zz_pnt,
+'~' as zz_nodev,'99991231' as zz_own,1 as zz_point_num,1 as zz_plosch_num,1 as zz_object_num,1 as zz_pl_obj_num,
+'~' as zz_paym_dc,'02' as zz_distrib_type
+from clm_paccnt_tbl a
+left join (select max(date_agreem) as date_agreem,num_agreem,id_paccnt from clm_agreem_tbl group by id_paccnt,num_agreem) b
+on a.id=b.id_paccnt
+inner join sap_const const on 1=1
+left join sap_data instln on substr(instln.oldkey,12)::int=a.id
+left join sap_init_acc account on substr(account.oldkey,9)::int=a.id
+left join sap_init partner on substr(partner.old_key,9)::int=a.id
+left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1 on 1=1
+where a.archive='0'
+";
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        // Заполняем массивы структур: $di_int и $di_zw
+        $i=0;
+        foreach ($data as $w) {
+            $ever[$i]=f_move_in_ind($rem,$w);
+            $i++;
+        }
+
+//        debug($ever);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с массивов $di_int и $di_zw
+        $i=0;
+        foreach ($ever as $d) {
+            $d1 = array_map('trim', $d);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
         }
         fclose($f);
 

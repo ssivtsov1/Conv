@@ -2306,6 +2306,35 @@ function f_facts_ind($rem,$v) {
     return $facts;
 }
 
+// Выгрузка move_in (заполнение структуры  ever) быт.
+function f_move_in_ind($rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey = $oldkey_const . $v['id'];
+    $ever=[];
+    $ever[0]=$oldkey;
+    $ever[1]='EVER';
+    $ever[2]=$v['bukrs'];
+    $ever[3]=$v['kofiz'];
+    $ever[4]=$v['vrefer'];
+    $ever[5]=$v['begru'];
+    $ever[6]=$v['anlage'];
+    $ever[7]=$v['vkonto'];
+    $ever[8]=$v['einzdat'];
+    $ever[9]=$v['auszdat'];
+    $ever[10]=$v['einzdat_alt'];
+    $ever[11]=$v['cokey'];
+    $ever[12]=$v['zz_pnt'];
+    $ever[13]=$v['zz_nodev'];
+    $ever[14]=$v['zz_own'];
+    $ever[15]=$v['zz_point_num'];
+    $ever[16]=$v['zz_plosch_num'];
+    $ever[17]=$v['zz_object_num'];
+    $ever[18]=$v['zz_pl_obj_num'];
+    $ever[19]=$v['zz_paym_dc'];
+    $ever[20]=$v['zz_distrib_type'];
+    return $ever;
+}
+
 // Выгрузка inst_mgmt (заполнение структуры  di_int) быт.
 function f_inst_mgmt1_ind($rem,$v) {
     $oldkey_const='04_C'.$rem.'B_';
