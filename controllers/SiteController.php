@@ -1863,8 +1863,8 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select a.id,'10' as sparte,'02' as spebene,0002 as anlart,'0001' as ablesartst,
-                '' as zz_nametu,'' as zz_fider,'20200501' as ab,'sprav_ealn_ttyp' as tariftyp,
+        $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
+                '' as zz_nametu,'' as zz_fider,'20200101' as ab,'sprav_ealn_ttyp' as tariftyp,
                 '0001' as aklasse,'sprav_te422' as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle
                 from clm_paccnt_tbl a 
                 inner join sap_const b on 1=1
