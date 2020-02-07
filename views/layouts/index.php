@@ -71,7 +71,7 @@ AppAsset::register($this);
                                 ['label' => 'Корректировка стоимости в бюджете', 'url' => ['/site/corr_budget']],
 //                                ['label' => 'Тестирование строки', 'url' => ['/site/strtest']],
 //                                ['label' => 'Импорт телефонов Винницы', 'url' => ['/site/import_tel_vi']],
-                                ['label' => 'Тест', 'url' => ['/site/test']],
+                                ['label' => 'Перенос данных по eerm [для юр. лиц]', 'url' => ['/site/eerm2cnt']],
 //                                ['label' => 'Генерация 32-битного случайного числа', 'url' => ['/site/gen32']],
                                 ['label' => 'Создание поля CHARG (SAP)', 'url' => ['/site/charg']],
                                 ['label' => 'Создание поля CHARG эксплуатация (SAP)', 'url' => ['/site/charg_e']],

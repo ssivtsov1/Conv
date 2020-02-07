@@ -1787,6 +1787,22 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
             fputs($f, $old_key . "\t&ENDE");
             fputs($f, "\n");
         }
+
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+        else {
+            // Выдаем предупреждение на экран об окончании формирования файла
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Erorr.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        }
     }
     
      public function actionIdfile_seals_ind($res)
@@ -2499,7 +2515,8 @@ inner join sap_const const on 1=1";
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select id,power,plita,opal,mmgg::date,mmgg_end::date,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
+        $sql = "select id,power,plita,opal,(mmgg-interval '4 month')::date as mmgg,
+(mmgg_end-interval '4 month')::date as mmgg_end,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
 sum(dem_10) as dem_10,sum(dem_6) as dem_6,sum(dem_7) as dem_7,sum(dem_8) as dem_8 from
 (select q.* from (
 select a.id_paccnt as id,b.dt_b,case when a.id_zone=0 then demand end as dem_0,
@@ -2823,7 +2840,7 @@ order by 1
 instln.oldkey as anlage,account.oldkey as vkonto,replace(w1.mmgg_current::char(10),'-','') as einzdat,
 '99991231' as auszdat,replace(w1.mmgg_current::char(10),'-','') as einzdat_alt,const.cokey,partner.old_key as zz_pnt,
 '~' as zz_nodev,'99991231' as zz_own,1 as zz_point_num,1 as zz_plosch_num,1 as zz_object_num,1 as zz_pl_obj_num,
-'~' as zz_paym_dc,'02' as zz_distrib_type
+'~' as zz_paym_dc,'02' as zz_distrib_type,'~' as vbez
 from clm_paccnt_tbl a
 left join (select max(date_agreem) as date_agreem,num_agreem,id_paccnt from clm_agreem_tbl group by id_paccnt,num_agreem) b
 on a.id=b.id_paccnt
@@ -2841,6 +2858,7 @@ where a.archive='0'
         $i=0;
         foreach ($data as $w) {
             $ever[$i]=f_move_in_ind($rem,$w);
+//            $ever1[$i]=f_move_in_ind1($rem,$w);
             $i++;
         }
 
@@ -2858,12 +2876,17 @@ where a.archive='0'
         $i=0;
         foreach ($ever as $d) {
             $d1 = array_map('trim', $d);
+//            debug($d1);
+//            return;
             $s = implode("\t", $d1);
             $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
+            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, "\n");
         }
+
         fclose($f);
 
         if (file_exists($fname)) {
@@ -8404,6 +8427,33 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                 
         echo "Інформацію записано";
      }
+
+    // Перенос данных по eerm [для юр. лиц]
+    public function actionEerm2cnt()
+    {
+        $sql = "CREATE TABLE public.eerm2cnt
+                (
+                  cnt char(15),
+                  eerm numeric(12,4)
+                )";
+        Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+        $f = fopen('eerm_pv.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            if($i==1) continue;
+            $data = explode("~",$s);
+            if(!isset($data[1])) break;
+            $cnt =  $data[1];
+            $eerm = str_replace(',','.',$data[2]);
+            $v = "$$$cnt$$".",".$eerm;
+            $sql = "INSERT INTO eerm2cnt (cnt,eerm) VALUES(".$v.')';
+            Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+        }
+        fclose($f);
+        echo "Інформацію записано";
+    }
 
     // Транслитерация
     public function actionTranslit()
