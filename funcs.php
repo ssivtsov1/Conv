@@ -1871,7 +1871,7 @@ function f_seal_ind($n_struct,$rem,$v,$vid) {
     $dpurch=$v['dpurch'];
     $reper=$v['reper'];
     $dissue=$v['dissue'];
-    $matnr=$v['matnr'];
+    $matnr=mb_strtoupper($v['matnr'],'UTF-8');
     $sernr=$v['sernr'];
     $place=$v['place'];
     $dinst=$v['dinst'];
