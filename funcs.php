@@ -1681,7 +1681,7 @@ function f_device_ind($n_struct,$rem,$v) {
     $datab = str_replace('-','',$v['datab']);
     $kostl =$v['kostl'];
     $bukrs='CK01';
-    $matnr=$v['matnr'];
+    $matnr=mb_strtoupper($v['matnr'],'UTF-8');
     $sernr=$v['sernr'];
     $zz_pernr=$v['zz_pernr'];
     $cert_date=$v['cert_date'];
@@ -1928,6 +1928,7 @@ $tariftyp = $v['tariftyp'];
 $aklasse = $v['aklasse'];
 $ableinh = $v['ableinh'];
 $begru = $v['begru'];
+$branche = $v['branche'];
 $zz_eic = $v['eic'];
 $oldkey = $oldkey_const . $v['id'];;
 
@@ -1935,7 +1936,7 @@ if ($n_struct == 'DATA')
     $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
             ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
      values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
-     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','70',$$$aklasse$$,'$ableinh','~','~','~','$begru',$$$zz_eic$$)";
+     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh','~','~','~','$begru',$$$zz_eic$$)";
 
     exec_on_server($z, (int)$rem, $vid);
 }

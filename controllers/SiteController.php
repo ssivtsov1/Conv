@@ -1877,10 +1877,12 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         // Главный запрос со всеми необходимыми данными
         $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
                 '' as zz_nametu,'' as zz_fider,'20200101' as ab,'sprav_ealn_ttyp' as tariftyp,
-                '0001' as aklasse,'sprav_te422' as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle
+                '0001' as aklasse,'sprav_te422' as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
+                case when trim(adr.type_city)='м.' then '70' else '71' end as branche
                 from clm_paccnt_tbl a 
                 inner join sap_const b on 1=1
                 left join sap_evbsd c on a.id=substr(c.oldkey,9)::integer
+                left join vw_address adr on a.id=adr.id
                 where a.archive='0'
                 ";
 
