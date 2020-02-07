@@ -874,6 +874,15 @@ public function actionIdfile()
                     break;
                 case 13:
                     return $this->redirect(['idfile_seals2', 'res' => $model->rem]);
+                    break;
+                case 14:
+                    return $this->redirect(['idfile_instln_ind', 'res' => $model->rem]);
+                    break;
+                case 15:
+                    return $this->redirect(['idfile_facts_ind', 'res' => $model->rem]);
+                    break;
+                case 16:
+                    return $this->redirect(['idfile_move_in_ind', 'res' => $model->rem]);
                     break;                
                 }                
         }
@@ -2008,6 +2017,70 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
             'model' => $model]);
     }
 
+    //выгрузка ид фалов сап инстлн , для бытовых потребителей
+        public function actionIdfile_instln_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'INSTLN' as OM,oldkey,v.code,trim((v.last_name||' '||substr(v.name, 1, 1)||'.'||substr(v.patron_name, 1, 1)||'.')) as name_tu,const.ver from sap_data as a
+		left join clm_paccnt_tbl as p
+		on substr(a.oldkey,12)::int=p.id
+                left join vw_address as v
+                on v.id=p.id
+                left join sap_const as const
+                on 1=1";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    } 
+    
+    
     // Формирование файла пломб(seal) для САП для юридических потребителей
     public function actionSap_instln($res)
     {
@@ -2500,6 +2573,97 @@ group by id,power,plita,opal,mmgg,mmgg_end,ver
 //        return $this->render('info', [
 //            'model' => $model]);
     }
+    
+        //выгрузка ид фалов сап факты , для бытовых потребителей
+        public function actionIdfile_facts_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'FACTS' as OM,'04_C'||ext.id_res||'B_01_'||ext.id as oldkey,kk.code,trim((v.last_name||' '||substr(v.name, 1, 1)||'.'||substr(v.patron_name, 1, 1)||'.')) as name_tu,ext.ver from (
+
+                select id,power,plita,opal,mmgg::date,mmgg_end::date,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
+sum(dem_10) as dem_10,sum(dem_6) as dem_6,sum(dem_7) as dem_7,sum(dem_8) as dem_8, s.id_res from
+(select q.* from (
+select a.id_paccnt as id,b.dt_b,case when a.id_zone=0 then demand end as dem_0,
+case when a.id_zone=9 then demand end as dem_9,
+case when a.id_zone=10 then demand end as dem_10,
+case when a.id_zone=6 then demand end as dem_6,
+case when a.id_zone=7 then demand end as dem_7,
+case when a.id_zone=8 then demand end as dem_8,
+a.mmgg,(a.mmgg+interval '1 month'-interval '1 day') as mmgg_end,b.power,
+case when c.id_gtar in(3,5,16) then 1 end as plita,
+case when c.id_gtar in(4,6,14) then 1 end as opal,const.id_res,const.ver
+from clm_meterpoint_tbl b 
+left join clm_plandemand_tbl a on a.id_paccnt=b.id_paccnt
+inner join clm_paccnt_tbl c on c.id=a.id_paccnt and c.archive='0'
+left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1
+on 1=1
+inner join (select id_paccnt,mmgg,id_zone,max(dat_ind) as dat_ind from acm_indication_tbl 
+group by id_paccnt,id_zone,mmgg) j on j.id_paccnt=a.id_paccnt and j.mmgg=w1.mmgg_current and j.id_zone=a.id_zone
+inner join sap_const const on 1=1
+where a.mmgg=w1.mmgg_current 
+order by a.id_paccnt
+) q
+left join 
+(select (fun_mmgg() - interval '1 month')::date as mmgg_current) w
+on 1=1
+where mmgg=mmgg_current) s
+group by id,power,plita,opal,mmgg,mmgg_end,ver,id_res,ver) as ext
+		left join vw_address as v
+                on v.id=ext.id
+                left join clm_paccnt_tbl as kk
+                on kk.id=v.id";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    } 
+    
 
     // Формирование файла inst_mgmt для САП для бытовых потребителей
     public function actionSap_inst_mgmt_ind($res)
@@ -2714,6 +2878,86 @@ where a.archive='0'
 //        return $this->render('info', [
 //            'model' => $model]);
     }
+    
+            //выгрузка ид фалов сап imove_in , для бытовых потребителей
+        public function actionIdfile_move_in_ind($res)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        $method=__FUNCTION__;
+      if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,13));
+        $filename = get_routine1($method);
+
+        $sql = "select 'MOVE_IN_IND' as OM,'04_C'||ext.id_res||'B_01_'||ext.id as oldkey,kk.code,trim((v.last_name||' '||substr(v.name, 1, 1)||'.'||substr(v.patron_name, 1, 1)||'.')) as name_tu,ext.ver from (
+
+select a.id,b.num_agreem as vrefer,'01' as kofiz,1 as gemfakt,const.begru as bukrs,const.begru_b as begru,const.ver,const.id_res,
+instln.oldkey as anlage,account.oldkey as vkonto,replace(w1.mmgg_current::char(10),'-','') as einzdat,
+'99991231' as auszdat,replace(w1.mmgg_current::char(10),'-','') as einzdat_alt,const.cokey,partner.old_key as zz_pnt,
+'~' as zz_nodev,'99991231' as zz_own,1 as zz_point_num,1 as zz_plosch_num,1 as zz_object_num,1 as zz_pl_obj_num,
+'~' as zz_paym_dc,'02' as zz_distrib_type
+from clm_paccnt_tbl a
+left join (select max(date_agreem) as date_agreem,num_agreem,id_paccnt from clm_agreem_tbl group by id_paccnt,num_agreem) b
+on a.id=b.id_paccnt
+inner join sap_const const on 1=1
+left join sap_data instln on substr(instln.oldkey,12)::int=a.id
+left join sap_init_acc account on substr(account.oldkey,9)::int=a.id
+left join sap_init partner on substr(partner.old_key,9)::int=a.id
+left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1 on 1=1
+where a.archive='0'
+
+) as ext
+		left join vw_address as v
+                on v.id=ext.id
+                left join clm_paccnt_tbl as kk
+                on kk.id=v.id";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        $f = fopen($fname, 'w+');
+
+                    foreach ($data as $d1) {
+                        $d1=array_slice($d1, 0, 4);                        
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }   
+                    
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл $routine сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+        
+    } 
+    
+
 
     // Формирование файла пломб(seal) для САП для юр. потребителей
     public function actionSap_seals($res)
