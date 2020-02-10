@@ -1088,7 +1088,7 @@ function f_partner_ind($n_struct,$rem,$v) {
                                          post_code2,po_box,street,house_num1,house_num2,str_suppl1,
                                          str_suppl2,roomnumber,region,chind_tel,tel_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
-                    values('$oldkey','$n_struct','$r','I','$town','$post_code1','~','~','$street',
+                    values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
                           '$house_num1','~','~','~','$roomnumber','$region','$chind_tel','$tel_number','$chind_smtp',
                           '$smtp_addr','$tel_mobile','$iuru_pro')";
 
