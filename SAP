@@ -1,36 +1,40 @@
-Середньодобове споживання
+Факты юридич
 
-select distinct p.code_eqp as id,
-'F_QUAN' as F_QUAN,
-'СЕРДБ_А1З' as OPERAND,
-'V_QUAN' as V_QUAN,
-'$dataAB' as AB,
-'$bis' as BIS,
-p.avg_dem::varchar as MENGE
-from ( select dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg, --p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, 
+select distinct p.num_eqp,eerm.eerm,p.code_eqp as id,p.name_eqp,
+p.avg_dem::varchar as avg_dem,power_allow,power_con,
+value_r as tg_fi,round(p.wtm::numeric/30.0,0) as FACTOR_hour,p.safe_category,
+case when coalesce(p.count_lost,0)=1 then 'X' else '' end as count_lost,
+case when coalesce(p.lost_nolost,0)=0 then 'X' else '' end as no_lost,
+en.kind_energy, en1.kind_energy as react, en2.kind_energy as gen,
+me.kind_energy as react_,me1.kind_energy as gen_,const.ver
+from ( select eq.id,eqh.num_eqp,dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg, --p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, 
 dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,  
  dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
 dt.lost_nolost, dt.id_extra,dt.reserv,
-dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, bs.id_zone, round(sum(bs.demand_val)/30,0) as avg_dem,sum(bs.demand_val) as demand_val
+dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, bs.id_zone, round(sum(bs.demand_val)/30,0) as avg_dem,sum(bs.demand_val) as demand_val,
+coalesce(dt.power,0)::varchar as power_allow,
+case when coalesce(dt.con_power_kva,0) = 0 then coalesce(dt.connect_power,0)::varchar else '0' end as power_con,
+tg.value_r
 	from eqm_equipment_tbl as eq 
 	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id and dt_b < '2020-01-01' and dt_e is null order by dt_b desc limit 1) ) 
 	join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
 	join acd_billsum_tbl as bs on bs.id_point = dt.code_eqp and kind_energy = 1 and id_zone=0
-	group by dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg,dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,
-	dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b,  bs.id_zone	
+	left join eqk_tg_tbl as tg on (dt.id_tg=tg.id)
+	group by eq.id,eqh.num_eqp,dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, 
+	dt.id_tg,dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,
+	dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,dt.con_power_kva, dt.safe_category,
+	 dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, bs.id_zone,tg.value_r
 	) as p 
+left join eqd_point_energy_h  as en on en.code_eqp=p.code_eqp and en.dt_e is null and en.kind_energy =1	
+left join eqd_point_energy_h  as en1 on en1.code_eqp=p.code_eqp and en1.dt_e is null and en1.kind_energy in (2,5)	
+left join eqd_point_energy_h  as en2 on en1.code_eqp=p.code_eqp and en2.dt_e is null and en2.kind_energy in (4,6)
 
--- Монтажи
+left join eqm_meter_point_h as mp on mp.id_point = p.code_eqp and mp.dt_e is null
+left join eqm_meter_tbl as m on m.code_eqp = mp.id_meter
+left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (2,5) )as me on me.code_eqp = mp.id_meter
+left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (4,6) )as me1 on me1.code_eqp = mp.id_meter
+left join eerm2cnt eerm on get_num_cnt(trim(eerm.cnt))=get_num_cnt(trim(p.num_eqp))
+inner join sap_const const on 1=1
 
-select id_paccnt,count(*) as kol from
-(select distinct a.id_paccnt,a.id_zone,a.value,a.dat_ind from acm_indication_tbl a 
-inner join
-(select max(dat_ind) as dat_ind,id_paccnt,id_zone,id_typemet from acm_indication_tbl group by id_paccnt,id_zone,id_typemet) b on
-a.id_paccnt=b.id_paccnt and a.id_zone=b.id_zone and a.dat_ind=b.dat_ind
-inner join (select  b.id_zone,a.id_paccnt,a.id_type_meter from clm_meterpoint_tbl a
-left join clm_meter_zone_h b on a.id=b.id_meter) d  on d.id_paccnt=b.id_paccnt and d.id_type_meter=b.id_typemet and d.id_zone=b.id_zone
-inner join clm_paccnt_tbl c on a.id_paccnt=c.id and c.archive='0'
-where a.id_operation<>5 --and a.id_paccnt=400003193 
-) m
-group by id_paccnt
-having count(*)>3
+select * from eqm_point_tbl where code_eqp=130004
+

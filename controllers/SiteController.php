@@ -4162,8 +4162,9 @@ public function actionIdfile_seals($res)
         $rem = '0'.$res;  // Код РЭС
         $day=((int) date('d'))-1;
         $datab = date('Ymd', strtotime("-$day day"));
-
-        $baujj=random_int(1979, 2006);
+        //phpversion()
+//        $baujj=random_int(1979, 2006);
+        $baujj=mt_rand(1979, 2006);
 
         $sql = "select distinct w1.mmgg_current,(w1.mmgg_current- interval '4 month')::date as datab,a.id,'4001' as eqart,'$baujj' as baujj,
                 const.kostl as kostl,a.num_meter as sernr,'00000334' as zz_pernr,
