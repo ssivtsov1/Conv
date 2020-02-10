@@ -1681,7 +1681,7 @@ function f_device_ind($n_struct,$rem,$v) {
     $datab = str_replace('-','',$v['datab']);
     $kostl =$v['kostl'];
     $bukrs='CK01';
-    $matnr=$v['matnr'];
+    $matnr=mb_strtoupper($v['matnr'],'UTF-8');
     $sernr=$v['sernr'];
     $zz_pernr=$v['zz_pernr'];
     $cert_date=$v['cert_date'];
@@ -1824,7 +1824,8 @@ function f_devloc($n_struct,$rem,$v) {
     $swerk =$v['swerk'];
     $stort = $v['stort'];
     $begru = $v['begru'];
-    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'].random_int(100,1000000)));
+//    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'].random_int(100,1000000)));
+    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'].mt_rand(100,1000000)));
 
     if($n_struct=='EGPLD')
         $z = "insert into sap_egpld(oldkey,dat_type,haus,vstelle,swerk,stort,begru,pltxt)
@@ -1871,7 +1872,7 @@ function f_seal_ind($n_struct,$rem,$v,$vid) {
     $dpurch=$v['dpurch'];
     $reper=$v['reper'];
     $dissue=$v['dissue'];
-    $matnr=$v['matnr'];
+    $matnr=mb_strtoupper($v['matnr'],'UTF-8');
     $sernr=$v['sernr'];
     $place=$v['place'];
     $dinst=$v['dinst'];
@@ -1928,6 +1929,7 @@ $tariftyp = $v['tariftyp'];
 $aklasse = $v['aklasse'];
 $ableinh = $v['ableinh'];
 $begru = $v['begru'];
+$branche = $v['branche'];
 $zz_eic = $v['eic'];
 $oldkey = $oldkey_const . $v['id'];;
 
@@ -1935,7 +1937,7 @@ if ($n_struct == 'DATA')
     $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
             ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
      values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
-     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','70',$$$aklasse$$,'$ableinh','~','~','~','$begru',$$$zz_eic$$)";
+     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh','~','~','~','$begru',$$$zz_eic$$)";
 
     exec_on_server($z, (int)$rem, $vid);
 }
@@ -2293,7 +2295,7 @@ function f_facts_ind($rem,$v) {
         $facts['data13'] = $oldkey . ';' . 'V_QUAN' . ';' . $datab . ';' . $datae1 . ';' . $dem_8;
     }
     $facts['data14'] =  $oldkey.';'.'F_DEMA'.';'.'ПОТ_ДОЗВ'.';'.' '.';'.' ';
-    $facts['data15'] = $oldkey . ';' . 'V_QUAN' . ';' . $datab . ';' . $datae . ';' . $power;
+    $facts['data15'] = $oldkey . ';' . 'V_DEMA' . ';' . $datab . ';' . $datae . ';' . $power;
     if (!empty($opal)) {
         $facts['data16'] = $oldkey . ';' . 'F_FLAG' . ';' . 'ОЗ_ЕЛОПАЛ' . ';' . ' ' . ';' . ' ';
         $facts['data17'] = $oldkey . ';' . 'V_FLAG' . ';' . $datab . ';' . $datae . ';' . $opal;
@@ -2315,23 +2317,28 @@ function f_move_in_ind($rem,$v) {
     $ever[1]='EVER';
     $ever[2]=$v['bukrs'];
     $ever[3]=$v['kofiz'];
-    $ever[4]=$v['vrefer'];
-    $ever[5]=$v['begru'];
-    $ever[6]=$v['anlage'];
-    $ever[7]=$v['vkonto'];
-    $ever[8]=$v['einzdat'];
-    $ever[9]=$v['auszdat'];
-    $ever[10]=$v['einzdat_alt'];
-    $ever[11]=$v['cokey'];
-    $ever[12]=$v['zz_pnt'];
-    $ever[13]=$v['zz_nodev'];
-    $ever[14]=$v['zz_own'];
-    $ever[15]=$v['zz_point_num'];
-    $ever[16]=$v['zz_plosch_num'];
-    $ever[17]=$v['zz_object_num'];
-    $ever[18]=$v['zz_pl_obj_num'];
-    $ever[19]=$v['zz_paym_dc'];
-    $ever[20]=$v['zz_distrib_type'];
+    $ever[4]=$v['gemfakt'];
+    $ever[5]=$v['vbez'];
+    $ever[6]=$v['vrefer'];
+    $ever[7]=$v['begru'];
+    $ever[8]=$v['anlage'];
+    $ever[9]=$v['vkonto'];
+    $ever[10]=$v['einzdat'];
+    $ever[11]=$v['auszdat'];
+    $ever[12]=$v['einzdat_alt'];
+    $ever[13]=$v['cokey'];
+    $ever[14]=$v['zz_pnt'];
+    $ever[15]=$v['zz_nodev'];
+    $ever[16]=$v['zz_own'];
+    $ever[17]=$v['zz_point_num'];
+    $ever[18]=$v['zz_plosch_num'];
+    $ever[19]=$v['zz_object_num'];
+    $ever[20]=$v['zz_pl_obj_num'];
+    $ever[21]=$v['zz_paym_dc'];
+    $ever[22]='42082379';
+    $ever[23]='31793056';
+    $ever[24]=$v['zz_distrib_type'];
+
     return $ever;
 }
 
@@ -2363,7 +2370,7 @@ function f_inst_mgmt2_ind($rem,$v) {
         $di_zw[0][3]='0001';
         $di_zw[0][4]=(int) $v['value_0'];
         $di_zw[0][5]='~';
-        $di_zw[0][6]='А_13';
+        $di_zw[0][6]='А_1З';
         $di_zw[0][7]=$v['demand_0'];
         $di_zw[0][8]=$v['equnre'];
         $di_zw[0][9]='30';
@@ -2383,7 +2390,7 @@ function f_inst_mgmt2_ind($rem,$v) {
         $di_zw[0][3]='0001';
         $di_zw[0][4]=(int) $v['value_10'];
         $di_zw[0][5]='~';
-        $di_zw[0][6]='А_23Д';
+        $di_zw[0][6]='А_2ЗД';
         $di_zw[0][7]=$v['demand_10'];
         $di_zw[0][8]=$v['equnre'];
         $di_zw[0][9]='30';
@@ -2395,7 +2402,7 @@ function f_inst_mgmt2_ind($rem,$v) {
         $di_zw[1][3]='0001';
         $di_zw[1][4]=(int)  $v['value_9'];
         $di_zw[1][5]='~';
-        $di_zw[1][6]='А_23Н';
+        $di_zw[1][6]='А_2ЗН';
         $di_zw[1][7]=$v['demand_9'];
         $di_zw[1][8]=$v['equnre'];
         $di_zw[1][9]='30';
@@ -2427,7 +2434,7 @@ function f_inst_mgmt2_ind($rem,$v) {
         $di_zw[0][3]='0001';
         $di_zw[0][4]=(int)  $v['value_8'];
         $di_zw[0][5]='~';
-        $di_zw[0][6]='А_33П';
+        $di_zw[0][6]='А_3ЗП';
         $di_zw[0][7]=$v['demand_8'];
         $di_zw[0][8]=$v['equnre'];
         $di_zw[0][9]='30';
@@ -2439,7 +2446,7 @@ function f_inst_mgmt2_ind($rem,$v) {
         $di_zw[1][3]='0001';
         $di_zw[1][4]=(int)  $v['value_7'];
         $di_zw[1][5]='~';
-        $di_zw[1][6]='А_33НП';
+        $di_zw[1][6]='А_3ЗНП';
         $di_zw[1][7]=$v['demand_7'];
         $di_zw[1][8]=$v['equnre'];
         $di_zw[1][9]='30';
@@ -2451,7 +2458,7 @@ function f_inst_mgmt2_ind($rem,$v) {
         $di_zw[2][3]='0001';
         $di_zw[2][4]=(int)  $v['value_6'];
         $di_zw[2][5]='~';
-        $di_zw[2][6]='А_33Н';
+        $di_zw[2][6]='А_3ЗН';
         $di_zw[2][7]=$v['demand_6'];
         $di_zw[2][8]=$v['equnre'];
         $di_zw[2][9]='30';
