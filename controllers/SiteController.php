@@ -4195,8 +4195,8 @@ public function actionIdfile_seals($res)
                     break;
 
                 case 2:
-                    $data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_yv_abn->createCommand($sql_c)->queryAll();
+                    $data = \Yii::$app->db_pg_zv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_zv_abn->createCommand($sql_c)->queryAll();
                     break;
                 case 3:
                     $data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
@@ -4240,9 +4240,9 @@ public function actionIdfile_seals($res)
                     break;
 
                 case 2:
-                    Yii::$app->db_pg_yv_abn->createCommand($zsql)->execute();
-                    Yii::$app->db_pg_yv_abn->createCommand($zsql1)->execute();
-                    Yii::$app->db_pg_yv_abn->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_zv_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_zv_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_zv_abn->createCommand($zsql2)->execute();
                     break;
                 case 3:
                     Yii::$app->db_pg_vg_abn->createCommand($zsql)->execute();
@@ -4305,7 +4305,7 @@ public function actionIdfile_seals($res)
                 $struct_data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
                 break;
             case 2:
-                $struct_data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                $struct_data = \Yii::$app->db_pg_zv_abn->createCommand($sql)->queryAll();
                 break;
             case 3:
                 $struct_data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
@@ -4349,7 +4349,7 @@ public function actionIdfile_seals($res)
                             $cur_data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
                             break;
                         case 2:
-                            $cur_data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                            $cur_data = \Yii::$app->db_pg_zv_abn->createCommand($sql)->queryAll();
                             break;
                         case 3:
                             $cur_data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
@@ -5164,9 +5164,9 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                     break;
 
                 case 2:
-                    $data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_yv_abn->createCommand($sql_c)->queryAll();
-                    Yii::$app->db_pg_yv_abn->createCommand($zsql)->execute();
+                    $data = \Yii::$app->db_pg_zv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_zv_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_zv_abn->createCommand($zsql)->execute();
                     break;
                 case 3:
                     $data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
@@ -5232,7 +5232,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                 $struct_data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
                 break;
             case 2:
-                $struct_data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                $struct_data = \Yii::$app->db_pg_zv_abn->createCommand($sql)->queryAll();
                 break;
             case 3:
                 $struct_data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
@@ -5275,7 +5275,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                             $cur_data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
                             break;
                         case 2:
-                            $cur_data = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+                            $cur_data = \Yii::$app->db_pg_zv_abn->createCommand($sql)->queryAll();
                             break;
                         case 3:
                             $cur_data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();

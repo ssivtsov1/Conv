@@ -1478,7 +1478,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
             break;
 
         case 2:
-            $data1 = \Yii::$app->db_pg_yv_abn->createCommand($sql)->queryAll();
+            $data1 = \Yii::$app->db_pg_zv_abn->createCommand($sql)->queryAll();
             break;
         case 3:
             $data1 = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
@@ -1531,7 +1531,7 @@ else
             break;
 
         case 2:
-            Yii::$app->db_pg_yv_abn->createCommand($z)->queryAll();
+            Yii::$app->db_pg_zv_abn->createCommand($z)->queryAll();
             break;
         case 3:
             Yii::$app->db_pg_vg_abn->createCommand($z)->queryAll();
@@ -1648,7 +1648,7 @@ function f_premise_ind($n_struct,$rem,$v) {
             break;
 
         case 2:
-            Yii::$app->db_pg_yv_abn->createCommand($z)->queryAll();
+            Yii::$app->db_pg_zv_abn->createCommand($z)->queryAll();
             break;
         case 3:
             Yii::$app->db_pg_vg_abn->createCommand($z)->queryAll();
@@ -1712,7 +1712,7 @@ function f_device_ind($n_struct,$rem,$v) {
             break;
 
         case 2:
-            Yii::$app->db_pg_yv_abn->createCommand($z)->queryAll();
+            Yii::$app->db_pg_zv_abn->createCommand($z)->queryAll();
             break;
         case 3:
             Yii::$app->db_pg_vg_abn->createCommand($z)->queryAll();
