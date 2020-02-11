@@ -1466,7 +1466,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
         left join vw_address c on
         a.id=c.id 
        left join addr_sap b1 on
-         lower(c.street)=lower(b1.short_street) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
+         trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
          and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
          left join post_index_sap b2 on b1.numtown=b2.numtown and b2.post_index=c.indx --and c.indx is not null
         where a.id=$id and b2.post_index is not null ";
@@ -1521,7 +1521,7 @@ else
 
         $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
                                          street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street)
-                    values('$oldkey','$n_struct','$town','$post_code1','$street',
+                    values('$oldkey','$n_struct','$town','$post_code1',$$$street$$,
                           '$house_num1','~','~','$region','$iuru_pro','$type_street')";
 
     //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
@@ -2085,6 +2085,8 @@ function f_facts($rem,$v) {
     $factor_hour = $v['factor_hour'];
     $count_lost = $v['count_lost'];
     $safe_category = $v['safe_category'];
+    $eerm=$v['eerm'];
+    $no_lost=$v['no_lost'];
     $oldkey = $oldkey_const . $v['id'];
     $facts=[];
 
@@ -2148,6 +2150,10 @@ function f_facts($rem,$v) {
 //        exec_on_server($z, (int)$rem, $vid);
 
         $facts['data9'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$tg_fi;
+    if(!empty($eerm)) {
+        $facts['data10'] = $oldkey . ';' . 'F_FACT' . ';' . 'ЕЕРП' . ';' . ' ' . ';' . ' ';
+        $facts['data11'] = $oldkey . ';' . 'V_FACT' . ';' . $datab . ';' . $datae . ';' . $eerm;
+    }
     }
 
     //ГРРОБ_ДНІ
@@ -2155,65 +2161,64 @@ function f_facts($rem,$v) {
 //                     values($$$oldkey$$,'F_FACT','ГРРОБ_ДНІ','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data10'] =  $oldkey.';'.'F_FACT'.';'.'ГРРОБ_ДНІ'.';'.' '.';'.' ';
+    $facts['data12'] =  $oldkey.';'.'F_FACT'.';'.'ГРРОБ_ДНІ'.';'.' '.';'.' ';
 
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FACT','$datab','$datae','7')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data11'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.'7';
+    $facts['data13'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.'7';
 
     //ГРРОБ_ГОДН
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_FACT','ГРРОБ_ГОДН','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data12'] =  $oldkey.';'.'F_FACT'.';'.'ГРРОБ_ГОДН'.';'.' '.';'.' ';
+    $facts['data14'] =  $oldkey.';'.'F_FACT'.';'.'ГРРОБ_ГОДН'.';'.' '.';'.' ';
 
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FACT','$datab','$datae','$factor_hour')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data13'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$factor_hour;
+    $facts['data15'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$factor_hour;
 
     //Ф_КФГРНАВ
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_FACT','Ф_КФГРНАВ','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data14'] =  $oldkey.';'.'F_FACT'.';'.'Ф_КФГРНАВ'.';'.' '.';'.' ';
+    $facts['data16'] =  $oldkey.';'.'F_FACT'.';'.'Ф_КФГРНАВ'.';'.' '.';'.' ';
 
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FACT','$datab','$datae','1.15')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data15'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.'1.15';
+    $facts['data17'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.'1.15';
 
 // КАТНАД
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_FACT','КАТНАД','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data16'] =  $oldkey.';'.'F_FACT'.';'.'КАТНАД'.';'.' '.';'.' ';
+    $facts['data18'] =  $oldkey.';'.'F_FACT'.';'.'КАТНАД'.';'.' '.';'.' ';
 
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FACT','$datab','$datae','$safe_category')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data17'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$safe_category;
-
-    //ОЗ_ВТРНАР
-//    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
-//                     values($$$oldkey$$,'F_FLAG','ОЗ_ВТРНАР','','')";
-//    exec_on_server($z, (int)$rem, $vid);
-
-    $facts['data18'] =  $oldkey.';'.'F_FLAG'.';'.'ОЗ_ВТРНАР'.';'.' '.';'.' ';
-
+        $facts['data19'] = $oldkey . ';' . 'V_FACT' . ';' . $datab . ';' . $datae . ';' . $safe_category;
+    if (!empty($count_lost)) {
+        $facts['data20'] = $oldkey . ';' . 'F_FLAG' . ';' . 'ОЗ_ВТРНАР' . ';' . ' ' . ';' . ' ';
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FLAG','$datab','$datae','$count_lost')";
 //    exec_on_server($z, (int)$rem, $vid);
+        $facts['data21'] = $oldkey . ';' . 'V_FLAG' . ';' . $datab . ';' . $datae . ';' . $count_lost;
+    }
+    if (!empty($no_lost)) {
+        $facts['data22'] =  $oldkey.';'.'F_RATE'.';'.'ОЗ_БЕЗВТР'.';'.' '.';'.' ';
+        $facts['data23'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.$no_lost;
+    }
 
-    $facts['data19'] =  $oldkey.';'.'V_FLAG'.';'.$datab.';'.$datae.';'.$count_lost;
 
 //    F_RATE	ВТ_РЕАКТ
     if (!empty($react_)) {
@@ -2221,29 +2226,30 @@ function f_facts($rem,$v) {
 //                     values($$$oldkey$$,'F_RATE','ВТ_РЕАКТ','','')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data20'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_РЕАКТ'.';'.' '.';'.' ';
+        $facts['data24'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_РЕАКТ'.';'.' '.';'.' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_RATE','$datab','$datae','Р_РОЗР')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data21'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Р_РОЗР';
+        $facts['data25'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Р_РОЗР';
     }
     if (!empty($gen_)) {
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_RATE','ВТ_ГЕН','','')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data22'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_ГЕН'.';'.' '.';'.' ';
+        $facts['data26'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_ГЕН'.';'.' '.';'.' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_RATE','$datab','$datae','Г_РОЗР')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data23'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Г_РОЗР';
+        $facts['data27'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Г_РОЗР';
 
     }
-    $facts['data24'] =  $oldkey.';'.'&ENDE'.';'.' '.';'.' '.';'.' ';
+
+    $facts['data28'] =  $oldkey.';'.'&ENDE'.';'.' '.';'.' '.';'.' ';
 
 return $facts;
 }

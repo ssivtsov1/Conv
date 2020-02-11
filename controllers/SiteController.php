@@ -1388,7 +1388,8 @@ b.phone,b.e_mail
         $routine = strtoupper(substr($method,10));
 
         $sql = "select a.id,a.activ,b.tax_number,b.last_name,
-                b.name,b.patron_name,b1.town,c.town as town_cek,b2.post_index,c.indx as index_cek,b1.street,c.street as street_cek,
+                b.name,b.patron_name,b1.town,c.town as town_cek,b2.post_index,c.indx as index_cek,
+                case when b1.street is null then 'Неопределено' else b1.street end as street,c.street as street_cek,
                 upper(c.house) as house,c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
         left join clm_abon_tbl b on
@@ -1396,8 +1397,8 @@ b.phone,b.e_mail
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
-         lower(c.street)=lower(b1.short_street) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
-         and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
+        trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
+         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
          left join post_index_sap b2 on b1.numtown=b2.numtown and b2.post_index=c.indx         
         inner join sap_const const on
         1=1
@@ -2405,14 +2406,14 @@ inner join sap_const const on 1=1";
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select distinct p.code_eqp as id,p.name_eqp,
+        $sql = "select distinct eq2.num_eqp as ncnt,p.num_eqp,eerm.eerm,p.code_eqp as id,p.name_eqp,
 p.avg_dem::varchar as avg_dem,power_allow,power_con,
 value_r as tg_fi,round(p.wtm::numeric/30.0,0) as FACTOR_hour,p.safe_category,
 case when coalesce(p.count_lost,0)=1 then 'X' else '' end as count_lost,
 case when coalesce(p.lost_nolost,0)=0 then 'X' else '' end as no_lost,
 en.kind_energy, en1.kind_energy as react, en2.kind_energy as gen,
 me.kind_energy as react_,me1.kind_energy as gen_,const.ver
-from ( select dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg, --p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, 
+from ( select eq.num_eqp as neqp,eq.id,eqh.num_eqp,dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg, --p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, 
 dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,  
  dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
 dt.lost_nolost, dt.id_extra,dt.reserv,
@@ -2421,11 +2422,12 @@ coalesce(dt.power,0)::varchar as power_allow,
 case when coalesce(dt.con_power_kva,0) = 0 then coalesce(dt.connect_power,0)::varchar else '0' end as power_con,
 tg.value_r
 	from eqm_equipment_tbl as eq 
-	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id and dt_b < '2020-01-01' and dt_e is null order by dt_b desc limit 1) ) 
+	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id and dt_b < '2020-02-01' and dt_e is null order by dt_b desc limit 1) ) 
 	join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
 	join acd_billsum_tbl as bs on bs.id_point = dt.code_eqp and kind_energy = 1 and id_zone=0
 	left join eqk_tg_tbl as tg on (dt.id_tg=tg.id)
-	group by dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, 
+		
+	group by eq.num_eqp,eq.id,eqh.num_eqp,dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, 
 	dt.id_tg,dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,
 	dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,dt.con_power_kva, dt.safe_category,
 	 dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, bs.id_zone,tg.value_r
@@ -2436,9 +2438,11 @@ left join eqd_point_energy_h  as en2 on en1.code_eqp=p.code_eqp and en2.dt_e is 
 
 left join eqm_meter_point_h as mp on mp.id_point = p.code_eqp and mp.dt_e is null
 left join eqm_meter_tbl as m on m.code_eqp = mp.id_meter
+left join eqm_equipment_tbl eq2 on  m.code_eqp = eq2.id
 left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (2,5) )as me on me.code_eqp = mp.id_meter
 left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (4,6) )as me1 on me1.code_eqp = mp.id_meter
-inner join sap_const const on 1=1";
+left join eerm2cnt eerm on get_num_cnt(trim(eerm.cnt))=get_num_cnt(trim(eq2.num_eqp))
+inner join sap_const const on 1=1 ";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
@@ -3491,7 +3495,8 @@ public function actionIdfile_seals($res)
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select min(a.id) as id,
-                c.town,b1.town as town_sap,c.street,b1.street as street_sap,c.type_street,
+                c.town,b1.town as town_sap,c.street,
+                case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
                 c.house,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
                 const.region,d.kod_reg
@@ -3501,7 +3506,7 @@ public function actionIdfile_seals($res)
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
-         lower(c.street)=lower(b1.short_street) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
+         trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
          and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
         inner join sap_const const on
         1=1
