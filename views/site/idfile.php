@@ -17,7 +17,7 @@ $this->title = 'Полезные инструменты';
             <div id="header_content_tagline">  </div>
         </div>
       <?
-      $r=random_int(1,100);
+      $r=mt_rand(1,100);
       if($r%2==0)
          echo Html::img('./Data-Export-icon.png', ['class' => 'img_exportsap']);
       else
