@@ -3599,7 +3599,7 @@ public function actionIdfile_seals($res)
     public function actionSap_account_ind($res)
     {
         ini_set('memory_limit', '-1');
-        ini_set('max_execution_time', 900);
+        ini_set('max_execution_time', 4000);
         $rem = '0'.$res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
