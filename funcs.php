@@ -1521,7 +1521,7 @@ else
 
         $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
                                          street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street)
-                    values('$oldkey','$n_struct','$town','$post_code1',$$$street$$,
+                    values('$oldkey','$n_struct',$$$town$$,'$post_code1',$$$street$$,
                           '$house_num1','~','~','$region','$iuru_pro','$type_street')";
 
     //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
