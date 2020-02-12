@@ -37,3 +37,46 @@ left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_en
 left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (4,6) )as me1 on me1.code_eqp = mp.id_meter
 left join eerm2cnt eerm on get_num_cnt(trim(eerm.cnt))=get_num_cnt(trim(eq2.num_eqp))
 inner join sap_const const on 1=1 
+
+
+
+
+------ Дополнение для фактов
+
+select t.code_area,t.name_area,t.name_tp,t.num_eqp,t.id,t.code_tu,idkl,power,type_eqp1,h_eqp,
+count(*) over (partition by t.name_area,t.code_area) as kol,
+case when power=max(power) over (partition by t.name_area,t.code_area) then 'X' else '' end as main_eq,qq.main_eq as main
+from
+(select distinct on (b.num_eqp) b.id,b.code_tu,b.num_eqp,eq4.num_eqp as idkl,eq2.name_eqp as name_area,
+eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area.code_eqp_inst as code_area from
+(select *,get_tu(id) as code_tu,get_tp(id) as code_tp from eqm_equipment_tbl a) b
+   left JOIN eqm_compens_station_inst_tbl AS area ON (b.code_tu=area.code_eqp)
+   left JOIN eqm_equipment_tbl AS eq2 ON (area.code_eqp_inst=eq2.id)
+   left join eqm_point_tbl e on e.code_eqp= b.code_tu
+   left join eqm_equipment_h h on h.id= b.id
+   left JOIN eqm_equipment_tbl AS eq3 ON (b.code_tp=eq3.id)
+   left JOIN eqm_equipment_tbl AS eq4 ON (b.code_tu=eq4.id)
+) t
+left join 
+(select code_area,main_eq,min(id) as id from
+(select code_area,t.name_area,t.name_tp,t.num_eqp,id,t.code_tu,idkl,power,type_eqp1,h_eqp,
+count(*) over (partition by t.name_area,code_area) as kol,
+case when power=max(power) over (partition by t.name_area,code_area) then 'X' else '' end as main_eq
+from
+(select distinct on (b.num_eqp) b.id,b.code_tu,b.num_eqp,eq4.num_eqp as idkl,eq2.name_eqp as name_area,
+eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area.code_eqp_inst as code_area from
+(select *,get_tu(id) as code_tu,get_tp(id) as code_tp from eqm_equipment_tbl a) b
+   left JOIN eqm_compens_station_inst_tbl AS area ON (b.code_tu=area.code_eqp)
+   left JOIN eqm_equipment_tbl AS eq2 ON (area.code_eqp_inst=eq2.id)
+   left join eqm_point_tbl e on e.code_eqp= b.code_tu
+   left join eqm_equipment_h h on h.id= b.id
+   left JOIN eqm_equipment_tbl AS eq3 ON (b.code_tp=eq3.id)
+   left JOIN eqm_equipment_tbl AS eq4 ON (b.code_tu=eq4.id)
+) t
+   where type_eqp1=1) z
+   where z.main_eq='X'
+   group by code_area,main_eq
+) qq on qq.id=t.id and qq.code_area=t.code_area
+   where t.type_eqp1=1
+
+

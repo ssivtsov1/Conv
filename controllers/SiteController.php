@@ -1375,7 +1375,7 @@ b.phone,b.e_mail
     public function actionSap_partner_ind($res)
     {
         ini_set('memory_limit', '-1');
-        ini_set('max_execution_time', 900);
+        ini_set('max_execution_time', 5000);
         $rem = '0'.$res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
@@ -1966,6 +1966,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
 
         // Удаляем данные в таблицах структур
         $i=0;
+
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
