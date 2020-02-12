@@ -1375,7 +1375,9 @@ b.phone,b.e_mail
     public function actionSap_partner_ind($res)
     {
         ini_set('memory_limit', '-1');
-        ini_set('max_execution_time', 5000);
+        ini_set('max_execution_time', '0');
+        ini_set('upload_max_filesize', '0');
+        ini_set('post_max_size', '1000M');
         $rem = '0'.$res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
