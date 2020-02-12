@@ -2409,7 +2409,8 @@ inner join sap_const const on 1=1";
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select distinct eq2.num_eqp as ncnt,p.num_eqp,eerm.eerm,p.code_eqp as id,p.name_eqp,
+        if(1==2) {
+            $sql = "select distinct eq2.num_eqp as ncnt,p.num_eqp,eerm.eerm,p.code_eqp as id,p.name_eqp,
 p.avg_dem::varchar as avg_dem,power_allow,power_con,
 value_r as tg_fi,round(p.wtm::numeric/30.0,0) as FACTOR_hour,p.safe_category,
 case when coalesce(p.count_lost,0)=1 then 'X' else '' end as count_lost,
@@ -2446,6 +2447,122 @@ left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_en
 left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (4,6) )as me1 on me1.code_eqp = mp.id_meter
 left join eerm2cnt eerm on get_num_cnt(trim(eerm.cnt))=get_num_cnt(trim(eq2.num_eqp))
 inner join sap_const const on 1=1 ";
+        }
+
+        $sql = "select distinct eq2.num_eqp as ncnt,p.num_eqp,eerm.eerm,p.code_eqp as id,p.name_eqp,
+p.avg_dem::varchar as avg_dem,power_allow,power_con,
+value_r as tg_fi,round(p.wtm::numeric/30.0,0) as FACTOR_hour,p.safe_category,
+case when coalesce(p.count_lost,0)=1 then 'X' else '' end as count_lost,
+case when coalesce(p.lost_nolost,0)=0 then 'X' else '' end as no_lost,
+en.kind_energy, en1.kind_energy as react, en2.kind_energy as gen,
+me.kind_energy as react_,me1.kind_energy as gen_,const.ver,x.code_area,x.main ,
+case when me.kind_energy=2 and x.main='X' then 'X' end as main_obj,
+x.name_tp,lm.*
+from ( select eq.num_eqp as neqp,eq.id,eqh.num_eqp,dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg, --p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, 
+dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,  
+ dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
+dt.lost_nolost, dt.id_extra,dt.reserv,
+dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, bs.id_zone, round(sum(bs.demand_val)/30,0) as avg_dem,sum(bs.demand_val) as demand_val,
+coalesce(dt.power,0)::varchar as power_allow,
+case when coalesce(dt.con_power_kva,0) = 0 then coalesce(dt.connect_power,0)::varchar else '0' end as power_con,
+tg.value_r
+	from eqm_equipment_tbl as eq 
+	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id and dt_b < '2020-02-01' and dt_e is null order by dt_b desc limit 1) ) 
+	join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
+	join acd_billsum_tbl as bs on bs.id_point = dt.code_eqp and kind_energy = 1 and id_zone=0
+	left join eqk_tg_tbl as tg on (dt.id_tg=tg.id)
+		
+	group by eq.num_eqp,eq.id,eqh.num_eqp,dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, 
+	dt.id_tg,dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control,dt.zone,
+	dt.flag_hlosts, dt.id_depart,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,dt.con_power_kva, dt.safe_category,
+	 dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, bs.id_zone,tg.value_r
+	) as p 
+left join eqd_point_energy_h  as en on en.code_eqp=p.code_eqp and en.dt_e is null and en.kind_energy =1	
+left join eqd_point_energy_h  as en1 on en1.code_eqp=p.code_eqp and en1.dt_e is null and en1.kind_energy in (2,5)	
+left join eqd_point_energy_h  as en2 on en1.code_eqp=p.code_eqp and en2.dt_e is null and en2.kind_energy in (4,6)
+
+left join eqm_meter_point_h as mp on mp.id_point = p.code_eqp and mp.dt_e is null
+left join eqm_meter_tbl as m on m.code_eqp = mp.id_meter
+left join eqm_equipment_tbl eq2 on  m.code_eqp = eq2.id
+left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (2,5) )as me on me.code_eqp = mp.id_meter
+left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (4,6) )as me1 on me1.code_eqp = mp.id_meter
+left join eerm2cnt eerm on get_num_cnt(trim(eerm.cnt))=get_num_cnt(trim(eq2.num_eqp))
+inner join sap_const const on 1=1
+left join
+    (select t.code_area,t.name_area,t.name_tp,t.num_eqp,t.id,t.code_tu,idkl,power,type_eqp1,h_eqp,
+count(*) over (partition by t.name_area,t.code_area) as kol,
+case when power=max(power) over (partition by t.name_area,t.code_area) then 'X' else '' end as main_eq,qq.main_eq as main
+from
+(select distinct on (b.num_eqp) b.id,b.code_tu,b.num_eqp,eq4.num_eqp as idkl,eq2.name_eqp as name_area,
+eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area.code_eqp_inst as code_area from
+    (select *,get_tu(id) as code_tu,get_tp(id) as code_tp from eqm_equipment_tbl a) b
+   left JOIN eqm_compens_station_inst_tbl AS area ON (b.code_tu=area.code_eqp)
+   left JOIN eqm_equipment_tbl AS eq2 ON (area.code_eqp_inst=eq2.id)
+   left join eqm_point_tbl e on e.code_eqp= b.code_tu
+   left join eqm_equipment_h h on h.id= b.id
+   left JOIN eqm_equipment_tbl AS eq3 ON (b.code_tp=eq3.id)
+   left JOIN eqm_equipment_tbl AS eq4 ON (b.code_tu=eq4.id)
+) t
+left join
+    (select code_area,main_eq,min(id) as id from
+    (select code_area,t.name_area,t.name_tp,t.num_eqp,id,t.code_tu,idkl,power,type_eqp1,h_eqp,
+count(*) over (partition by t.name_area,code_area) as kol,
+case when power=max(power) over (partition by t.name_area,code_area) then 'X' else '' end as main_eq
+from
+(select distinct on (b.num_eqp) b.id,b.code_tu,b.num_eqp,eq4.num_eqp as idkl,eq2.name_eqp as name_area,
+eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area.code_eqp_inst as code_area from
+    (select *,get_tu(id) as code_tu,get_tp(id) as code_tp from eqm_equipment_tbl a order by id) b
+   left JOIN eqm_compens_station_inst_tbl AS area ON (b.code_tu=area.code_eqp)
+   left JOIN eqm_equipment_tbl AS eq2 ON (area.code_eqp_inst=eq2.id)
+   left join eqm_point_tbl e on e.code_eqp= b.code_tu
+   left join eqm_equipment_h h on h.id= b.id
+   left JOIN eqm_equipment_tbl AS eq3 ON (b.code_tp=eq3.id)
+   left JOIN eqm_equipment_tbl AS eq4 ON (b.code_tu=eq4.id)
+) t
+   where type_eqp1=1) z
+   where z.main_eq='X'
+   group by code_area,main_eq
+) qq on qq.id=t.id and qq.code_area=t.code_area
+   where t.type_eqp1=1) x on x.code_tu=p.code_eqp
+        ----
+    left join
+    ( select cl.code,cl.name,cl.period_indicat, s1.*,cl.represent_name, area.name_eqp as area_name, area.power,
+    area.wtm, area.adr as area_adr, area.is_used from ( select c.id,c.code,c.short_name as name, cp.represent_name ,
+     scl.period_indicat from clm_client_tbl as c join clm_statecl_tbl as scl on (c.id = scl.id_client)
+      left join clm_position_tbl as cp on (scl.id_position = cp.id) where scl.id_section not in (205,206,207,208)
+    and c.idk_work not in (0,99) and coalesce(c.id_state,0) not in (50,99) and c.book=-1 ) as cl
+        left join ( select a.id_client, a.code_eqp, eq.name_eqp , g.power, g.wtm, addr.adr,
+         CASE WHEN (select count(*) from eqm_compens_station_inst_tbl as csi where csi.code_eqp_inst = a.code_eqp) >0 THEN 1 ELSE 0 END
+          as is_used from eqm_area_tbl as a join eqm_ground_tbl as g on (g.code_eqp = a.code_eqp) join eqm_equipment_tbl as eq on (eq.id = a.code_eqp)
+           left join adv_address_tbl as addr on (addr.id = eq.id_addres) ) as area on (area.id_client = cl.id)
+            left join ( select id_client,id_area, sum(CASE WHEN date_part('month',month_limit)= 1 THEN value_dem ELSE 0 END) as value1 ,
+             sum(CASE WHEN date_part('month',month_limit)= 2 THEN value_dem ELSE 0 END) as value2 ,
+              sum(CASE WHEN date_part('month',month_limit)= 3 THEN value_dem ELSE 0 END) as value3 ,
+               sum(CASE WHEN date_part('month',month_limit)= 4 THEN value_dem ELSE 0 END) as value4 ,
+                sum(CASE WHEN date_part('month',month_limit)= 5 THEN value_dem ELSE 0 END) as value5 ,
+                 sum(CASE WHEN date_part('month',month_limit)= 6 THEN value_dem ELSE 0 END) as value6 ,
+                  sum(CASE WHEN date_part('month',month_limit)= 7 THEN value_dem ELSE 0 END) as value7 ,
+                   sum(CASE WHEN date_part('month',month_limit)= 8 THEN value_dem ELSE 0 END) as value8 ,
+                    sum(CASE WHEN date_part('month',month_limit)= 9 THEN value_dem ELSE 0 END) as value9 ,
+                     sum(CASE WHEN date_part('month',month_limit)= 10 THEN value_dem ELSE 0 END) as value10 ,
+                      sum(CASE WHEN date_part('month',month_limit)= 11 THEN value_dem ELSE 0 END) as value11 ,
+                       sum(CASE WHEN date_part('month',month_limit)= 12 THEN value_dem ELSE 0 END) as value12 
+                       from ( select distinct hl.id_client,d1.value_dem,d1.month_limit,d1.id_area from acd_demandlimit_tbl as d1
+                        join acm_headdemandlimit_tbl as hl on (hl.id_doc = d1.id_doc) join
+    ( select h2.id_client,d2.month_limit, d2.id_area, max(h2.reg_date) as maxdate , max(h2.mmgg) as maxmmgg
+                        from acm_headdemandlimit_tbl as h2 join acd_demandlimit_tbl as d2 on (h2.id_doc = d2.id_doc) 
+                        left join ( select distinct g.code_eqp from eqm_ground_tbl as g join eqm_compens_station_inst_tbl as csi on
+    (csi.code_eqp_inst = g.code_eqp) )as g on (g.code_eqp = d2.id_area)
+                          where h2.idk_document = 600 and date_part('year',d2.month_limit)= date_part('year', '2020-02-01'::date )
+                           and (d2.id_area is null or g.code_eqp is not null)
+                            group by h2.id_client , d2.id_area, d2.month_limit order by h2.id_client ) as hh
+                             on (hh.id_client = hl.id_client and hh.maxdate = hl.reg_date and hh.maxmmgg = hl.mmgg
+                                 and hh.month_limit = d1.month_limit and hh.id_area = d1.id_area) where hl.idk_document = 600
+    and date_part('year',d1.month_limit)= date_part('year', '2020-02-01'::date ) 
+                              order by hl.id_client,id_area ) as ss group by id_client, id_area ) as s1 on
+    (s1.id_client =cl.id and s1.id_area = area.code_eqp) order by cl.code,area_name) lm 
+                              on lm.id_area=code_area
+		order by code_area";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';

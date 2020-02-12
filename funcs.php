@@ -2087,6 +2087,52 @@ function f_facts($rem,$v) {
     $safe_category = $v['safe_category'];
     $eerm=$v['eerm'];
     $no_lost=$v['no_lost'];
+    $main=$v['main'];
+    $main_obj=$v['main_obj'];
+    $name_tp=$v['name_tp'];
+//    if(!empty($name_tp))
+    $dmonth=(int) substr($datab,4,2);
+
+    switch($dmonth){
+        case 1:
+            $value=$v['value1'];
+            break;
+        case 2:
+            $value=$v['value2'];
+            break;
+        case 3:
+            $value=$v['value3'];
+            break;
+        case 4:
+            $value=$v['value4'];
+            break;
+        case 5:
+            $value=$v['value5'];
+            break;
+        case 6:
+            $value=$v['value6'];
+            break;
+        case 7:
+            $value=$v['value7'];
+            break;
+        case 8:
+            $value=$v['value8'];
+            break;
+        case 9:
+            $value=$v['value9'];
+            break;
+        case 10:
+            $value=$v['value10'];
+            break;
+        case 11:
+            $value=$v['value11'];
+            break;
+        case 12:
+            $value=$v['value12'];
+            break;
+
+    }
+
     $oldkey = $oldkey_const . $v['id'];
     $facts=[];
 
@@ -2109,50 +2155,54 @@ function f_facts($rem,$v) {
 //    exec_on_server($z, (int)$rem, $vid);
 
     $facts['data3'] =  $oldkey.';'.'V_QUAN'.';'.$datab.';'.$datae1.';'.$avg_dem;
+    if(!empty($value) && !empty($main)){
+        $facts['data4'] =  $oldkey.';'.'F_QUAN'.';'.'ЛІМ_СПОЖ'.';'.' '.';'.' ';
+        $facts['data5'] =  $oldkey.';'.'V_QUAN'.';'.$datab.';'.$datae1.';'.$value;
+    }
 
     //    4-я строка
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_DEMA','ПОТ_ДОЗВ','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data4'] =  $oldkey.';'.'F_DEMA'.';'.'ПОТ_ДОЗВ'.';'.' '.';'.' ';
+    $facts['data6'] =  $oldkey.';'.'F_DEMA'.';'.'ПОТ_ДОЗВ'.';'.' '.';'.' ';
 
     //    5-я строка
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_DEMA','$datab','$datae','$power_allow')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data5'] =  $oldkey.';'.'V_DEMA'.';'.$datab.';'.$datae.';'.$power_allow;
+    $facts['data7'] =  $oldkey.';'.'V_DEMA'.';'.$datab.';'.$datae.';'.$power_allow;
 
     //    6-я строка
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_DEMA','ПОТ_ПРИКВТ','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data6'] =  $oldkey.';'.'F_DEMA'.';'.'ПОТ_ПРИКВТ'.';'.' '.';'.' ';
+    $facts['data8'] =  $oldkey.';'.'F_DEMA'.';'.'ПОТ_ПРИКВТ'.';'.' '.';'.' ';
 
     //    7-я строка
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_DEMA','$datab','$datae','$power_con')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data7'] =  $oldkey.';'.'V_DEMA'.';'.$datab.';'.$datae.';'.$power_con;
+    $facts['data9'] =  $oldkey.';'.'V_DEMA'.';'.$datab.';'.$datae.';'.$power_con;
 
     if (!empty($react_)) {
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_FACT','ТАНГ_ФІ','','')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data8'] =  $oldkey.';'.'F_FACT'.';'.'ТАНГ_ФІ'.';'.' '.';'.' ';
+        $facts['data10'] =  $oldkey.';'.'F_FACT'.';'.'ТАНГ_ФІ'.';'.' '.';'.' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FACT','$datab','$datae','$tg_fi')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data9'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$tg_fi;
+        $facts['data11'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$tg_fi;
     if(!empty($eerm)) {
-        $facts['data10'] = $oldkey . ';' . 'F_FACT' . ';' . 'ЕЕРП' . ';' . ' ' . ';' . ' ';
-        $facts['data11'] = $oldkey . ';' . 'V_FACT' . ';' . $datab . ';' . $datae . ';' . $eerm;
+        $facts['data12'] = $oldkey . ';' . 'F_FACT' . ';' . 'ЕЕРП' . ';' . ' ' . ';' . ' ';
+        $facts['data13'] = $oldkey . ';' . 'V_FACT' . ';' . $datab . ';' . $datae . ';' . $eerm;
     }
     }
 
@@ -2161,62 +2211,74 @@ function f_facts($rem,$v) {
 //                     values($$$oldkey$$,'F_FACT','ГРРОБ_ДНІ','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data12'] =  $oldkey.';'.'F_FACT'.';'.'ГРРОБ_ДНІ'.';'.' '.';'.' ';
+    $facts['data14'] =  $oldkey.';'.'F_FACT'.';'.'ГРРОБ_ДНІ'.';'.' '.';'.' ';
 
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FACT','$datab','$datae','7')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data13'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.'7';
+    $facts['data15'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.'7';
 
     //ГРРОБ_ГОДН
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_FACT','ГРРОБ_ГОДН','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data14'] =  $oldkey.';'.'F_FACT'.';'.'ГРРОБ_ГОДН'.';'.' '.';'.' ';
+    $facts['data16'] =  $oldkey.';'.'F_FACT'.';'.'ГРРОБ_ГОДН'.';'.' '.';'.' ';
 
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FACT','$datab','$datae','$factor_hour')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data15'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$factor_hour;
+    $facts['data17'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$factor_hour;
 
     //Ф_КФГРНАВ
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_FACT','Ф_КФГРНАВ','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data16'] =  $oldkey.';'.'F_FACT'.';'.'Ф_КФГРНАВ'.';'.' '.';'.' ';
+    $facts['data18'] =  $oldkey.';'.'F_FACT'.';'.'Ф_КФГРНАВ'.';'.' '.';'.' ';
 
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FACT','$datab','$datae','1.15')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data17'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.'1.15';
+    $facts['data19'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.'1.15';
 
 // КАТНАД
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_FACT','КАТНАД','','')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-    $facts['data18'] =  $oldkey.';'.'F_FACT'.';'.'КАТНАД'.';'.' '.';'.' ';
+    $facts['data20'] =  $oldkey.';'.'F_FACT'.';'.'КАТНАД'.';'.' '.';'.' ';
 
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FACT','$datab','$datae','$safe_category')";
 //    exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data19'] = $oldkey . ';' . 'V_FACT' . ';' . $datab . ';' . $datae . ';' . $safe_category;
+        $facts['data21'] = $oldkey . ';' . 'V_FACT' . ';' . $datab . ';' . $datae . ';' . $safe_category;
     if (!empty($count_lost)) {
-        $facts['data20'] = $oldkey . ';' . 'F_FLAG' . ';' . 'ОЗ_ВТРНАР' . ';' . ' ' . ';' . ' ';
+        $facts['data22'] = $oldkey . ';' . 'F_FLAG' . ';' . 'ОЗ_ВТРНАР' . ';' . ' ' . ';' . ' ';
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_FLAG','$datab','$datae','$count_lost')";
 //    exec_on_server($z, (int)$rem, $vid);
-        $facts['data21'] = $oldkey . ';' . 'V_FLAG' . ';' . $datab . ';' . $datae . ';' . $count_lost;
+        $facts['data23'] = $oldkey . ';' . 'V_FLAG' . ';' . $datab . ';' . $datae . ';' . $count_lost;
     }
     if (!empty($no_lost)) {
-        $facts['data22'] =  $oldkey.';'.'F_RATE'.';'.'ОЗ_БЕЗВТР'.';'.' '.';'.' ';
-        $facts['data23'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.$no_lost;
+        $facts['data24'] =  $oldkey.';'.'F_FLAG'.';'.'ОЗ_БЕЗВТР'.';'.' '.';'.' ';
+        $facts['data25'] =  $oldkey.';'.'V_FLAG'.';'.$datab.';'.$datae.';'.$no_lost;
+    }
+    if (!empty($main)) {
+        $facts['data26'] =  $oldkey.';'.'F_FLAG'.';'.'ОЗ_ГОПЛВМ'.';'.' '.';'.' ';
+        $facts['data27'] =  $oldkey.';'.'V_FLAG'.';'.$datab.';'.$datae.';'.$main;
+    }
+    if (!empty($main_obj)) {
+        $facts['data28'] =  $oldkey.';'.'F_FLAG'.';'.'ОЗ_ГОЛОБ'.';'.' '.';'.' ';
+        $facts['data29'] =  $oldkey.';'.'V_FLAG'.';'.$datab.';'.$datae.';'.$main_obj;
+    }
+    if (!empty($name_tp)) {
+        $facts['data30'] =  $oldkey.';'.'F_FLAG'.';'.'ОЗ_ТП'.';'.' '.';'.' ';
+        $facts['data31'] =  $oldkey.';'.'V_FLAG'.';'.$datab.';'.$datae.';'.'X';
     }
 
 
@@ -2226,30 +2288,30 @@ function f_facts($rem,$v) {
 //                     values($$$oldkey$$,'F_RATE','ВТ_РЕАКТ','','')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data24'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_РЕАКТ'.';'.' '.';'.' ';
+        $facts['data32'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_РЕАКТ'.';'.' '.';'.' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_RATE','$datab','$datae','Р_РОЗР')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data25'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Р_РОЗР';
+        $facts['data33'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Р_РОЗР';
     }
     if (!empty($gen_)) {
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_RATE','ВТ_ГЕН','','')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data26'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_ГЕН'.';'.' '.';'.' ';
+        $facts['data34'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_ГЕН'.';'.' '.';'.' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_RATE','$datab','$datae','Г_РОЗР')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data27'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Г_РОЗР';
+        $facts['data35'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Г_РОЗР';
 
     }
 
-    $facts['data28'] =  $oldkey.';'.'&ENDE'.';'.' '.';'.' '.';'.' ';
+    $facts['data36'] =  $oldkey.';'.'&ENDE'.';'.' '.';'.' '.';'.' ';
 
 return $facts;
 }
@@ -2730,7 +2792,7 @@ function data_from_server($sql,$rem,$type)
                 $base = 'db_pg_pv_abn';
                 break;
             case 5:
-                $base = 'db_pg_krr_abn';
+                $base = 'db_pg_krg_abn';
                 break;
             case 6:
                 $base = 'db_pg_ap_abn';
@@ -2758,7 +2820,7 @@ function data_from_server($sql,$rem,$type)
                 $base = 'db_pg_pv_energo';
                 break;
             case 5:
-                $base = 'db_pg_krr_energo';
+                $base = 'db_pg_krg_energo';
                 break;
             case 6:
                 $base = 'db_pg_ap_energo';
@@ -2802,7 +2864,7 @@ function exec_on_server($sql,$rem,$type)
                 $base = 'db_pg_pv_abn';
                 break;
             case 5:
-                $base = 'db_pg_krr_abn';
+                $base = 'db_pg_krg_abn';
                 break;
             case 6:
                 $base = 'db_pg_ap_abn';
@@ -2830,7 +2892,7 @@ function exec_on_server($sql,$rem,$type)
                 $base = 'db_pg_pv_energo';
                 break;
             case 5:
-                $base = 'db_pg_krr_energo';
+                $base = 'db_pg_krg_energo';
                 break;
             case 6:
                 $base = 'db_pg_ap_energo';
