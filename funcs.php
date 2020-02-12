@@ -1117,7 +1117,7 @@ function f_partner_ind($n_struct,$rem,$v) {
             Yii::$app->db_pg_pv_abn->createCommand($z)->queryAll();
             break;
         case 5:
-            Yii::$app->db_pg_krr_abn->createCommand($z)->queryAll();
+            Yii::$app->db_pg_krg_abn->createCommand($z)->queryAll();
             break;
         case 6:
             Yii::$app->db_pg_ap_abn->createCommand($z)->queryAll();
@@ -1252,7 +1252,7 @@ function f_partner($n_struct, $rem, $v) {
             Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
             break;
         case 5:
-            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
             break;
         case 6:
             Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
@@ -1354,7 +1354,7 @@ function f_account($n_struct, $rem, $v) {
             Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
             break;
         case 5:
-            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
             break;
         case 6:
             Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
@@ -1487,7 +1487,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
             $data1 = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
             break;
         case 5:
-            $data1 = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+            $data1 = \Yii::$app->db_pg_krg_abn->createCommand($sql)->queryAll();
             break;
         case 6:
             $data1 = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
@@ -1540,7 +1540,7 @@ else
             Yii::$app->db_pg_pv_abn->createCommand($z)->queryAll();
             break;
         case 5:
-            Yii::$app->db_pg_krr_abn->createCommand($z)->queryAll();
+            Yii::$app->db_pg_krg_abn->createCommand($z)->queryAll();
             break;
         case 6:
             Yii::$app->db_pg_ap_abn->createCommand($z)->queryAll();
@@ -1604,7 +1604,7 @@ function f_connobj($n_struct,$rem,$v) {
             Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
             break;
         case 5:
-            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
             break;
         case 6:
             Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
@@ -1657,7 +1657,7 @@ function f_premise_ind($n_struct,$rem,$v) {
             Yii::$app->db_pg_pv_abn->createCommand($z)->queryAll();
             break;
         case 5:
-            Yii::$app->db_pg_krr_abn->createCommand($z)->queryAll();
+            Yii::$app->db_pg_krg_abn->createCommand($z)->queryAll();
             break;
         case 6:
             Yii::$app->db_pg_ap_abn->createCommand($z)->queryAll();
@@ -1721,7 +1721,7 @@ function f_device_ind($n_struct,$rem,$v) {
             Yii::$app->db_pg_pv_abn->createCommand($z)->queryAll();
             break;
         case 5:
-            Yii::$app->db_pg_krr_abn->createCommand($z)->queryAll();
+            Yii::$app->db_pg_krg_abn->createCommand($z)->queryAll();
             break;
         case 6:
             Yii::$app->db_pg_ap_abn->createCommand($z)->queryAll();
@@ -1802,7 +1802,7 @@ function f_premise($n_struct,$rem,$v) {
             Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
             break;
         case 5:
-            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
             break;
         case 6:
             Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
@@ -1845,7 +1845,7 @@ function f_devloc($n_struct,$rem,$v) {
             Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
             break;
         case 5:
-            Yii::$app->db_pg_krr_energo->createCommand($z)->queryAll();
+            Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
             break;
         case 6:
             Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();

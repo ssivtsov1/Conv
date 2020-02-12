@@ -1108,15 +1108,15 @@ b.phone,b.e_mail
                     Yii::$app->db_pg_pv_energo->createCommand($zsql5)->execute();
                     break;
                 case 5:
-                    $data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_krr_energo->createCommand($sql_c)->queryAll();
+                    $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql)->execute();
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql1)->execute();
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql2)->execute();
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql3)->execute();
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql4)->execute();
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql5)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql3)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql4)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql5)->execute();
                     break;
                 case 6:
                     $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -1215,7 +1215,7 @@ b.phone,b.e_mail
                 $struct_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                 break;
             case 5:
-                $struct_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                $struct_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                 break;
             case 6:
                 $struct_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -1259,7 +1259,7 @@ b.phone,b.e_mail
                             $cur_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                             break;
                         case 5:
-                            $cur_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                            $cur_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                             break;
                         case 6:
                             $cur_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -4332,8 +4332,8 @@ public function actionIdfile_seals($res)
                     $cnt = \Yii::$app->db_pg_pv_abn->createCommand($sql_c)->queryAll();
                     break;
                 case 5:
-                    $data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_krr_abn->createCommand($sql_c)->queryAll();
+                    $data = \Yii::$app->db_pg_krg_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krg_abn->createCommand($sql_c)->queryAll();
                     break;
                 case 6:
                     $data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
@@ -4380,9 +4380,9 @@ public function actionIdfile_seals($res)
                     Yii::$app->db_pg_pv_abn->createCommand($zsql2)->execute();
                     break;
                 case 5:
-                    Yii::$app->db_pg_krr_abn->createCommand($zsql)->execute();
-                    Yii::$app->db_pg_krr_abn->createCommand($zsql1)->execute();
-                    Yii::$app->db_pg_krr_abn->createCommand($zsql2)->execute();
+                    Yii::$app->db_pg_krg_abn->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_krg_abn->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_krg_abn->createCommand($zsql2)->execute();
                     break;
                 case 6:
                     Yii::$app->db_pg_ap_abn->createCommand($zsql)->execute();
@@ -4439,7 +4439,7 @@ public function actionIdfile_seals($res)
                 $struct_data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
                 break;
             case 5:
-                $struct_data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                $struct_data = \Yii::$app->db_pg_krg_abn->createCommand($sql)->queryAll();
                 break;
             case 6:
                 $struct_data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
@@ -4483,7 +4483,7 @@ public function actionIdfile_seals($res)
                             $cur_data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
                             break;
                         case 5:
-                            $cur_data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                            $cur_data = \Yii::$app->db_pg_krg_abn->createCommand($sql)->queryAll();
                             break;
                         case 6:
                             $cur_data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
@@ -4810,11 +4810,11 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
 
                     break;
                 case 5:
-                    $data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_krr_energo->createCommand($sql_c)->queryAll();
+                    $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql)->execute();
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql1)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql1)->execute();
 
                     break;
                 case 6:
@@ -4881,7 +4881,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                 $struct_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                 break;
             case 5:
-                $struct_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                $struct_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                 break;
             case 6:
                 $struct_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -4925,7 +4925,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                             $cur_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                             break;
                         case 5:
-                            $cur_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                            $cur_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                             break;
                         case 6:
                             $cur_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -5039,10 +5039,10 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                     Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
                     break;
                 case 5:
-                    $data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_krr_energo->createCommand($sql_c)->queryAll();
+                    $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
                     break;
                 case 6:
                     $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -5103,7 +5103,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                 $struct_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                 break;
             case 5:
-                $struct_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                $struct_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                 break;
             case 6:
                 $struct_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -5147,7 +5147,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                             $cur_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                             break;
                         case 5:
-                            $cur_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                            $cur_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                             break;
                         case 6:
                             $cur_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -5304,9 +5304,9 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                     Yii::$app->db_pg_pv_abn->createCommand($zsql)->execute();
                     break;
                 case 5:
-                    $data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_krr_abn->createCommand($sql_c)->queryAll();
-                    Yii::$app->db_pg_krr_abn->createCommand($zsql)->execute();
+                    $data = \Yii::$app->db_pg_krg_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krg_abn->createCommand($sql_c)->queryAll();
+                    Yii::$app->db_pg_krg_abn->createCommand($zsql)->execute();
                     break;
                 case 6:
                     $data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
@@ -5366,7 +5366,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                 $struct_data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
                 break;
             case 5:
-                $struct_data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                $struct_data = \Yii::$app->db_pg_krg_abn->createCommand($sql)->queryAll();
                 break;
             case 6:
                 $struct_data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
@@ -5409,7 +5409,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                             $cur_data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
                             break;
                         case 5:
-                            $cur_data = \Yii::$app->db_pg_krr_abn->createCommand($sql)->queryAll();
+                            $cur_data = \Yii::$app->db_pg_krg_abn->createCommand($sql)->queryAll();
                             break;
                         case 6:
                             $cur_data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
@@ -5686,15 +5686,15 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                     }
                     break;
                 case 5:
-                    $data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_krr_energo->createCommand($sql_c)->queryAll();
+                    $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
                     foreach ($cnt as $v){
                         if(trim($v['dattype'])=='INIT')
                             $z='delete from sap_'.trim($v['dattype']).'_acc';
                         else
                             $z='delete from sap_'.trim($v['dattype']);
-                        Yii::$app->db_pg_krr_energo->createCommand($z)->execute();
+                        Yii::$app->db_pg_krg_energo->createCommand($z)->execute();
                     }
                     break;
                 case 6:
@@ -5772,7 +5772,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                 $struct_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                 break;
             case 5:
-                $struct_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                $struct_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                 break;
             case 6:
                 $struct_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -5816,7 +5816,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                             $cur_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                             break;
                         case 5:
-                            $cur_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                            $cur_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                             break;
                         case 6:
                             $cur_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -5970,10 +5970,10 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                     Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
                     break;
                 case 5:
-                    $data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_krr_energo->createCommand($sql_c)->queryAll();
+                    $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    Yii::$app->db_pg_krr_energo->createCommand($zsql)->execute();
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
                     break;
                 case 6:
                     $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -6031,7 +6031,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                 $struct_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                 break;
             case 5:
-                $struct_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                $struct_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                 break;
             case 6:
                 $struct_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -6075,7 +6075,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                             $cur_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                             break;
                         case 5:
-                            $cur_data = \Yii::$app->db_pg_krr_energo->createCommand($sql)->queryAll();
+                            $cur_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                             break;
                         case 6:
                             $cur_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
