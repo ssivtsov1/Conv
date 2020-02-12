@@ -1669,7 +1669,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
                 trim(w.num_meter)=trim(d.sernr)
                 inner join sap_const const on 1=1
                 left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
-                where dt_off is null and length(a.plomb_num) < 15
+                where dt_off is null and length(a.plomb_num) <= 15
                 ";
 
         if ($helper == 1)
