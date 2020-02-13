@@ -1034,6 +1034,7 @@ function f_partner_ind($n_struct,$rem,$v) {
         $town=$v['town'];
         $post_code1=$v['post_index'];
         $street = $v['street'];
+        $street_cek = $v['street_cek'];
         $house_num1 =$v['house'];
         $house_num1 =str_replace(' ','',$house_num1);
         $roomnumber=$v['flat'];
@@ -1083,13 +1084,17 @@ function f_partner_ind($n_struct,$rem,$v) {
 
 
         if($n_struct=='BUT020') {
-            if($rem=='03' && trim($street)=="Металург" )
+            if (($rem=='03' && trim($street_cek)=="Металург" ) ||
+              (mb_substr($street_cek,0,3,'UTF-8')=='с-т' ||
+                mb_substr($street_cek,0,5,'UTF-8')=='ОК-СТ'||
+                trim($street_cek)=='Садове товариство'))
+                // Если садовое товарищество
                 $z = "insert into sap_but020(old_key,dat_type3,adext_addr,chind_addr,city1,post_code1,
                                          post_code2,po_box,street,house_num1,house_num2,str_suppl1,
                                          str_suppl2,roomnumber,region,chind_tel,tel_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~','~',
-                          '~','~',$$$street$$,'$house_num1','$roomnumber','$region','$chind_tel','$tel_number','$chind_smtp',
+                          '~','~',$$$street_cek$$,'$house_num1','$roomnumber','$region','$chind_tel','$tel_number','$chind_smtp',
                           '$smtp_addr','$tel_mobile','$iuru_pro')";
             else
             $z = "insert into sap_but020(old_key,dat_type3,adext_addr,chind_addr,city1,post_code1,
@@ -1458,6 +1463,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
     $town=$v['town_sap'];
     $id=$v['id'];
     $street = $v['street_sap'];
+    $street_cek = $v['street'];
     $house_num1 =mb_strtoupper(trim($v['house']),'UTF-8');
     $house_num1 = str_replace(' ','',$house_num1);
     $region=$v['region'];
@@ -1528,7 +1534,17 @@ else
 
     if($n_struct=='CO_ADR')
 
-        $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
+        if (($rem=='03' && trim($street_cek)=="Металург" ) ||
+            (mb_substr(trim($street_cek),0,3,'UTF-8')=='с-т' ||
+                mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
+                trim($street_cek)=='Садове товариство'))
+            // Если садовое товарищество
+           $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
+                                         street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street)
+                    values('$oldkey','$n_struct',$$$town$$,'$post_code1','~',
+                          '~',$$$street_cek$$,'$house_num1','$region','$iuru_pro','$type_street')";
+       else
+       $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
                                          street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street)
                     values('$oldkey','$n_struct',$$$town$$,'$post_code1',$$$street$$,
                           '$house_num1','~','~','$region','$iuru_pro','$type_street')";

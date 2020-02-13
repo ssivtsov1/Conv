@@ -1399,7 +1399,7 @@ b.phone,b.e_mail
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
-        trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
+        trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) 
          and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
          left join post_index_sap b2 on b1.numtown=b2.numtown and b2.post_index=c.indx         
         inner join sap_const const on
@@ -3626,7 +3626,8 @@ public function actionIdfile_seals($res)
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
-         trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
+         trim(lower(c.street))=trim(lower(b1.short_street)) 
+         and lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) 
          and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
         inner join sap_const const on
         1=1
@@ -3688,7 +3689,7 @@ public function actionIdfile_seals($res)
 
                     foreach ($cur_data as $d1) {
                         if(strtolower($table_struct)=='sap_co_adr')
-                            $d1=array_slice($d1, 0, 9);
+                            $d1=array_slice($d1, 0, 10);
                         $d1 = array_map('trim', $d1);
                         $s1=implode("\t", $d1);
                         $s1=str_replace("~","",$s1);
