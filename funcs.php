@@ -2563,6 +2563,53 @@ function f_inst_mgmt2_ind($rem,$v) {
     return $di_zw;
 }
 
+function f_discdoc1_ind($rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey = $oldkey_const . $v['id'];
+    $di_doc=[];
+    $di_doc[0]=$oldkey;     //oldkey
+    $di_doc[1]='HEADER';    //datatype
+    $di_doc[2]='99';        //DISCREASON
+    $di_doc[4]='INSTLN';    //REFOBJTYPE
+    $di_doc[5]='~';         //REFOBJKEY
+    $di_doc[6]=$oldkey;     //ANLAGE
+    $di_doc[7]='~';         //EQUNR
+    $di_doc[8]='~';         //VKONTO
+    return $di_doc;
+}
+function f_discdoc2_ind($rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey = $oldkey_const . $v['id'];
+    $di_inf=[];
+    $di_inf[0]=$oldkey;         //oldkey
+    $di_inf[1]='INFO';          //datatype
+    $di_inf[3]='42082379';      //ZZ_BP_PROVIDER
+    $di_inf[4]='01';            //ZZ_DISCREASON
+    return $di_inf;
+}
+
+function f_discorder_ind($rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey = $oldkey_const . $v['id'];
+    $di_ord=[];
+    $di_ord[0]=$oldkey;     //oldkey
+    $di_ord[1]='HEADER';    //datatype
+    $di_ord[2]=$oldkey;     //ANLAGE
+    $di_ord[3]=$v['code'];         //EQUNR
+    return $di_ord;
+}
+
+function f_discenter_ind($rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey = $oldkey_const . $v['id'];
+    $di_ent=[];
+    $di_ent[0]=$oldkey;     //oldkey
+    $di_ent[1]='HEADER';    //datatype
+    $di_ent[2]=$oldkey;     //ANLAGE
+    $di_ent[3]=str_replace('-','',$v['dat']);         //EQUNR
+    return $di_ent;
+}
+
 // Выгрузка instln юридические потребители
 function f_instln($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'B_01_';
