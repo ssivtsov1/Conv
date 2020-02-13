@@ -818,6 +818,15 @@ WHERE year_p=0 and year_q>0';
                 case 21:
                     return $this->redirect(['sap_move_in_ind', 'res' => $model->rem]);
                     break;
+                case 22:
+                    return $this->redirect(['sap_discdoc_ind', 'res' => $model->rem]);
+                    break;
+                case 23:
+                    return $this->redirect(['sap_discorder_ind', 'res' => $model->rem]);
+                    break;
+                case 24:
+                    return $this->redirect(['sap_discenter_ind', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -6179,6 +6188,253 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
             'model' => $model]);
         
     } 
+    
+public function actionSap_discdoc_ind($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
+        $sql = "select a.id,a.code,max(b.dt_action),const.ver from clm_paccnt_tbl a
+                join clm_switching_tbl b on a.id=b.id_paccnt
+                left join sap_const as const on 1=1
+                where a.archive ='0' and (a.activ = 'f' or a.activ is null)
+                group by a.id,a.code,const.ver";
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        // Заполняем массивы структур: $di_int и $di_zw
+        $i=0;
+        foreach ($data as $w) {
+            $di_doc[$i]=f_discdoc1_ind($rem,$w);
+            $di_inf[$i]=f_discdoc2_ind($rem,$w);
+            $i++;
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+//        debug($di_inf);
+//        return;
+        // Считываем данные в файл с массивов $di_int и $di_zw
+        $i=0;
+        $j=0;
+        foreach ($di_doc as $key=>$d) {
+            $d1 = array_map('trim', $d);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $v=$di_inf[$key];
+            
+            
+            
+//            foreach ($di_inf as $v) {
+                $d1 = array_map('trim', $v);
+                $s = implode("\t", $d1);
+                $s = str_replace("~", "", $s);
+                $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+                fputs($f, $s);
+                fputs($f, "\n");
+                fputs($f, $d1[0]."\t".'&ENDE');
+                fputs($f, "\n");
+//               
+//                 break;
+//            }
+            $i++;
+        }
+        fclose($f);
+
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//        return $this->render('info', [
+//            'model' => $model]);
+    }
+    
+    public function actionSap_discorder_ind($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
+        $sql = "select a.id,a.code,max(b.dt_action),const.ver from clm_paccnt_tbl a
+                join clm_switching_tbl b on a.id=b.id_paccnt
+                left join sap_const as const on 1=1
+                where a.archive ='0' and (a.activ = 'f' or a.activ is null)
+                group by a.id,a.code,const.ver";
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        // Заполняем массивы структур: $di_int и $di_zw
+        $i=0;
+        foreach ($data as $w) {
+            $di_ord[$i]=f_discorder_ind($rem,$w);
+            $i++;
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+//        debug($di_inf);
+//        return;
+        // Считываем данные в файл с массивов $di_int и $di_zw
+        $i=0;
+        foreach ($di_ord as $d) {
+            $d1 = array_map('trim', $d);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, "\n");            
+            
+            $i++;
+        }
+        fclose($f);
+
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//        return $this->render('info', [
+//            'model' => $model]);
+    }
+    
+    public function actionSap_discenter_ind($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
+        $sql = "select a.id,a.code,max(b.dt_action) as dat,const.ver from clm_paccnt_tbl a
+                join clm_switching_tbl b on a.id=b.id_paccnt
+                left join sap_const as const on 1=1
+                where a.archive ='0' and (a.activ = 'f' or a.activ is null)
+                group by a.id,a.code,const.ver";
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        // Заполняем массивы структур: $di_int и $di_zw
+        $i=0;
+        foreach ($data as $w) {
+            $di_ent[$i]=f_discenter_ind($rem,$w);
+            $i++;
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+//        debug($di_inf);
+//        return;
+        // Считываем данные в файл с массивов $di_int и $di_zw
+        $i=0;
+        foreach ($di_ent as $d) {
+            $d1 = array_map('trim', $d);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, "\n");            
+            
+            $i++;
+        }
+        fclose($f);
+
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//        return $this->render('info', [
+//            'model' => $model]);
+    }
+    
     
     // Импорт готовой таблицы street в базы РЭСов
     public function actionImp_street_in_bd()
