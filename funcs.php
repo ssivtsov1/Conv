@@ -1961,6 +1961,30 @@ function f_seals($n_struct,$rem,$v,$vid) {
 
     exec_on_server($z,(int) $rem,$vid);
 }
+
+// Выгрузка по линиям  юридич.
+function f_zlines($n_struct,$rem,$v,$vid) {
+    $day=((int) date('d'))-1;
+    $datab = date('Ymd', strtotime("-$day day"));
+    $oldkey_const='04_C'.$rem.'B_01_';
+    $r = $v['code_eqp'];
+    $pnt=$v['pnt'];
+    $pnt= substr((1000+$pnt),1,3);
+    $line_length=$v['line_length'];
+    $type_eqp=$v['type_eqp'];
+    $line_voltage_nom = $v['line_voltage_nom'];
+    $text =$v['text'];
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='AUTO')
+        $z = "insert into sap_auto_zlines(oldkey,dat_type,anlage,linum,frdat,frtim,lityp,length,voltage,state,
+                                    wxshr,fshar,xnegp,text,element_id)
+                    values('$oldkey','$n_struct','$oldkey','$pnt','$datab','000000','$type_eqp','$line_length',
+                            '$line_voltage_nom','L','100','X','~','$text','$pnt')";
+
+    exec_on_server($z,(int) $rem,$vid);
+}
+
 // Выгрузка instln бытовые
 function f_instln_ind($n_struct,$rem,$v,$vid) {
 $oldkey_const='04_C'.$rem.'B_01_';

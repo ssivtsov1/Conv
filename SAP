@@ -80,3 +80,19 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
    where t.type_eqp1=1
 
 
+--- INSTLN единицы считывания-----
+
+select y.id_paccnt,q.id,q.name,q.ableinh from prs_runner_paccnt y
+left join 
+(
+select qwe.id,qwe.name,104 + row_number() over (order by qwe.id) as ableinh  from (
+select distinct c.id,c.name from prs_runner_sectors c
+left join prs_runner_paccnt p on p.id_sector=c.id
+left join clm_paccnt_tbl as pa on pa.id=p.id_paccnt 
+--where pa.archive = '0'
+order by c.name
+) qwe) q on q.id=y.id_sector
+inner join clm_paccnt_tbl w on w.id=y.id_paccnt and w.archive = '0'
+
+
+

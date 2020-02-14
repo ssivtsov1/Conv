@@ -827,6 +827,12 @@ WHERE year_p=0 and year_q>0';
                 case 24:
                     return $this->redirect(['sap_discenter_ind', 'res' => $model->rem]);
                     break;
+                case 25:
+                    return $this->redirect(['sap_zlines', 'res' => $model->rem]);
+                    break;
+                case 26:
+                    return $this->redirect(['sap_ztransf', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -892,8 +898,11 @@ public function actionIdfile()
                     break;
                 case 16:
                     return $this->redirect(['idfile_move_in_ind', 'res' => $model->rem]);
-                    break;                
-                }                
+                    break;
+                case 17:
+                    return $this->redirect(['all_idfile', 'res' => $model->rem]);
+                    break;
+            }
         }
         else {
 
@@ -1636,6 +1645,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
 
         return $this->render('info', [
             'model' => $model]);
+//        return 1;
         
     }
     
@@ -1904,7 +1914,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
-                '' as zz_nametu,'' as zz_fider,'20200101' as ab,'sprav_ealn_ttyp' as tariftyp,
+                '' as zz_nametu,'' as zz_fider,'20200101' as ab,'CK_1AL2_01' as tariftyp,
                 '0001' as aklasse,'sprav_te422' as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
                 case when trim(adr.type_city)='м.' then '70' else '71' end as branche
                 from clm_paccnt_tbl a 
@@ -2112,7 +2122,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
     } 
     
     
-    // Формирование файла пломб(seal) для САП для юридических потребителей
+    // Формирование файла instln для САП для юридических потребителей
     public function actionSap_instln($res)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
@@ -2393,10 +2403,399 @@ inner join sap_const const on 1=1";
             'model' => $model]);
     }
 
+    // Формирование файла линий(zlines) для САП для юридических потребителей
+    public function actionSap_zlines($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+                case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
+                    when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
+                end as line_length,
+                case when p.type_eqp=6 then sap_c.m
+                    when p.type_eqp=7 then sap_l.m
+                end as line_voltage_nom,
+                case when p.type_eqp=2 then trim(coalesce(sap_tr.trtyp,eqk.type))
+                    when p.type_eqp=6 then trim(coalesce(sap_cable.id_sap,cable.type))
+                    when p.type_eqp=7 then trim(coalesce(sap_line.id_sap,corde.type))
+                end as type_eqp,  
+                case when p.type_eqp=7 then 'ПЛ: '||trim(corde.type)||';  R0='||round(corde.ro,3)||' X0='||round(corde.xo,3) end as line_text,
+                case when p.type_eqp=6 then 'КЛ: '||trim(cable.type)||';  R0='||round(cable.ro,3)||coalesce(' X0='||round(cable.xo,3),'') end as cable_text,
+                case when p.type_eqp=2 then trim(eqk.type) end as compensator_text,
+                p.name as text, p.type_eqp as id_type_eqp,
+                case when eqk.swathe=2 then '2L' 
+                    when eqk.swathe=2 then '3L'
+                end as swathe,
+                case when length(p.id_point::varchar)>7 then p.id_point else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.id_point::varchar)::int)),(7-(length(p.id_point::varchar)::int)))||p.id_point::varchar)::int end as instln_key,
+		      case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
+		       const.ver as ver		
+                from tmp_eqm_schema_point_tbl as p
+                join (select id_point, name as name_point from tmp_eqm_schema_point_tbl where type_eqp=12 and id_point=code_eqp) as p2 on (p.id_point=p2.id_point)
+                left join eqm_line_a_tbl as line_a on (line_a.code_eqp=p.code_eqp)
+                left join eqm_line_c_tbl as line_c on (line_c.code_eqp=p.code_eqp)
+                left join eqi_corde_tbl as corde on (corde.id=line_a.id_type_eqp)
+                left join eqi_cable_tbl as cable on (cable.id=line_c.id_type_eqp)
+                left join eqm_compensator_tbl AS eqd on (eqd.code_eqp=p.code_eqp) 
+                left join eqi_compensator_tbl AS eqk on (eqd.id_type_eqp=eqk.id) 
+                left join sap_type_tr_2w_tbl as sap_tr on (sap_tr.id_type=eqk.id)
+                left join cabels_soed as sap_cable on (sap_cable.id_en=cable.id and sap_cable.type_cab=1)
+                left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
+                left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
+                left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
+                inner join sap_const const on 1=1   
+                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  and  p.type_eqp<>2
+                order by p.id_point, p.lvl desc";
+
+        if($helper==1)
+            $sql = $sql.' LIMIT 1';
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+        // Включение режима помощника
+        if($helper==1){
+            $fhelper=$routine.'_HELPER'.'.txt';
+            $ff = fopen($fhelper,'w+');
+            // Создание переменных
+            foreach ($data as $v) {
+                foreach ($v as $k => $v1) {
+                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    fputs($ff, $var);
+                    fputs($ff, "\n");
+
+                }
+            }
+            $i=0;
+
+            foreach ($cnt as $v) {
+                $i++;
+                $n_struct = trim($v['dattype']);
+                fputs($ff, "\n");
+                $var='if ($n_struct=='."'$n_struct') {";
+                fputs($ff, $var);
+                fputs($ff, "\n");
+                //Создание строки INSERT
+                $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
+                $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
+//                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
+                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = ' exec_on_server($z,(int) $rem,$vid);';
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = "}";
+                fputs($ff, $z);
+                fputs($ff, "\n");
+            }
+
+            // Выдаем предупреждение на экран об окончании формирования файла для помощи
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл допомоги $fhelper сформовано.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        }
+
+        // Удаляем данные в таблицах структур
+        $i=0;
+        foreach ($cnt as $v) {
+            $i++;
+            $n_struct = trim($v['dattype']);
+            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_".strtolower($n_struct);
+            exec_on_server($zsql,$res,$vid);
+        }
+
+        // Заполняем структуры
+        foreach ($data as $w) {
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                eval($func_fill);
+            }
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с каждой таблицы
+        $sql = "select * from sap_$first_struct"."_zlines";
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']).'_zlines';
+                $i++;
+                if($i>1) {
+                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл ZLINES сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    // Формирование файла трансформаторов (ztransf) для САП для юридических потребителей
+    public function actionSap_ztransf($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+                case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
+                    when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
+                end as line_length,
+                case when p.type_eqp=6 then sap_c.m
+                    when p.type_eqp=7 then sap_l.m
+                end as line_voltage_nom,
+                case when p.type_eqp=2 then trim(coalesce(sap_tr.trtyp,eqk.type))
+                    when p.type_eqp=6 then trim(coalesce(sap_cable.id_sap,cable.type))
+                    when p.type_eqp=7 then trim(coalesce(sap_line.id_sap,corde.type))
+                end as type_eqp,  
+                case when p.type_eqp=7 then 'ПЛ: '||trim(corde.type)||';  R0='||round(corde.ro,3)||' X0='||round(corde.xo,3) end as line_text,
+                case when p.type_eqp=6 then 'КЛ: '||trim(cable.type)||';  R0='||round(cable.ro,3)||coalesce(' X0='||round(cable.xo,3),'') end as cable_text,
+                case when p.type_eqp=2 then trim(eqk.type) end as compensator_text,
+                p.name as text, p.type_eqp as id_type_eqp,
+                case when eqk.swathe=2 then '2L' 
+                    when eqk.swathe=2 then '3L'
+                end as swathe,
+                case when length(p.id_point::varchar)>7 then p.id_point else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.id_point::varchar)::int)),(7-(length(p.id_point::varchar)::int)))||p.id_point::varchar)::int end as instln_key,
+		      case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
+		       const.ver as ver		
+                from tmp_eqm_schema_point_tbl as p
+                join (select id_point, name as name_point from tmp_eqm_schema_point_tbl where type_eqp=12 and id_point=code_eqp) as p2 on (p.id_point=p2.id_point)
+                left join eqm_line_a_tbl as line_a on (line_a.code_eqp=p.code_eqp)
+                left join eqm_line_c_tbl as line_c on (line_c.code_eqp=p.code_eqp)
+                left join eqi_corde_tbl as corde on (corde.id=line_a.id_type_eqp)
+                left join eqi_cable_tbl as cable on (cable.id=line_c.id_type_eqp)
+                left join eqm_compensator_tbl AS eqd on (eqd.code_eqp=p.code_eqp) 
+                left join eqi_compensator_tbl AS eqk on (eqd.id_type_eqp=eqk.id) 
+                left join sap_type_tr_2w_tbl as sap_tr on (sap_tr.id_type=eqk.id)
+                left join cabels_soed as sap_cable on (sap_cable.id_en=cable.id and sap_cable.type_cab=1)
+                left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
+                left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
+                left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
+                inner join sap_const const on 1=1   
+                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1 and  p.type_eqp=2
+                order by p.id_point, p.lvl desc";
+
+        if($helper==1)
+            $sql = $sql.' LIMIT 1';
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+        // Включение режима помощника
+        if($helper==1){
+            $fhelper=$routine.'_HELPER'.'.txt';
+            $ff = fopen($fhelper,'w+');
+            // Создание переменных
+            foreach ($data as $v) {
+                foreach ($v as $k => $v1) {
+                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    fputs($ff, $var);
+                    fputs($ff, "\n");
+
+                }
+            }
+            $i=0;
+
+            foreach ($cnt as $v) {
+                $i++;
+                $n_struct = trim($v['dattype']);
+                fputs($ff, "\n");
+                $var='if ($n_struct=='."'$n_struct') {";
+                fputs($ff, $var);
+                fputs($ff, "\n");
+                //Создание строки INSERT
+                $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
+                $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
+//                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
+                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = ' exec_on_server($z,(int) $rem,$vid);';
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = "}";
+                fputs($ff, $z);
+                fputs($ff, "\n");
+            }
+
+            // Выдаем предупреждение на экран об окончании формирования файла для помощи
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл допомоги $fhelper сформовано.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        }
+
+        // Удаляем данные в таблицах структур
+        $i=0;
+        foreach ($cnt as $v) {
+            $i++;
+            $n_struct = trim($v['dattype']);
+            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_".strtolower($n_struct);
+            exec_on_server($zsql,$res,$vid);
+        }
+
+        // Заполняем структуры
+        foreach ($data as $w) {
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                eval($func_fill);
+            }
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с каждой таблицы
+        $sql = "select * from sap_$first_struct"."_zlines";
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']).'_zlines';
+                $i++;
+                if($i>1) {
+                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл ZLINES сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
     // Формирование файла facts для САП для юридических потребителей
     public function actionSap_facts($res)
     {
-
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -3113,8 +3512,42 @@ where a.archive='0'
         return $this->render('info', [
             'model' => $model]);
         
-    } 
-    
+    }
+
+    // Выгрузка всех ID файлов (САП)  для бытовых потребителей
+    public function actionAll_idfile($res)
+    {
+        $actions = [
+            'idfile_partner_ind',
+            'idfile_premise_ind',
+            'idfile_account_ind',
+            'idfile_devloc_ind',
+            'idfile_device_ind',
+            'idfile_seals_ind',
+            'idfile_instln_ind',
+            'idfile_facts_ind',
+            'idfile_move_in_ind'
+        ];
+        $log = 'log_ext.txt';
+        $f = fopen($log, "w+");
+        for ($i = 0; $i < 9; $i++) {
+           // $this->redirect([$actions[$i], 'res' => $res]);
+            $r=Yii::$app->response->redirect([$actions[$i],  'res' => $res])->send();
+            fputs($f,'Сформирован файл ' . $actions[$i] . '_ext');
+            fputs($f,"\n");
+        }
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файли _ext сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+
+    }
 
 
     // Формирование файла пломб(seal) для САП для юр. потребителей
