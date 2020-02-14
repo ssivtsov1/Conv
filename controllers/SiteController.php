@@ -1401,7 +1401,7 @@ b.phone,b.e_mail
         $sql = "select a.id,a.activ,b.tax_number,b.last_name,
                 b.name,b.patron_name,b1.town,c.town as town_cek,b2.post_index,c.indx as index_cek,
                 case when b1.street is null then 'Неопределено' else b1.street end as street,c.street as street_cek,
-                upper(c.house) as house,c.flat,b.mob_phone,b.e_mail,const.id_res,
+                upper(c.house) as house,upper(c.korp) as korp,c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id

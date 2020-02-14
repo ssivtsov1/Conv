@@ -1036,6 +1036,18 @@ function f_partner_ind($n_struct,$rem,$v) {
         $street = $v['street'];
         $street_cek = $v['street_cek'];
         $house_num1 =$v['house'];
+        $korp=$v['korp'];
+        $l_c=0;
+        if (ctype_digit($korp)) {
+            $l_c = 1;
+            $korp = 'корп. '.$korp;
+        }
+        else{
+            if (!empty($korp))
+            {
+                $house_num1=$house_num1.$korp;
+            }
+        }
         $house_num1 =str_replace(' ','',$house_num1);
         $roomnumber=$v['flat'];
         $region=$v['region'];
@@ -1096,14 +1108,24 @@ function f_partner_ind($n_struct,$rem,$v) {
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~','~',
                           '~','~',$$$street_cek$$,'$house_num1','$roomnumber','$region','$chind_tel','$tel_number','$chind_smtp',
                           '$smtp_addr','$tel_mobile','$iuru_pro')";
-            else
-            $z = "insert into sap_but020(old_key,dat_type3,adext_addr,chind_addr,city1,post_code1,
+            else {
+                if ($l_c == 1)
+                    $z = "insert into sap_but020(old_key,dat_type3,adext_addr,chind_addr,city1,post_code1,
+                                         post_code2,po_box,street,house_num1,house_num2,str_suppl1,
+                                         str_suppl2,roomnumber,region,chind_tel,tel_number,chind_smtp,
+                                         smtp_addr,tel_mobile,iuru_pro)
+                    values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
+                          '$house_num1','$korp','~','~','$roomnumber','$region','$chind_tel','$tel_number','$chind_smtp',
+                          '$smtp_addr','$tel_mobile','$iuru_pro')";
+                else
+                    $z = "insert into sap_but020(old_key,dat_type3,adext_addr,chind_addr,city1,post_code1,
                                          post_code2,po_box,street,house_num1,house_num2,str_suppl1,
                                          str_suppl2,roomnumber,region,chind_tel,tel_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
                           '$house_num1','~','~','~','$roomnumber','$region','$chind_tel','$tel_number','$chind_smtp',
                           '$smtp_addr','$tel_mobile','$iuru_pro')";
+            }
         }
 
        if($n_struct=='BUT0ID')
