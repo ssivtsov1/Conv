@@ -2952,6 +2952,7 @@ function data_from_server($sql,$rem,$type)
         }
     }
     $data='$data='." \Yii::".'$app'."->".$base."->createCommand($sql)"."->queryAll();";
+
     eval($data);
 
 

@@ -2723,7 +2723,7 @@ inner join sap_const const on 1=1";
 
         // Удаляем данные в таблицах структур
         $i=0;
-        foreach ($cnt as $v) {
+         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
             if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
