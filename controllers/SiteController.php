@@ -1911,16 +1911,35 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         // Получаем название подпрограммы
         $routine = strtoupper(substr($method,10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
-
+        $asd = [ "01" => 'BC010131',
+                 "02" => 'BC010231',
+                 "03" => 'BC010331',
+                 "04" => 'BC010431',
+                 "05" => 'BC010531',
+                 "06" => 'BC010631',
+                 "07" => 'BC010731',
+                 "08" => 'BC010831', 
+        ];
         // Главный запрос со всеми необходимыми данными
         $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
-                '' as zz_nametu,'' as zz_fider,'20200101' as ab,'CK_1AL2_01' as tariftyp,
-                '0001' as aklasse,'sprav_te422' as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
-                case when trim(adr.type_city)='м.' then '70' else '71' end as branche
-                from clm_paccnt_tbl a 
-                inner join sap_const b on 1=1
-                left join sap_evbsd c on a.id=substr(c.oldkey,9)::integer
-                left join vw_address adr on a.id=adr.id
+                                '' as zz_nametu,'' as zz_fider,'20200101' as ab,'CK_1AL2_01' as tariftyp,
+                                '0001' as aklasse,ff.ableinh as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
+                                case when trim(adr.type_city)='м.' then '70' else '71' end as branche, p.id_sector
+                                from clm_paccnt_tbl a 
+                                inner join sap_const b on 1=1
+                                left join sap_evbsd c on a.id=substr(c.oldkey,9)::integer
+                                left join vw_address adr on a.id=adr.id
+                                left join prs_runner_paccnt p on p.id_paccnt=a.id
+                        left join (                
+                                select qwe.id,qwe.name,'$asd[$rem]' as ableinh from (
+                                select distinct c.id,c.name from prs_runner_sectors c
+                                left join prs_runner_paccnt p on p.id_sector=c.id
+                                left join clm_paccnt_tbl as pa on pa.id=p.id_paccnt
+                                where pa.archive = '0'
+                                order by c.name
+                                ) qwe
+                                ) ff
+                        on ff.id=p.id_sector
                 where a.archive='0'
                 ";
 
