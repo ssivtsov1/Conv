@@ -833,6 +833,9 @@ WHERE year_p=0 and year_q>0';
                 case 26:
                     return $this->redirect(['sap_ztransf', 'res' => $model->rem]);
                     break;
+                case 27:
+                    return $this->redirect(['sap_inst_mgmt', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -1591,7 +1594,7 @@ b.phone,b.e_mail
         // Формирование файла partner для САП для бытовых
     }
 
-    public function actionIdfile_partner_ind($res)
+    public function actionIdfile_partner_ind($res,$par=0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -1643,9 +1646,11 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
-//        return 1;
+        if($par==0)
+            return $this->render('info', [
+                'model' => $model]);
+//        else
+//            return 1;
         
     }
     
@@ -1922,7 +1927,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         ];
         // Главный запрос со всеми необходимыми данными
         $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
-                                '' as zz_nametu,'' as zz_fider,'20200101' as ab,'CK_1AL2_01' as tariftyp,
+                                '' as zz_nametu,'' as zz_fider,'20190901' as ab,'CK_1AL2_01' as tariftyp,
                                 '0001' as aklasse,ff.ableinh as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
                                 case when trim(adr.type_city)='м.' then '70' else '71' end as branche, p.id_sector
                                 from clm_paccnt_tbl a 
@@ -2069,6 +2074,81 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $model = new info();
         $model->title = 'УВАГА!';
         $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    // Формирование файла монтажей INST_MGMT (юридические лица)
+    public function actionSap_inst_mgmt($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+//   Дальше идет плагиат - взято из выгрузки Чернигова
+        $period = '2020-02-01';
+    $sql="select distinct 'INST_MGMT' as name, c.id,c.code, eq.name_eqp,m.code_eqp as id_eq,
+    '04_C'||'$rem'||'P_'||m.code_eqp as oldkey,const.ver
+     from eqm_tree_tbl as tr 
+    join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
+    join eqm_equipment_tbl as eq on (ttr.code_eqp = eq.id) 
+    join eqm_meter_tbl as m on (m.code_eqp = eq.id) 
+    left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+    left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+    left join clm_statecl_h as sc on (c.id = sc.id_client) 
+    left join eqm_equipment_h as hm on (hm.id = eq.id) 
+    left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+    inner join sap_const const on 1=1
+    where hm.dt_b = (select dt_b from eqm_equipment_h where id = eq.id and num_eqp = eq.num_eqp and dt_e is null order by dt_b desc limit 1 ) 
+    and c.book=-1 and c.idk_work not in (0) 
+    and coalesce(c.id_state,0) not in (50,99,80,49,100)
+    and sc.mmgg_b = (select max(mmgg_b) from clm_statecl_h as sc2 where sc2.id_client = sc.id_client and sc2.mmgg_b <= date_trunc('month', '$period'::date ) )  
+    and sc.id_section not in (205,206,207,208,209,218) 
+    and coalesce (use.id_client, tr.id_client) <> syi_resid_fun()
+    and coalesce (use.id_client, tr.id_client)<>999999999
+    order by 5";
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+//        Формируем имя файла выгрузки
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+        foreach($data as $v) {
+           // Пишем первую строку в файл выгрузки
+            fwrite($f, iconv("utf-8", "windows-1251", $v['name'] . "\t" .
+                    $v['oldkey'] . "\t" .
+                    $v['code'] . "\t" .
+                    $v['name_eqp'] . "\t" . "\n")
+            );
+            $id_eq = $v['id_eq'];
+            $oldkey = $v['oldkey'];
+        }
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл INST_MGMT сформовано.";
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
@@ -2803,7 +2883,7 @@ inner join sap_const const on 1=1";
         // Выдаем предупреждение на экран об окончании формирования файла
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл ZLINES сформовано.";
+        $model->info1 = "Файл ZTRANSF сформовано.";
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
@@ -3279,7 +3359,8 @@ case when a.id_zone=6 then a.value else 0.0000 end as value_6,
 case when a.id_zone=7 then a.value else 0.0000 end as value_7,
 case when a.id_zone=8 then a.value else 0.0000 end as value_8,
 a.dat_ind,
-'04_C04B_'||a.id_paccnt as devloc,'04_C04B_01_'||a.id_paccnt as anlage,'04_C04B_'||m.id as equnre,
+'04_C'||$$$rem$$||'B_'||a.id_paccnt as devloc,'04_C'||$$$rem$$||'B_'||a.id_paccnt as anlage,
+'04_C'||$$$rem$$||'B_'||m.id as equnre,
 '01' as action,
  case when a.id_zone=0 then p.demand else 0 end demand_0,
  case when a.id_zone=9 then p.demand else 0 end demand_9,
@@ -3549,9 +3630,9 @@ where a.archive='0'
         ];
         $log = 'log_ext.txt';
         $f = fopen($log, "w+");
-        for ($i = 0; $i < 9; $i++) {
+        for ($i = 0; $i < 2; $i++) {
            // $this->redirect([$actions[$i], 'res' => $res]);
-            $r=Yii::$app->response->redirect([$actions[$i],  'res' => $res])->send();
+            $r=Yii::$app->response->redirect([$actions[$i],  'res' => $res,'par' => 1])->send();
             fputs($f,'Сформирован файл ' . $actions[$i] . '_ext');
             fputs($f,"\n");
         }
@@ -4204,7 +4285,7 @@ public function actionIdfile_seals($res)
                 from
                 --INIT
                 (select 'INIT' as struct,a.id,a.code as vkona,
-                const.vktyp as vktyp,'04_C04B_'||a.id as gpart,const.ver
+                const.vktyp as vktyp,'04_C'||$$$rem$$||'B_'||a.id as gpart,const.ver
                 from clm_paccnt_tbl as a
                 left join clm_abon_tbl as b on a.id = b.id
                 inner join sap_const const on 1=1
@@ -4212,7 +4293,7 @@ public function actionIdfile_seals($res)
                 ) s1
                 left join
                 --VKP
-                (select distinct 'VKP' as struct,a.id,'04_C04B_'||a.id as partner,const.opbuk,51 as ikey,
+                (select distinct 'VKP' as struct,a.id,'04_C'||$$$rem$$||'B_'||a.id as partner,const.opbuk,51 as ikey,
                 const.begru_b as begru,c.adext_addr as adrnb_ext,
                 '0010' as ZAHLKOND,'0001' as VERTYP,
                      '0' as KZABSVER,
@@ -4225,7 +4306,7 @@ public function actionIdfile_seals($res)
                 from clm_paccnt_tbl as a
                 left join clm_abon_tbl as b on a.id = b.id
                 inner join sap_const const on 1=1
-                left join sap_but020 c on '04_C04B_'||a.id=c.old_key
+                left join sap_but020 c on '04_C'||$$$rem$$||'B_'||a.id=c.old_key
                 left join a_cabinet_register_tbl x on trim(x.lic)=trim(a.code)
                 left join (select max(date_agreem) as date_agreem,id_paccnt from clm_agreem_tbl 
 				group by id_paccnt) y on y.id_paccnt=a.id
@@ -4597,7 +4678,7 @@ public function actionIdfile_seals($res)
         $sql = "select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
                   const.stort,const.begru_b as begru,const.ver
                 from clm_paccnt_tbl as a
-                left join sap_evbsd b on b.oldkey='04_C04B_'||a.id
+                left join sap_evbsd b on b.oldkey='04_C'||$$$rem$$||'B_'||a.id
                 inner join sap_const const on 1=1
                 where a.archive='0' ";
 
@@ -5729,7 +5810,12 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         left join vw_address c on
         a.id=c.id
         left join sap_co_adr dd on
-        dd.city1=c.type_city||' '||c.town and dd.street=c.type_street||' '||c.street and dd.house_num1=c.house -- and dd.cek_type_street=c.type_street
+        --dd.city1=c.type_city||' '||c.town and dd.street=c.type_street||' '||c.street and dd.house_num1=c.house -- and dd.cek_type_street=c.type_street
+       trim(lower(dd.city1))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+       and dd.street=c.type_street||' '||c.street and upper(dd.house_num1)=upper(c.house)
+       
+        --trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) 
+        --and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
@@ -5920,7 +6006,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
     
     //формирование файлов идентификации в САП абонентов АБН структруры "премайс"
     //бытовые абоненты
-    public function actionIdfile_premise_ind ($res){
+    public function actionIdfile_premise_ind ($res,$par=0){
         
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -5974,8 +6060,11 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
+        if($par==0)
+                return $this->render('info', [
+                 'model' => $model]);
+        else
+            return 1;
         
     }
 

@@ -1785,7 +1785,7 @@ function f_device_ind($n_struct,$rem,$v) {
 
 // Выгрузка по device юридические
 function f_device($n_struct,$rem,$v,$vid) {
-    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey_const='04_C'.$rem.'P_';
     $r = $v['id'];
     $eqart=$v['eqart'];
     $baujj=$v['baujj'];
@@ -1984,6 +1984,29 @@ function f_zlines($n_struct,$rem,$v,$vid) {
 
     exec_on_server($z,(int) $rem,$vid);
 }
+
+// Выгрузка по линиям  юридич.
+function f_ztransf($n_struct,$rem,$v,$vid) {
+    $day=((int) date('d'))-1;
+    $datab = date('Ymd', strtotime("-$day day"));
+    $oldkey_const='04_C'.$rem.'B_01_';
+    $r = $v['code_eqp'];
+    $pnt=$v['pnt'];
+    $pnt= substr((1000+$pnt),1,3);
+    $swathe=$v['swathe'];
+    $type_eqp=$v['type_eqp'];
+    $text =$v['text'];
+    $oldkey = $oldkey_const . $r;
+
+    if($n_struct=='AUTO')
+        $z = "insert into sap_auto_ztransf(oldkey,dat_type,anlage,frdat,frtim,trcat,trtyp,trsta,
+                                    xnegp,text,element_id)
+                    values('$oldkey','$n_struct','$oldkey','$datab','000000','$type_eqp','$swathe',
+                            'L','X','$text','$pnt')";
+
+    exec_on_server($z,(int) $rem,$vid);
+}
+
 
 // Выгрузка instln бытовые
 function f_instln_ind($n_struct,$rem,$v,$vid) {
