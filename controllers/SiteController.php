@@ -2105,7 +2105,10 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $routine = strtoupper(substr($method,10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 //   Дальше идет плагиат - взято из выгрузки Чернигова
-        $period = '2020-02-01';
+        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $data_p = data_from_server($sql_p, $res, $vid);
+        $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
+
     $sql="select distinct 'INST_MGMT' as name, c.id,c.code, eq.name_eqp,m.code_eqp as id_eq,
     '04_C'||'$rem'||'P_'||m.code_eqp as oldkey,const.ver
      from eqm_tree_tbl as tr 
@@ -2135,14 +2138,137 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
         $f = fopen($fname,'w+');
         foreach($data as $v) {
-           // Пишем первую строку в файл выгрузки
-            fwrite($f, iconv("utf-8", "windows-1251", $v['name'] . "\t" .
-                    $v['oldkey'] . "\t" .
-                    $v['code'] . "\t" .
-                    $v['name_eqp'] . "\t" . "\n")
-            );
+//            fwrite($f, iconv("utf-8", "windows-1251", $v['name'] . "\t" .
+//                    $v['oldkey'] . "\t" .
+//                    $v['code'] . "\t" .
+//                    $v['name_eqp'] . "\t" . "\n")
+//            );
             $id_eq = $v['id_eq'];
+            $id = $v['id'];
             $oldkey = $v['oldkey'];
+            $sql_f = "select di_zw($id_eq , '$period')";
+            $data_f = data_from_server($sql_f, $res, $vid);
+            $sql_f = "select * from di_zw_struc order by knde,sort";
+            $data_f = data_from_server($sql_f, $res, $vid);
+            $devloc = '04_C04P_' . strtoupper(hash('crc32', $id));
+            $sql_1 = "select distinct
+                 '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
+                '$devloc' as devloc,
+                'DI_INT' as struc,'$period' as eadat,
+                 '04_C'||'$rem'||'B_01_'||eq.id::varchar as anlage,
+                '01' as ACTION
+                from eqm_meter_tbl as m
+                join eqm_equipment_tbl as eq on (m.code_eqp = eq.id) 
+                left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+                left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join 
+                eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = mp.id_point) 
+                where m.code_eqp= $id_eq";
+            $data_1 = data_from_server($sql_1, $res, $vid);
+            // Запись в файл структуры DI_INT
+            foreach ($data_1 as $v1) {
+                fwrite($f, iconv("utf-8", "windows-1251", $v1['oldkey'] . "\t" .
+                    $v1['struc'] . "\t" .
+                    $v1['devloc'] . "\t" .
+                    $v1['anlage'] . "\t" .
+                    $v1['eadat'] . "\t" .
+                    $v1['action'] . "\n"));
+            }
+            $c = 0;
+            $c1 = '';
+            // Запись в файл структуры DI_ZW
+
+
+            foreach ($data_f as $v2) {
+                $c = $c + 1;
+                $c1 = '00' . "$c";
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    'DI_ZW' . "\t" . $c1 . "\t" .
+                    $v2['kondigre'] . "\t" .
+                    $v2['zwstandce'] . "\t" .
+                    $v2['zwnabr'] . "\t" .
+                    $v2['tarifart'] . "\t" .
+                    $v2['perverbr'] . "\t" .
+                    $v2['equnre'] . "\t" .
+                    $v2['anzdaysofperiod'] . "\t" .
+                    $v2['pruefkla'] . "\n"));
+            }
+
+            $sql_2 = "select distinct 
+                '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
+                'DI_GER' as struc,
+                case when grp.code_t_new is null then 
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||grp.code_t_new end as EQUNRNEU,
+                '' as WANDNR,
+                '' as WANDNRE
+                from eqm_tree_tbl as tr 
+                join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
+                join eqm_equipment_tbl as eq on (ttr.code_eqp = eq.id) 
+                join eqm_meter_tbl as m on (m.code_eqp = eq.id) 
+                left join eqd_meter_energy_tbl as eqd on eqd.code_eqp = m.code_eqp
+                left join eqm_equipment_h as hm on (hm.id = eq.id) 
+                left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+                left join eqm_point_tbl as pp on (pp.code_eqp = mp.id_point ) 
+                left join ( select eq.id as id_comp,CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, tt3.code_eqp_e as id_area, 
+                ic.amperage_nom, ic.conversion , ic.type as tt_type,ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner --,
+                   from eqm_compensator_i_tbl as c 
+                        join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+                        join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+                        left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+                        left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+                        left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+                        left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+                        left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
+                        ) as sti on (sti.id_meter = eq.id) 
+                left join group_trans as grp on grp.id_meter=m.code_eqp
+                where m.code_eqp= $id_eq and sti.id_comp is not null and grp.code_t_new is not null";
+            $data_2 = data_from_server($sql_2, $res, $vid);
+            // Запись в файл структуры DI_GER
+            foreach ($data_2 as $v2) {
+                fwrite($f, iconv("utf-8", "windows-1251", $v2['oldkey'] . "\t" .
+                    $v2['struc'] . "\t" .
+                    $v2['equnrneu'] . "\n"));
+            }
+            $sql_3 = "select distinct 
+                    '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
+                    'DI_GER' as struc,
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text  as EQUNRNEU,
+                    '04_C'||'$rem'||'P_'||grp.code_t_new as met_id,
+                    '' as WANDNR,
+                    '' as WANDNRE
+                    from eqm_tree_tbl as tr 
+                    join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
+                    join eqm_equipment_tbl as eq on (ttr.code_eqp = eq.id) 
+                    join eqm_meter_tbl as m on (m.code_eqp = eq.id) 
+                    left join eqd_meter_energy_tbl as eqd on eqd.code_eqp = m.code_eqp
+                    left join eqm_equipment_h as hm on (hm.id = eq.id) 
+                    left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+                    left join eqm_point_tbl as pp on (pp.code_eqp = mp.id_point ) 
+                    left join ( select eq.id as id_comp,CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, tt3.code_eqp_e as id_area, 
+                    ic.amperage_nom, ic.conversion , ic.type as tt_type,ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner --,
+                       from eqm_compensator_i_tbl as c 
+                            join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+                            join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+                            left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+                            left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+                            left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+                            left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+                            left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
+                            ) as sti on (sti.id_meter = eq.id) 
+                    left join group_trans as grp on grp.id_meter=m.code_eqp
+                    where m.code_eqp=$id_eq limit 1";
+            $data_3 = data_from_server($sql_3, $res, $vid);
+            // Запись в файл структуры DI_GER
+            $end = '&ENDE';
+            foreach ($data_3 as $v3) {
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    $v3['struc'] . "\t" .
+                    $v3['equnrneu'] . "\t" .
+                    '' . "\t" .
+                    $v3['met_id'] . "\n"));
+
+                fwrite($f, $oldkey . "\t" .
+                    $end . "\n");
+            }
         }
 
         // Выдаем предупреждение на экран об окончании формирования файла
@@ -2244,6 +2370,9 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $routine = strtoupper(substr($method,10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
+        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $data_p = data_from_server($sql_p, $res, $vid);
+        $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
         // Главный запрос со всеми необходимыми данными
         $sql = "select distinct on(zz_eic) case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru,
@@ -2263,7 +2392,7 @@ case when p.voltage_max = 0.22 then '02'
 '0002' as ABLESARTST,
 p.name_eqp as ZZ_NAMETU,
 '' as ZZ_FIDER,
-'20200501' as AB,
+'$period' as AB,
 case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01???'  
      when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 14 then 'CN_4HN2_01???' 
      else 
@@ -2546,7 +2675,7 @@ inner join sap_const const on 1=1";
                 end as swathe,
                 case when length(p.id_point::varchar)>7 then p.id_point else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.id_point::varchar)::int)),(7-(length(p.id_point::varchar)::int)))||p.id_point::varchar)::int end as instln_key,
 		      case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
-		       const.ver as ver		
+		       const.ver as ver,v.id_sap		
                 from tmp_eqm_schema_point_tbl as p
                 join (select id_point, name as name_point from tmp_eqm_schema_point_tbl where type_eqp=12 and id_point=code_eqp) as p2 on (p.id_point=p2.id_point)
                 left join eqm_line_a_tbl as line_a on (line_a.code_eqp=p.code_eqp)
@@ -2560,6 +2689,7 @@ inner join sap_const const on 1=1";
                 left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
                 left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
                 left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
+                left join sap_lines as v on v.id=cable.id and v.kod_res=$res
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  and  p.type_eqp<>2
                 order by p.id_point, p.lvl desc";
@@ -2631,7 +2761,8 @@ inner join sap_const const on 1=1";
             $i++;
             $n_struct = trim($v['dattype']);
             if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct);
+            $zsql = "delete from sap_".strtolower($n_struct).'_zlines';
+
             exec_on_server($zsql,$res,$vid);
         }
 
@@ -2737,11 +2868,11 @@ inner join sap_const const on 1=1";
                 case when p.type_eqp=2 then trim(eqk.type) end as compensator_text,
                 p.name as text, p.type_eqp as id_type_eqp,
                 case when eqk.swathe=2 then '2L' 
-                    when eqk.swathe=2 then '3L'
+                    when eqk.swathe=3 then '3L'
                 end as swathe,
                 case when length(p.id_point::varchar)>7 then p.id_point else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.id_point::varchar)::int)),(7-(length(p.id_point::varchar)::int)))||p.id_point::varchar)::int end as instln_key,
 		      case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
-		       const.ver as ver		
+		       const.ver as ver,v.id_sap		
                 from tmp_eqm_schema_point_tbl as p
                 join (select id_point, name as name_point from tmp_eqm_schema_point_tbl where type_eqp=12 and id_point=code_eqp) as p2 on (p.id_point=p2.id_point)
                 left join eqm_line_a_tbl as line_a on (line_a.code_eqp=p.code_eqp)
@@ -2755,6 +2886,7 @@ inner join sap_const const on 1=1";
                 left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
                 left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
                 left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
+                left join sap_transf as v on (v.id::int=eqk.id and v.kod_res=$res)
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1 and  p.type_eqp=2
                 order by p.id_point, p.lvl desc";
@@ -2826,7 +2958,7 @@ inner join sap_const const on 1=1";
             $i++;
             $n_struct = trim($v['dattype']);
             if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct);
+            $zsql = "delete from sap_".strtolower($n_struct).'_ztransf';
             exec_on_server($zsql,$res,$vid);
         }
 
@@ -2847,7 +2979,7 @@ inner join sap_const const on 1=1";
         $f = fopen($fname,'w+');
 
         // Считываем данные в файл с каждой таблицы
-        $sql = "select * from sap_$first_struct"."_zlines";
+        $sql = "select * from sap_$first_struct".'_ztransf';
         $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
         foreach ($struct_data as $d) {
             $old_key=trim($d['oldkey']);
@@ -2859,7 +2991,7 @@ inner join sap_const const on 1=1";
             fputs($f, "\n");
             $i=0;
             foreach ($cnt as $v) {
-                $table_struct = 'sap_' . trim($v['dattype']).'_zlines';
+                $table_struct = 'sap_' . trim($v['dattype']).'_ztransf';
                 $i++;
                 if($i>1) {
                     $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
@@ -9181,7 +9313,7 @@ public function actionSap_discdoc_ind($res)
                $brig = $data[2]; 
                $stavka = str_replace(',','.',$data[3]);;
                
-               $v = "'".$work."'".","."'".$brig."'".",".$stavka.",".$time;
+               //$v = "'".$work."'".","."'".$brig."'".",".$stavka.",".$time;
             }
             if($brig=='-') continue;
             if(empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3]) &&  $i<>41) break;         
@@ -9373,6 +9505,104 @@ public function actionSap_discdoc_ind($res)
             $eerm = str_replace(',','.',$data[2]);
             $v = "$$$cnt$$".",".$eerm;
             $sql = "INSERT INTO eerm2cnt (cnt,eerm) VALUES(".$v.')';
+            Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+        }
+        fclose($f);
+        echo "Інформацію записано";
+    }
+
+    // Перенос данных по линиям [для юр. лиц]
+    public function actionLines2sap()
+    {
+        $sql = "CREATE TABLE public.Sap_lines
+                (
+                  kod_res int,
+                id int,
+                  type char(40),
+                 normative char(20),
+                voltage_nom  char(20), 
+                amperage_nom  char(20), 
+                voltage_max  char(20), 
+                amperage_max char(20), 
+                cords char(10), 
+                cover char(10),
+                ro char(10),
+               xo char(10),
+               dpo char(10),
+               show_def char(10),
+               s_nom char(10),
+               id_sap char(10)                 
+                )";
+        Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+        $f = fopen('spr_line.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            if($i==1) continue;
+            $data = explode("~",$s);
+            if(!isset($data[1])) break;
+            $v = "4".",".$data[0].","."'".$data[1]."'".","."'".$data[2]."'".
+                ","."'".$data[3]."'".","."'".$data[4]."'".
+                ","."'".$data[5]."'".","."'".$data[6]."'".
+                ","."'".$data[7]."'".","."'".$data[8]."'".
+                ","."'".$data[9]."'".","."'".$data[10]."'".
+                ","."'".$data[11]."'".","."'".$data[12]."'".
+                ","."'".$data[13]."'".","."'".$data[14]."'";
+
+            $sql = "INSERT INTO Sap_lines (kod_res,id,type,normative,voltage_nom,
+                       amperage_nom, voltage_max,amperage_max,cords,cover,ro,xo,dpo,show_def,s_nom,id_sap) 
+                       VALUES(".$v.')';
+            Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+        }
+        fclose($f);
+        echo "Інформацію записано";
+    }
+
+    // Перенос данных по трансф [для юр. лиц]
+    public function actionTrans2sap()
+    {
+        $sql = "CREATE TABLE public.Sap_transf
+                (
+                  kod_res int,
+                 id int,
+                  type char(40),
+                 normative char(20),
+                voltage_nom  char(20), 
+                amperage_nom  char(20), 
+                voltage_max  char(20), 
+                amperage_max char(20), 
+                phase char(10), 
+                swathe char(10),
+                hook_up char(10),
+               power_nom_old char(10),
+               amperage_no_load char(10),
+               show_def char(10),
+               power_nom char(10),
+               id_sap char(10)                 
+                )";
+        Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+        $f = fopen('spr_transf.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            if($i==1) continue;
+            $data = explode("~",$s);
+            if(!isset($data[1])) break;
+            $v = "4".",".$data[0].","."'".$data[1]."'".","."'".$data[2]."'".
+                ","."'".$data[3]."'".","."'".$data[4]."'".
+                ","."'".$data[5]."'".","."'".$data[6]."'".
+                ","."'".$data[7]."'".","."'".$data[8]."'".
+                ","."'".$data[9]."'".","."'".$data[10]."'".
+                ","."'".$data[11]."'".","."'".$data[12]."'".
+                ","."'".$data[13]."'".","."'".$data[14]."'".
+                ","."'".$data[15]."'".","."'".$data[16]."'";
+
+            $sql = "INSERT INTO Sap_transf (kod_res,id,type,normative,voltage_nom,
+                       amperage_nom, voltage_max,amperage_max,phase,swathe,hook_up,power_nom_old
+                       ,amperage_no_load,power_nom,show_def, id_sap) 
+                       VALUES(".$v.')';
             Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
         }
         fclose($f);

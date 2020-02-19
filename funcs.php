@@ -1872,7 +1872,7 @@ function f_devloc($n_struct,$rem,$v) {
     $stort = $v['stort'];
     $begru = $v['begru'];
 //    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'].random_int(100,1000000)));
-    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'].mt_rand(100,1000000)));
+    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id']));
 
     if($n_struct=='EGPLD')
         $z = "insert into sap_egpld(oldkey,dat_type,haus,vstelle,swerk,stort,begru,pltxt)
@@ -1936,7 +1936,7 @@ function f_seal_ind($n_struct,$rem,$v,$vid) {
 }
 // Выгрузка по пломбам  юридич.
 function f_seals($n_struct,$rem,$v,$vid) {
-    $oldkey_const='04_C'.$rem.'B_01_';
+    $oldkey_const='04_C'.$rem.'P_01_';
     $r = $v['id'];
     $scat=$v['scat'];
     $scode=$v['scode'];
@@ -1971,7 +1971,7 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     $pnt=$v['pnt'];
     $pnt= substr((1000+$pnt),1,3);
     $line_length=$v['line_length'];
-    $type_eqp=$v['type_eqp'];
+    $id_sap=trim($v['id_sap']);
     $line_voltage_nom = $v['line_voltage_nom'];
     $text =$v['text'];
     $oldkey = $oldkey_const . $r;
@@ -1979,7 +1979,7 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     if($n_struct=='AUTO')
         $z = "insert into sap_auto_zlines(oldkey,dat_type,anlage,linum,frdat,frtim,lityp,length,voltage,state,
                                     wxshr,fshar,xnegp,text,element_id)
-                    values('$oldkey','$n_struct','$oldkey','$pnt','$datab','000000','$type_eqp','$line_length',
+                    values('$oldkey','$n_struct','$oldkey','$pnt','$datab','000000','$id_sap','$line_length',
                             '$line_voltage_nom','L','100','X','~','$text','$pnt')";
 
     exec_on_server($z,(int) $rem,$vid);
@@ -1994,15 +1994,15 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
     $pnt=$v['pnt'];
     $pnt= substr((1000+$pnt),1,3);
     $swathe=$v['swathe'];
-    $type_eqp=$v['type_eqp'];
+    $id_sap=$v['id_sap'];
     $text =$v['text'];
     $oldkey = $oldkey_const . $r;
 
     if($n_struct=='AUTO')
         $z = "insert into sap_auto_ztransf(oldkey,dat_type,anlage,frdat,frtim,trcat,trtyp,trsta,
                                     xnegp,text,element_id)
-                    values('$oldkey','$n_struct','$oldkey','$datab','000000','$type_eqp','$swathe',
-                            'L','X','$text','$pnt')";
+                    values('$oldkey','$n_struct','$oldkey','$datab','000000','$swathe','$id_sap',
+                            'L','~','$text','$pnt')";
 
     exec_on_server($z,(int) $rem,$vid);
 }
@@ -2170,7 +2170,7 @@ function f_facts($rem,$v) {
     $datae1 = date('Ymd', strtotime("last day of this month"));
     $datae='99991231';
 
-    $oldkey_const='04_C'.$rem.'B_01_';
+    $oldkey_const='04_C'.$rem.'P_01_';
     $avg_dem = $v['avg_dem'];
     $power_allow = $v['power_allow'];
     $power_con = $v['power_con'];
@@ -2506,7 +2506,7 @@ function f_move_in_ind($rem,$v) {
 
 // Выгрузка inst_mgmt (заполнение структуры  di_int) быт.
 function f_inst_mgmt1_ind($rem,$v) {
-    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey_const='04_C'.$rem.'P_';
     $oldkey = $oldkey_const . $v['id'];
     $di_int=[];
     $di_int[0]=$oldkey;
@@ -2520,7 +2520,7 @@ function f_inst_mgmt1_ind($rem,$v) {
 
 // Выгрузка inst_mgmt (заполнение структуры  di_zw) быт.
 function f_inst_mgmt2_ind($rem,$v) {
-    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey_const='04_C'.$rem.'P_';
     $oldkey = $oldkey_const . $v['id'];
     $zone=$v['zone'];
     $di_zw=[];
@@ -2745,7 +2745,7 @@ function f_instln($n_struct,$rem,$v,$vid) {
 
 // Выгрузка по ЗАВОДСКИМ пломбам  юридич.
 function f_seals2($n_struct,$rem,$v,$vid) {
-    $oldkey_const='04_C'.$rem.'B_01_';
+    $oldkey_const='04_C'.$rem.'P_01_';
     $r = $v['id'];
     $instdate=$v['instdate'];
     $employee=$v['employee'];
