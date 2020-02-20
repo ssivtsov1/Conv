@@ -836,6 +836,9 @@ WHERE year_p=0 and year_q>0';
                 case 27:
                     return $this->redirect(['sap_inst_mgmt', 'res' => $model->rem]);
                     break;
+                case 28:
+                    return $this->redirect(['sap_devgrp', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -3445,7 +3448,6 @@ group by id,power,plita,opal,mmgg,mmgg_end,ver,id_res,ver) as ext
             'model' => $model]);
         
     } 
-    
 
     // Формирование файла inst_mgmt для САП для бытовых потребителей
     public function actionSap_inst_mgmt_ind($res)
@@ -3491,7 +3493,7 @@ case when a.id_zone=6 then a.value else 0.0000 end as value_6,
 case when a.id_zone=7 then a.value else 0.0000 end as value_7,
 case when a.id_zone=8 then a.value else 0.0000 end as value_8,
 a.dat_ind,
-'04_C'||$$$rem$$||'B_'||a.id_paccnt as devloc,'04_C'||$$$rem$$||'B_'||a.id_paccnt as anlage,
+'04_C'||$$$rem$$||'B_'||a.id_paccnt as devloc,'04_C'||$$$rem$$||'B_01_'||a.id_paccnt as anlage,
 '04_C'||$$$rem$$||'B_'||m.id as equnre,
 '01' as action,
  case when a.id_zone=0 then p.demand else 0 end demand_0,
