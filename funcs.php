@@ -1052,6 +1052,7 @@ function f_partner_ind($n_struct,$rem,$v) {
         $roomnumber=$v['flat'];
         $region=$v['region'];
         $tel_number=normal_tel($v['mob_phone']);
+
         if (!empty($tel_number)) $chind_tel="I"; else $chind_tel='~';
         $smtp_addr=$v['e_mail'];
         if (!empty($smtp_addr)) $chind_smtp="I"; else $chind_smtp='~';
@@ -2506,7 +2507,7 @@ function f_move_in_ind($rem,$v) {
 
 // Выгрузка inst_mgmt (заполнение структуры  di_int) быт.
 function f_inst_mgmt1_ind($rem,$v) {
-    $oldkey_const='04_C'.$rem.'P_';
+    $oldkey_const='04_C'.$rem.'B_';
     $oldkey = $oldkey_const . $v['id'];
     $di_int=[];
     $di_int[0]=$oldkey;
@@ -2520,7 +2521,7 @@ function f_inst_mgmt1_ind($rem,$v) {
 
 // Выгрузка inst_mgmt (заполнение структуры  di_zw) быт.
 function f_inst_mgmt2_ind($rem,$v) {
-    $oldkey_const='04_C'.$rem.'P_';
+    $oldkey_const='04_C'.$rem.'B_';
     $oldkey = $oldkey_const . $v['id'];
     $zone=$v['zone'];
     $di_zw=[];
@@ -2649,7 +2650,7 @@ function f_inst_mgmt2_ind($rem,$v) {
 }
 
 function f_discdoc1_ind($rem,$v) {
-    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey_const='04_C'.$rem.'B_01_';
     $oldkey = $oldkey_const . $v['id'];
     $di_doc=[];
     $di_doc[0]=$oldkey;     //oldkey
@@ -2663,7 +2664,7 @@ function f_discdoc1_ind($rem,$v) {
     return $di_doc;
 }
 function f_discdoc2_ind($rem,$v) {
-    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey_const='04_C'.$rem.'B_01_';
     $oldkey = $oldkey_const . $v['id'];
     $di_inf=[];
     $di_inf[0]=$oldkey;         //oldkey
@@ -2674,7 +2675,7 @@ function f_discdoc2_ind($rem,$v) {
 }
 
 function f_discorder_ind($rem,$v) {
-    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey_const='04_C'.$rem.'B_01_';
     $oldkey = $oldkey_const . $v['id'];
     $di_ord=[];
     $di_ord[0]=$oldkey;     //oldkey
@@ -2685,7 +2686,7 @@ function f_discorder_ind($rem,$v) {
 }
 
 function f_discenter_ind($rem,$v) {
-    $oldkey_const='04_C'.$rem.'B_';
+    $oldkey_const='04_C'.$rem.'B_01_';
     $oldkey = $oldkey_const . $v['id'];
     $di_ent=[];
     $di_ent[0]=$oldkey;     //oldkey
@@ -2769,7 +2770,7 @@ function normal_tel($tel){
     $s='';
     foreach ($matches[0] as $v)
         $s.=$v;
-    return $s;
+    return substr($s,0,10);
 }
 
 function define_type_tel($oper)

@@ -1522,6 +1522,12 @@ b.phone,b.e_mail
 //        return $this->render('info', [
 //            'model' => $model]);
     }
+// Test
+    public function actionTest_task(){
+        $tel='0689732242 мама';
+        $r=normal_tel($tel);
+        echo $r;
+    }
 // Тестовая функция для записи в файл
     public function actionTest_recfile()
     {
@@ -1928,9 +1934,15 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
                  "07" => 'BC010731',
                  "08" => 'BC010831', 
         ];
+        // Получаем дату ab
+        $sql_d="select (fun_mmgg() - interval '4 month')::date as mmgg_current";
+        $data_d = data_from_server($sql_d,$res,$vid);
+        $date_ab=$data_d[0]['mmgg_current'];
         // Главный запрос со всеми необходимыми данными
-        $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
-                                '' as zz_nametu,'' as zz_fider,'20190901' as ab,'CK_1AL2_01' as tariftyp,
+          $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
+                                case when length(adr.last_name||' '||adr.name||' '||adr.patron_name)>0 then 
+                            adr.last_name||' '||adr.name||' '||adr.patron_name else
+                                 adr.code end as zz_nametu,'' as zz_fider,'$date_ab' as ab,'CK_1AL2_01' as tariftyp,
                                 '0001' as aklasse,ff.ableinh as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
                                 case when trim(adr.type_city)='м.' then '70' else '71' end as branche, p.id_sector
                                 from clm_paccnt_tbl a 
@@ -3541,8 +3553,8 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select id,power,plita,opal,(mmgg-interval '4 month')::date as mmgg,
-(mmgg_end-interval '4 month')::date as mmgg_end,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
+        $sql = "select id,power,plita,opal,(mmgg-interval '0 month')::date as mmgg,
+(mmgg_end-interval '0 month')::date as mmgg_end,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
 sum(dem_10) as dem_10,sum(dem_6) as dem_6,sum(dem_7) as dem_7,sum(dem_8) as dem_8 from
 (select q.* from (
 select a.id_paccnt as id,b.dt_b,case when a.id_zone=0 then demand end as dem_0,
@@ -3738,12 +3750,12 @@ sum(value_9) as value_9,sum(value_10) as value_10,
 sum(value_6) as value_6,sum(value_7) as value_7,sum(value_8) as value_8,
 sum(value_0+value_9+value_10+value_6+value_7+value_8) as value_all,
 dat_ind,devloc,anlage,equnre,action,
-sum(demand_0) as demand_0,
-sum(demand_9) as demand_9,
-sum(demand_10) as demand_10,
-sum(demand_6) as demand_6,
-sum(demand_7) as demand_7,
-sum(demand_8) as demand_8,
+coalesce(sum(demand_0),0) as demand_0,
+coalesce(sum(demand_9),0) as demand_9,
+coalesce(sum(demand_10),0) as demand_10,
+coalesce(sum(demand_6),0) as demand_6,
+coalesce(sum(demand_7),0) as demand_7,
+coalesce(sum(demand_8),0) as demand_8,
 eadat,ver,zone from
 (select distinct a.id_paccnt as id,
 case when a.id_zone=0 then a.value else 0.0000 end as value_0,
@@ -3782,8 +3794,7 @@ left join clm_plandemand_tbl p on p.id_paccnt=a.id_paccnt and p.id_zone=a.id_zon
 inner join sap_const const on 1=1
 where a.id_operation<>5 order by 1) t
 group by 1,9,10,11,12,13,20,21,22
-order by 1
-";
+order by 1";
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
 
@@ -5253,7 +5264,7 @@ order by tzap
         $datab = date('Ymd', strtotime("-$day day"));
         //phpversion()
 //        $baujj=random_int(1979, 2006);
-        $baujj=mt_rand(1979, 2006);
+        $baujj=mt_rand(1970, 1993);
 
         $sql = "select distinct w1.mmgg_current,(w1.mmgg_current- interval '4 month')::date as datab,a.id,'4001' as eqart,'$baujj' as baujj,
                 const.kostl as kostl,a.num_meter as sernr,'00000334' as zz_pernr,
