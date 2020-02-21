@@ -2286,6 +2286,266 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
             'model' => $model]);
     }
 
+    // Формирование файла группировки устройств DEVGRP (юридические лица)
+    public function actionSap_devgrp($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+//   Дальше идет плагиат - взято из выгрузки Чернигова
+        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $data_p = data_from_server($sql_p, $res, $vid);
+        $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
+
+        $sql="select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver
+        from group_trans as eq
+         join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, eq.name_eqp,
+		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
+	      ic.id as id_type_tr, ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner 
+	    from eqm_compensator_i_tbl as c 
+	    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+	    left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
+	    select dt_b from eqm_equipment_h where id = eq.id 
+	    and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
+	    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+	    left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+	    left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+	    left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+	    left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+	    left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
+	    order by 1
+	    ) as sti on (sti.id_meter = eq.id_meter::integer)  	  
+            left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.code_tt::integer) 
+            join eqm_eqp_tree_tbl as ttr on (ttr.code_eqp =eq.code_tt::integer)
+            left join eqm_tree_tbl as tr on  (tr.id = ttr.id_tree) 
+            left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+            left join clm_statecl_tbl as sc on (c.id = sc.id_client) 
+            left join eqm_equipment_tbl as e on e.id= eq.id_point
+            inner join sap_const const on 1=1 
+            where  c.book=-1 and c.idk_work not in (0) and coalesce(c.id_state,0) not in (50,99,80,49,100) and sc.id_section not in (205,206,207,208,209,218) and c.id <> syi_resid_fun() and c.id <>999999999 and eq.code_t_new is not null
+            order by 5";
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+//        Формируем имя файла выгрузки
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+        $oldkey_const='04_C'.$rem.'B_';
+        foreach($data as $v) {
+            $id_eq = $v['id_eq'];
+            $id = $v['id'];
+            $oldkey = $oldkey_const . $id;
+            $sql_1="select  distinct $oldkey  as oldkey,
+'EDEVGR' as EDEVGR,
+case when coalesce(zz.clas,'')='0,38'  then '0002'  else '0003' end as DEVGRPTYP,
+'$period'  as KEYDATE, 
+'' as dop,
+'1' as sort
+from group_trans as eq
+join ( select eq.num_eqp as num_comp , 
+    CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter
+      from eqm_compensator_i_tbl as c 
+      join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+      left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
+            select dt_b from eqm_equipment_h where id = eq.id
+            and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
+      join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+      left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+      left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+      left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+      left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+      left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
+      order by 1
+      ) as sti on (sti.id_meter = eq.id_meter)        
+left join
+            (select mt.id_meter, ''::text as clas from
+            (select CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, ic.id as id_type_tr
+from eqm_compensator_i_tbl as c 
+join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+      left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+      left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+      left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+      left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+      left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
+) as mt
+            --join sap_type_tr_i_tbl as type_tr on type_tr.id_type = mt.id_type_tr
+                --where type_tr.id_type is not null
+) as zz on zz.id_meter=sti.id_meter
+                --where eq.id_point= 116504 and eq.code_t_new is not null
+    
+union
+
+select  distinct  '03_'||'".$sap_code1."'||'P_'||case when length(eq.id_point::varchar)<8 then
+            (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id_point::varchar)::int)),(7-(length(eq.id_point::varchar)::int)))||eq.id_point::varchar)::int else eq.id_point end as OLDKEY,
+'DEVICE' as DEVICE,
+ '03_'||'".$sap_code1."'||'P_'||case when length(eq.code_t_new::varchar)<8  then
+            (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.code_t_new)::int)),(7-(length(eq.code_t_new)::int)))||eq.code_t_new)::int else eq.code_t_new::int end as EQUNR,
+ '' as  KEYDATE, 
+''  as dop,
+'2' as sort
+from group_trans as eq
+join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, 
+		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
+	       gr.id_area, ic.amperage_nom, ic.conversion , ic.type as tt_type,ic.id as id_type_tr, ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner 
+	    from eqm_compensator_i_tbl as c 
+	    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+	    left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
+            select dt_b from eqm_equipment_h where id = eq.id
+            and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
+	    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+	    left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+	    left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+	    left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+	    left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+	    left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
+	    left join (select eq.id as id_area, eq.id_addres,  eq.name_eqp, ins.code_eqp from eqm_equipment_tbl as eq join eqm_compens_station_inst_tbl as ins on (ins.code_eqp_inst = eq.id) where eq.type_eqp = 11 order by ins.code_eqp ) as gr on (gr.code_eqp =  tt3.code_eqp_e) 
+	    order by 1
+	    ) as sti on (sti.id_meter = eq.id_meter::integer)
+            --left join sap_type_tr_i_tbl as type_tr on type_tr.id_type = sti.id_type_tr
+                --left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = sti.id_type_tr
+                --where eq.id_point= 116504 and eq.code_t_new is not null
+order by sort";
+
+
+            $data_1 = data_from_server($sql_1, $res, $vid);
+            // Запись в файл структуры DI_INT
+            foreach ($data_1 as $v1) {
+                fwrite($f, iconv("utf-8", "windows-1251", $v1['oldkey'] . "\t" .
+                    $v1['struc'] . "\t" .
+                    $v1['devloc'] . "\t" .
+                    $v1['anlage'] . "\t" .
+                    $v1['eadat'] . "\t" .
+                    $v1['action'] . "\n"));
+            }
+            $c = 0;
+            $c1 = '';
+            // Запись в файл структуры DI_ZW
+
+
+            foreach ($data_f as $v2) {
+                $c = $c + 1;
+                $c1 = '00' . "$c";
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    'DI_ZW' . "\t" . $c1 . "\t" .
+                    $v2['kondigre'] . "\t" .
+                    $v2['zwstandce'] . "\t" .
+                    $v2['zwnabr'] . "\t" .
+                    $v2['tarifart'] . "\t" .
+                    $v2['perverbr'] . "\t" .
+                    $v2['equnre'] . "\t" .
+                    $v2['anzdaysofperiod'] . "\t" .
+                    $v2['pruefkla'] . "\n"));
+            }
+
+            $sql_2 = "select distinct 
+                '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
+                'DI_GER' as struc,
+                case when grp.code_t_new is null then 
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||grp.code_t_new end as EQUNRNEU,
+                '' as WANDNR,
+                '' as WANDNRE
+                from eqm_tree_tbl as tr 
+                join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
+                join eqm_equipment_tbl as eq on (ttr.code_eqp = eq.id) 
+                join eqm_meter_tbl as m on (m.code_eqp = eq.id) 
+                left join eqd_meter_energy_tbl as eqd on eqd.code_eqp = m.code_eqp
+                left join eqm_equipment_h as hm on (hm.id = eq.id) 
+                left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+                left join eqm_point_tbl as pp on (pp.code_eqp = mp.id_point ) 
+                left join ( select eq.id as id_comp,CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, tt3.code_eqp_e as id_area, 
+                ic.amperage_nom, ic.conversion , ic.type as tt_type,ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner --,
+                   from eqm_compensator_i_tbl as c 
+                        join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+                        join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+                        left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+                        left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+                        left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+                        left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+                        left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
+                        ) as sti on (sti.id_meter = eq.id) 
+                left join group_trans as grp on grp.id_meter=m.code_eqp
+                where m.code_eqp= $id_eq and sti.id_comp is not null and grp.code_t_new is not null";
+            $data_2 = data_from_server($sql_2, $res, $vid);
+            // Запись в файл структуры DI_GER
+            foreach ($data_2 as $v2) {
+                fwrite($f, iconv("utf-8", "windows-1251", $v2['oldkey'] . "\t" .
+                    $v2['struc'] . "\t" .
+                    $v2['equnrneu'] . "\n"));
+            }
+            $sql_3 = "select distinct 
+                    '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
+                    'DI_GER' as struc,
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text  as EQUNRNEU,
+                    '04_C'||'$rem'||'P_'||grp.code_t_new as met_id,
+                    '' as WANDNR,
+                    '' as WANDNRE
+                    from eqm_tree_tbl as tr 
+                    join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
+                    join eqm_equipment_tbl as eq on (ttr.code_eqp = eq.id) 
+                    join eqm_meter_tbl as m on (m.code_eqp = eq.id) 
+                    left join eqd_meter_energy_tbl as eqd on eqd.code_eqp = m.code_eqp
+                    left join eqm_equipment_h as hm on (hm.id = eq.id) 
+                    left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+                    left join eqm_point_tbl as pp on (pp.code_eqp = mp.id_point ) 
+                    left join ( select eq.id as id_comp,CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, tt3.code_eqp_e as id_area, 
+                    ic.amperage_nom, ic.conversion , ic.type as tt_type,ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner --,
+                       from eqm_compensator_i_tbl as c 
+                            join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+                            join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+                            left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+                            left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+                            left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+                            left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+                            left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
+                            ) as sti on (sti.id_meter = eq.id) 
+                    left join group_trans as grp on grp.id_meter=m.code_eqp
+                    where m.code_eqp=$id_eq limit 1";
+            $data_3 = data_from_server($sql_3, $res, $vid);
+            // Запись в файл структуры DI_GER
+            $end = '&ENDE';
+            foreach ($data_3 as $v3) {
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    $v3['struc'] . "\t" .
+                    $v3['equnrneu'] . "\t" .
+                    '' . "\t" .
+                    $v3['met_id'] . "\n"));
+
+                fwrite($f, $oldkey . "\t" .
+                    $end . "\n");
+            }
+        }
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл INST_MGMT сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
     //выгрузка ид фалов сап инстлн , для бытовых потребителей
         public function actionIdfile_instln_ind($res)
     {
@@ -4621,7 +4881,8 @@ public function actionIdfile_seals($res)
         $day=((int) date('d'))-1;  // УЧЕСТЬ!!!! ДАЛЬШЕ
         $datab = date('Ymd', strtotime("-$day day")); // УЧЕСТЬ!!!! ДАЛЬШЕ
         // Главный запрос со всеми необходимыми данными
-        $sql = "select distinct m.code_eqp as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
+        $sql = "select * from 
+(select distinct m.code_eqp as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
@@ -4633,14 +4894,40 @@ public function actionIdfile_seals($res)
                  'CK_RANDOM' as zz_pernr,
                   substring(replace(m.dt_control::varchar,'-',''),1,8) as CERT_DATE,
                   sd.sap_meter_name as matnr,'' as zwgruppe,
-                  const.swerk,const.stort,const.ver,const.begru_b as begru
+                  const.swerk,const.stort,const.ver,const.begru_b as begru,1 as tzap
                 from eqm_meter_tbl as m 
                 join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
                 left join eqm_equipment_h as hm on (hm.id = eq.id) 
                 left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
                 left join (select code as id,min(sap_cnt) as sap_meter_id from sap_meter_cnt where sap_cnt<>'' group by code) s on s.id::integer=m.id_type_eqp
                 left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
-                inner join sap_const const on 1=1";
+                inner join sap_const const on 1=1
+
+union
+
+select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
+                'EQUI' as EQUI,
+                case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
+                '' as BAUJJ, 
+                '' as datab,
+                 '' as EQKTX,
+                case  when coalesce(eq.is_owner,0) = 0 then 'CCNN232820' else '' end as KOSTL, 
+                 trim(eq.num_eqp) as SERNR,
+                 'CK_RANDOM' as zz_pernr,
+                  '' as CERT_DATE,
+                  '' as matnr,'' as zwgruppe,
+                  const.swerk,const.stort,const.ver,const.begru_b as begru,2 as tzap
+                 from group_trans as gr
+                 join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int
+		    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+		    left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
+		    select dt_b from eqm_equipment_h where id = eq.id 
+		    and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
+		    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+                    inner join sap_const const on 1=1 
+                    ) x
+order by tzap           
+                    ";
 
         // Запрос для получения списка необходимых
         // для экспорта структур
