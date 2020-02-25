@@ -2022,6 +2022,7 @@ $ablesartst = $v['ablesartst'];
 $zz_nametu = $v['zz_nametu'];
 $zz_fider = $v['zz_fider'];
 $ab = $v['ab'];
+$ab = str_replace('-','',$ab);
 $tariftyp = $v['tariftyp'];
 $aklasse = $v['aklasse'];
 $ableinh = $v['ableinh'];
@@ -2035,6 +2036,9 @@ if ($n_struct == 'DATA')
             ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
      values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
      $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh','~','355','~','$begru',$$$zz_eic$$)";
+
+//$f=fopen('aaaaa_sap.sap','w+');
+//fputs($f,$z);
 
     exec_on_server($z, (int)$rem, $vid);
 }
