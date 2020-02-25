@@ -1423,7 +1423,9 @@ b.phone,b.e_mail
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
-        trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) 
+        trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
+        and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+        else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
          and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
          left join post_index_sap b2 on b1.numtown=b2.numtown and b2.post_index=c.indx         
         inner join sap_const const on
@@ -1691,18 +1693,22 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as DPURCH,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as dissue,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as dinst,
-                a.num_meter as sernr,d.matnr as matnr,const.ver
+                a.num_meter as sernr,d.matnr as matnr,const.ver,w.id_type_meter
                 from clm_plomb_tbl a
-                left join clm_meterpoint_tbl w on w.id_paccnt=a.id_paccnt
+                left join (select id_paccnt,num_meter,max(id_type_meter) as id_type_meter,max(work_period) as work_period 
+                from clm_meterpoint_tbl group by id_paccnt,num_meter) w on w.id_paccnt=a.id_paccnt
+                left join eqi_meter_tbl f on w.id_type_meter=f.id
                 left join sap_plomb_place b on
                 a.id_place=b.idcek::integer
                 left join plomb_type c on
                 a.id_type=c.id
+                left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=w.id_type_meter
+                left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22 where sap_meter_id<>'') sd on s.sap_meter_id=sd.sap_meter_id
                 left join sap_equi d on
-                trim(w.num_meter)=trim(d.sernr)
+                trim(w.num_meter)=trim(d.sernr) and trim(d.matnr)=trim(sd.sap_meter_name)
                 inner join sap_const const on 1=1
                 left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
-                where dt_off is null and length(a.plomb_num) <= 15
+                where dt_off is null and length(a.plomb_num) <= 15 
                 ";
 
         if ($helper == 1)
@@ -3875,11 +3881,11 @@ order by 1";
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
         $sql = "select a.id,b.num_agreem as vrefer,'01' as kofiz,1 as gemfakt,const.begru as bukrs,const.begru_b as begru,const.ver,
 instln.oldkey as anlage,account.oldkey as vkonto,replace(w1.mmgg_current::char(10),'-','') as einzdat,
-'99991231' as auszdat,replace(w1.mmgg_current::char(10),'-','') as einzdat_alt,const.cokey,partner.old_key as zz_pnt,
+'99991231' as auszdat,replace(w1.mmgg_current::char(10),'-','') as einzdat_alt,const.cokey,'~' as zz_pnt,
 '~' as zz_nodev,'99991231' as zz_own,1 as zz_point_num,1 as zz_plosch_num,1 as zz_object_num,1 as zz_pl_obj_num,
 '~' as zz_paym_dc,'02' as zz_distrib_type,'~' as vbez
 from clm_paccnt_tbl a
-left join (select max(date_agreem) as date_agreem,num_agreem,id_paccnt from clm_agreem_tbl group by id_paccnt,num_agreem) b
+left join (select max(date_agreem) as date_agreem,max(num_agreem) as num_agreem,id_paccnt from clm_agreem_tbl group by id_paccnt) b
 on a.id=b.id_paccnt
 inner join sap_const const on 1=1
 left join sap_data instln on substr(instln.oldkey,12)::int=a.id
@@ -4564,24 +4570,33 @@ public function actionIdfile_seals($res)
         $sql = "select min(a.id) as id,
                 c.town,b1.town as town_sap,c.street,
                 case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
-                c.house,const.id_res,
+                upper(c.house) as house
+                ,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
-                const.region,d.kod_reg
+                const.region,d.kod_reg,
+                case when b1.street is null then c.street else '' end as str_supl1,
+                case when b1.street is null then c.house else '' end as str_supl2
                  from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
-         trim(lower(c.street))=trim(lower(b1.short_street)) 
-         and lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) 
+         trim(lower(c.street))=trim(lower(get_sap_street(b1.street)))
+         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+         else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
+        -- and lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) 
          and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
-        group by 2,3,4,5,6,7,8,9,10,11,12,13,14          
+        where a.archive='0' --and  b1.street is null
+        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16  
         ";
+
+//    debug($sql);
+//    return;
 
         $sql_c = "select * from sap_export where objectsap='CONNOBJ_IND' order by id_object";
 
@@ -5276,7 +5291,7 @@ order by tzap
                 inner join sap_const const on
                 1=1
                 left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=a.id_type_meter
-                left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
+                left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22 where sap_meter_id<>'') sd on s.sap_meter_id=sd.sap_meter_id
                 left join (select (fun_mmgg())::date as mmgg_current) w1 on 1=1
                 left join clm_paccnt_tbl p on p.id=a.id_paccnt
 		        where p.archive='0'

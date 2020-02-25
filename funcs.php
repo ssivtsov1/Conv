@@ -1504,7 +1504,9 @@ function f_connobj_ind($n_struct,$rem,$v) {
         left join vw_address c on
         a.id=c.id 
        left join addr_sap b1 on
-         trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
+         trim(lower(c.street))=trim(lower(get_sap_street(b1.street)))
+         --trim(lower(c.street))=trim(lower(b1.short_street)) 
+         and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
          and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
          left join post_index_sap b2 on b1.numtown=b2.numtown and b2.post_index=c.indx --and c.indx is not null
         where a.id=$id and b2.post_index is not null ";
@@ -2032,7 +2034,7 @@ if ($n_struct == 'DATA')
     $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
             ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
      values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
-     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh','~','~','~','$begru',$$$zz_eic$$)";
+     $$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh','~','355','~','$begru',$$$zz_eic$$)";
 
     exec_on_server($z, (int)$rem, $vid);
 }
@@ -2459,15 +2461,19 @@ function f_facts_ind($rem,$v) {
     }
     $facts['data14'] =  $oldkey.';'.'F_DEMA'.';'.'ПОТ_ДОЗВ'.';'.' '.';'.' ';
     $facts['data15'] = $oldkey . ';' . 'V_DEMA' . ';' . $datab . ';' . $datae . ';' . $power;
+
+    $facts['data16'] =  $oldkey.';'.'F_FACT'.';'.'КАТНАД'.';'.' '.';'.' ';
+    $facts['data17'] = $oldkey . ';' . 'V_FACT' . ';' . $datab . ';' . $datae . ';' . '3';
+
     if (!empty($opal)) {
-        $facts['data16'] = $oldkey . ';' . 'F_FLAG' . ';' . 'ОЗ_ЕЛОПАЛ' . ';' . ' ' . ';' . ' ';
-        $facts['data17'] = $oldkey . ';' . 'V_FLAG' . ';' . $datab . ';' . $datae . ';' . $opal;
+        $facts['data18'] = $oldkey . ';' . 'F_FLAG' . ';' . 'ОЗ_ЕЛОПАЛ' . ';' . ' ' . ';' . ' ';
+        $facts['data19'] = $oldkey . ';' . 'V_FLAG' . ';' . $datab . ';' . $datae . ';' . $opal;
     }
     if (!empty($plita)) {
-        $facts['data18'] = $oldkey . ';' . 'F_FLAG' . ';' . 'ОЗ_ЕЛПЛИТА' . ';' . ' ' . ';' . ' ';
-        $facts['data19'] = $oldkey . ';' . 'V_FLAG' . ';' . $datab . ';' . $datae . ';' . $plita;
+        $facts['data20'] = $oldkey . ';' . 'F_FLAG' . ';' . 'ОЗ_ЕЛПЛИТА' . ';' . ' ' . ';' . ' ';
+        $facts['data21'] = $oldkey . ';' . 'V_FLAG' . ';' . $datab . ';' . $datae . ';' . $plita;
     }
-    $facts['data20'] =  $oldkey.';'.'&ENDE'.';'.' '.';'.' '.';'.' ';
+    $facts['data22'] =  $oldkey.';'.'&ENDE'.';'.' '.';'.' '.';'.' ';
     return $facts;
 }
 
@@ -2976,10 +2982,7 @@ function data_from_server($sql,$rem,$type)
         }
     }
     $data='$data='." \Yii::".'$app'."->".$base."->createCommand($sql)"."->queryAll();";
-
     eval($data);
-
-
     return($data);
 
 }
