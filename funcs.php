@@ -1018,16 +1018,16 @@ function f_partner_ind($n_struct,$rem,$v) {
         $r = $v['id'];
         $tax_number=trim($v['tax_number']);
         $last_name=$v['last_name'];
-        preg_match("/[А-Яа-яіІєЄїЇ'\s]+/u", $last_name, $matches,PREG_OFFSET_CAPTURE);
+        preg_match("/[А-Яа-яіІєЄїЇiIoOaAeE'\s]+/u", $last_name, $matches,PREG_OFFSET_CAPTURE);
         if(isset($matches[0][0]))
             $last_name=$matches[0][0];
         $name_first=str_replace('"','',$v['name']);
 
-        preg_match("/[А-Яа-яіІєЄїЇ'\s]+/u", $name_first, $matches,PREG_OFFSET_CAPTURE);
+        preg_match("/[А-Яа-яіІєЄїЇiIoOaAeE'\s]+/u", $name_first, $matches,PREG_OFFSET_CAPTURE);
         if(isset($matches[0][0]))
             $name_first=$matches[0][0];
         $namemiddle=$v['patron_name'];
-        preg_match("/[А-Яа-яіІєЄїЇ'\s]+/u", $namemiddle, $matches,PREG_OFFSET_CAPTURE);
+        preg_match("/[А-Яа-яіІєЄїЇiIoOaAeE'\s]+/u", $namemiddle, $matches,PREG_OFFSET_CAPTURE);
         if(isset($matches[0][0]))
             $namemiddle=$matches[0][0];
 
@@ -1806,6 +1806,7 @@ function f_device($n_struct,$rem,$v,$vid) {
     $swerk='C01M';
     $stort=$v['stort'];
     $zwgruppe=$v['zwgruppe'];
+    $wgruppe=$v['wgruppe'];
 
     $oldkey = $oldkey_const . $r;
 
@@ -1820,7 +1821,7 @@ function f_device($n_struct,$rem,$v,$vid) {
 
     if($n_struct=='EGERH')
         $z = "insert into sap_egerh(oldkey,dat_type,ab,zwgruppe,wgruppe)
-                    values('$oldkey','$n_struct','$datab','$zwgruppe','~')";
+                    values('$oldkey','$n_struct','$datab','$zwgruppe','$wgruppe')";
 
     exec_on_server($z,(int) $rem,$vid);
 }
@@ -2024,6 +2025,7 @@ $zz_fider = $v['zz_fider'];
 $ab = $v['ab'];
 $ab = str_replace('-','',$ab);
 $zz_nametu = str_replace("'",'`',$zz_nametu);
+$zz_nametu = str_replace("'",'"',$zz_nametu);
 $tariftyp = $v['tariftyp'];
 $aklasse = $v['aklasse'];
 $ableinh = $v['ableinh'];

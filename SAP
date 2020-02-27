@@ -94,5 +94,18 @@ order by c.name
 ) qwe) q on q.id=y.id_sector
 inner join clm_paccnt_tbl w on w.id=y.id_paccnt and w.archive = '0'
 
+----- Новое ---------------------------
+
+alter table sap_equi
+ ALTER COLUMN matnr TYPE varchar(80)
+
+alter table sap_equi
+ ALTER COLUMN sernr TYPE varchar(80)
+
+
+
+
+
+
 
 
