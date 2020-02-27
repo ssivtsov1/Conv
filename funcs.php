@@ -2515,6 +2515,42 @@ function f_move_in_ind($rem,$v) {
     return $ever;
 }
 
+// Выгрузка move_in (заполнение структуры  ever) юридич.
+function f_move_in($rem,$v) {
+    $oldkey_const='04_C'.$rem.'P_';
+    $oldkey_const1='04_C'.$rem.'P_01_';
+    $oldkey = $oldkey_const . $v['id'];
+    $vkonto = $oldkey_const1 . $v['id_cl'];
+    $ever=[];
+    $ever[0]=$oldkey;
+    $ever[1]='EVER';
+    $ever[2]=$v['bukrs'];
+    $ever[3]=$v['kofiz'];
+    $ever[4]=$v['gemfakt'];
+    $ever[5]=$v['vbez'];
+    $ever[6]=$v['vrefer'];
+    $ever[7]=$v['begru'];
+    $ever[8] = $oldkey;
+    $ever[9]= $vkonto;
+    $ever[10]=$v['einzdat'];
+    $ever[11]=$v['auszdat'];
+    $ever[12]=$v['einzdat_alt'];
+    $ever[13]=$v['cokey'];
+    $ever[14]=$v['zz_pnt'];
+    $ever[15]=$v['zz_nodev'];
+    $ever[16]=$v['zz_own'];
+    $ever[17]=$v['zz_point_num'];
+    $ever[18]=$v['zz_plosch_num'];
+    $ever[19]=$v['zz_object_num'];
+    $ever[20]=$v['zz_pl_obj_num'];
+    $ever[21]=$v['zz_paym_dc'];
+    $ever[22]=$v['zz_bp_provider'];
+    $ever[23]=$v['zz_bp_distrib'];
+    $ever[24]=$v['zz_distrib_type'];
+
+    return $ever;
+}
+
 // Выгрузка inst_mgmt (заполнение структуры  di_int) быт.
 function f_inst_mgmt1_ind($rem,$v) {
     $oldkey_const='04_C'.$rem.'B_';
@@ -2708,7 +2744,7 @@ function f_discenter_ind($rem,$v) {
 
 // Выгрузка instln юридические потребители
 function f_instln($n_struct,$rem,$v,$vid) {
-    $oldkey_const='04_C'.$rem.'B_01_';
+    $oldkey_const='04_C'.$rem.'P_01_';
     $sparte = $v['sparte'];
     $spebene = $v['spebene'];
     $anlart = $v['anlart'];

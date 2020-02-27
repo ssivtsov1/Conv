@@ -839,6 +839,9 @@ WHERE year_p=0 and year_q>0';
                 case 28:
                     return $this->redirect(['sap_devgrp', 'res' => $model->rem]);
                     break;
+                case 29:
+                    return $this->redirect(['sap_move_in', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -3854,8 +3857,236 @@ where a.archive='0'
 //        return $this->render('info', [
 //            'model' => $model]);
     }
-    
-            //выгрузка ид фалов сап imove_in , для бытовых потребителей
+
+
+// Формирование файла move_in для САП для юрид. потребителей
+    public function actionSap_move_in($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $data_p = data_from_server($sql_p, $res, $vid);
+        $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
+        //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
+        $sql = "select const.opbuk as bukrs,stt.doc_num as vrefer,
+tt.*,
+case when stt.flag_budjet = 1 then '03' else case when coalesce(cc2.idk_work,0)=99 then '04' else '02' end  end  as kofiz,
+'1' as gemfakt,'' as vbez,stt.doc_num as vreffer,'$period'::text as einzdat,''::text as auszdat,dt_b as einzdat_alt,
+case when  coalesce(cc2.idk_work,0) = 99 then  const.opbuk||'01100' when stt.flag_budjet = 1 then const.opbuk || '01110' else const.opbuk || '01100' end  as cokey,
+''::text as zz_pnt,
+''::text as zz_nodev,''::text as zz_own,
+row_number() OVER (PARTITION BY id_cl)::int as zz_point_num,
+row_number() OVER (PARTITION BY vstelle)::int as zz_plosch_num,
+row_number() OVER (PARTITION BY vstelle,id_cl)::int as zz_object_num,
+1 as zz_pl_obj_num,
+(case when coalesce(stt.flag_reactive,0)=0 then 'X' else '' end ) as zz_paym_dc,
+'31793056' as zz_bp_distrib,
+ci.edrpou_contr as zz_bp_provider,
+case when ci.id=2 then '03'
+when ci.id=1000000 then '02' else '01' end as zz_distrib_type
+from
+(select distinct on(zz_eic) case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+www.short_name as real_name,const.ver,const.begru,
+'10'::text as sparte,qqq.* from
+(select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,
+case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
+q1.num_eqp as zz_eic,q.* from
+(select  distinct 'DATA' as DATA,c.id as id_cl,p.dt_b,
+case when p.voltage_max = 0.22 then '02'
+     when p.voltage_max = 0.4 then '03'
+     when p.voltage_max = 10.00 then '05' 
+     when p.voltage_max = 6.0 then '04'
+     when p.voltage_max = 27.5 then '06'
+     when p.voltage_max = 35.0 then '07'
+     when p.voltage_max = 110.0 then '08' else '' end as SPEBENE,
+'0001' as ANLART,
+'0002' as ABLESARTST,
+p.name_eqp as ZZ_NAMETU,
+'' as ZZ_FIDER,
+'$period' as AB,
+case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01???'  
+     when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 14 then 'CN_4HN2_01???' 
+     else 
+	case when p.id_tarif in (27,28,150,900001,900002) then 'CN_2TH2_01???' 
+	else '???' --tar_sap.id_sap_tar 
+	end 
+end  as TARIFTYP,
+case when st.id_section = 201 then '02'
+     when st.id_section = 202 then '50'
+     when st.id_section = 203 then '60'
+     when st.id_section in(210,211,213,214,215) then '68'
+     when c2.idk_work = 99 then '72'
+     else '67' end  as BRANCHE,
+--case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
+case when c.code = '900' then '0004' else '0002' end as AKLASSE,
+     '' as ABLEINH,
+case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
+     when tgr.ident in('tgr2') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '012'
+     when tgr.ident in('tgr6') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '020'
+     when tgr.ident in('tgr3') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '028'
+     when tgr.ident in('tgr4') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '036'
+     when tgr.ident in('tgr5',' tgr8_62','tgr8_63') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '044'
+     when tgr.ident in('tgr1') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999)  then '054'
+     when tgr.ident in('tgr2') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '060'
+     when tgr.ident in('tgr6') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '066'
+     when tgr.ident in('tgr3') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '072'
+     when tgr.ident in('tgr4') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '078'
+     when tgr.ident in('tgr5',' tgr8_62','tgr8_63') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '084'
+     when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) in (1009,1017,1018,1019,1020,1021,1001)then '286'
+     when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) =1010 then '288'
+     when tgr.ident in('tgr8_10','tgr8_30') then '298'
+     when tgr.ident in('tgr8_12','tgr8_22','tgr8_32','tgr8_4') then '300'
+     when tgr.ident in('tgr7_1','tgr7_11','tgr7_21','tgr7_211','tgr7_21','tgr7_211') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218)then '352'
+     when ((tgr.ident ~ 'tgr7_12') or (tgr.ident~ 'tgr7_22') or (tgr.ident= 'tgr7_13') or (tgr.ident = 'tgr7_23') or (tgr.ident= 'tgr8_101') or (tgr.ident = 'tgr8_61') ) and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '354'
+when tgr.ident in ('tgr7_511','tgr7_514','tgr7_5141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '384'
+when (tgr.ident ~ 'tgr7_51') and tgr.ident not in ('tgr7_511','tgr7_514','tgr7_5141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '385'
+when coalesce(st.id_section,1007)  in (1007,1008) and (tgr.ident ~ 'tgr7_52') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218)  and tar.id not in (900001,999999) then '391'
+when tgr.ident~ 'tgr7_521'  and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '392'
+when tgr.ident ~ 'tgr7_522' and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '394'
+when tgr.ident in ('tgr7_611','tgr7_614','tgr7_6141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '402'
+when (tgr.ident ~ 'tgr7_61') and tgr.ident not in ('tgr7_611','tgr7_614','tgr7_6141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '403'
+when coalesce(st.id_section,1015) in (1015,1016,1007,1008) and (tgr.ident ~ 'tgr7_62') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218)then '409'
+when tgr.ident ~ 'tgr7_621' and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '410'
+when tgr.ident ~ 'tgr7_622' and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '412'
+when tgr.ident in ( 'tgr7_15','tgr7_25','tgr7_35','tgr7_53','tgr7_63','tgr7_7') then '414'
+when tcl.ident='tcl1' and st.id_section = 209 and  tar.id not in (900001,999999) then '574'
+when tcl.ident='tcl2' and st.id_section = 209 and  tar.id not in (900001,999999) then '582'
+when c.idk_work=99 and p.voltage_min>10  and tcl.ident='tcl1' then '604'
+when c.idk_work=99 and p.voltage_min<=10 and tcl.ident='tcl2' then '606'
+when tcl.ident='tcl1' and p.id_extra =1003 then '632'
+when tcl.ident='tcl2' and p.id_extra =1003 then '634'
+when tcl.ident='tcl1' and p.id_extra in (1001,1002,1012,1013) then '638'
+when tcl.ident='tcl2' and p.id_extra in (1001,1002,1012,1013) then '640'
+when tgr.ident in('tgr8_101') then '666'
+ else '' end as ZZCODE4NKRE,
+'' as ZZCODE4NKRE_DOP,
+'' as ZZOTHERAREA,
+'1' as sort 
+from (select dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, 
+dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
+dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, tr.id_grouptarif --, ph.id_extra --, tr.id_classtarif
+	from eqm_equipment_tbl as eq 
+	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id  order by dt_b desc limit 1 ) ) 
+	join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
+	left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif) 
+	left join cla_param_tbl as p on (dt.industry=p.id) 
+	left join eqk_tg_tbl as tg on (dt.id_tg=tg.id) 
+	left join eqk_voltage_tbl AS v on (dt.id_voltage=v.id) 
+	left join eqk_voltage_tbl AS vun on (dt.id_un=vun.id) 
+	left join eqk_zone_tbl AS z on (dt.zone=z.id) 
+	left join cla_param_tbl AS cla on (dt.id_depart=cla.id) 
+	left join cla_param_tbl AS cla2 on (dt.id_extra=cla2.id) 
+	left join clm_position_tbl as cp on (cp.id = dt.id_position) ) as p 
+join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp) 
+join eqm_tree_tbl as t on (t.id = tt.id_tree) 
+join (select distinct id,code,idk_work from clm_client_tbl) as c on (c.id = t.id_client) 
+left join eqm_eqp_use_tbl as use on (use.code_eqp = p.code_eqp) 
+left join clm_client_tbl as c2 on (c2.id = coalesce (use.id_client, t.id_client)) 
+left join clm_statecl_tbl as st on (st.id_client = c2.id) 
+left join aci_tarif_tbl as tar on (tar.id=p.id_tarif)
+--left join sap_energo_tarif as tar_sap on tar_sap.id_tar = p.id_tarif
+left join eqi_grouptarif_tbl as tgr on tgr.id= p.id_grouptarif
+left join eqi_classtarif_tbl as tcl on (p.id_classtarif=tcl.id) 
+--left join reading_controller as w on w.tabel_numb = p.num_tab
+left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = p.code_eqp) 
+left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
+) q 
+left join eqm_equipment_tbl q1 
+on q.zz_nametu::text=q1.name_eqp::text and substr(q1.num_eqp::text,1,3)='62Z'
+left join eqm_area_tbl ar on ar.code_eqp=q1.id
+left join sap_evbsd x on substr(x.haus,9)::integer=q.id_cl
+left join clm_client_tbl as cc on cc.id = q.id_cl
+left join 
+(select u.id_client,a.id from eqm_equipment_tbl a
+   left join eqm_point_tbl tu1 on tu1.code_eqp=a.id 
+   left JOIN eqm_compens_station_inst_tbl AS area ON (a.id=area.code_eqp)
+   left JOIN eqm_equipment_tbl AS eq2 ON (area.code_eqp_inst=eq2.id)
+   left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
+   left join clm_client_tbl u1 on u1.id=u.id_client) rr 
+   on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
+where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
+left join sap_evbsd yy on substr(yy.haus,9)::integer=qqq.id_potr
+left join clm_client_tbl www on www.id=qqq.id_potr
+inner join sap_const const on 1=1) tt
+left join clm_statecl_tbl as stt on (stt.id_client = tt.id_cl) 
+left join clm_client_tbl as cc2 on (tt.id_cl = cc2.id) 
+left join (select * from clm_contractor_tbl where dt_contr_end is null) ct on ct.id_client=cc2.id
+left join cli_contractor_tbl ci on ci.id=ct.id_contractor and ci.edrpou_contr is not null 
+inner join sap_const const on 1=1
+order by 8,zz_point_num,zz_plosch_num,zz_object_num
+";
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        // Заполняем массивы структур: $di_int и $di_zw
+        $i=0;
+        foreach ($data as $w) {
+            $ever[$i]=f_move_in($rem,$w);
+//            $ever1[$i]=f_move_in_ind1($rem,$w);
+            $i++;
+        }
+
+//        debug($ever);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с массивов $di_int и $di_zw
+        $i=0;
+        foreach ($ever as $d) {
+            $d1 = array_map('trim', $d);
+//            debug($d1);
+//            return;
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, "\n");
+        }
+
+        fclose($f);
+
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл MOVE_IN сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
+    //выгрузка ид фалов сап imove_in , для бытовых потребителей
         public function actionIdfile_move_in_ind($res)
     {
         ini_set('memory_limit', '-1');
