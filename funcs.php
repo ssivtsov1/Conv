@@ -1195,7 +1195,8 @@ function f_partner($n_struct, $rem, $v) {
    $name_org2 = $v['name_org2'];
    $name_org3 = $v['name_org3'];
    $name_org4 = $v['name_org4'];
-   $roomnumber = $v['flat'];
+   //$roomnumber = $v['flat'];
+    $roomnumber = '~';  // Уточнить
    $legal_enty = $v['legal_enty'];
    $liquid_dat = $v['liquid_dat'];
    $zfilcode = $v['zfilcode'];
@@ -1793,14 +1794,16 @@ function f_device($n_struct,$rem,$v,$vid) {
     $eqart=$v['eqart'];
     $baujj=$v['baujj'];
     $datab = $v['datab'];
+    $datab = str_replace('-','',$datab);
     $kostl =$v['kostl'];
     $bukrs='CK01';
     $matnr=$v['matnr'];
     $sernr=$v['sernr'];
+
     $zz_pernr=$v['zz_pernr'];
     $cert_date=$v['cert_date'];
 //    $bgljahr=$v['bgljahr'];
-    $bgljahr=$datab;
+    $bgljahr=$v['bgljahr'];
     $begru=$v['begru'];
 //    $swerk=$v['swerk'];
     $swerk='C01M';
@@ -1837,7 +1840,7 @@ function f_premise($n_struct,$rem,$v) {
 
     if($n_struct=='EVBSD')
         $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru,zz_nameplvm)
-                    values('$oldkey','$n_struct','$haus','$house_num2','~','~','$pltxt',$$$zz_nameplvn$$)";
+                    values('$oldkey','$n_struct','$haus','$house_num2','~','P0001','$pltxt',$$$zz_nameplvn$$)";
 
     switch ((int) $rem) {
         case 1:

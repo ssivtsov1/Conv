@@ -2566,6 +2566,12 @@ order by sort";
         $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
+
+        // Получаем дату ab
+        $sql_d=" select (max(mmgg) - interval '3 month')::date as mmgg_current from sys_month_tbl";
+        $data_d = data_from_server($sql_d,$res,$vid);
+        $date_ab=$data_d[0]['mmgg_current'];
+
         // Главный запрос со всеми необходимыми данными
         $sql = "select distinct on(zz_eic) case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru,
@@ -2585,7 +2591,7 @@ case when p.voltage_max = 0.22 then '02'
 '0002' as ABLESARTST,
 p.name_eqp as ZZ_NAMETU,
 '' as ZZ_FIDER,
-'$period' as AB,
+'$date_ab' as AB,
 case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01???'  
      when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 14 then 'CN_4HN2_01???' 
      else 
@@ -5046,6 +5052,11 @@ public function actionIdfile_seals($res)
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         $day=((int) date('d'))-1;  // УЧЕСТЬ!!!! ДАЛЬШЕ
         $datab = date('Ymd', strtotime("-$day day")); // УЧЕСТЬ!!!! ДАЛЬШЕ
+
+     // Получаем дату datab
+        $sql_d=" select (max(mmgg) - interval '3 month')::date as mmgg_current from sys_month_tbl";
+        $data_d = data_from_server($sql_d,$res,$vid);
+        $date_ab=$data_d[0]['mmgg_current'];
         // Главный запрос со всеми необходимыми данными
         $sql = "select * from 
 (select distinct m.code_eqp as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
@@ -5053,8 +5064,9 @@ public function actionIdfile_seals($res)
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
                  substring(m.dt_control::varchar,1,4) as BAUJJ, 
-                '$datab' as datab,
+                '$date_ab' as datab,
                  '' as EQKTX,
+                case when m.dt_control is null then '2005' else substring(m.dt_control::varchar,1,4)  end as bgljahr,
                 case  when coalesce(eq.is_owner,0) = 0 then 'CCNN232820' else '' end as KOSTL, 
                  trim(eq.num_eqp) as SERNR,
                  'CK_RANDOM' as zz_pernr,
@@ -5090,8 +5102,10 @@ select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.c
                 '' as BAUJJ, 
                 '' as datab,
                  '' as EQKTX,
+                 '' as bgljahr,
                 case  when coalesce(eq.is_owner,0) = 0 then 'CCNN232820' else '' end as KOSTL, 
-                 trim(eq.num_eqp) as SERNR,
+                 --trim(eq.num_eqp) as SERNR,
+                  get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
                  'CK_RANDOM' as zz_pernr,
                   '' as CERT_DATE,
                   upper(type_tr.type_tr_sap) as MATNR,
@@ -5107,8 +5121,8 @@ select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.c
 		    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
 		    left join sap_type_tr_i_tbl as type_tr on type_tr.id_type = ic.id 
                     inner join sap_const const on 1=1 ) x
-order by tzap           
-                    ";
+order by tzap   
+";
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -6127,7 +6141,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         $rem = '0'.$res;  // Код РЭС
         $dt=date('Y-m-d');
 
-        $sql = "select distinct '' as pltxt,'PREMISE' as name, cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
+        $sql = "select distinct const.begru as pltxt,'PREMISE' as name, cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'" . $rem . "'||'P_'||case when length(eq.id::varchar)<8 then 
              (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
              ref.oldkey as HAUS,ref.house_num2,const.ver
