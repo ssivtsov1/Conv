@@ -9591,15 +9591,13 @@ public function actionSap_discdoc_ind($res)
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('new_list1.csv','r');
+        $f = fopen('new_list_02_2020.csv','r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            
-            if($i==1) continue;
-            $s=substr($s,1);
-            $data = explode(";",$s);
+
+            $data = explode("~",$s);
             if(empty($data[0])) break;
             $data[5] = str_replace('"',' ',$data[5]);
             $data[5] = str_replace('i','і',$data[5]);
@@ -9612,14 +9610,14 @@ public function actionSap_discdoc_ind($res)
                 $pos = strpos($data[2], "'");
                 if(!$pos)
                     {$sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
-                        "'".$data[0]."'".","."'".$data[2]."'".","."'".$data[6]."'".","."'".$data[5]."'".","."'".$data[4]."'".
-                        ",".'null'.",".'null'.","."'".""."'".')';
+                        "'".$data[1]."'".","."'".$data[2]."'".","."'".$data[5]."'".","."'".$data[4]."'".","."'".$data[3]."'".
+                        ",".'null'.",".'null'.","."'". $data[6] ."'".')';
 
                     }
                 else
                     {$sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
-                        "'".$data[0]."'".",".'"'.$data[2].'"'.","."'".$data[6]."'".","."'".$data[5]."'".","."'".$data[4]."'".
-                        ",".'null'.",".'null'.","."'".""."'".')';
+                        '"'.$data[1].'"'.",".'"'.$data[2].'"'.",".'"'.$data[5].'"'.",".'"'.$data[4].'"'.",".'"'.$data[3].'"'.
+                        ",".'null'.",".'null'.",".'"'. $data[6] .'"'.')';
                      break;
                     }
 
