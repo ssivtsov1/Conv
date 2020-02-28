@@ -2745,7 +2745,7 @@ function f_discenter_ind($rem,$v) {
 // Выгрузка instln юридические потребители
 function f_instln($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'P_01_';
-    $sparte = $v['sparte'];
+    //$sparte = $v['sparte'];
     $spebene = $v['spebene'];
     $anlart = $v['anlart'];
     $vstelle = $v['vstelle'];
@@ -2772,15 +2772,15 @@ function f_instln($n_struct,$rem,$v,$vid) {
         $pos = strpos($zz_nametu, "'");
 
         if(!$pos)
-        $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
+        $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
                 tariftyp,branche,aklasse,ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
-     values($$$oldkey$$,'$n_struct',$$$sparte$$,$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
+     values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
      '$zz_nametu','$zz_fider',$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
      '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic')";
         else
-        $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
+        $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
                 tariftyp,branche,aklasse,ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
-     values($$$oldkey$$,'$n_struct',$$$sparte$$,$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,".
+     values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,".
     '$$'.$zz_nametu.'$$'.",'$zz_fider',$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
      '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic')";
     }
