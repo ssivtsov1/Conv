@@ -2132,7 +2132,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
-
+        $period = str_replace('-', '', $period);
     $sql="select distinct 'INST_MGMT' as name, c.id,c.code, eq.name_eqp,m.code_eqp as id_eq,
     '04_C'||'$rem'||'P_'||m.code_eqp as oldkey,const.ver
      from eqm_tree_tbl as tr 
@@ -2179,7 +2179,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
                  '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                 '$devloc' as devloc,
                 'DI_INT' as struc,'$period' as eadat,
-                 '04_C'||'$rem'||'B_01_'||eq.id::varchar as anlage,
+                 '04_C'||'$rem'||'P_01_'||eq.id::varchar as anlage,
                 '01' as ACTION
                 from eqm_meter_tbl as m
                 join eqm_equipment_tbl as eq on (m.code_eqp = eq.id) 
@@ -2333,6 +2333,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
+        $period = str_replace('-','',$period);
 
         $sql="select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver
         from group_trans as eq

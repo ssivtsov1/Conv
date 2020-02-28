@@ -1970,7 +1970,7 @@ function f_seals($n_struct,$rem,$v,$vid) {
 function f_zlines($n_struct,$rem,$v,$vid) {
     $day=((int) date('d'))-1;
     $datab = date('Ymd', strtotime("-$day day"));
-    $oldkey_const='04_C'.$rem.'B_01_';
+    $oldkey_const='04_C'.$rem.'P_01_';
     $r = $v['code_eqp'];
     $pnt=$v['pnt'];
     $pnt= substr((1000+$pnt),1,3);
@@ -1993,7 +1993,7 @@ function f_zlines($n_struct,$rem,$v,$vid) {
 function f_ztransf($n_struct,$rem,$v,$vid) {
     $day=((int) date('d'))-1;
     $datab = date('Ymd', strtotime("-$day day"));
-    $oldkey_const='04_C'.$rem.'B_01_';
+    $oldkey_const='04_C'.$rem.'P_01_';
     $r = $v['code_eqp'];
     $pnt=$v['pnt'];
     $pnt= substr((1000+$pnt),1,3);
@@ -2532,8 +2532,8 @@ function f_move_in($rem,$v) {
     $ever[7]=$v['begru'];
     $ever[8] = $oldkey;
     $ever[9]= $vkonto;
-    $ever[10]=$v['einzdat'];
-    $ever[11]=$v['auszdat'];
+    $ever[10]= str_replace('-', '',$v['einzdat']);
+    $ever[11]=str_replace('-', '',$v['auszdat']);
     $ever[12]=$v['einzdat_alt'];
     $ever[13]=$v['cokey'];
     $ever[14]=$v['zz_pnt'];
@@ -2756,6 +2756,7 @@ function f_instln($n_struct,$rem,$v,$vid) {
 //    $zz_nametu = 'weqq';
     $zz_fider = $v['zz_fider'];
     $ab = $v['ab'];
+    $ab = str_replace('-', '',$ab);
     $tariftyp = $v['tariftyp'];
     $branche = $v['branche'];
     $aklasse = $v['aklasse'];
@@ -2777,8 +2778,8 @@ function f_instln($n_struct,$rem,$v,$vid) {
      '$zz_nametu','$zz_fider',$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
      '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic')";
         else
-            $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
-     tariftyp,branche,aklasse,ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
+        $z = " insert into sap_data(oldkey,dat_type,sparte,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
+                tariftyp,branche,aklasse,ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
      values($$$oldkey$$,'$n_struct',$$$sparte$$,$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,".
     '$$'.$zz_nametu.'$$'.",'$zz_fider',$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
      '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic')";
