@@ -3885,7 +3885,7 @@ where a.archive='0'
 
         $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
-        $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
+        $period = str_replace('-','',$data_p[0]['mmgg']);  // Получаем текущий отчетный период
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
         $sql = "select const.opbuk as bukrs,stt.doc_num as vrefer,
 tt.*,
@@ -5768,7 +5768,7 @@ order by tzap
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
-        $sql = "select a.id,'CK04' as pltxt,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
+        $sql = "select a.id,'' as pltxt,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
 case when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 0 then  '03'  else '03' end as BU_GROUP,
 case when coalesce(b.FLAG_JUR,0)= 1 then '0002' when coalesce(b.FLAG_JUR,0)= 0 then  '0003' else '0001' end as BPKIND,
 'MKK' as ROLE1,
@@ -6127,7 +6127,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         $rem = '0'.$res;  // Код РЭС
         $dt=date('Y-m-d');
 
-        $sql = "select distinct 'CK04' as pltxt,'PREMISE' as name, cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
+        $sql = "select distinct '' as pltxt,'PREMISE' as name, cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'" . $rem . "'||'P_'||case when length(eq.id::varchar)<8 then 
              (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
              ref.oldkey as HAUS,ref.house_num2,const.ver
