@@ -2537,7 +2537,7 @@ function f_move_in($rem,$v) {
     $ever[9]= $vkonto;
     $ever[10]= str_replace('-', '',$v['einzdat']);
     $ever[11]=str_replace('-', '',$v['auszdat']);
-    $ever[12]=$v['einzdat_alt'];
+    $ever[12]=str_replace('-', '',$v['einzdat_alt']);
     $ever[13]=$v['cokey'];
     $ever[14]=$v['zz_pnt'];
     $ever[15]=$v['zz_nodev'];
