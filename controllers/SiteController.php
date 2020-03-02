@@ -7464,7 +7464,7 @@ public function actionSap_discdoc_ind($res)
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select a.id,a.code,max(b.dt_action),const.ver from clm_paccnt_tbl a
+        $sql = "select a.id,a.code,max(b.dt_action) as dat,const.ver from clm_paccnt_tbl a
                 join clm_switching_tbl b on a.id=b.id_paccnt
                 left join sap_const as const on 1=1
                 where a.archive ='0' and (a.activ = 'f' or a.activ is null)

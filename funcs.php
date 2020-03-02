@@ -2730,7 +2730,7 @@ function f_discorder_ind($rem,$v) {
     $di_ord[0]=$oldkey;     //oldkey
     $di_ord[1]='HEADER';    //datatype
     $di_ord[2]=$oldkey;     //ANLAGE
-    $di_ord[3]=$v['code'];         //EQUNR
+    $di_ord[3]=str_replace('-','',$v['dat']);         //EQUNR
     return $di_ord;
 }
 
