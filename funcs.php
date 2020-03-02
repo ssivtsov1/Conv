@@ -2035,7 +2035,7 @@ $ableinh = $v['ableinh'];
 $begru = $v['begru'];
 $branche = $v['branche'];
 $zz_eic = $v['eic'];
-$oldkey = $oldkey_const . $v['id'];;
+$oldkey = $oldkey_const . $v['id'];
 
 if ($n_struct == 'DATA')
     $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
