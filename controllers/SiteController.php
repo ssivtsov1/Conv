@@ -3475,9 +3475,25 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
         // Получаем название подпрограммы
         $routine = strtoupper(substr($method,10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        $asd = [ "01" => 'BC010131',
+            "02" => 'BC010231',
+            "03" => 'BC010331',
+            "04" => 'BC010431',
+            "05" => 'BC010531',
+            "06" => 'BC010631',
+            "07" => 'BC010731',
+            "08" => 'BC010831',
+        ];
+        // Получаем дату ab
+        $sql_d="select (fun_mmgg() - interval '4 month')::date as mmgg_current";
+        $data_d = data_from_server($sql_d,$res,$vid);
+        $date_ab=$data_d[0]['mmgg_current'];
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select id,power,plita,opal,(mmgg-interval '0 month')::date as mmgg,
+        $sql = "select facts.id,facts.power,max(facts.plita) as plita,max(facts.opal) as opal,max(facts.mmgg) as mmgg,
+max(facts.mmgg_end) as mmgg_end,facts.ver,max(facts.dem_0) as dem_0,max(facts.dem_9) as dem_9,
+max(facts.dem_10) as dem_10,max(facts.dem_6) as dem_6,max(facts.dem_7) as dem_7,max(facts.dem_8) as dem_8 from
+(select distinct id,power,plita,opal,max(mmgg-interval '0 month')::date as mmgg,
 (mmgg_end-interval '0 month')::date as mmgg_end,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
 sum(dem_10) as dem_10,sum(dem_6) as dem_6,sum(dem_7) as dem_7,sum(dem_8) as dem_8 from
 (select q.* from (
@@ -3487,25 +3503,53 @@ case when a.id_zone=10 then demand end as dem_10,
 case when a.id_zone=6 then demand end as dem_6,
 case when a.id_zone=7 then demand end as dem_7,
 case when a.id_zone=8 then demand end as dem_8,
-a.mmgg,(a.mmgg+interval '1 month'-interval '1 day') as mmgg_end,b.power,
+max(a.mmgg) OVER (PARTITION BY a.id_paccnt,a.id_zone) as mmgg,(max(a.mmgg) OVER (PARTITION BY a.id_paccnt,a.id_zone)+interval '1 month'-interval '1 day') as mmgg_end,b.power,
 case when c.id_gtar in(3,5,16) then 1 end as plita,
 case when c.id_gtar in(4,6,14) then 1 end as opal,const.ver
 from clm_meterpoint_tbl b 
 left join clm_plandemand_tbl a on a.id_paccnt=b.id_paccnt
-inner join clm_paccnt_tbl c on c.id=a.id_paccnt and c.archive='0'
+join clm_paccnt_tbl c on c.id=a.id_paccnt and c.archive='0'
 left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1
 on 1=1
-inner join (select id_paccnt,mmgg,id_zone,max(dat_ind) as dat_ind from acm_indication_tbl 
-group by id_paccnt,id_zone,mmgg) j on j.id_paccnt=a.id_paccnt and j.mmgg=w1.mmgg_current and j.id_zone=a.id_zone
+inner join (select id_paccnt,max(mmgg) as mmgg,id_zone,max(dat_ind) as dat_ind from acm_indication_tbl 
+group by id_paccnt,id_zone) j on j.id_paccnt=a.id_paccnt --and j.mmgg=w1.mmgg_current
+ and j.id_zone=a.id_zone
 inner join sap_const const on 1=1
-where a.mmgg=w1.mmgg_current 
+--where a.mmgg=w1.mmgg_current 
 order by a.id_paccnt
 ) q
 left join 
 (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w
 on 1=1
-where mmgg=mmgg_current) s
-group by id,power,plita,opal,mmgg,mmgg_end,ver
+--where mmgg=mmgg_current
+) s
+group by id,power,plita,opal,mmgg_end,ver) facts
+inner join 
+(select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
+                                case when length(adr.last_name||' '||adr.name||' '||adr.patron_name)>0 then 
+                            adr.last_name||' '||adr.name||' '||adr.patron_name else
+                                 adr.code end as zz_nametu,'' as zz_fider,'$date_ab' as ab,'CK_1AL2_01' as tariftyp,
+                                '0001' as aklasse,ff.ableinh as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
+                                case when trim(adr.type_city)='м.' then '70' else '71' end as branche, p.id_sector
+                                from clm_paccnt_tbl a 
+                                inner join sap_const b on 1=1
+                                left join sap_evbsd c on a.id=substr(c.oldkey,9)::integer
+                                left join vw_address adr on a.id=adr.id
+                                left join prs_runner_paccnt p on p.id_paccnt=a.id
+                        left join (                
+                                select qwe.id,qwe.name,'$asd[$rem]' as ableinh from (
+                                select distinct c.id,c.name from prs_runner_sectors c
+                                left join prs_runner_paccnt p on p.id_sector=c.id
+                                left join clm_paccnt_tbl as pa on pa.id=p.id_paccnt
+                                where pa.archive = '0'
+                                order by c.name
+                                ) qwe
+                                ) ff
+                        on ff.id=p.id_sector
+                where a.archive='0') instln on
+                facts.id=instln.id
+                group by facts.id,facts.power,facts.ver
+                order by facts.id
 ";
 
         // Получаем необходимые данные
@@ -6444,37 +6488,25 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         where a.archive='0'
         ";
 
-        $sql = "select a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
+        $sql = "select DISTINCT a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
                 b.name,b.patron_name,c.town,c.indx,c.street,
                 c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
-                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport,dd.oldkey as haus,c1.* from clm_paccnt_tbl a
+                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport,dd.oldkey as haus from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
         left join vw_address c on
         a.id=c.id
         left join sap_but020 c1 on c1.old_key='04_C'||'$rem'||'B_'||a.id
-        -- left join addr_sap b1 on
-    --trim(lower(c.street))=trim(lower(get_sap_street(b1.street)))
-    -- and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
-    -- else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end
-    --  and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
         left join sap_co_adr dd on
-
-    --trim(lower(dd.city1))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
-       --and dd.street=c.type_street||' '||c.street and upper(dd.house_num1)=upper(c.house)
-
-       --((trim(lower(b1.street))=trim(lower(dd.street)) and dd.str_suppl1='~') or (trim(lower(c.street))=trim(lower(dd.str_suppl1)) and trim(dd.street)='~'))
-    --   and case when dd.city1 is not null and trim(dd.city1)<>'' then (trim(lower(dd.city1))=trim(lower(b1.town))) else 1=1 end
-    --  and ((upper(dd.house_num1)=upper(c.house) and dd.str_suppl1='~') or (upper(trim(dd.str_suppl2))=upper(trim(c.house)) and trim(dd.street)='~'))
-        trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and trim(c1.house_num1)=trim(dd.house_num1)
-        and coalesce(trim(c1.house_num2),'~')=coalesce(trim(dd.house_num2),'~')
-         
-        inner join sap_const const on
-    1=1
+        (trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and trim(c1.house_num1)=trim(dd.house_num1)
+        and coalesce(trim(replace(c1.house_num2,'корп.','')),'~')=case when trim(dd.house_num2)='' then '~' ELSE coalesce(trim(dd.house_num2),'~') END
+        and dd.str_suppl1='~') or (dd.str_suppl1<>'~' and trim(c1.str_suppl1)=trim(dd.str_suppl1) and trim(c1.str_suppl2)=trim(dd.str_suppl2))
+        inner join sap_const const on 1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
-        where a.archive='0'";
+        where a.archive='0' 
+       ";
         $sql_c = "select * from sap_export where objectsap='PREMISE_IND' order by id_object";
         $zsql = 'delete from sap_evbsd';
         //$cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
