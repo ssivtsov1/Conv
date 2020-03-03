@@ -4721,24 +4721,25 @@ public function actionIdfile_seals($res)
                 const.swerk,const.stort,const.ver,const.begru,
                 const.region,d.kod_reg,
                 case when b1.street is null then c.street else '' end as str_supl1,
-                case when b1.street is null then c.house else '' end as str_supl2
+                case when b1.street is null then c.house else '' end as str_supl2,
+                c.korp 
                  from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
-         trim(lower(c.street))=trim(lower(get_sap_street(b1.street)))
-         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
-         else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
-        -- and lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) 
-         and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
+         trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
+        and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+        else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
+         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+         
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
         where a.archive='0' --and  b1.street is null
-        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16  
+        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17  
         ";
 
 //    debug($sql);
@@ -6429,12 +6430,13 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         left join vw_address c on
         a.id=c.id
         left join sap_co_adr dd on
-        --dd.city1=c.type_city||' '||c.town and dd.street=c.type_street||' '||c.street and dd.house_num1=c.house -- and dd.cek_type_street=c.type_street
-       trim(lower(dd.city1))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
-       and dd.street=c.type_street||' '||c.street and upper(dd.house_num1)=upper(c.house)
-       
-        --trim(lower(c.street))=trim(lower(b1.short_street)) and lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) 
-        --and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+        ((trim(lower(c.street))=trim(lower(get_sap_street(dd.street))) and dd.str_suppl1='~') or (trim(lower(c.street))=trim(lower(dd.str_suppl1)) and trim(dd.street)='~')) 
+        and case when trim(lower(get_sap_street(dd.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+        else ((lower(trim(c.type_street))=lower(trim(get_typestreet(dd.street))) and trim(dd.str_suppl1)='~') 
+        or (1=1 and trim(dd.street)='~')) end 
+         and case when dd.city1 is null then (trim(lower(dd.city1))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end
+          ||' '||trim(lower(c.town)))) and dd.city1 is not null) else 1=1 end
+          and ((upper(dd.house_num1)=upper(c.house) and dd.str_suppl1='~') or (upper(trim(dd.str_suppl2))=upper(trim(c.house)) and trim(dd.street)='~'))
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
@@ -6442,6 +6444,37 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         where a.archive='0'
         ";
 
+        $sql = "select a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
+                b.name,b.patron_name,c.town,c.indx,c.street,
+                c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
+                const.swerk,const.stort,const.ver,const.begru,
+                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport,dd.oldkey as haus,c1.* from clm_paccnt_tbl a
+        left join clm_abon_tbl b on
+        a.id=b.id
+        left join vw_address c on
+        a.id=c.id
+        left join sap_but020 c1 on c1.old_key='04_C'||'$rem'||'B_'||a.id
+        -- left join addr_sap b1 on
+    --trim(lower(c.street))=trim(lower(get_sap_street(b1.street)))
+    -- and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+    -- else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end
+    --  and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+        left join sap_co_adr dd on
+
+    --trim(lower(dd.city1))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+       --and dd.street=c.type_street||' '||c.street and upper(dd.house_num1)=upper(c.house)
+
+       --((trim(lower(b1.street))=trim(lower(dd.street)) and dd.str_suppl1='~') or (trim(lower(c.street))=trim(lower(dd.str_suppl1)) and trim(dd.street)='~'))
+    --   and case when dd.city1 is not null and trim(dd.city1)<>'' then (trim(lower(dd.city1))=trim(lower(b1.town))) else 1=1 end
+    --  and ((upper(dd.house_num1)=upper(c.house) and dd.str_suppl1='~') or (upper(trim(dd.str_suppl2))=upper(trim(c.house)) and trim(dd.street)='~'))
+        trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and trim(c1.house_num1)=trim(dd.house_num1)
+        and coalesce(trim(c1.house_num2),'~')=coalesce(trim(dd.house_num2),'~')
+         
+        inner join sap_const const on
+    1=1
+        left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
+        trim(c.district)=d.region
+        where a.archive='0'";
         $sql_c = "select * from sap_export where objectsap='PREMISE_IND' order by id_object";
         $zsql = 'delete from sap_evbsd';
         //$cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();

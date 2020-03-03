@@ -1497,19 +1497,20 @@ function f_connobj_ind($n_struct,$rem,$v) {
     $swerk=$v['swerk'];
     $stort=$v['stort'];
     $type_street=$v['type_street'];
+    $korp=$v['korp'];
 
     $oldkey = $oldkey_const . strtoupper($r);
 
-    $sql="select b2.post_index
+    $sql="select distinct b2.post_index
         from clm_paccnt_tbl a
         left join vw_address c on
         a.id=c.id 
        left join addr_sap b1 on
-         trim(lower(c.street))=trim(lower(get_sap_street(b1.street)))
-         --trim(lower(c.street))=trim(lower(b1.short_street)) 
-         and lower(trim(c.type_street))=trim(get_typestreet(b1.street)) 
-         and b1.town=case when c.type_city='смт.' then 'смт' else c.type_city end ||' '||c.town
-         left join post_index_sap b2 on b1.numtown=b2.numtown and b2.post_index=c.indx --and c.indx is not null
+        trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
+        and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+        else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
+         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+         left join post_index_sap b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
         where a.id=$id and b2.post_index is not null ";
 
     // Получаем необходимые данные
@@ -1566,14 +1567,14 @@ else
                 trim($street_cek)=='Садове товариство'))
             // Если садовое товарищество
            $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
-                                         street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street)
+                                         street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street,house_num2)
                     values('$oldkey','$n_struct',$$$town$$,'$post_code1','~',
-                          '~',$$$street_cek$$,'$house_num1','$region','$iuru_pro','$type_street')";
+                          '~',$$$street_cek$$,'$house_num1','$region','$iuru_pro','$type_street','$korp')";
        else
        $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
-                                         street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street)
+                                         street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street,house_num2)
                     values('$oldkey','$n_struct',$$$town$$,'$post_code1',$$$street$$,
-                          '$house_num1','~','~','$region','$iuru_pro','$type_street')";
+                          '$house_num1','~','~','$region','$iuru_pro','$type_street','$korp')";
 
     //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
     switch ((int) $rem) {
@@ -1741,6 +1742,17 @@ function f_device_ind($n_struct,$rem,$v) {
     $swerk=$v['swerk'];
     $stort=$v['stort'];
     $zwgruppe=$v['zwgruppe'];
+
+    // Корректность года поверки
+    if($bgljahr<$baujj) {
+        $bgljahr=$baujj+1;
+        $y1 = substr($cert_date,4);
+        $cert_date = $bgljahr . $y1;
+    }
+    if(empty($bgljahr)) {
+        $bgljahr=$baujj+1;
+        $cert_date = $bgljahr . '0216';
+    }
 
     $oldkey = $oldkey_const . $r;
 
