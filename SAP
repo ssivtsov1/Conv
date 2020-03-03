@@ -102,6 +102,40 @@ alter table sap_equi
 alter table sap_equi
  ALTER COLUMN sernr TYPE varchar(80)
 
+--------------- PREMICE 02.03.2020 ----------------------------
+
+select a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
+                b.name,b.patron_name,c.town,c.indx,c.street,
+                c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
+                const.swerk,const.stort,const.ver,const.begru,
+                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport,dd.oldkey as haus from clm_paccnt_tbl a
+        left join clm_abon_tbl b on
+        a.id=b.id
+        left join vw_address c on
+        a.id=c.id
+        left join sap_but020 c1 on c1.old_key='04_C03B_'||a.id
+        -- left join addr_sap b1 on
+        --trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
+       -- and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+       -- else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
+       --  and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+        left join sap_co_adr dd on
+       
+       --trim(lower(dd.city1))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+       --and dd.street=c.type_street||' '||c.street and upper(dd.house_num1)=upper(c.house)
+	
+        --((trim(lower(b1.street))=trim(lower(dd.street)) and dd.str_suppl1='~') or (trim(lower(c.street))=trim(lower(dd.str_suppl1)) and trim(dd.street)='~')) 
+        --   and case when dd.city1 is not null and trim(dd.city1)<>'' then (trim(lower(dd.city1))=trim(lower(b1.town))) else 1=1 end
+        --  and ((upper(dd.house_num1)=upper(c.house) and dd.str_suppl1='~') or (upper(trim(dd.str_suppl2))=upper(trim(c.house)) and trim(dd.street)='~'))
+        c1.city1=dd.city1 and c1.street=dd.street and c1.house_num1=dd.house_num1 and coalesce(c1.house_num2,'~')=coalesce(dd.house_num2,'~')
+         
+        inner join sap_const const on
+        1=1
+        left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
+        trim(c.district)=d.region
+        where a.archive='0' AND dd.oldkey is null --and c.street like '%Металу%'
+        order by c.house,c.flat
+
 
 
 
