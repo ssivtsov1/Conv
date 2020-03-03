@@ -3842,7 +3842,9 @@ order by 1";
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
         $sql = "select a.id,b.num_agreem as vrefer,'01' as kofiz,1 as gemfakt,const.begru as bukrs,const.begru_b as begru,const.ver,
-instln.oldkey as anlage,account.oldkey as vkonto,replace(w1.mmgg_current::char(10),'-','') as einzdat,
+--CASE WHEN instln.oldkey IS NULL THEN substr(account.oldkey,1,8)||'01_'||substr(account.oldkey,9) else instln.oldkey end as anlage,
+instln.oldkey as anlage,
+account.oldkey as vkonto,replace(w1.mmgg_current::char(10),'-','') as einzdat,
 '99991231' as auszdat,replace(w1.mmgg_current::char(10),'-','') as einzdat_alt,const.cokey,'~' as zz_pnt,
 '~' as zz_nodev,'99991231' as zz_own,1 as zz_point_num,1 as zz_plosch_num,1 as zz_object_num,1 as zz_pl_obj_num,
 '~' as zz_paym_dc,'02' as zz_distrib_type,'~' as vbez
@@ -3854,7 +3856,7 @@ left join sap_data instln on substr(instln.oldkey,12)::int=a.id
 left join sap_init_acc account on substr(account.oldkey,9)::int=a.id
 left join sap_init partner on substr(partner.old_key,9)::int=a.id
 left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1 on 1=1
-where a.archive='0'
+where a.archive='0'		       
 ";
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
@@ -4900,7 +4902,7 @@ public function actionIdfile_seals($res)
                 from clm_paccnt_tbl as a
                 left join clm_abon_tbl as b on a.id = b.id
                 inner join sap_const const on 1=1
-		where a.archive='0'
+		       where a.archive='0'
                 ) s1
                 left join
                 --VKP
