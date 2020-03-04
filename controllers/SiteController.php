@@ -4786,7 +4786,7 @@ public function actionIdfile_seals($res)
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
-        where a.archive='0' and a.id=100033028 --and  b1.street is null
+        where a.archive='0' -- and a.id=100033028 --and  b1.street is null
         group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17 
         ";
 
