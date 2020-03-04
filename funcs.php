@@ -1040,7 +1040,7 @@ function f_partner_ind($n_struct,$rem,$v) {
         $l_c=0;
         if (ctype_digit($korp)) {
             $l_c = 1;
-            $korp = 'корп. '.$korp;
+//            $korp = 'корп. '.$korp;
         }
         else{
             if (!empty($korp))

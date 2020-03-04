@@ -9963,20 +9963,20 @@ public function actionSap_discdoc_ind($res)
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         Yii::$app->db->createCommand($sql)->execute();
-        $f = fopen('transp.csv','r');
+        $f = fopen('tr_2020.csv','r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
             
             //if($i<8) continue;
-            $data = explode(";",$s);
+            $data = explode("~",$s);
             //debug($data);
             $transport = $data[1];
             $nomer = $data[2];
-            $prostoy = $data[4];
-            $proezd = $data[5];
-            $rabota = $data[6];
+            $prostoy = $data[3];
+            $proezd = $data[4];
+            $rabota = $data[5];
            
             $prostoy = str_replace(",",".",$prostoy);
             $proezd = str_replace(",",".",$proezd);
