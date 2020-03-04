@@ -4762,13 +4762,15 @@ public function actionIdfile_seals($res)
         $sql = "select min(a.id) as id,
                 c.town,b1.town as town_sap,c.street,
                 case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
-                upper(c.house) as house
+                case when c.korp is null then upper(c.house) else 
+                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) end end as house
                 ,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
                 const.region,d.kod_reg,
                 case when b1.street is null then c.street else '' end as str_supl1,
                 case when b1.street is null then c.house else '' end as str_supl2,
-                c.korp 
+                case when NOT(c.korp ~ '[0-9]+$') then '' else c.korp end as korp
+                --c.korp 
                  from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
@@ -4784,8 +4786,8 @@ public function actionIdfile_seals($res)
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
-        where a.archive='0' --and  b1.street is null
-        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17  
+        where a.archive='0' and a.id=100033028 --and  b1.street is null
+        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17 
         ";
 
 //    debug($sql);
@@ -5492,7 +5494,7 @@ order by tzap
     public function actionSap_device_ind($res)
     {
         ini_set('memory_limit', '-1');
-        ini_set('max_execution_time', 900);
+        ini_set('max_execution_time', -1);
         $rem = '0'.$res;  // Код РЭС
         $day=((int) date('d'))-1;
         $datab = date('Ymd', strtotime("-$day day"));
