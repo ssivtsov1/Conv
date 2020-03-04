@@ -2049,17 +2049,14 @@ $branche = $v['branche'];
 $zz_eic = $v['eic'];
 $oldkey = $oldkey_const . $v['id'];
 
-//if ($n_struct == 'DATA')
-//    $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
-//            ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic)
-//     values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,".
-//     "'".$zz_nametu."'".",$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh','355','~','~','$begru',$$$zz_eic$$)";
-
-    if ($n_struct == 'DATA')
-        $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
-            ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
+if ($n_struct == 'DATA')
+    $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
+            ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic)
      values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,".
-            "$$$zz_nametu$$,$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh','355','~','~','$begru',$$$zz_eic$$)";
+     "'".$zz_nametu."'".",$$$zz_fider$$,$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh','355','~','~','$begru',$$$zz_eic$$)";
+
+$ff=fopen('aaachack.chk','w+');
+fputs($ff,$z);
 
 
 exec_on_server($z, (int)$rem, $vid);
