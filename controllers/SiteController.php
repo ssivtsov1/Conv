@@ -4763,14 +4763,14 @@ public function actionIdfile_seals($res)
                 c.town,b1.town as town_sap,c.street,
                 case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
                 case when c.korp is null then upper(c.house) else 
-                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) end end as house
+                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) else c.house end end as house
                 ,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
                 const.region,d.kod_reg,
                 case when b1.street is null then c.street else '' end as str_supl1,
                 case when b1.street is null then c.house else '' end as str_supl2,
-                case when NOT(c.korp ~ '[0-9]+$') then '' else c.korp end as korp
-                --c.korp 
+                case when NOT(c.korp ~ '[0-9]+$') then '' else c.korp end as korp,
+                c.korp 
                  from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
@@ -4787,7 +4787,8 @@ public function actionIdfile_seals($res)
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
         where a.archive='0' -- and a.id=100033028 --and  b1.street is null
-        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17 
+        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18 
+        order by 5,7
         ";
 
 //    debug($sql);
@@ -9948,7 +9949,6 @@ public function actionSap_discdoc_ind($res)
         echo "Інформацію записано";
      }
 
-
      // Импорт данных по транспорту
     // в справочник транспорта в 1Click    
     public function actionImport_transport()
@@ -9998,8 +9998,76 @@ public function actionSap_discdoc_ind($res)
                 
         echo "Інформацію записано";
      }
-     
-     
+
+    // Импорт данных по транспорту детальная (для САП)
+    // в справочник транспорта в 1Click
+    public function actionImport_transport_detal()
+    {
+        $sql = "CREATE TABLE tmp_transport_d (
+              transport varchar(255) NOT NULL,
+              nomer varchar(15) NOT NULL,
+              place   varchar(45) NOT NULL,
+              fuel  varchar(15) NOT NULL,  
+              all_p varchar(35) NOT NULL,  
+              oil_p varchar(35) NOT NULL,  
+              wage varchar(35) NOT NULL,  
+              esv varchar(35) NOT NULL,  
+              amort varchar(35) NOT NULL,  
+             all_move varchar(35) NOT NULL,  
+             cost_92_move varchar(35) NOT NULL, 
+             cost_95_move varchar(35) NOT NULL,
+             cost_df_move varchar(35) NOT NULL,
+             cost_g_move varchar(35) NOT NULL,
+             cost_oil_move varchar(35) NOT NULL, 
+             wage_move varchar(35) NOT NULL,  
+             wage_esv_move varchar(35) NOT NULL,
+             amort_move varchar(35) NOT NULL,  
+              cost_92_work varchar(35) NOT NULL, 
+             cost_95_work varchar(35) NOT NULL,
+             cost_df_work varchar(35) NOT NULL,
+             cost_g_work varchar(35) NOT NULL,
+             cost_oil_work varchar(35) NOT NULL, 
+             common varchar(35) NOT NULL, 
+              id int(11) NOT NULL AUTO_INCREMENT,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        Yii::$app->db->createCommand($sql)->execute();
+        $f = fopen('tr_2020.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+
+            //if($i<8) continue;
+            $data = explode("~",$s);
+            //debug($data);
+            $transport = $data[1];
+            $nomer = $data[2];
+            $prostoy = $data[3];
+            $proezd = $data[4];
+            $rabota = $data[5];
+
+            $prostoy = str_replace(",",".",$prostoy);
+            $proezd = str_replace(",",".",$proezd);
+            $rabota = str_replace(",",".",$rabota);
+
+            if(empty($rabota) || is_null($rabota) || $rabota=='' || ord($rabota)==10) $rabota=0;
+
+            $v = "'".$transport."'".","."'".$nomer."'".",".$prostoy.",".$proezd.",".$rabota;
+
+            if(empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;
+            //echo $i.' '.$data[0].' '.$data[1].' '.$data[2].' '.$data[5]."\n";
+            //echo $v."\n";
+            $sql = "INSERT INTO tmp_transport (transport,nomer,prostoy,proezd,rabota) VALUES(".$v.')';
+            //echo $sql;
+            Yii::$app->db->createCommand($sql)->execute();
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
       // Импорт данных по MTS
     // в справочник телефонов   
     public function actionImport_mts()

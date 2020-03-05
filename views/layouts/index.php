@@ -61,6 +61,7 @@ AppAsset::register($this);
                                 ['label' => 'Импорт таблицы лиценз. работ для 1Click', 'url' => ['/site/import_lic']],
                                 ['label' => 'Импорт таблицы не лиценз. работ для 1Click', 'url' => ['/site/import_notlic']],
                                 ['label' => 'Импорт транспорт 1Click', 'url' => ['/site/import_transport']],
+                                ['label' => 'Импорт транспорт 1Click детальная ', 'url' => ['/site/import_transport_detal']],
                                 ['label' => 'Импорт MTS в phone', 'url' => ['/site/import_mts']],
                                 ['label' => 'Импорт кодов точек учета в Energo', 'url' => ['/site/import_points']],
                                 ['label' => 'Импорт дневника в Info', 'url' => ['/site/import_diary']],
