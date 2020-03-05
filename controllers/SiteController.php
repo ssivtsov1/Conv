@@ -1422,7 +1422,7 @@ b.phone,b.e_mail
                -- upper(c.house) as house,
              case when c.korp is null then upper(c.house) else 
              case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) 
-             else c.house||'/'||c.korp end end as house,  
+             else upper(trim(c.house))||'/'||c.korp end end as house,  
              upper(c.korp) as korp,c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
         left join clm_abon_tbl b on
@@ -4768,7 +4768,7 @@ public function actionIdfile_seals($res)
                 case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
                 case when c.korp is null then upper(c.house) else 
                 case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) 
-               else c.house||'/'||c.korp end end as house
+               else upper(trim(c.house))||'/'||c.korp end end as house
                -- else c.house end end as house
                 ,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
@@ -6491,7 +6491,10 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         or (1=1 and trim(dd.street)='~')) end 
          and case when dd.city1 is null then (trim(lower(dd.city1))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end
           ||' '||trim(lower(c.town)))) and dd.city1 is not null) else 1=1 end
-          and ((upper(dd.house_num1)=upper(c.house) and dd.str_suppl1='~') or (upper(trim(dd.str_suppl2))=upper(trim(c.house)) and trim(dd.street)='~'))
+          and ((upper(dd.house_num1)=
+		case when c.korp is null then upper(c.house) else 
+                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) else upper(trim(c.house))||'/'||c.korp end end 
+                and dd.str_suppl1='~') or (upper(trim(dd.str_suppl2))=upper(trim(c.house)) and trim(dd.street)='~'))
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
