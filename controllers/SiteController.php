@@ -4763,7 +4763,7 @@ public function actionIdfile_seals($res)
                 c.town,b1.town as town_sap,c.street,
                 case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
                 case when c.korp is null then upper(c.house) else 
-                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) else c.house end end as house
+                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) else c.house||'/'||c.korp end end as house
                 ,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
                 const.region,d.kod_reg,
