@@ -1042,10 +1042,10 @@ function f_partner_ind($n_struct,$rem,$v) {
             $l_c = 1;
 //            $korp = 'корп. '.$korp;
         }
-        else{
+        else {
             if (!empty($korp))
             {
-                $house_num1=$house_num1.$korp;
+               // $house_num1=$house_num1.$korp;
             }
         }
         $house_num1 =str_replace(' ','',$house_num1);
