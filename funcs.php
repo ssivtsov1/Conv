@@ -1498,6 +1498,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
     $stort=$v['stort'];
     $type_street=$v['type_street'];
     $korp=$v['korp'];
+    if (empty($korp))  $korp='~';
 
     $oldkey = $oldkey_const . strtoupper($r);
 
