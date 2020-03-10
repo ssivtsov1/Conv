@@ -1482,7 +1482,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
     }
 
     $r = hash('crc32', $v['kod_reg'].'~'.$v['town'].'~'.$v['type_street'].'~'.
-        $v['street'].'~'.$v['house']);
+        $v['street_cek'].'~'.$v['house'].'~'.$v['korp']);
 
     $town=$v['town_sap'];
     $id=$v['id'];
@@ -1510,7 +1510,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
         else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
          and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
-         left join post_index_sap b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
+         left join (select distinct numtown,first_value(post_index) over() as post_index from  post_index_sap) b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
         where a.id=$id and b2.post_index is not null ";
 
     // Получаем необходимые данные

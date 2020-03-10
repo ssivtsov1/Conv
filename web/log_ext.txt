@@ -1,2 +1,9 @@
 Сформирован файл idfile_partner_ind_ext
 Сформирован файл idfile_premise_ind_ext
+Сформирован файл idfile_account_ind_ext
+Сформирован файл idfile_devloc_ind_ext
+Сформирован файл idfile_device_ind_ext
+Сформирован файл idfile_seals_ind_ext
+Сформирован файл idfile_instln_ind_ext
+Сформирован файл idfile_facts_ind_ext
+Сформирован файл idfile_move_in_ind_ext

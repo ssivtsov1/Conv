@@ -1434,7 +1434,8 @@ b.phone,b.e_mail
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
         else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
          and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
-         left join post_index_sap b2 on b1.numtown=b2.numtown and b2.post_index=c.indx         
+         left join (select distinct numtown,first_value(post_index) over() as post_index from  post_index_sap) b2
+          on b1.numtown=b2.numtown --and b2.post_index=c.indx         
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
@@ -1667,8 +1668,8 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         if($par==0)
             return $this->render('info', [
                 'model' => $model]);
-//        else
-//            return 1;
+        else
+            return 1;
         
     }
     
@@ -4222,6 +4223,40 @@ where a.archive='0'
     }
 
     // Выгрузка всех ID файлов (САП)  для бытовых потребителей
+
+    public function beforeAction($action)
+    {
+//       debug($action);
+        if($action->id=='idfile_launch') {
+//            debug($action->request);
+           // $e=$action->controller->module->request;
+            $log = 'aaalog_ext.txt';
+            $f = fopen($log, "a+");
+
+            $e=Yii::$app->request->get('nom');
+            fputs($f, $e );
+            fputs($f, "\n");
+            $res=Yii::$app->request->get('res');
+            $r=Yii::$app->response->redirect([$e,  'res' => $res,'par' => 1])->send();
+            Yii::app()->runController('site/index');
+            $r1=Yii::$app->response->redirect(['idfile_premise_ind',  'res' => $res,'par' => 1])->send();
+            return false;
+            //debug($e);
+
+//            if (!\Yii::$app->user->isSessionActive()) {
+//                $this->redirect(['/session/auth/']);
+//            }
+        }
+
+        return parent::beforeAction($action);
+    }
+
+    public function actionIdfile_launch($nom,$res,$i)
+    {
+        //$r=Yii::$app->response->redirect(['All_idfile',  'res' => $res,'par' => 1])->send();
+        return $i ;
+    }
+
     public function actionAll_idfile($res)
     {
         $actions = [
@@ -4237,16 +4272,52 @@ where a.archive='0'
         ];
         $log = 'log_ext.txt';
         $f = fopen($log, "w+");
-        for ($i = 0; $i < 2; $i++) {
-           // $this->redirect([$actions[$i], 'res' => $res]);
-            $r=Yii::$app->response->redirect([$actions[$i],  'res' => $res,'par' => 1])->send();
+        for ($i = 0; $i < 9; $i++) {
+              $e='$this->action'.ucfirst($actions[$i]).'($res,$par=0);'  ;
+              eval($e);
             fputs($f,'Сформирован файл ' . $actions[$i] . '_ext');
             fputs($f,"\n");
         }
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файли _ext сформовано.";
+        $model->info1 = "Файли _ext  сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+
+    }
+
+    public function actionAll_idfile_full()
+    {
+        $actions = [
+            'idfile_partner_ind',
+            'idfile_premise_ind',
+            'idfile_account_ind',
+            'idfile_devloc_ind',
+            'idfile_device_ind',
+            'idfile_seals_ind',
+            'idfile_instln_ind',
+            'idfile_facts_ind',
+            'idfile_move_in_ind'
+        ];
+        $log = 'log_ext.txt';
+        $f = fopen($log, "w+");
+        for ($res = 1; $res < 9; $res++) {
+            for ($i = 0; $i < 9; $i++) {
+                $e = '$this->action' . ucfirst($actions[$i]) . '($res,$par=0);';
+                eval($e);
+                fputs($f, 'Сформирован файл ' . $actions[$i] . '_ext' . " для РЭСа $res");
+                fputs($f, "\n");
+            }
+        }
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файли _ext  сформовано.";
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
@@ -10012,36 +10083,39 @@ public function actionSap_discdoc_ind($res)
     // в справочник транспорта в 1Click
     public function actionImport_transport_detal()
     {
+        $sql = "DROP TABLE tmp_transport_d";
+        Yii::$app->db->createCommand($sql)->execute();
+
         $sql = "CREATE TABLE tmp_transport_d (
-              transport varchar(255) NOT NULL,
-              nomer varchar(15) NOT NULL,
-              place   varchar(45) NOT NULL,
-              fuel  varchar(15) NOT NULL,  
-              all_p varchar(35) NOT NULL,  
-              oil_p varchar(35) NOT NULL,  
-              wage varchar(35) NOT NULL,  
-              esv varchar(35) NOT NULL,  
-              amort varchar(35) NOT NULL,  
-             all_move varchar(35) NOT NULL,  
-             cost_92_move varchar(35) NOT NULL, 
-             cost_95_move varchar(35) NOT NULL,
-             cost_df_move varchar(35) NOT NULL,
-             cost_g_move varchar(35) NOT NULL,
-             cost_oil_move varchar(35) NOT NULL, 
-             wage_move varchar(35) NOT NULL,  
-             wage_esv_move varchar(35) NOT NULL,
-             amort_move varchar(35) NOT NULL,  
-              cost_92_work varchar(35) NOT NULL, 
-             cost_95_work varchar(35) NOT NULL,
-             cost_df_work varchar(35) NOT NULL,
-             cost_g_work varchar(35) NOT NULL,
-             cost_oil_work varchar(35) NOT NULL, 
-             common varchar(35) NOT NULL, 
-              id int(11) NOT NULL AUTO_INCREMENT,
-              PRIMARY KEY (`id`)
+              model varchar(255)  NULL,
+              nomer varchar(15)  NULL,
+              place   varchar(45)  NULL,
+              fuel  varchar(15)  NULL,  
+              all_p varchar(35)  NULL,  
+              oil_p varchar(35)  NULL,  
+              wage varchar(35)  NULL,  
+              esv varchar(35)  NULL,  
+              amort varchar(35)  NULL,  
+             all_move varchar(35)  NULL,  
+             cost_92_move varchar(35)  NULL, 
+             cost_95_move varchar(35)  NULL,
+             cost_df_move varchar(35)  NULL,
+             cost_g_move varchar(35)  NULL,
+             cost_oil_move varchar(35) NULL, 
+             wage_move varchar(35)  NULL,  
+             wage_esv_move varchar(35)  NULL,
+             amort_move varchar(35)  NULL,  
+            all_work varchar(35)  NULL,  
+            cost_92_work varchar(35)  NULL, 
+             cost_95_work varchar(35)  NULL,
+             cost_df_work varchar(35)  NULL,
+             cost_g_work varchar(35)  NULL,
+             cost_oil_work varchar(35)  NULL, 
+             common varchar(35)  NULL 
+                     
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         Yii::$app->db->createCommand($sql)->execute();
-        $f = fopen('tr_2020.csv','r');
+        $f = fopen('tr_2020_detal.csv','r');
         $i = 0;
         while (!feof($f)) {
             $i++;
@@ -10050,24 +10124,41 @@ public function actionSap_discdoc_ind($res)
             //if($i<8) continue;
             $data = explode("~",$s);
             //debug($data);
-            $transport = $data[1];
+            $model = $data[1];
             $nomer = $data[2];
-            $prostoy = $data[3];
-            $proezd = $data[4];
-            $rabota = $data[5];
+            $place = $data[3];
+            $fuel = $data[4];
+            $all_p = $data[5];
+            $oil_p = $data[7];
+            $zp = $data[11];
+            $esv = $data[12];
+            $amort = $data[13];
+            $common = $data[14];
+            $all_move = $data[15];
+            $cost_92_move = $data[16];
+            $cost_95_move = $data[17];
+            $cost_df_move = $data[18];
+            $oil_move = $data[19];
+            $cost_g_move = $data[20];
+            $all_work = $data[25];
+            $cost_92_work = $data[26];
+            $cost_95_work = $data[27];
+            $cost_df_work = $data[28];
+            $cost_g_work = $data[30];
 
-            $prostoy = str_replace(",",".",$prostoy);
-            $proezd = str_replace(",",".",$proezd);
-            $rabota = str_replace(",",".",$rabota);
+//            debug($zp);
+//            return;
 
-            if(empty($rabota) || is_null($rabota) || $rabota=='' || ord($rabota)==10) $rabota=0;
+            $v = "'".$model."'".","."'".$nomer."'"."," . "'".$place."'".","."'".$fuel."'" .
+                    "," . "'".$all_p."'".","."'".$oil_p."'". "," . "'".$zp."'".","."'".$esv."'" .
+                     "," . "'".$amort."'".","."'".$common."'". "," . "'".$all_move."'".","."'".$cost_92_move."'" .
+                     "," . "'".$cost_95_move."'".","."'".$cost_df_move."'". "," . "'".$cost_g_move."'" .
+                     "," . "'".$all_work."'".","."'".$cost_92_work."'". "," . "'".$cost_95_work."'".","."'".$cost_df_work."'" .
+                     "," . "'".$cost_g_work."'";
 
-            $v = "'".$transport."'".","."'".$nomer."'".",".$prostoy.",".$proezd.",".$rabota;
-
-            if(empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;
-            //echo $i.' '.$data[0].' '.$data[1].' '.$data[2].' '.$data[5]."\n";
-            //echo $v."\n";
-            $sql = "INSERT INTO tmp_transport (transport,nomer,prostoy,proezd,rabota) VALUES(".$v.')';
+            $sql = "INSERT INTO tmp_transport_d (model,nomer,place,fuel,all_p,oil_p,wage,esv,amort,common,
+                                all_move,cost_92_move,cost_95_move,cost_df_move,cost_g_move,
+                                all_work,cost_92_work,cost_95_work,cost_df_work,cost_g_work) VALUES(".$v.')';
             //echo $sql;
             Yii::$app->db->createCommand($sql)->execute();
         }

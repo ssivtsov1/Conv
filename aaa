@@ -1,0 +1,5 @@
+SELECT a.*,b.* FROM a_transport a left join tmp_transport_d b on trim(replace(a.number,' ',''))=trim(replace(b.nomer,' ','')) where b.nomer is null and a.id<99 
+
+SELECT a.*,b.* FROM a_transport a left join tmp_transport_d b on (trim(replace(a.number,' ',''))=trim(replace(b.nomer,' ','')) and a.id<99)
+or (trim(a.model)=trim(b.model) and a.id>98)
+where b.nomer is null 
