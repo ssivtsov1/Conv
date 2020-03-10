@@ -1482,7 +1482,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
     }
 
     $r = hash('crc32', $v['kod_reg'].'~'.$v['town'].'~'.$v['type_street'].'~'.
-        $v['street_cek'].'~'.$v['house'].'~'.$v['korp']);
+        $v['street'].'~'.$v['house'].'~'.$v['korp']);
 
     $town=$v['town_sap'];
     $id=$v['id'];
