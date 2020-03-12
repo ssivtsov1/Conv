@@ -1750,8 +1750,36 @@ function f_device_ind($n_struct,$rem,$v) {
     // Корректность года поверки
     if($bgljahr<$baujj) {
         $bgljahr=$baujj+1;
-        $y1 = substr($cert_date,4);
-        $cert_date = $bgljahr . $y1;
+        // create date's poverka
+        switch ($bgljahr%10) {
+            case 0:
+                $y1 = '0512';
+                break;
+            case 1:
+                $y1 = '0217';
+                break;
+            case 2:
+                $y1 = '0316';
+                break;
+            case 3:
+                $y1 = '1215';
+                break;
+            case 4:
+                $y1 = '0109';
+                break;
+            case 5:
+                $y1 = '0923';
+                break;
+            case 6:
+                $y1 = '0302';
+                break;
+            case 7:
+                $y1 = '1127';
+                break;
+            default:  '0819';
+        }
+
+        $cert_date = $bgljahr.$y1 ;
     }
     if(empty($bgljahr)) {
         $bgljahr=$baujj+1;
@@ -2442,6 +2470,7 @@ return $facts;
 
 // Выгрузка facts быт.
 function f_facts_ind($rem,$v) {
+
     $datae='99991231';
 
     $oldkey_const='04_C'.$rem.'B_01_';
@@ -2454,9 +2483,11 @@ function f_facts_ind($rem,$v) {
     $power = $v['power'];
     $plita = $v['plita'];
     $opal = $v['opal'];
-    $datab = $v['mmgg'];
+    $datab = $v['datab'];
     $datab = str_replace('-','',$datab);
-    $datae1 = $v['mmgg_end'];
+//    $datae1 = $v['mmgg_end'];
+    $datae1=strtotime('+1 month', strtotime($datab));
+    $datae1=strtotime('-1 day', strtotime($datae1));
     $datae1 = str_replace('-','',$datae1);
     $oldkey = $oldkey_const . $v['id'];
     $facts=[];

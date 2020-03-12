@@ -1433,7 +1433,8 @@ b.phone,b.e_mail
         trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
         else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
-         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+        and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+        and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' end 
          left join (select distinct numtown,first_value(post_index) over() as post_index from  post_index_sap) b2
           on b1.numtown=b2.numtown --and b2.post_index=c.indx         
         inner join sap_const const on
@@ -1917,7 +1918,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         
     }
 
-        // Формирование файла пломб(seal) для САП для бытовых потребителей
+        // Формирование файла instln для САП для бытовых потребителей
         public function actionSap_instln_ind($res)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
@@ -3495,36 +3496,35 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
         $date_ab=$data_d[0]['mmgg_current'];
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select facts.id,facts.power,max(facts.plita) as plita,max(facts.opal) as opal,max(facts.mmgg) as mmgg,
+        $sql = "select fun_mmgg() as datab,facts.id,facts.power,max(facts.plita) as plita,max(facts.opal) as opal,max(facts.mmgg) as mmgg,
 max(facts.mmgg_end) as mmgg_end,facts.ver,max(facts.dem_0) as dem_0,max(facts.dem_9) as dem_9,
 max(facts.dem_10) as dem_10,max(facts.dem_6) as dem_6,max(facts.dem_7) as dem_7,max(facts.dem_8) as dem_8 from
 (select distinct id,power,plita,opal,max(mmgg-interval '0 month')::date as mmgg,
 (mmgg_end-interval '0 month')::date as mmgg_end,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
 sum(dem_10) as dem_10,sum(dem_6) as dem_6,sum(dem_7) as dem_7,sum(dem_8) as dem_8 from
 (select q.* from (
-select a.id_paccnt as id,b.dt_b,case when a.id_zone=0 then demand end as dem_0,
-case when a.id_zone=9 then demand end as dem_9,
-case when a.id_zone=10 then demand end as dem_10,
-case when a.id_zone=6 then demand end as dem_6,
-case when a.id_zone=7 then demand end as dem_7,
-case when a.id_zone=8 then demand end as dem_8,
+select b.id_paccnt as id,b.dt_b,case when a.id_zone=0 then coalesce(demand,0) end as dem_0,
+case when a.id_zone=9 then coalesce(demand,0) end as dem_9,
+case when a.id_zone=10 then coalesce(demand,0) end as dem_10,
+case when a.id_zone=6 then coalesce(demand,0) end as dem_6,
+case when a.id_zone=7 then coalesce(demand,0) end as dem_7,
+case when a.id_zone=8 then coalesce(demand,0) end as dem_8,
 max(a.mmgg) OVER (PARTITION BY a.id_paccnt,a.id_zone) as mmgg,(max(a.mmgg) OVER (PARTITION BY a.id_paccnt,a.id_zone)+interval '1 month'-interval '1 day') as mmgg_end,b.power,
 case when c.id_gtar in(3,5,16) then 1 end as plita,
 case when c.id_gtar in(4,6,14) then 1 end as opal,const.ver
 from clm_meterpoint_tbl b 
+left join clm_paccnt_tbl c on c.id=b.id_paccnt and c.archive='0'
 left join clm_plandemand_tbl a on a.id_paccnt=b.id_paccnt
-join clm_paccnt_tbl c on c.id=a.id_paccnt and c.archive='0'
-left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1
+left join (select (fun_mmgg())::date as mmgg_current) w1
 on 1=1
-inner join (select id_paccnt,max(mmgg) as mmgg,id_zone,max(dat_ind) as dat_ind from acm_indication_tbl 
+left join (select id_paccnt,max(mmgg) as mmgg,id_zone,max(dat_ind) as dat_ind from acm_indication_tbl 
 group by id_paccnt,id_zone) j on j.id_paccnt=a.id_paccnt --and j.mmgg=w1.mmgg_current
  and j.id_zone=a.id_zone
 inner join sap_const const on 1=1
---where a.mmgg=w1.mmgg_current 
-order by a.id_paccnt
+order by b.id_paccnt
 ) q
 left join 
-(select (fun_mmgg() - interval '1 month')::date as mmgg_current) w
+(select (fun_mmgg())::date as mmgg_current) w
 on 1=1
 --where mmgg=mmgg_current
 ) s
@@ -3553,7 +3553,7 @@ inner join
                         on ff.id=p.id_sector
                 where a.archive='0') instln on
                 facts.id=instln.id
-                group by facts.id,facts.power,facts.ver
+                group by 1,facts.id,facts.power,facts.ver
                 order by facts.id
 ";
 
@@ -3718,7 +3718,9 @@ group by id,power,plita,opal,mmgg,mmgg_end,ver,id_res,ver) as ext
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select id,sum(value_0) as value_0,
+        $sql = "select distinct on(id) * from 
+(select *,max(dat_ind) over(partition by id) as dat_ind_last from
+(select id,sum(value_0) as value_0,
 sum(value_9) as value_9,sum(value_10) as value_10,
 sum(value_6) as value_6,sum(value_7) as value_7,sum(value_8) as value_8,
 sum(value_0+value_9+value_10+value_6+value_7+value_8) as value_all,
@@ -3767,7 +3769,8 @@ left join clm_plandemand_tbl p on p.id_paccnt=a.id_paccnt and p.id_zone=a.id_zon
 inner join sap_const const on 1=1
 where a.id_operation<>5 order by 1) t
 group by 1,9,10,11,12,13,20,21,22
-order by 1";
+order by 1) w ) ww
+where dat_ind=dat_ind_last";
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
 
@@ -3846,7 +3849,7 @@ order by 1";
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select a.id,b.num_agreem as vrefer,'01' as kofiz,1 as gemfakt,const.begru as bukrs,const.begru_b as begru,const.ver,
+        $sql = "select  distinct a.id,b.num_agreem as vrefer,'01' as kofiz,1 as gemfakt,const.begru as bukrs,const.begru_b as begru,const.ver,
 --CASE WHEN instln.oldkey IS NULL THEN substr(account.oldkey,1,8)||'01_'||substr(account.oldkey,9) else instln.oldkey end as anlage,
 instln.oldkey as anlage,
 account.oldkey as vkonto,replace(w1.mmgg_current::char(10),'-','') as einzdat,
@@ -3860,7 +3863,7 @@ inner join sap_const const on 1=1
 left join sap_data instln on substr(instln.oldkey,12)::int=a.id
 left join sap_init_acc account on substr(account.oldkey,9)::int=a.id
 left join sap_init partner on substr(partner.old_key,9)::int=a.id
-left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1 on 1=1
+left join (select (fun_mmgg())::date as mmgg_current) w1 on 1=1
 where a.archive='0'		       
 ";
         // Получаем необходимые данные
