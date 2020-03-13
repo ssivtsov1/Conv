@@ -842,6 +842,9 @@ WHERE year_p=0 and year_q>0';
                 case 29:
                     return $this->redirect(['sap_move_in', 'res' => $model->rem]);
                     break;
+                case 30:
+                    return $this->redirect(['all_sapfile', 'res' => $model->rem]);
+                    break;
             }
         }
         else {
@@ -1399,7 +1402,7 @@ b.phone,b.e_mail
     }
 
     // Формирование файла partner для САП для бытовых
-    public function actionSap_partner_ind($res)
+    public function actionSap_partner_ind($res,$par=0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', '0');
@@ -1416,7 +1419,9 @@ b.phone,b.e_mail
         // Получаем название подпрограммы
         $routine = strtoupper(substr($method,10));
 
-        $sql = "select a.id,a.activ,b.tax_number,b.last_name,
+        $sql = "select a.id,a.activ,case when i.inn is null then 
+case when b.tax_number is not null and length(trim(b.tax_number))=10 then 
+b.tax_number else null end else null end as tax_number,b.last_name,
                 b.name,b.patron_name,b1.town,c.town as town_cek,b2.post_index,c.indx as index_cek,
                 case when b1.street is null then 'Неопределено' else b1.street end as street,c.street as street_cek,
                -- upper(c.house) as house,
@@ -1436,7 +1441,12 @@ b.phone,b.e_mail
         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
         and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' end 
          left join (select distinct numtown,first_value(post_index) over() as post_index from  post_index_sap) b2
-          on b1.numtown=b2.numtown --and b2.post_index=c.indx         
+          on b1.numtown=b2.numtown --and b2.post_index=c.indx  
+        left join
+        (select id,last_name,name,patron_name,tax_number as inn,'ИНН не проходит контрольную сумму'::text as Error  
+        from clm_abon_tbl 
+        where check_inn(tax_number)=0 and tax_number is not null and tax_number<>'' and length(tax_number)=10) i
+        on i.id=b.id       
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
@@ -1526,9 +1536,13 @@ b.phone,b.e_mail
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+            return 1;
+
 
 //        return $this->render('info', [
 //            'model' => $model]);
@@ -1675,7 +1689,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
     }
     
     // Формирование файла пломб(seal) для САП для бытовых потребителей
-    public function actionSap_seal_ind($res)
+    public function actionSap_seal_ind($res,$par=0)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -1839,6 +1853,13 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
             fputs($f, "\n");
         }
 
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
+
         if (file_exists($fname)) {
             return \Yii::$app->response->sendFile($fname);
         }
@@ -1919,7 +1940,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
     }
 
         // Формирование файла instln для САП для бытовых потребителей
-        public function actionSap_instln_ind($res)
+        public function actionSap_instln_ind($res,$par=0)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -2100,6 +2121,14 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         }
 
         fclose($f);
+
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
+
         // Выдаем предупреждение на экран об окончании формирования файла
         $model = new info();
         $model->title = 'УВАГА!';
@@ -3460,7 +3489,7 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
     }
 
     // Формирование файла facts для САП для бытовых потребителей
-    public function actionSap_facts_ind($res)
+    public function actionSap_facts_ind($res,$par=0)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -3588,6 +3617,13 @@ inner join
             }
         }
         fclose($f);
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
+
         // Выдаем предупреждение на экран об окончании формирования файла
         $model = new info();
         $model->title = 'УВАГА!';
@@ -3695,7 +3731,7 @@ group by id,power,plita,opal,mmgg,mmgg_end,ver,id_res,ver) as ext
     } 
 
     // Формирование файла inst_mgmt для САП для бытовых потребителей
-    public function actionSap_inst_mgmt_ind($res)
+    public function actionSap_inst_mgmt_ind($res,$par=0)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -3810,9 +3846,16 @@ where dat_ind=dat_ind_last";
         }
         fclose($f);
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
+
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
 
         // Выдаем предупреждение на экран об окончании формирования файла
 //        $model = new info();
@@ -3826,7 +3869,7 @@ where dat_ind=dat_ind_last";
     }
 
     // Формирование файла imove_in для САП для бытовых потребителей
-    public function actionSap_move_in_ind($res)
+    public function actionSap_move_in_ind($res,$par=0)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -3904,9 +3947,16 @@ where a.archive='0'
 
         fclose($f);
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
+
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
 
         // Выдаем предупреждение на экран об окончании формирования файла
 //        $model = new info();
@@ -4285,6 +4335,45 @@ where a.archive='0'
         $model = new info();
         $model->title = 'УВАГА!';
         $model->info1 = "Файли _ext  сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+
+    }
+
+    public function actionAll_sapfile($res)
+    {
+        $actions = [
+            'sap_partner_ind',
+            'sap_connobj_ind',
+            'sap_premise_ind',
+            'sap_account_ind',
+            'sap_devloc_ind',
+            'sap_device_ind',
+            'sap_seals_ind',
+            'sap_instln_ind',
+            'sap_facts_ind',
+            'sap_inst_mgmt_ind',
+            'sap_move_in_ind',
+            'sap_disc_doc_ind',
+            'sap_disc_order_ind',
+            'sap_disc_enter_ind'
+        ];
+        $log = 'log_sap.txt';
+        $f = fopen($log, "w+");
+        for ($i = 0; $i < 14; $i++) {
+            $e='$this->action'.ucfirst($actions[$i]).'($res,$par=0);'  ;
+            eval($e);
+            fputs($f,'Сформирован файл ' . $actions[$i] );
+            fputs($f,"\n");
+        }
+        fclose($f);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файли _sap сформовано.";
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
@@ -4823,7 +4912,7 @@ public function actionIdfile_seals($res)
     
 
     // Формирование файла connobj для САП для бытовых
-    public function actionSap_connobj_ind($res)
+    public function actionSap_connobj_ind($res,$par=0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -4950,12 +5039,20 @@ public function actionIdfile_seals($res)
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
+//        return $this->render('info', [
+//            'model' => $model]);
+
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+            else
+                return 1;
+
     }
 
     // Формирование файла account для САП для бытовых
-    public function actionSap_account_ind($res)
+    public function actionSap_account_ind($res,$par=0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 4000);
@@ -5090,9 +5187,16 @@ public function actionIdfile_seals($res)
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
+
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
 //        return $this->render('info', [
 //            'model' => $model]);
     }
@@ -5408,7 +5512,7 @@ order by tzap
     }    
 
     // Формирование файла devloc для САП для бытовых
-    public function actionSap_devloc_ind($res)
+    public function actionSap_devloc_ind($res,$par=0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -5492,6 +5596,14 @@ order by tzap
         }
 
         fclose($f);
+
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
+
         if (file_exists($fname)) {
             return \Yii::$app->response->sendFile($fname);
         }
@@ -5572,7 +5684,7 @@ order by tzap
     }    
 
     // Формирование файла device для САП для бытовых
-    public function actionSap_device_ind($res)
+    public function actionSap_device_ind($res,$par=0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', -1);
@@ -5810,6 +5922,14 @@ order by tzap
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
         fclose($f);
+
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+            else
+                return 1;
+
         if (file_exists($fname)) {
             return \Yii::$app->response->sendFile($fname);
         }
@@ -6543,7 +6663,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
     }
 
     // Формирование файла connobj для САП для бытовых
-    public function actionSap_premise_ind($res)
+    public function actionSap_premise_ind($res,$par=0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -6758,9 +6878,17 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             fputs($f, "\n");
         }
         fclose($f);
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
+
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
+
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
 
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
@@ -7502,7 +7630,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         
     } 
     
-public function actionSap_discdoc_ind($res)
+public function actionSap_discdoc_ind($res,$par=0)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -7579,9 +7707,16 @@ public function actionSap_discdoc_ind($res)
         }
         fclose($f);
 
+    if($par==0)
         if (file_exists($fname)) {
             return \Yii::$app->response->sendFile($fname);
         }
+    else
+            return 1;
+
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
 
         // Выдаем предупреждение на экран об окончании формирования файла
 //        $model = new info();
@@ -7594,7 +7729,7 @@ public function actionSap_discdoc_ind($res)
 //            'model' => $model]);
     }
     
-    public function actionSap_discorder_ind($res)
+    public function actionSap_discorder_ind($res,$par=0)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -7655,10 +7790,16 @@ public function actionSap_discdoc_ind($res)
             $i++;
         }
         fclose($f);
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
 
         // Выдаем предупреждение на экран об окончании формирования файла
 //        $model = new info();
@@ -7671,7 +7812,7 @@ public function actionSap_discdoc_ind($res)
 //            'model' => $model]);
     }
     
-    public function actionSap_discenter_ind($res)
+    public function actionSap_discenter_ind($res,$par=0)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -7733,9 +7874,16 @@ public function actionSap_discdoc_ind($res)
         }
         fclose($f);
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
+        if($par==0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            }
+        else
+                return 1;
+
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
 
         // Выдаем предупреждение на экран об окончании формирования файла
 //        $model = new info();
