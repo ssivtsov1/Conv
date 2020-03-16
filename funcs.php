@@ -1499,7 +1499,11 @@ function f_connobj_ind($n_struct,$rem,$v) {
     $type_street=$v['type_street'];
     $korp=$v['korp'];
 
-    if (!empty($korp)) $house_num1=$house_num1 . '/' . $korp;
+//    if (!empty($korp)) {
+//        if(ctype_digit($korp)) {
+//            $house_num1 = $house_num1 . '/' . $korp;
+//        }
+//    }
 
     if (empty($korp)) $korp = '~';
     if(!ctype_digit($korp)) {
