@@ -4363,12 +4363,12 @@ where a.archive='0'
             'sap_disc_enter_ind'
         ];
         $log = 'log_sap.txt';
-        $f = fopen($log, "w+");
+//        $f = fopen($log, "w+");
         for ($i = 0; $i < 14; $i++) {
             $e='$this->action'.ucfirst($actions[$i]).'($res,1);'  ;
             eval($e);
-            fputs($f,'Сформирован файл ' . $actions[$i] );
-            fputs($f,"\n");
+//            fputs($f,'Сформирован файл ' . $actions[$i] );
+//            fputs($f,"\n");
         }
         fclose($f);
         $model = new info();
