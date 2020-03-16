@@ -4370,7 +4370,7 @@ where a.archive='0'
 //            fputs($f,'Сформирован файл ' . $actions[$i] );
 //            fputs($f,"\n");
         }
-        fclose($f);
+//        fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
         $model->info1 = "Файли _sap сформовано.";
