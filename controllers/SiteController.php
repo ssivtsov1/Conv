@@ -1439,7 +1439,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
         else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
-        and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' end 
+        and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' else 1=1 end 
          left join (select distinct numtown,first_value(post_index) over() as post_index from  post_index_sap) b2
           on b1.numtown=b2.numtown --and b2.post_index=c.indx  
         left join
@@ -4365,7 +4365,7 @@ where a.archive='0'
         $log = 'log_sap.txt';
         $f = fopen($log, "w+");
         for ($i = 0; $i < 14; $i++) {
-            $e='$this->action'.ucfirst($actions[$i]).'($res,$par=0);'  ;
+            $e='$this->action'.ucfirst($actions[$i]).'($res,1);'  ;
             eval($e);
             fputs($f,'Сформирован файл ' . $actions[$i] );
             fputs($f,"\n");
@@ -6771,14 +6771,26 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
 
             $i = 0;
             // Заполняем структуры
+            $t_v = '';
+            $y=count($data);
+            $j = 0;
             foreach ($data as $w) {
                 $i = 0;
+                $j++;
                 foreach ($cnt as $v) {
                     $n_struct = trim($v['dattype']);
                     $i++;
-                    f_premise_ind($n_struct, $rem, $w);
+                   // f_premise_ind($n_struct, $rem, $w);
+                    if($j<$y)
+                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w) . ',';
+                    else
+                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w);
+
                 }
             }
+            $zapros="insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru) values ". $t_v ;
+            $data1 = data_from_server($zapros,$res,1);   // Запись данных на сервер
+
         }
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
@@ -6818,6 +6830,9 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                 $struct_data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
                 break;
         }
+       $yy=count($cnt);
+//        debug($yy);
+//        return;
 
         foreach ($struct_data as $d) {
             $old_key=trim($d['oldkey']);
@@ -6828,6 +6843,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             fputs($f, $s);
             fputs($f, "\n");
             $i=0;
+
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
@@ -9888,7 +9904,7 @@ public function actionSap_discdoc_ind($res,$par=0)
     public function actionImport_list_new()
     {
         $sql = "DROP TABLE tmp_works";
-        Yii::$app->db_phone_loc->createCommand($sql)->execute();
+//        Yii::$app->db_phone_loc->createCommand($sql)->execute();
         $sql = "CREATE TABLE tmp_works (
               tab_nom varchar(255) NOT NULL,
               email varchar(255) DEFAULT NULL,
@@ -9906,12 +9922,12 @@ public function actionSap_discdoc_ind($res,$par=0)
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('new_list_02_2020.csv','r');
+        $f = fopen('list_work0220.csv','r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-
+            if($i==1) continue;
             $data = explode("~",$s);
             if(empty($data[0])) break;
             $data[5] = str_replace('"',' ',$data[5]);
@@ -9926,13 +9942,13 @@ public function actionSap_discdoc_ind($res,$par=0)
                 if(!$pos)
                     {$sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
                         "'".$data[1]."'".","."'".$data[2]."'".","."'".$data[5]."'".","."'".$data[4]."'".","."'".$data[3]."'".
-                        ",".'null'.",".'null'.","."'". $data[6] ."'".')';
+                        ",".'null'.",".'null'.","."'". $data[7] ."'".')';
 
                     }
                 else
                     {$sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
                         '"'.$data[1].'"'.",".'"'.$data[2].'"'.",".'"'.$data[5].'"'.",".'"'.$data[4].'"'.",".'"'.$data[3].'"'.
-                        ",".'null'.",".'null'.",".'"'. $data[6] .'"'.')';
+                        ",".'null'.",".'null'.",".'"'. $data[7] .'"'.')';
                      break;
                     }
 

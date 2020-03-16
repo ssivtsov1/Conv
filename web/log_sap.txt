@@ -1,0 +1,6 @@
+Сформирован файл sap_partner_ind
+Сформирован файл sap_connobj_ind
+Сформирован файл sap_premise_ind
+Сформирован файл sap_account_ind
+Сформирован файл sap_devloc_ind
+Сформирован файл sap_device_ind

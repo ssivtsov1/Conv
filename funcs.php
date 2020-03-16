@@ -1498,10 +1498,15 @@ function f_connobj_ind($n_struct,$rem,$v) {
     $stort=$v['stort'];
     $type_street=$v['type_street'];
     $korp=$v['korp'];
+
+    if (!empty($korp)) $house_num1=$house_num1 . '/' . $korp;
+
     if (empty($korp)) $korp = '~';
     if(!ctype_digit($korp)) {
        $korp = '~';
     }
+
+
 
     $oldkey = $oldkey_const . strtoupper($r);
 
@@ -1697,6 +1702,7 @@ function f_premise_ind($n_struct,$rem,$v) {
         $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru)
                     values('$oldkey','$n_struct','$haus','$roomnumber','~','B0001','$pltxt')";
 
+    //$z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru)";
 
     switch ((int) $rem) {
         case 1:
@@ -1725,6 +1731,33 @@ function f_premise_ind($n_struct,$rem,$v) {
             Yii::$app->db_pg_in_abn->createCommand($z)->queryAll();
             break;
     }
+
+}
+
+// Выгрузка по premise бытовые
+function f_premise_ind_new($n_struct,$rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_';
+    $r = $v['id'];
+    $town=$v['town'];
+    $post_code1=$v['indx'];
+    $street = $v['street'];
+    $haus =$v['haus'];
+    $roomnumber=$v['flat'];
+    $region=$v['region'];
+    $iuru_pro=$v['kod_reg'];
+    $pltxt='C01B';
+    $begru=$v['begru'];
+    $swerk=$v['swerk'];
+    $stort=$v['stort'];
+    $oldkey = $oldkey_const . $r;
+
+  //  if($n_struct=='EVBSD')
+//        $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru)
+//                    values('$oldkey','$n_struct','$haus','$roomnumber','~','B0001','$pltxt')";
+
+   //$z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru)";
+       $ret="('$oldkey','$n_struct','$haus','$roomnumber','~','B0001','$pltxt')";
+       return $ret;
 
 }
 
