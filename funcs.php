@@ -1782,6 +1782,7 @@ function f_device_ind($n_struct,$rem,$v) {
 
     // Корректность года поверки
     if($bgljahr<$baujj) {
+        $y1 = '0819';
         $bgljahr=$baujj+1;
         // create date's poverka
         switch ($bgljahr%10) {
