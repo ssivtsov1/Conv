@@ -6780,16 +6780,16 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                 foreach ($cnt as $v) {
                     $n_struct = trim($v['dattype']);
                     $i++;
-                   // f_premise_ind($n_struct, $rem, $w);
-                    if($j<$y)
-                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w) . ',';
-                    else
-                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w);
+                    f_premise_ind($n_struct, $rem, $w);
+//                    if($j<$y)
+//                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w) . ',';
+//                    else
+//                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w);
 
                 }
             }
-            $zapros="insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru) values ". $t_v ;
-            $data1 = data_from_server($zapros,$res,1);   // Запись данных на сервер
+//            $zapros="insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru) values ". $t_v ;
+//            $data1 = data_from_server($zapros,$res,1);   // Запись данных на сервер
 
         }
         // Формируем имя файла и создаем файл
