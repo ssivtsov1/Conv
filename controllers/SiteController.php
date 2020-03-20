@@ -1437,10 +1437,10 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         left join addr_sap b1 on
         trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
-        else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
+        else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end 
         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
         and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' else 1=1 end 
-         left join (select distinct numtown,first_value(post_index) over() as post_index from  post_index_sap) b2
+         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
           on b1.numtown=b2.numtown --and b2.post_index=c.indx  
         left join
         (select id,last_name,name,patron_name,tax_number as inn,'ИНН не проходит контрольную сумму'::text as Error  
@@ -1860,21 +1860,21 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         else
                 return 1;
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
-        else {
-            // Выдаем предупреждение на экран об окончании формирования файла
-            $model = new info();
-            $model->title = 'УВАГА!';
-            $model->info1 = "Erorr.";
-            $model->style1 = "d15";
-            $model->style2 = "info-text";
-            $model->style_title = "d9";
-
-            return $this->render('info', [
-                'model' => $model]);
-        }
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
+//        else {
+//            // Выдаем предупреждение на экран об окончании формирования файла
+//            $model = new info();
+//            $model->title = 'УВАГА!';
+//            $model->info1 = "Erorr.";
+//            $model->style1 = "d15";
+//            $model->style2 = "info-text";
+//            $model->style_title = "d9";
+//
+//            return $this->render('info', [
+//                'model' => $model]);
+//        }
     }
     
      public function actionIdfile_seals_ind($res)
@@ -1996,7 +1996,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
                                 ) qwe
                                 ) ff
                         on ff.id=p.id_sector
-                where a.archive='0'
+                where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 ";
 
         if($helper==1)
@@ -2130,15 +2130,15 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
                 return 1;
 
         // Выдаем предупреждение на экран об окончании формирования файла
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-
-        return $this->render('info', [
-            'model' => $model]);
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//
+//        return $this->render('info', [
+//            'model' => $model]);
     }
 
     // Формирование файла монтажей INST_MGMT (юридические лица)
@@ -2608,7 +2608,7 @@ order by sort";
         $date_ab=$data_d[0]['mmgg_current'];
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select distinct on(zz_eic) case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+        $sql = "select distinct on(zz_eic) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru,
 '10' as sparte,qqq.* from
 (select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,
@@ -2633,7 +2633,7 @@ case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01??
 	case when p.id_tarif in (27,28,150,900001,900002) then 'CN_2TH2_01???' 
 	else '???' --tar_sap.id_sap_tar 
 	end 
-end  as TARIFTYP,
+end  as TARIFTYP,p.vid_trf,
 case when st.id_section = 201 then '02'
      when st.id_section = 202 then '50'
      when st.id_section = 203 then '60'
@@ -2685,7 +2685,7 @@ when tgr.ident in('tgr8_101') then '666'
 '' as ZZCODE4NKRE_DOP,
 '' as ZZOTHERAREA,
 '1' as sort 
-from (select dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, 
+from (select tr.name as vid_trf,dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, 
 dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
 dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, tr.id_grouptarif --, ph.id_extra --, tr.id_classtarif
 	from eqm_equipment_tbl as eq 
@@ -2728,6 +2728,7 @@ left join
    left join clm_client_tbl u1 on u1.id=u.id_client) rr 
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
 where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
+left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
 left join sap_evbsd yy on substr(yy.haus,9)::integer=qqq.id_potr
 left join clm_client_tbl www on www.id=qqq.id_potr
 inner join sap_const const on 1=1";
@@ -3625,16 +3626,16 @@ inner join
                 return 1;
 
         // Выдаем предупреждение на экран об окончании формирования файла
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
 
 //        return $this->render('info', [
 //            'model' => $model]);
@@ -4353,24 +4354,24 @@ where a.archive='0'
             'sap_account_ind',
             'sap_devloc_ind',
             'sap_device_ind',
-            'sap_seals_ind',
+            'sap_seal_ind',
             'sap_instln_ind',
             'sap_facts_ind',
             'sap_inst_mgmt_ind',
             'sap_move_in_ind',
-            'sap_disc_doc_ind',
-            'sap_disc_order_ind',
-            'sap_disc_enter_ind'
+            'sap_discdoc_ind',
+            'sap_discorder_ind',
+            'sap_discenter_ind'
         ];
         $log = 'log_sap.txt';
-//        $f = fopen($log, "w+");
+        $f = fopen($log, "w+");
         for ($i = 0; $i < 14; $i++) {
             $e='$this->action'.ucfirst($actions[$i]).'($res,1);'  ;
             eval($e);
-//            fputs($f,'Сформирован файл ' . $actions[$i] );
-//            fputs($f,"\n");
+            fputs($f,'Сформирован файл ' . $actions[$i] );
+            fputs($f,"\n");
         }
-//        fclose($f);
+        fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
         $model->info1 = "Файли _sap сформовано.";
@@ -4930,8 +4931,8 @@ public function actionIdfile_seals($res)
                 c.town,b1.town as town_sap,c.street,
                 case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
                 case when c.korp is null then upper(c.house) else 
-                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) 
-               else upper(trim(c.house))||'/'||c.korp end end as house
+                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||upper(trim(c.korp)) 
+               else upper(trim(c.house))||'/'||upper(trim(c.korp))  end end as house
                -- else c.house end end as house
                 ,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
@@ -4939,7 +4940,7 @@ public function actionIdfile_seals($res)
                 case when b1.street is null then c.street else '' end as str_supl1,
                 case when b1.street is null then c.house else '' end as str_supl2,
                 case when NOT(c.korp ~ '[0-9]+$') then '' else c.korp end as korp,
-                c.korp 
+                upper(trim(c.korp)) as korp  
                  from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
@@ -4948,16 +4949,16 @@ public function actionIdfile_seals($res)
         left join addr_sap b1 on
          trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
-        else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
+        else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end 
          and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
          
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
-        where a.archive='0' -- and a.id=100033028 --and  b1.street is null
+        where a.archive='0'  --and c.street like '%Титова%' -- and a.id=100033028 --and  b1.street is null
         group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18 
-        order by 5,7
+        order by 5,7 
         ";
 
 //    debug($sql);
@@ -5604,21 +5605,21 @@ order by tzap
         else
                 return 1;
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
-        else {
-            // Выдаем предупреждение на экран об окончании формирования файла
-            $model = new info();
-            $model->title = 'УВАГА!';
-            $model->info1 = "Erorr.";
-            $model->style1 = "d15";
-            $model->style2 = "info-text";
-            $model->style_title = "d9";
-
-            return $this->render('info', [
-                'model' => $model]);
-        }
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
+//        else {
+//            // Выдаем предупреждение на экран об окончании формирования файла
+//            $model = new info();
+//            $model->title = 'УВАГА!';
+//            $model->info1 = "Erorr.";
+//            $model->style1 = "d15";
+//            $model->style2 = "info-text";
+//            $model->style_title = "d9";
+//
+//            return $this->render('info', [
+//                'model' => $model]);
+//        }
     }
     
     //формирование файла идентификации
@@ -5930,21 +5931,21 @@ order by tzap
             else
                 return 1;
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
-        else {
-            // Выдаем предупреждение на экран об окончании формирования файла
-            $model = new info();
-            $model->title = 'УВАГА!';
-            $model->info1 = "Erorr.";
-            $model->style1 = "d15";
-            $model->style2 = "info-text";
-            $model->style_title = "d9";
-
-            return $this->render('info', [
-                'model' => $model]);
-        }
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
+//        else {
+//            // Выдаем предупреждение на экран об окончании формирования файла
+//            $model = new info();
+//            $model->title = 'УВАГА!';
+//            $model->info1 = "Erorr.";
+//            $model->style1 = "d15";
+//            $model->style2 = "info-text";
+//            $model->style_title = "d9";
+//
+//            return $this->render('info', [
+//                'model' => $model]);
+//        }
 
 
 //        $model = new info();
@@ -6669,32 +6670,32 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
-        $sql = "select a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
-                b.name,b.patron_name,c.town,c.indx,c.street,
-                c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
-                const.swerk,const.stort,const.ver,const.begru,
-                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport,dd.oldkey as haus from clm_paccnt_tbl a
-        left join clm_abon_tbl b on
-        a.id=b.id
-        left join vw_address c on
-        a.id=c.id
-        left join sap_co_adr dd on
-        ((trim(lower(c.street))=trim(lower(get_sap_street(dd.street))) and dd.str_suppl1='~') or (trim(lower(c.street))=trim(lower(dd.str_suppl1)) and trim(dd.street)='~')) 
-        and case when trim(lower(get_sap_street(dd.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
-        else ((lower(trim(c.type_street))=lower(trim(get_typestreet(dd.street))) and trim(dd.str_suppl1)='~') 
-        or (1=1 and trim(dd.street)='~')) end 
-         and case when dd.city1 is null then (trim(lower(dd.city1))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end
-          ||' '||trim(lower(c.town)))) and dd.city1 is not null) else 1=1 end
-          and ((upper(dd.house_num1)=
-		case when c.korp is null then upper(c.house) else 
-                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) else upper(trim(c.house))||'/'||c.korp end end 
-                and dd.str_suppl1='~') or (upper(trim(dd.str_suppl2))=upper(trim(c.house)) and trim(dd.street)='~'))
-        inner join sap_const const on
-        1=1
-        left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
-        trim(c.district)=d.region
-        where a.archive='0'
-        ";
+//        $sql = "select a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
+//                b.name,b.patron_name,c.town,c.indx,c.street,
+//                c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
+//                const.swerk,const.stort,const.ver,const.begru,
+//                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport,dd.oldkey as haus from clm_paccnt_tbl a
+//        left join clm_abon_tbl b on
+//        a.id=b.id
+//        left join vw_address c on
+//        a.id=c.id
+//        left join sap_co_adr dd on
+//        ((trim(lower(c.street))=trim(lower(get_sap_street(dd.street))) and dd.str_suppl1='~') or (trim(lower(c.street))=trim(lower(dd.str_suppl1)) and trim(dd.street)='~'))
+//        and case when trim(lower(get_sap_street(dd.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+//        else ((coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') and trim(dd.str_suppl1)='~')
+//        or (1=1 and trim(dd.street)='~')) end
+//         and case when dd.city1 is null then (trim(lower(dd.city1))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end
+//          ||' '||trim(lower(c.town)))) and dd.city1 is not null) else 1=1 end
+//          and ((upper(dd.house_num1)=
+//		case when c.korp is null then upper(c.house) else
+//                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) else upper(trim(c.house))||'/'||c.korp end end
+//                and dd.str_suppl1='~') or (upper(trim(dd.str_suppl2))=upper(trim(c.house)) and trim(dd.street)='~'))
+//        inner join sap_const const on
+//        1=1
+//        left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
+//        trim(c.district)=d.region
+//        where a.archive='0'
+//        ";
 
         $sql = "select DISTINCT a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
                 b.name,b.patron_name,c.town,c.indx,c.street,
@@ -10524,6 +10525,8 @@ public function actionSap_discdoc_ind($res,$par=0)
     // Делает поиск на сервере PostGreSQL
     public function actionFind()
     {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
         $model = new input_find_server();
 
         if ($model->load(Yii::$app->request->post()))

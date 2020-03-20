@@ -50,6 +50,9 @@ class Input_find_server extends Model
     }
  
      public function search(){
+         ini_set('memory_limit', '-1');
+         ini_set('max_execution_time', 900);
+         set_time_limit(0);
          $res=[];
          $i=0;
          $s = trim($this->search);

@@ -1488,6 +1488,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
     $id=$v['id'];
     $street = $v['street_sap'];
     $street_cek = $v['street'];
+
     $house_num1 =mb_strtoupper(trim($v['house']),'UTF-8');
     $house_num1 = str_replace(' ','',$house_num1);
     $region=$v['region'];
@@ -1510,10 +1511,11 @@ function f_connobj_ind($n_struct,$rem,$v) {
        $korp = '~';
     }
 
-
-
     $oldkey = $oldkey_const . strtoupper($r);
-
+    if (!(($rem=='03' && trim($street_cek)=="Металург" ) ||
+        (mb_substr(trim($street_cek),0,3,'UTF-8')=='с-т' ||
+            mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
+            trim($street_cek)=='Садове товариство')))
     $sql="select distinct b2.post_index
         from clm_paccnt_tbl a
         left join vw_address c on
@@ -1521,10 +1523,22 @@ function f_connobj_ind($n_struct,$rem,$v) {
        left join addr_sap b1 on
         trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
-        else lower(trim(c.type_street))=lower(trim(get_typestreet(b1.street))) end 
+        else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end 
          and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
-         left join (select distinct numtown,first_value(post_index) over() as post_index from  post_index_sap) b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
+         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
         where a.id=$id and b2.post_index is not null ";
+else
+    $sql="select distinct b2.post_index
+        from clm_paccnt_tbl a
+        left join vw_address c on
+        a.id=c.id 
+       left join addr_sap b1 on
+         trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
+        where a.id=$id and b2.post_index is not null";
+
+//$ef=fopen('aaaaaaaa.fff','w+');
+//fputs($ef,$sql);
 
     // Получаем необходимые данные
     switch ($rem) {
@@ -1577,12 +1591,14 @@ else
         if (($rem=='03' && trim($street_cek)=="Металург" ) ||
             (mb_substr(trim($street_cek),0,3,'UTF-8')=='с-т' ||
                 mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
-                trim($street_cek)=='Садове товариство'))
+                trim($street_cek)=='Садове товариство')) {
             // Если садовое товарищество
-           $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
+            $town = $v['town'];
+            $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
                                          street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street,house_num2)
                     values('$oldkey','$n_struct',$$$town$$,'$post_code1','~',
                           '~',$$$street_cek$$,'$house_num1','$region','$iuru_pro','$type_street','$korp')";
+        }
        else
        $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
                                          street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street,house_num2)
@@ -1961,7 +1977,7 @@ function f_devloc($n_struct,$rem,$v) {
     $stort = $v['stort'];
     $begru = $v['begru'];
 //    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'].random_int(100,1000000)));
-    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id']));
+    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'] . $vstelle));
 
     if($n_struct=='EGPLD')
         $z = "insert into sap_egpld(oldkey,dat_type,haus,vstelle,swerk,stort,begru,pltxt)
@@ -2064,11 +2080,12 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     $line_voltage_nom = $v['line_voltage_nom'];
     $text =$v['text'];
     $oldkey = $oldkey_const . $r;
+    $anlage = $oldkey_const . $v['id_point'];
 
     if($n_struct=='AUTO')
         $z = "insert into sap_auto_zlines(oldkey,dat_type,anlage,linum,frdat,frtim,lityp,length,voltage,state,
                                     wxshr,fshar,xnegp,text,element_id)
-                    values('$oldkey','$n_struct','$oldkey','$pnt','$datab','000000','$id_sap','$line_length',
+                    values('$oldkey','$n_struct','$anlage','$pnt','$datab','000000','$id_sap','$line_length',
                             '$line_voltage_nom','L','100','X','~','$text','$pnt')";
 
     exec_on_server($z,(int) $rem,$vid);
@@ -2086,11 +2103,12 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
     $id_sap=$v['id_sap'];
     $text =$v['text'];
     $oldkey = $oldkey_const . $r;
+    $anlage = $oldkey_const . $v['id_point'];
 
     if($n_struct=='AUTO')
         $z = "insert into sap_auto_ztransf(oldkey,dat_type,anlage,frdat,frtim,trcat,trtyp,trsta,
                                     xnegp,text,element_id)
-                    values('$oldkey','$n_struct','$oldkey','$datab','000000','$swathe','$id_sap',
+                    values('$oldkey','$n_struct','$anlage','$datab','000000','$swathe','$id_sap',
                             'L','~','$text','$pnt')";
 
     exec_on_server($z,(int) $rem,$vid);
@@ -2524,8 +2542,9 @@ function f_facts_ind($rem,$v) {
     $datab = $v['datab'];
     $datab = str_replace('-','',$datab);
 //    $datae1 = $v['mmgg_end'];
-    $datae1=strtotime('+1 month', strtotime($datab));
-    $datae1=strtotime('-1 day', strtotime($datae1));
+    $datae1=date("Y-m-d",strtotime('+1 month', strtotime($datab)));
+
+    $datae1=date("Y-m-d",strtotime('-1 day', strtotime($datae1)));
     $datae1 = str_replace('-','',$datae1);
     $oldkey = $oldkey_const . $v['id'];
     $facts=[];
@@ -2849,7 +2868,8 @@ function f_instln($n_struct,$rem,$v,$vid) {
     $zz_fider = $v['zz_fider'];
     $ab = $v['ab'];
     $ab = str_replace('-', '',$ab);
-    $tariftyp = $v['tariftyp'];
+//    $tariftyp = $v['tariftyp'];
+    $tariftyp = $v['tarif_sap'];
     $branche = $v['branche'];
     $aklasse = $v['aklasse'];
     $ableinh = $v['ableinh'];
@@ -2902,8 +2922,7 @@ function f_seals2($n_struct,$rem,$v,$vid) {
     exec_on_server($z,(int) $rem,$vid);
 }
 
-
-// Осталяет только цифры в № телефона
+// Оставляет только цифры в № телефона
 function normal_tel($tel){
     preg_match_all('/[\d]+/', $tel, $matches);
     $s='';
