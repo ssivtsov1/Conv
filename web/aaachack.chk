@@ -1,3 +1,0 @@
- insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
-            ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic)
-     values($$04_C06B_01_600000698$$,'DATA',$$04_C06B_600000698$$,$$02$$,$$0002$$,$$0001$$,'Крайнюков Віталій Петрович',$$$$,$$20191101$$,'CK_1AL2_01','71',$$0001$$,'BC010631','355','~','~','CK01',$$62Z4340922872206$$)

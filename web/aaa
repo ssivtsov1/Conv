@@ -1,1 +1,0 @@
-select proname,prosrc from pg_proc where prosrc like '%cc_viber_cor%' and proowner<>10
