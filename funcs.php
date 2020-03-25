@@ -1763,6 +1763,7 @@ function f_premise_ind_new($n_struct,$rem,$v) {
     $street = $v['street'];
     $haus =$v['haus'];
     $roomnumber=$v['flat'];
+    $roomnumber=str_replace('"','',$roomnumber);
     $region=$v['region'];
     $iuru_pro=$v['kod_reg'];
     $pltxt='C01B';
@@ -3134,6 +3135,72 @@ function data_from_server($sql,$rem,$type)
         }
     }
     $data='$data='." \Yii::".'$app'."->".$base."->createCommand($sql)"."->queryAll();";
+    eval($data);
+    return($data);
+
+}
+
+function data_to_server($sql,$rem,$type)
+{
+    $sql='"'.$sql.'"';
+    if($type==1) {
+        switch ($rem) {
+            case 1:
+                $base = 'db_pg_dn_abn';
+                break;
+            case 2:
+                $base = 'db_pg_zv_abn';
+                break;
+            case 3:
+                $base = 'db_pg_vg_abn';
+                break;
+            case 4:
+                $base = 'db_pg_pv_abn';
+                break;
+            case 5:
+                $base = 'db_pg_krg_abn';
+                break;
+            case 6:
+                $base = 'db_pg_ap_abn';
+                break;
+            case 7:
+                $base = 'db_pg_gv_abn';
+                break;
+            case 8:
+                $base = 'db_pg_in_abn';
+                break;
+        }
+    }
+    if($type==2) {
+        switch ($rem) {
+            case 1:
+                $base = 'db_pg_dn_energo';
+                break;
+            case 2:
+                $base = 'db_pg_zv_energo';
+                break;
+            case 3:
+                $base = 'db_pg_vg_energo';
+                break;
+            case 4:
+                $base = 'db_pg_pv_energo';
+                break;
+            case 5:
+                $base = 'db_pg_krg_energo';
+                break;
+            case 6:
+                $base = 'db_pg_ap_energo';
+                break;
+            case 7:
+                $base = 'db_pg_gv_energo';
+                break;
+            case 8:
+                $base = 'db_pg_in_energo';
+                break;
+        }
+    }
+    $data='$data='." \Yii::".'$app'."->".$base."->createCommand($sql)"."->execute();";
+
     eval($data);
     return($data);
 

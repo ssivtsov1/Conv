@@ -1,0 +1,3 @@
+update eqm_meter_tbl
+set dt_control='2012-01-01'
+where code_eqp=118520

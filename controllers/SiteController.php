@@ -1006,7 +1006,7 @@ UPPER(am.building) as HOUSE_NUM1,
 UPPER(am.office) as HOUSE_NUM2,
 'UA' as COUNTRY,
 case when substring(trim(b.phone),1,30) <> '' then 'I' else '' end as CHIND_TEL,
-case when position(',' in trim(b.phone))>0 then substr(trim(b.phone),1,position(',' in trim(b.phone))-1) else
+case when position(',' in trim(b.phone))>0 then get_phone(b.phone) else
 case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')) =10 then
 		regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')
 		 else '' end end as TEL_NUMBER,
@@ -1064,7 +1064,7 @@ case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^
 	
 kt.shot_name||' '||t.name as town,ads.town as town_sap,am.post_index,b2.post_index as post_index_sap,ks.shot_name||' '||s.name as street,ads.street as street_sap,
 UPPER(am.building) as house,UPPER(am.office) as flat,
-b.phone,b.e_mail
+b.phone,get_email(b.e_mail) as e_mail
  from clm_client_tbl a
         left join clm_statecl_tbl b on
         a.id=b.id_client
@@ -1077,7 +1077,7 @@ b.phone,b.e_mail
         LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
         and a.code_okpo<>'0000000'
-	    and a.code_okpo<>'000000'
+	    and a.code_okpo<>'000000' --and a.id=10373
    ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER' order by id_object";
@@ -1087,7 +1087,6 @@ b.phone,b.e_mail
         $zsql3 = 'delete from sap_but020';
         $zsql4 = 'delete from sap_but0id';
         $zsql5 = 'delete from sap_but021';
-
 
         if(1==1) {
             // Получаем необходимые данные
@@ -1103,7 +1102,6 @@ b.phone,b.e_mail
                     Yii::$app->db_pg_dn_energo->createCommand($zsql4)->execute();
                     Yii::$app->db_pg_dn_energo->createCommand($zsql5)->execute();
                     break;
-
                 case 2:
                     $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
@@ -1450,7 +1448,9 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         inner join sap_const const on
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
-        trim(c.district)=d.region where a.archive='0'";
+        trim(c.district)=d.region where a.archive='0' 
+        and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end
+        ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
         //$cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
@@ -2642,7 +2642,7 @@ case when st.id_section = 201 then '02'
      else '67' end  as BRANCHE,
 --case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
 case when c.code = '900' then '0004' else '0002' end as AKLASSE,
-     '' as ABLEINH,
+     'PC01311' as ABLEINH,
 case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
      when tgr.ident in('tgr2') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '012'
      when tgr.ident in('tgr6') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '020'
@@ -4927,10 +4927,14 @@ public function actionIdfile_seals($res)
             $vid = 2;
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select min(a.id) as id,
-                c.town,b1.town as town_sap,c.street,
+        $sql = "select min(id) as id,trim(town) as town,trim(town_sap) as town_sap,trim(street) as street,trim(street_sap) as street_sap,
+trim(type_street) as type_street,trim(house) as house,id_res,swerk,
+stort,ver,begru,trim(region) as region,trim(type_street) as type_street,trim(kod_reg) as kod_reg,coalesce(str_supl2,'') as str_supl1,
+coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
+(select min(a.id) as id,
+                c.town,trim(b1.town) as town_sap,trim(c.street) as street,
                 case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
-                case when c.korp is null then upper(c.house) else 
+                case when c.korp is null or trim(c.korp) like '%\"%' then upper(trim(c.house)) else 
                 case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||upper(trim(c.korp)) 
                else upper(trim(c.house))||'/'||upper(trim(c.korp))  end end as house
                -- else c.house end end as house
@@ -4940,7 +4944,7 @@ public function actionIdfile_seals($res)
                 case when b1.street is null then c.street else '' end as str_supl1,
                 case when b1.street is null then c.house else '' end as str_supl2,
                 case when NOT(c.korp ~ '[0-9]+$') then '' else c.korp end as korp,
-                upper(trim(c.korp)) as korp  
+                case when trim(c.korp) not like '%\"%' then upper(trim(c.korp)) else '' end as korp1
                  from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
@@ -4956,9 +4960,11 @@ public function actionIdfile_seals($res)
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
-        where a.archive='0'  --and c.street like '%Титова%' -- and a.id=100033028 --and  b1.street is null
+        where a.archive='0'  --and c.street like '%Східний%' -- and a.id=100033028 --and  b1.street is null
         group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18 
-        order by 5,7 
+        order by 5,7) z 
+        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
+        order by 5,7
         ";
 
 //    debug($sql);
@@ -5298,15 +5304,15 @@ public function actionIdfile_seals($res)
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
-                 substring(m.dt_control::varchar,1,4) as BAUJJ, 
+                 case when m.dt_control is null then '2004' else substring(m.dt_control::varchar,1,4) end as BAUJJ, 
                 '$date_ab' as datab,
                  '' as EQKTX,
                 case when m.dt_control is null then '2005' else substring(m.dt_control::varchar,1,4)  end as bgljahr,
-                case  when coalesce(eq.is_owner,0) = 0 then 'CCNN232820' else '' end as KOSTL, 
+                case  when coalesce(eq.is_owner,0) = 0 then 'CK01232820' else '' end as KOSTL, 
                  trim(eq.num_eqp) as SERNR,
                  'CK_RANDOM' as zz_pernr,
                   substring(replace(m.dt_control::varchar,'-',''),1,8) as CERT_DATE,
-                  sd.sap_meter_name as matnr,
+                  upper(sd.sap_meter_name) as matnr,
                  case when en1.kind_energy =1 then case when eqz1.zone in (4,5,9,10) then '2' when eqz1.zone in (1,2,3,6,7,8) then '3' when  eqz1.zone = 0 then '1' else '0' end ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||'0'::varchar||')' else '0_(000)' end||
 case when en2.kind_energy =3 then case when eqz2.zone in (4,5,9,10) then '2' when eqz2.zone in (1,2,3,6,7,8) then '3' when  eqz2.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||'0'::varchar||')' else '0_(000)' end||
 case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' when eqz3.zone in (1,2,3,6,7,8) then '3' when  eqz3.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||'0'::varchar||')' else '0_(000)' end||
@@ -5334,11 +5340,11 @@ union
 select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
-                '' as BAUJJ, 
+                '2004' as BAUJJ, 
                 '' as datab,
                  '' as EQKTX,
-                 '' as bgljahr,
-                case  when coalesce(eq.is_owner,0) = 0 then 'CCNN232820' else '' end as KOSTL, 
+                 '2005' as bgljahr,
+                case  when coalesce(eq.is_owner,0) = 0 then 'CK01232820' else '' end as KOSTL, 
                  --trim(eq.num_eqp) as SERNR,
                   get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
                  'CK_RANDOM' as zz_pernr,
@@ -6163,7 +6169,7 @@ case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^
 	    when (coalesce(b.FLAG_JUR,0)= 0 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10) then  'FS0001' 
 	    when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then  'FS0001'
 	    else '' end as ID_TYPE,
-kt.shot_name||' '||t.name as town,am.post_index,ks.shot_name||' '||s.name as street,am.building as house,am.office as flat,
+kt.shot_name||' '||t.name as town,b2.post_index,ks.shot_name||' '||s.name as street,am.building as house,am.office as flat,
 b.phone,b.e_mail,
 const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
  from clm_client_tbl a
@@ -6174,6 +6180,8 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         LEFT JOIN adi_town_tbl t ON t.id = s.id_town
         LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+        LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
+        LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         inner join sap_const const on
         1=1
         WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
@@ -6776,22 +6784,26 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             $t_v = '';
             $y=count($data);
             $j = 0;
+//            $fff=fopen('aaa_res.txt','w+');
             foreach ($data as $w) {
                 $i = 0;
                 $j++;
                 foreach ($cnt as $v) {
                     $n_struct = trim($v['dattype']);
                     $i++;
-                    f_premise_ind($n_struct, $rem, $w);
-//                    if($j<$y)
-//                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w) . ',';
-//                    else
-//                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w);
-
+//                    f_premise_ind($n_struct, $rem, $w);
+                    if($j<$y)
+                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w) . ',';
+                    else
+                        $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w);
+//                    fputs($fff,f_premise_ind_new($n_struct, $rem, $w));
+//                    fputs($fff,"\n");
                 }
             }
-//            $zapros="insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru) values ". $t_v ;
-//            $data1 = data_from_server($zapros,$res,1);   // Запись данных на сервер
+            $zapros="insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru) values ". $t_v ;
+//            debug($zapros);
+//            return;
+            $data1 = data_to_server($zapros,$res,1);   // Запись данных на сервер
 
         }
         // Формируем имя файла и создаем файл
