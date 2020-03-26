@@ -1711,15 +1711,18 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select distinct a.plomb_num as scode,coalesce(b.id_sap,'8') as place,coalesce(sp.short_name,'СЕЙФ-ПАКЕТ') as scat,a.id_type,a.dt_on,a.id,
+        $sql = "select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place,coalesce(sp.short_name,'СЕЙФ-ПАКЕТ') as scat,a.id_type,a.dt_on,a.id,
                 'I' as status,'3' as color,'C010099' as utmas,'C010099' as reper,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as DPURCH,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as dissue,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as dinst,
-                a.num_meter as sernr,d.matnr as matnr,const.ver,w.id_type_meter
+                w.num_meter as sernr,d.matnr as matnr,const.ver,w.id_type_meter
                 from clm_plomb_tbl a
-                left join (select id_paccnt,num_meter,max(id_type_meter) as id_type_meter,max(work_period) as work_period 
-                from clm_meterpoint_tbl group by id_paccnt,num_meter) w on w.id_paccnt=a.id_paccnt
+                left join 
+               -- (select id_paccnt,num_meter,max(id_type_meter) as id_type_meter,max(work_period) as work_period from clm_meterpoint_tbl group by id_paccnt,num_meter) w
+                (select a.* from clm_meterpoint_tbl a
+		left join clm_meter_zone_h b on a.id=b.id_meter where b.dt_e is null) w
+                on w.id_paccnt=a.id_paccnt
                 left join eqi_meter_tbl f on w.id_type_meter=f.id
                 left join sap_plomb_place b on
                 a.id_place=b.idcek::integer
@@ -1728,7 +1731,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
                 left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=w.id_type_meter
                 left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22 where sap_meter_id<>'') sd on s.sap_meter_id=sd.sap_meter_id
                 left join sap_equi d on
-                trim(w.num_meter)=trim(d.sernr) and trim(d.matnr)=trim(sd.sap_meter_name)
+                trim(w.num_meter)=trim(d.sernr) and upper(trim(d.matnr))=upper(trim(sd.sap_meter_name))
                 inner join sap_const const on 1=1
                 left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
                 where dt_off is null and length(a.plomb_num) <= 15 
@@ -3526,14 +3529,14 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
         $date_ab=$data_d[0]['mmgg_current'];
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select fun_mmgg() as datab,facts.id,facts.power,max(facts.plita) as plita,max(facts.opal) as opal,max(facts.mmgg) as mmgg,
+        $sql = "select distinct fun_mmgg() as datab,facts.id,facts.power,max(facts.plita) as plita,max(facts.opal) as opal,max(facts.mmgg) as mmgg,
 max(facts.mmgg_end) as mmgg_end,facts.ver,max(facts.dem_0) as dem_0,max(facts.dem_9) as dem_9,
-max(facts.dem_10) as dem_10,max(facts.dem_6) as dem_6,max(facts.dem_7) as dem_7,max(facts.dem_8) as dem_8 from
+max(facts.dem_10) as dem_10,max(facts.dem_6) as dem_6,max(facts.dem_7) as dem_7,max(facts.dem_8) as dem_8  from
 (select distinct id,power,plita,opal,max(mmgg-interval '0 month')::date as mmgg,
 (mmgg_end-interval '0 month')::date as mmgg_end,ver,sum(dem_0) as dem_0,sum(dem_9) as dem_9,
-sum(dem_10) as dem_10,sum(dem_6) as dem_6,sum(dem_7) as dem_7,sum(dem_8) as dem_8 from
+sum(dem_10) as dem_10,sum(dem_6) as dem_6,sum(dem_7) as dem_7,sum(dem_8) as dem_8  from
 (select q.* from (
-select b.id_paccnt as id,b.dt_b,case when a.id_zone=0 then coalesce(demand,0) end as dem_0,
+select c.id as id,b.dt_b,case when a.id_zone=0 or a.id_zone is null then coalesce(demand,0) end as dem_0,
 case when a.id_zone=9 then coalesce(demand,0) end as dem_9,
 case when a.id_zone=10 then coalesce(demand,0) end as dem_10,
 case when a.id_zone=6 then coalesce(demand,0) end as dem_6,
@@ -3542,8 +3545,8 @@ case when a.id_zone=8 then coalesce(demand,0) end as dem_8,
 max(a.mmgg) OVER (PARTITION BY a.id_paccnt,a.id_zone) as mmgg,(max(a.mmgg) OVER (PARTITION BY a.id_paccnt,a.id_zone)+interval '1 month'-interval '1 day') as mmgg_end,b.power,
 case when c.id_gtar in(3,5,16) then 1 end as plita,
 case when c.id_gtar in(4,6,14) then 1 end as opal,const.ver
-from clm_meterpoint_tbl b 
-left join clm_paccnt_tbl c on c.id=b.id_paccnt and c.archive='0'
+from clm_paccnt_tbl c
+left join clm_meterpoint_tbl b on c.id=b.id_paccnt and c.archive='0'
 left join clm_plandemand_tbl a on a.id_paccnt=b.id_paccnt
 left join (select (fun_mmgg())::date as mmgg_current) w1
 on 1=1
@@ -3551,6 +3554,8 @@ left join (select id_paccnt,max(mmgg) as mmgg,id_zone,max(dat_ind) as dat_ind fr
 group by id_paccnt,id_zone) j on j.id_paccnt=a.id_paccnt --and j.mmgg=w1.mmgg_current
  and j.id_zone=a.id_zone
 inner join sap_const const on 1=1
+--where c.id=100042822
+where c.archive='0'
 order by b.id_paccnt
 ) q
 left join 
@@ -3581,7 +3586,8 @@ inner join
                                 ) qwe
                                 ) ff
                         on ff.id=p.id_sector
-                where a.archive='0') instln on
+                where a.archive='0'
+                ) instln on
                 facts.id=instln.id
                 group by 1,facts.id,facts.power,facts.ver
                 order by facts.id
@@ -3769,45 +3775,47 @@ coalesce(sum(demand_6),0) as demand_6,
 coalesce(sum(demand_7),0) as demand_7,
 coalesce(sum(demand_8),0) as demand_8,
 eadat,ver,zone from
-(select distinct a.id_paccnt as id,
-case when a.id_zone=0 then a.value else 0.0000 end as value_0,
+(select distinct aa.id as id,
+case when a.id_zone=0 or a.id_zone is null then coalesce(a.value,0) else 0.0000 end as value_0,
 case when a.id_zone=9 then a.value else 0.0000 end as value_9,
 case when a.id_zone=10 then a.value else 0.0000 end as value_10,
 case when a.id_zone=6 then a.value else 0.0000 end as value_6,
 case when a.id_zone=7 then a.value else 0.0000 end as value_7,
 case when a.id_zone=8 then a.value else 0.0000 end as value_8,
+
 a.dat_ind,
 '04_C'||$$$rem$$||'B_'||a.id_paccnt as devloc,'04_C'||$$$rem$$||'B_01_'||a.id_paccnt as anlage,
 '04_C'||$$$rem$$||'B_'||m.id as equnre,
 '01' as action,
- case when a.id_zone=0 then p.demand else 0 end demand_0,
+ case when a.id_zone=0 or a.id_zone is null then coalesce(p.demand,0) else 0 end demand_0,
  case when a.id_zone=9 then p.demand else 0 end demand_9,
   case when a.id_zone=10 then p.demand else 0 end demand_10,
   case when a.id_zone=6 then p.demand else 0 end demand_6,
   case when a.id_zone=7 then p.demand else 0 end demand_7,
   case when a.id_zone=8 then p.demand else 0 end demand_8,
  (w1.mmgg_current + interval '1 month')::date as  eadat,const.ver,
- case when a.id_zone=0 then 0 
+ case when a.id_zone=0 or a.id_zone is null then 0 
  when a.id_zone in(9,10) then 9
  when a.id_zone in(6,7,8) then 6
  end as zone
- from acm_indication_tbl a 
-inner join
+ from clm_paccnt_tbl aa 
+ left join acm_indication_tbl a on aa.id=a.id_paccnt and aa.archive='0'
+left join
 (select max(dat_ind) as dat_ind,id_paccnt,id_zone,id_typemet from acm_indication_tbl group by id_paccnt,id_zone,id_typemet) b on
 a.id_paccnt=b.id_paccnt and a.id_zone=b.id_zone and a.dat_ind=b.dat_ind
-inner join (select  b.id_zone,a.id_paccnt,a.id_type_meter from clm_meterpoint_tbl a
+left join (select  b.id_zone,a.id_paccnt,a.id_type_meter from clm_meterpoint_tbl a
 left join clm_meter_zone_h b on a.id=b.id_meter) d  on d.id_paccnt=b.id_paccnt and d.id_type_meter=b.id_typemet and d.id_zone=b.id_zone
-inner join clm_paccnt_tbl c on a.id_paccnt=c.id and c.archive='0'
+--left join clm_paccnt_tbl c on aa.id=c.id and c.archive='0'
 --left join sap_egpld devloc on devloc.oldkey='04_C04B_'||a.id_paccnt
 left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1
 on 1=1
 left join clm_meterpoint_tbl m on m.id_paccnt=a.id_paccnt 
 left join clm_plandemand_tbl p on p.id_paccnt=a.id_paccnt and p.id_zone=a.id_zone and p.mmgg=w1.mmgg_current 
 inner join sap_const const on 1=1
-where a.id_operation<>5 order by 1) t
+where (a.id_operation<>5 or a.id_operation is null) and aa.archive='0' order by 1) t
 group by 1,9,10,11,12,13,20,21,22
 order by 1) w ) ww
-where dat_ind=dat_ind_last";
+where  (dat_ind=dat_ind_last or dat_ind is null) ";
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
 
@@ -5708,6 +5716,7 @@ order by tzap
                 date_part('year', a.dt_control) as bgljahr,get_gen_cq(a.id_paccnt,a.carry) as zwgruppe,
                 const.swerk,const.stort,const.ver,const.begru_b as begru,sd.sap_meter_name as matnr
                 from clm_meterpoint_tbl a
+                left join clm_meter_zone_h b1 on a.id=b1.id_meter --and b1.dt_e is null
                 left join (select distinct id from eqi_meter_tbl) b on a.id_type_meter=b.id
                 inner join sap_const const on
                 1=1
@@ -5715,8 +5724,8 @@ order by tzap
                 left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22 where sap_meter_id<>'') sd on s.sap_meter_id=sd.sap_meter_id
                 left join (select (fun_mmgg())::date as mmgg_current) w1 on 1=1
                 left join clm_paccnt_tbl p on p.id=a.id_paccnt
-		        where p.archive='0'
-                order by sd.sap_meter_name
+		        where p.archive='0' and b1.dt_e is null--and a.id=100033776 and b1.dt_e is null
+                order by sd.sap_meter_name        
                 ";
 
         $sql_c = "select * from sap_export where objectsap='DEVICE_IND' order by id_object";
