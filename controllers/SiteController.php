@@ -4935,6 +4935,7 @@ public function actionIdfile_seals($res)
             $vid = 2;
 
         // Главный запрос со всеми необходимыми данными
+        $c='"';
         $sql = "select min(id) as id,trim(town) as town,trim(town_sap) as town_sap,trim(street) as street,trim(street_sap) as street_sap,
 trim(type_street) as type_street,trim(house) as house,id_res,swerk,
 stort,ver,begru,trim(region) as region,trim(type_street) as type_street,trim(kod_reg) as kod_reg,coalesce(str_supl2,'') as str_supl1,
@@ -4942,7 +4943,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 (select min(a.id) as id,
                 c.town,trim(b1.town) as town_sap,trim(c.street) as street,
                 case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
-                case when c.korp is null or trim(c.korp) like '%\"%' then upper(trim(c.house)) else 
+                case when c.korp is null or trim(c.korp) like "."'%".'"'."%'" ."  then upper(trim(c.house)) else 
                 case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||upper(trim(c.korp)) 
                else upper(trim(c.house))||'/'||upper(trim(c.korp))  end end as house
                -- else c.house end end as house
@@ -4952,7 +4953,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
                 case when b1.street is null then c.street else '' end as str_supl1,
                 case when b1.street is null then c.house else '' end as str_supl2,
                 case when NOT(c.korp ~ '[0-9]+$') then '' else c.korp end as korp,
-                case when trim(c.korp) not like '%\"%' then upper(trim(c.korp)) else '' end as korp1
+                case when trim(c.korp) not like ". "'%".'"'."%'". " then upper(trim(c.korp)) else '' end as korp1
                  from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id=b.id
@@ -4982,8 +4983,45 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 
         if(1==1) {
             // Получаем необходимые данные
-            $data = data_from_server($sql,$res,$vid);
-            $cnt = data_from_server($sql_c,$res,$vid);
+//            $data = data_from_server($sql,$res,$vid);
+//            $cnt = data_from_server($sql_c,$res,$vid);
+
+            switch ($res) {
+                case 1:
+                    $data = \Yii::$app->db_pg_dn_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_dn_abn->createCommand($sql_c)->queryAll();
+                    break;
+
+                case 2:
+                    $data = \Yii::$app->db_pg_zv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_zv_abn->createCommand($sql_c)->queryAll();
+                    break;
+                case 3:
+                    $data = \Yii::$app->db_pg_vg_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_vg_abn->createCommand($sql_c)->queryAll();
+                    break;
+                case 4:
+                    $data = \Yii::$app->db_pg_pv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_pv_abn->createCommand($sql_c)->queryAll();
+                    break;
+                case 5:
+                    $data = \Yii::$app->db_pg_krg_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krg_abn->createCommand($sql_c)->queryAll();
+                    break;
+                case 6:
+                    $data = \Yii::$app->db_pg_ap_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_ap_abn->createCommand($sql_c)->queryAll();
+                    break;
+                case 7:
+                    $data = \Yii::$app->db_pg_gv_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_gv_abn->createCommand($sql_c)->queryAll();
+                    break;
+                case 8:
+                    $data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_in_abn->createCommand($sql_c)->queryAll();
+                    break;
+            }
+
 
             // Удаляем данные в таблицах
             $zsql = 'delete from sap_co_eha';
@@ -4993,6 +5031,9 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 
             $i = 0;
             // Заполняем структуры
+//            debug($data);
+//            return;
+
             foreach ($data as $w) {
                 $i = 0;
                 foreach ($cnt as $v) {
