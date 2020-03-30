@@ -1549,9 +1549,17 @@ b.tax_number else null end else null end as tax_number,b.last_name,
     }
 // Test
     public function actionTest_task(){
-        $tel='0689732242 мама';
-        $r=normal_tel($tel);
-        echo $r;
+        $str = 'abcdefghijklmnopqrstuvwxyz';
+        $s = "";
+        $n = strlen($str);
+        for ($i = 0; $i < (int) $n; $i++) {
+            $a = substr($str, $i, 1 );
+            if ($i % 2 == 0) {
+                $a = strtoupper($a);
+            }
+            $s = $s . $a;
+        }
+        echo $s;
     }
 // Тестовая функция для записи в файл
     public function actionTest_recfile()
@@ -8123,7 +8131,7 @@ public function actionSap_discdoc_ind($res,$par=0)
     // --------------------------------------------------------------------------------------------------------
     
     // Импорт отчета по КиевСтар за ноябрь 2019 года для выявления штрафников
-    public function actionImport_ks_1119()
+    public function actionImport_ks_0220()
     {
         /*
         $f = fopen('Rep01118.csv','r');
@@ -8138,7 +8146,7 @@ public function actionSap_discdoc_ind($res,$par=0)
         return;
         */
 
-        $sql = "CREATE TABLE tmp_ks1119 (
+        $sql = "CREATE TABLE tmp_ks0220 (
               tel varchar(10) NOT NULL,
               cost_plan varchar(20) DEFAULT NULL,
               cost_all varchar(10) DEFAULT NULL,
@@ -8149,12 +8157,12 @@ public function actionSap_discdoc_ind($res,$par=0)
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('Rep1119.csv','r');
+        $f = fopen('Rep0220.csv','r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
+//            if($i==1) continue;
             $data = explode(";",$s);
             
             if(empty($data[0])) break;
@@ -8164,7 +8172,7 @@ public function actionSap_discdoc_ind($res,$par=0)
             $data[9] = str_replace('"','',$data[9]);
             $e=1;
              
-                    $sql = "INSERT INTO tmp_ks1119 (tel,cost_plan,cost_all) VALUES(".
+                    $sql = "INSERT INTO tmp_ks0220 (tel,cost_plan,cost_all) VALUES(".
                         "'".$data[0]."'".","."'".$data[3]."'".","."'".$data[9]."'".')';
 
             Yii::$app->db_phone->createCommand($sql)->execute();
