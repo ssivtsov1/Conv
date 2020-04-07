@@ -1235,6 +1235,20 @@ function f_partner($n_struct, $rem, $v) {
     $iuru_pro='~';
 
     $oldkey = $oldkey_const . $r;
+    $str_supll1='~';
+    $str_supll2='~';
+
+   // Если садовое товарищество
+    if(empty($street)) {
+        if(!empty($v['street'])) {
+            $str_supll1 = str_replace("'",'`',trim($v['street']));
+            $str_supll2 = $house_num1;
+        }
+        else {
+            $str_supll1 = trim($v['name_org1']);
+            $str_supll2 = '~';
+        }
+    };
 
     if($n_struct=='INIT')
         $z = "insert into sap_init(oldkey,dat_type,bu_type,bu_group,bpkind,role1,role2,valid_from_1,chind_1,valid_from_2,chind_2)
@@ -1263,7 +1277,7 @@ function f_partner($n_struct, $rem, $v) {
                                          fax_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
-                          '$house_num1','$house_num2','~','~','$roomnumber','$region','$chind_tel','$tel_number','~','~',
+                          '$house_num1','$house_num2','$str_supll1','$str_supll2','$roomnumber','$region','$chind_tel','$tel_number','~','~',
                           '$chind_smtp','$smtp_addr','$tel_mobile','$iuru_pro')";
 
     if($n_struct=='BUT021')
@@ -1431,6 +1445,7 @@ function f_account_ind($n_struct, $rem, $v,$vid) {
     $zz_is_eh=$v['zz_is_eh'];
     $zz_is_gf=$v['zz_is_gf'];
     $zz_area_id=$v['zz_area_id'];
+    $znodev = $v['znodev'];
     $oldkey = $oldkey_const . $r;
     $kofiz_sd=$r;
 
@@ -1441,7 +1456,7 @@ function f_account_ind($n_struct, $rem, $v,$vid) {
 
     if($n_struct=='VK')
         $z = "insert into sap_vk(oldkey,dat_type,znodev)
-                    values('$oldkey','$n_struct','~')";
+                    values('$oldkey','$n_struct','$znodev')";
 
     if($n_struct=='VKP')
         $z = "insert into sap_vkp(oldkey,dat_type,partner,opbuk,ikey,begru,adrnb_ext,
@@ -1634,7 +1649,6 @@ else
             break;
     }
 
-
 }
 
 // Выгрузка по объектам соединения юридические
@@ -1645,12 +1659,12 @@ function f_connobj($n_struct,$rem,$v) {
     $post_code1=trim($v['post_index']);
     $street = $v['street'];
     $house_num1 =$v['house'];
-    $roomnumber=$v['flat'];
+//    $roomnumber=$v['flat'];
     $house_num2=$v['house_num2'];
     $region=$v['region'];
     //$iuru_pro=$v['kod_reg'];
     $iuru_pro='';
-    $pltxt=$v['pltxt'];
+    $pltxt='';
     $begru=$v['begru'];
 //    $swerk=$v['swerk'];
     $swerk='C01M';
