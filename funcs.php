@@ -1279,7 +1279,7 @@ function f_partner($n_struct, $rem, $v) {
                                          fax_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
-                          '$house_num1','$house_num2','$str_supll1','$str_supll2','$roomnumber','$region','$chind_tel','$tel_number','~','~',
+                          '$house_num1','$house_num2',$$$str_supll1$$,'$str_supll2','$roomnumber','$region','$chind_tel','$tel_number','~','~',
                           '$chind_smtp','$smtp_addr','$tel_mobile','$iuru_pro')";
 
     if($n_struct=='BUT021')
