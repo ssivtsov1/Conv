@@ -938,6 +938,8 @@ public function actionIdfile()
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
+        ini_set('upload_max_filesize', '0');
+        ini_set('post_max_size', '1000M');
         $rem = '0'.$res;  // Код РЭС
 
         $sql = "select distinct a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
