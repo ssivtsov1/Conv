@@ -6968,8 +6968,8 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                  and cl1.id <>999999999
             order by 5 ";
 
-//        debug($sql);
-//        return;
+
+
 
         $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
         $zsql = 'delete from sap_evbsd';
@@ -7030,8 +7030,8 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             }
             $i = 0;
 
-//debug($data);
-//            return;
+debug($cnt);
+            return;
 
             // Заполняем структуры
             foreach ($data as $w) {

@@ -1329,6 +1329,7 @@ function f_account($n_struct, $rem, $v) {
 
     $vkona = $v['vkona'];
     $zdaterep = $v['zdaterep'];
+    if(empty($zdaterep)) $zdaterep='01';
     $partner=$v['partner'];
     $opbuk=$v['opbuk'];
     $ebvty = '';
@@ -1957,6 +1958,9 @@ function f_premise($n_struct,$rem,$v) {
         $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru,zz_nameplvm)
                     values('$oldkey','$n_struct','$haus','$house_num2','~','P0001','$pltxt',$$$zz_nameplvn$$)";
 
+    $fff=fopen('a_tst.sql','w+');
+    fputs($fff,$z);
+
     switch ((int) $rem) {
         case 1:
             Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
@@ -1999,6 +2003,9 @@ function f_devloc($n_struct,$rem,$v) {
     if($n_struct=='EGPLD')
         $z = "insert into sap_egpld(oldkey,dat_type,haus,vstelle,swerk,stort,begru,pltxt)
                     values('$oldkey','$n_struct','$haus','$vstelle','$swerk','$stort','$begru','~')";
+
+    $fff=fopen('a_tst.sql','w+');
+    fputs($fff,$z);
 
     switch ((int) $rem) {
         case 1:
