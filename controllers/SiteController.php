@@ -5275,7 +5275,11 @@ public function actionIdfile_seals($res)
 
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
-        $ver=$data[0]['ver'];
+        if(isset($data[0]['ver']))
+            $ver = $data[0]['ver'];
+        else
+            $ver=$res;
+
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
         $f = fopen($fname,'w+');
