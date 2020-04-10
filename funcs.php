@@ -2078,6 +2078,7 @@ function f_seals($n_struct,$rem,$v,$vid) {
     $matnr=$v['matnr'];
     $sernr=$v['sernr'];
     $place=$v['place'];
+    $place = str_replace("'",'`',$place);
     $dinst=$v['dinst'];
 
     $oldkey = $oldkey_const . $r;
