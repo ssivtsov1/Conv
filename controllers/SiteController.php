@@ -1082,8 +1082,10 @@ b.phone,get_email(b.e_mail) as e_mail
         LEFT JOIN adi_town_tbl t ON t.id = s.id_town
         LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
-        LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
-        LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+        --LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name) 
+       LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
+         on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
         WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
         and a.code_okpo<>'0000000'
 	    and a.code_okpo<>'000000' --and a.id=10373
@@ -1490,7 +1492,9 @@ b.tax_number else null end else null end as tax_number,b.last_name,
              case when c.korp is null then upper(c.house) else 
              case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) 
              else upper(trim(c.house))||'/'||c.korp end end as house,  
-             upper(c.korp) as korp,c.flat,b.mob_phone,b.e_mail,const.id_res,
+             case when NOT(c.korp ~ '[0-9]+$') then upper(c.korp) else '' end as korp,
+             --upper(c.korp) as korp,
+             c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id_abon=b.id
@@ -2538,6 +2542,7 @@ join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp)
       left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
 ) as mt
            join sap_type_tr_i_tbl as type_tr on type_tr.id_type = mt.id_type_tr
+          -- join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = mt.id_type_tr
                 where type_tr.id_type is not null
 ) as zz on zz.id_meter=sti.id_meter
                 where eq.id_point= $id_eq and eq.code_t_new is not null
@@ -2569,7 +2574,7 @@ join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b,
 	    order by 1
 	    ) as sti on (sti.id_meter = eq.id_meter::integer)
             left join sap_type_tr_i_tbl as type_tr on type_tr.id_type = sti.id_type_tr
-                --left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = sti.id_type_tr
+               left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = sti.id_type_tr
                where eq.id_point = $id_eq and eq.code_t_new is not null
 order by sort";
 
@@ -3014,11 +3019,16 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
                 end as swathe,
                 case when length(p.id_point::varchar)>7 then p.id_point else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.id_point::varchar)::int)),(7-(length(p.id_point::varchar)::int)))||p.id_point::varchar)::int end as instln_key,
 		       case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
-		       const.ver as ver,v.id_sap		
+		       const.ver as ver,
+		       case when v.normative is null or trim(v.normative)='' then v.id_sap else v1.id_sap end as id_sap,
+		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then u1.voltage_min::dec(6,2) else u.voltage_min::dec(6,2) end 
+		       else v1.normative::dec(6,2) end as voltage			
                 from tmp_eqm_schema_point_tbl as p
                 join (select id_point, name as name_point from tmp_eqm_schema_point_tbl where type_eqp=12 and id_point=code_eqp) as p2 on (p.id_point=p2.id_point)
                 left join eqm_line_a_tbl as line_a on (line_a.code_eqp=p.code_eqp)
                 left join eqm_line_c_tbl as line_c on (line_c.code_eqp=p.code_eqp)
+                left join eqk_voltage_tbl as u on u.id=line_a.id_voltage
+                left join eqk_voltage_tbl as u1 on u1.id=line_c.id_voltage
                 left join eqi_corde_tbl as corde on (corde.id=line_a.id_type_eqp)
                 left join eqi_cable_tbl as cable on (cable.id=line_c.id_type_eqp)
                 left join eqm_compensator_tbl AS eqd on (eqd.code_eqp=p.code_eqp) 
@@ -3028,10 +3038,13 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
                 left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
                 left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
                 left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
-                left join sap_lines as v on v.id::int=cable.id and v.kod_res=$res
+                left join sap_lines as v on v.id::int=cable.id and (v.normative is null or trim(v.normative)='') and v.kod_res='$res'
+                left join sap_lines as v1 on v1.id::int=cable.id and (v1.normative is not null and trim(v1.normative)<>'') and v1.kod_res='$res'
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  and  p.type_eqp<>2
-                order by p.id_point, p.lvl desc";
+                order by p.id_point, p.lvl desc
+
+                ";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
@@ -5852,6 +5865,7 @@ select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.c
 		    and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
 		    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
 		    left join sap_type_tr_i_tbl as type_tr on type_tr.id_type = ic.id 
+		     left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = ic.id 
                     inner join sap_const const on 1=1 ) x
 order by tzap   
 ";
@@ -6680,8 +6694,11 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         LEFT JOIN adi_town_tbl t ON t.id = s.id_town
         LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
-        LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
-        LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+       -- LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name)
+       -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+        LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
+         on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
         inner join sap_const const on
         1=1
         WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
@@ -8661,6 +8678,122 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                 $code.','.'$$'.$name.'$$'.","."'".$citycode."'".","."'".$thedistrictcode."'".",".$streettypecode.",".
                 "'".$modify_time."'".","."'".$citykoid."'".","."'".$resid."'".","."'".$xstreetcode."'".","."$$".$name_town."$$".')';
             Yii::$app->db_pg_krg_energo->createCommand($sql)->execute();
+
+            //debug($town);
+        }
+
+        echo "Інформацію записано";
+    }
+
+    // Закачка данных в справочник адресов САП
+    public function actionAddr_from_sap()
+    {
+        $file = "street_sap.csv";
+        $f = fopen($file,'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode("~",$s);
+            $contry = $data[0];
+            $numstreet = $data[1];
+            $numtown = $data[2];
+            $town = $data[3];
+            $pr =    $data[4];
+            $note = $data[5];
+            $numobl = $data[6];
+            $rnobl = $data[7];
+            $type_street = $data[8];
+            $street = $data[9];
+            $street2 = $data[10];
+            $short_street = $data[11];
+            if (trim($note)!='Дніпропетровська' and trim($note)!='Вінницька') {
+                $sql = "INSERT INTO addr_sap (contry,numstreet,numtown,town,рг,note,numobl,rnobl,type_street,
+                    street,street2,short_street)
+                    VALUES(" .
+                    '$$' . $contry . '$$' . ',' . '$$' . $numstreet . '$$' . "," . "'" . $numtown . "'" . "," . "$$" . $town . "$$" . "," . '$$' . $pr . '$$' . "," .
+                    "$$" . $note . "$$" . "," . "$$" . $numobl . "$$" . "," . "$$" . $rnobl . "$$" . "," . "'" . $type_street . "'" . "," . "$$" . $street . "$$" .
+                    "," . "$$" . $street2 . "$$" . "," . "$$" . $short_street . "$$" .
+                    ')';
+                Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+            }
+
+            //debug($town);
+        }
+
+        echo "Інформацію записано";
+    }
+
+    // Запись данных по измер. трансформаторам
+    public function actionGet_data_tv()
+    {
+        $file = "izm_tv_in.csv";
+        $f = fopen($file,'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode("~",$s);
+            $id = $data[1];
+            $type_tr = $data[25];
+            $code_i = $data[27];
+            $numbers_i = str_replace(';',',',$data[28]);
+            $code_u =    $data[35];
+            $type_tr_u = $data[33];
+            $numbers_u = str_replace(';',',',$data[37]);
+            $lic = $data[2];
+            $name = $data[3];
+            $n_cnt = $data[12];
+            $type_cnt = $data[13];
+            $power = $data[22];
+            $level_u = $data[24];
+            $ktp = $data[6];
+            $carry = $data[17];
+
+//            debug($data);
+//            return;
+
+                $sql = "INSERT INTO spr_izm_tv (id,lic,name,ktp,carry,n_cnt,type_cnt,power,level_u,
+                    type_tr,code_i,numbers_i,type_tr_u,code_u,numbers_u)
+                    VALUES(" .
+                     $id .  ',' . '$$' . $lic . '$$' . "," . "$$" . $name . "$$" . "," . "$$" . $ktp . "$$" . "," .  $carry .  "," .
+                    "$$" . $n_cnt . "$$" . "," . "$$" . $type_cnt . "$$" . "," .  $power .  "," . "'" . $level_u . "'" . "," . "$$" . $type_tr . "$$" .
+                    "," . "$$" . $code_i . "$$" . "," . "$$" . $numbers_i . "$$" . "," . "$$" . $type_tr_u . "$$" . "," .
+                    "$$" . $code_u . "$$" . "," . "$$" . $numbers_u . "$$" .
+                    ')';
+                Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
+
+
+            //debug($town);
+        }
+
+        echo "Інформацію записано";
+    }
+
+    // Запись справочников  измер. трансформаторов САП
+    public function actionSpr_data_tv()
+    {
+        $file = "sap_tv_u.csv";
+        $f = fopen($file,'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode("~",$s);
+            $id = $data[0];
+            $nazv = $data[1];
+            $gr = $data[2];
+
+            if (empty($id)) $id=0;
+//            debug($data);
+//            return;
+
+            $sql = "INSERT INTO sap_tv_u (id,nazv,gr)
+                    VALUES(" .
+                $id .  ',' . '$$' . $nazv . '$$' . "," . "$$" . $gr . "$$" .
+                  ')';
+            Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
+
 
             //debug($town);
         }

@@ -1049,7 +1049,9 @@ function f_partner_ind($n_struct,$rem,$v) {
             }
         }
         $house_num1 =str_replace(' ','',$house_num1);
+        $house_num1 =str_replace('"','',$house_num1);
         $roomnumber=$v['flat'];
+        $roomnumber =str_replace('"','',$roomnumber);
         $region=$v['region'];
         $tel_number=normal_tel($v['mob_phone']);
 
@@ -2092,7 +2094,8 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     $pnt= substr((1000+$pnt),1,3);
     $line_length=$v['line_length'];
     $id_sap=trim($v['id_sap']);
-    $line_voltage_nom = $v['line_voltage_nom'];
+    //$line_voltage_nom = $v['line_voltage_nom'];
+    $line_voltage_nom = $v['voltage'];
     $text =$v['text'];
     $oldkey = $oldkey_const . $r;
     $anlage = $oldkey_const . $v['id_point'];

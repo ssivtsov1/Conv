@@ -1,0 +1,38 @@
+1. Создаем csv файлы из данных таблиц РЭС
+2. Создаем таблицу
+  create table spr_izm_tv (
+	id int,
+	lic char(15),
+	name char(255),
+	n_cnt char(30),
+	type_cnt char(255),
+	power int,
+	level_u char(10),
+	ktp char(30),
+	carry int,
+	type_tr char(255),
+	code_i char(30),
+	numbers_i char(100),
+	type_tr_u char(255),
+	code_u char(30),
+	numbers_u char(100)
+)
+
+3. Создаем таблицу на РЭС spr_izm_tv из Conv (Запись данных по измер. трансформаторам)
+4. Выполняем запросы
+
+select distinct c.id as id_type,a.type_tr,b.nazv as type_tr_sap,b.gr as group_ob 
+into sap_type_tr_u_tbl
+from spr_izm_tv a
+left join sap_tv_u b on trim(a.code_u)::int=b.id
+left join eqi_compensator_i_tbl c on trim(c.type)=trim(a.type_tr)
+where a.type_tr_u<>''
+
+и
+
+select distinct c.id as id_type,a.type_tr,b.nazv as type_tr_sap,b.gr as group_ob 
+into sap_type_tr_i_tbl
+from spr_izm_tv a
+left join sap_tv_u b on trim(a.code_i)::int=b.id
+left join eqi_compensator_i_tbl c on trim(c.type)=trim(a.type_tr)
+where a.type_tr_i<>''
