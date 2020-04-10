@@ -3,7 +3,7 @@
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'pgsql:host=192.168.26.1;port=5432;dbname=energo',
+    'dsn' => 'pgsql:host=192.168.26.1;port=5432;dbname=energo_zvdres',
     'username' => 'local',
     'password' => '',
     'charset' => 'utf8',
