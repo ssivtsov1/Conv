@@ -7189,8 +7189,9 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
 
         $sql = "select 'PREMISE' as OM,a.oldkey,b.code,trim(a.zz_nameplvm),const.ver from sap_EVBSD as a 
                 left join clm_client_tbl as b
-                on substr(a.haus,9)::int=b.id
-                join sap_const as const on 1=1";
+                on case when a.haus='' then '0000000000000' else substr(a.haus,9) end::int=b.id
+                join sap_const as const on 1=1
+";
 
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
