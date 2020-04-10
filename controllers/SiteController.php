@@ -7034,8 +7034,8 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             }
             $i = 0;
 
-debug($cnt);
-            return;
+//debug($cnt);
+//            return;
 
             // Заполняем структуры
             foreach ($data as $w) {
