@@ -2509,7 +2509,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
             $oldkey1= '04_C'.$rem.'P_';
             $sql_1="select  distinct  eq.id_point ,
 'EDEVGR' as n_struct,
-case when coalesce(zz.clas,'')='0,38'  then '0002'  else '0003' end as devgrptyp,
+case when substr(zz.clas,1,1)='J'  then '0002'  else '0003' end as devgrptyp,
 '$period'  as keydate, 
 '' as dop,
 '1' as sort
@@ -2530,7 +2530,7 @@ join ( select eq.num_eqp as num_comp ,
       order by 1
       ) as sti on (sti.id_meter = eq.id_meter)        
 left join
-            (select mt.id_meter, type_tr.clas as clas from
+            (select mt.id_meter, type_tr.group_ob as clas from
             (select CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, ic.id as id_type_tr
 from eqm_compensator_i_tbl as c 
 join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
