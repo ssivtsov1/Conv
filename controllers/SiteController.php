@@ -7982,31 +7982,38 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         switch ($res) {
             case 1:
                 $struct_data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
                 break;
             case 2:
                 $struct_data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
                 break;
             case 3:
                 $struct_data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
                 break;
             case 4:
                 $struct_data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
                 break;
             case 5:
                 $struct_data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
+                $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
                 break;
             case 6:
                 $struct_data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
                 break;
             case 7:
                 $struct_data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
                 break;
             case 8:
                 $struct_data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
                 break;
         }
 
-        $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
 
         foreach ($struct_data as $d) {
             $old_key=trim($d['oldkey']);
