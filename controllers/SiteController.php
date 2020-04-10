@@ -8733,7 +8733,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
     // Запись данных по измер. трансформаторам
     public function actionGet_data_tv()
     {
-        $file = "izm_ap.csv";
+        $file = "izm_vg.csv";
         $f = fopen($file,'r');
         $i = 0;
         while (!feof($f)) {
@@ -8767,7 +8767,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                     "," . "$$" . $code_i . "$$" . "," . "$$" . $numbers_i . "$$" . "," . "$$" . $type_tr_u . "$$" . "," .
                     "$$" . $code_u . "$$" . "," . "$$" . $numbers_u . "$$" .
                     ')';
-                Yii::$app->db_pg_ap_energo->createCommand($sql)->execute();
+                Yii::$app->db_pg_vg_energo->createCommand($sql)->execute();
 
 
             //debug($town);
