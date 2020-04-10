@@ -8748,10 +8748,11 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
             $type_tr_u = $data[33];
             $numbers_u = str_replace(';',',',$data[37]);
             $lic = $data[2];
-            $name = $data[3];
+            $name = str_replace('"','',$data[3]);
             $n_cnt = $data[12];
             $type_cnt = $data[13];
             $power = $data[22];
+            if(empty($power)) $power=0;
             $level_u = $data[24];
             $ktp = $data[6];
             $carry = $data[17];
