@@ -2104,7 +2104,7 @@ function f_zlines($n_struct,$rem,$v,$vid) {
         $z = "insert into sap_auto_zlines(oldkey,dat_type,anlage,linum,frdat,frtim,lityp,length,voltage,state,
                                     wxshr,fshar,xnegp,text,element_id)
                     values('$oldkey','$n_struct','$anlage','$pnt','$datab','000000','$id_sap','$line_length',
-                            '$line_voltage_nom','L','100','X','~','$text','$pnt')";
+                            '$line_voltage_nom','L','100','X','~',$$$text$$,'$pnt')";
 
     exec_on_server($z,(int) $rem,$vid);
 }
@@ -2127,7 +2127,7 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
         $z = "insert into sap_auto_ztransf(oldkey,dat_type,anlage,frdat,frtim,trcat,trtyp,trsta,
                                     xnegp,text,element_id)
                     values('$oldkey','$n_struct','$anlage','$datab','000000','$swathe','$id_sap',
-                            'L','~','$text','$pnt')";
+                            'L','~',$$$text$$,'$pnt')";
 
     exec_on_server($z,(int) $rem,$vid);
 }
