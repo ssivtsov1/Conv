@@ -5453,8 +5453,8 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         order by 5,7
         ";
 
-debug($sql);
-    return;
+//debug($sql);
+//    return;
 
         $sql_c = "select * from sap_export where objectsap='CONNOBJ_IND' order by id_object";
 
@@ -5608,7 +5608,7 @@ debug($sql);
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select s1.*,s2.*,m.id as id_cnt,
-             case when m.id_type_meter=0 or trim(num_meter)='0' or m.num_meter is null then 'X' else '~' end as zznodev
+             case when m.id_type_meter=0 or trim(num_meter)='0' or m.num_meter is null then 'X' else '~' end as znodev
                 from
                 --INIT
                 (select 'INIT' as struct,a.id,a.code as vkona,
