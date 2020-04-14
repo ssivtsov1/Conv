@@ -1474,7 +1474,6 @@ function f_account_ind($n_struct, $rem, $v,$vid) {
     $oldkey = $oldkey_const . $r;
     $kofiz_sd=$r;
 
-
     if($n_struct=='INIT')
         $z = "insert into sap_init_acc(oldkey,dat_type,gpart,vktyp,vkona)
                     values('$oldkey','$n_struct','$gpart','$vktyp','$vkona')";
@@ -1613,6 +1612,21 @@ if(isset($data1[0]['post_index']))
     $post_code1=$data1[0]['post_index'];
 else
     $post_code1='';
+
+// Определяем город для садовых товариществ
+    if (!(($rem=='03' && trim($street_cek)=="Металург" ) ||
+        (mb_substr(trim($street_cek),0,3,'UTF-8')=='с-т' ||
+            mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
+            trim($street_cek)=='Садове товариство')))
+    {
+        $sql = 'select town from addr_sap where town like' . "'%" . $town . "%'" .
+                     " and trim(note)='Дніпропетровська' limit 1";
+        $data = data_from_server($sql, (int) $rem, 1);
+        if(!empty($data))
+            $town=$data[0]['town'];
+        else
+            $town='';
+    }
 
     if($n_struct=='CO_EHA') {
         $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
