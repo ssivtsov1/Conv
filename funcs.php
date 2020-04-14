@@ -1118,6 +1118,7 @@ function f_partner_ind($n_struct,$rem,$v) {
                 $sql = 'select * from  post_index_sap where town like ' . "'%" . $town_cek . "%'" .
                        ' and trim(obl)='."'Дніпропетровська' limit 1";
 
+
                 $data = data_from_server($sql, (int) $rem, 1);
 
                 if(!empty($data))
@@ -1619,7 +1620,7 @@ else
             mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
             trim($street_cek)=='Садове товариство')))
     {
-        $sql = 'select town from addr_sap where town like' . "'%" . $town . "%'" .
+        $sql = 'select town from addr_sap where town like' . "'%" . "$$$town$$" . "%'" .
                      " and trim(note)='Дніпропетровська' limit 1";
         $data = data_from_server($sql, (int) $rem, 1);
         if(!empty($data))
