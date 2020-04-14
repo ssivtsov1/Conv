@@ -1622,6 +1622,10 @@ else
     {
         $sql = 'select town from addr_sap where town like' . "'%" . "$$$town$$" . "%'" .
                      " and trim(note)='Дніпропетровська' limit 1";
+
+        debug($sql);
+        return;
+        
         $data = data_from_server($sql, (int) $rem, 1);
         if(!empty($data))
             $town=$data[0]['town'];
