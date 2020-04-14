@@ -1,3 +1,0 @@
- insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
-            ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic)
-     values($$04_C08B_01_800000534$$,'DATA',$$$$,$$02$$,$$0002$$,$$0001$$,'Крикун Наталія Володимирівна',$$$$,$$20191201$$,'CK_1AL2_01','70',$$0001$$,'BC010631','355','~','~','CK01',$$62Z5909751954470$$)
