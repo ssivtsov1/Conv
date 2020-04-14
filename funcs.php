@@ -1620,12 +1620,12 @@ else
             mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
             trim($street_cek)=='Садове товариство')))
     {
-        $sql = 'select town from addr_sap where town like' . "'%" . "$$$town$$" . "%'" .
+        $sql = 'select town from addr_sap where (town like' . "'%" . "$$$town$$" . "%'" . ' or '. "trim(town)="."$$$town$$".
                      " and trim(note)='Дніпропетровська' limit 1";
 
-        debug($sql);
-        return;
-        
+//        debug($sql);
+//        return;
+
         $data = data_from_server($sql, (int) $rem, 1);
         if(!empty($data))
             $town=$data[0]['town'];
