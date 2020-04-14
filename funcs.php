@@ -1615,15 +1615,26 @@ else
     $post_code1='';
 
 // Определяем город для садовых товариществ
-    if (!(($rem=='03' && trim($street_cek)=="Металург" ) ||
+    if (($rem=='03' && trim($street_cek)=="Металург" ) ||
         (mb_substr(trim($street_cek),0,3,'UTF-8')=='с-т' ||
             mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
-            trim($street_cek)=='Садове товариство')))
-    {
+            trim($street_cek)=='Садове товариство'))
+    { $pos      = strripos($town, "'");
+        if ($pos === false) {
+       ;
+    } else {
+            $y=mb_strlen($town,"UTF-8");
+            $town  = mb_substr($town,$pos,$y-($pos),"UTF-8") ;
+            $sql = 'select town from addr_sap where (town like' . "'%" . "$$$town$$" . "%'" . ' or '. "trim(town)="."$$$town$$".
+                " and trim(note)='Дніпропетровська' limit 1";
+//            debug($sql);
+//            return;
+
+    }
         $sql = 'select town from addr_sap where (town like' . "'%" . "$$$town$$" . "%'" . ' or '. "trim(town)="."$$$town$$".
                      " and trim(note)='Дніпропетровська' limit 1";
 
-//        debug($sql);
+//        debug($street_cek);
 //        return;
 
         $data = data_from_server($sql, (int) $rem, 1);
