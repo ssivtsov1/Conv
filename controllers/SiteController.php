@@ -1493,7 +1493,8 @@ b.phone,get_email(b.e_mail) as e_mail
         // Получаем название подпрограммы
         $routine = strtoupper(substr($method,10));
 
-        $sql = "select a.id,a.activ,case when i.inn is null then 
+        $sql = "select * from (
+select a.id,a.activ,case when i.inn is null then 
 case when b.tax_number is not null and length(trim(b.tax_number))=10 then 
 b.tax_number else null end else null end as tax_number,b.last_name,
                 b.name,b.patron_name,b1.town,c.town as town_cek,b2.post_index,c.indx as index_cek,
@@ -1528,6 +1529,8 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region where a.archive='0' 
         and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end
+        ) x  
+        WHERE 1=1          
         ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
@@ -2065,27 +2068,28 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $date_ab=$data_d[0]['mmgg_current'];
         // Главный запрос со всеми необходимыми данными
           $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
-                                case when length(adr.last_name||' '||adr.name||' '||adr.patron_name)>0 then 
-                            adr.last_name||' '||adr.name||' '||adr.patron_name else
-                                 adr.code end as zz_nametu,'' as zz_fider,'$date_ab' as ab,'CK_1AL2_01' as tariftyp,
-                                '0001' as aklasse,ff.ableinh as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
-                                case when trim(adr.type_city)='м.' then '70' else '71' end as branche, p.id_sector
-                                from clm_paccnt_tbl a 
-                                inner join sap_const b on 1=1
-                                left join sap_evbsd c on a.id=substr(c.oldkey,9)::integer
-                                left join vw_address adr on a.id=adr.id
-                                left join prs_runner_paccnt p on p.id_paccnt=a.id
-                        left join (                
-                                select qwe.id,qwe.name,'$asd[$rem]' as ableinh from (
-                                select distinct c.id,c.name from prs_runner_sectors c
-                                left join prs_runner_paccnt p on p.id_sector=c.id
-                                left join clm_paccnt_tbl as pa on pa.id=p.id_paccnt
-                                where pa.archive = '0'
-                                order by c.name
-                                ) qwe
-                                ) ff
-                        on ff.id=p.id_sector
-                where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
+case when length(adr.last_name||' '||adr.name||' '||adr.patron_name)>0 then
+adr.last_name||' '||adr.name||' '||adr.patron_name else
+adr.code end as zz_nametu,'' as zz_fider,'$date_ab' as ab,'CK_1AL2_01' as tariftyp,
+'0001' as aklasse,ff.ableinh as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
+case when trim(adr.type_city)='м.' then '70' else '71' end as branche, p.id_sector
+from clm_paccnt_tbl a
+inner join sap_const b on 1=1
+left join sap_evbsd c on a.id=substr(c.oldkey,9)::integer
+left join vw_address adr on a.id=adr.id
+left join prs_runner_paccnt p on p.id_paccnt=a.id
+left join (
+select qwe.id,qwe.name,qwe.ed_sch as ableinh from (
+select distinct c.id,c.name,abl.ed_sch from prs_runner_sectors c
+left join prs_runner_paccnt p on p.id_sector=c.id
+left join clm_paccnt_tbl as pa on pa.id=p.id_paccnt
+left join ableinh_tbl as abl on abl.id::int=p.id_sector
+where pa.archive = '0'
+order by c.name
+) qwe
+) ff
+on ff.id=p.id_sector
+where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 ";
 
         if($helper==1)
@@ -5449,8 +5453,8 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         order by 5,7
         ";
 
-//    debug($sql);
-//    return;
+debug($sql);
+    return;
 
         $sql_c = "select * from sap_export where objectsap='CONNOBJ_IND' order by id_object";
 

@@ -1032,6 +1032,7 @@ function f_partner_ind($n_struct,$rem,$v) {
             $namemiddle=$matches[0][0];
 
         $town=$v['town'];
+        $town_cek=$v['town_cek'];
         $post_code1=$v['post_index'];
         $street = $v['street'];
         $street_cek = $v['street_cek'];
@@ -1104,6 +1105,26 @@ function f_partner_ind($n_struct,$rem,$v) {
                 mb_substr($street_cek,0,5,'UTF-8')=='ОК-СТ'||
                 trim($street_cek)=='Садове товариство'))
                 // Если садовое товарищество
+            {
+                // Определяем город для садовых товариществ
+                $sql = 'select town from addr_sap where town like' . "'%" . $town_cek . "%'" .
+                    " and trim(note)='Дніпропетровська' limit 1";
+                $data = data_from_server($sql, (int) $rem, 1);
+                if(!empty($data))
+                    $town=$data[0]['town'];
+                else
+                    $town='';
+
+                $sql = 'select * from  post_index_sap where town like ' . "'%" . $town_cek . "%'" .
+                       ' and trim(obl)='."'Дніпропетровська' limit 1";
+
+                $data = data_from_server($sql, (int) $rem, 1);
+
+                if(!empty($data))
+                    $post_code1=$data[0]['post_index'];
+                else
+                    $post_code1='';
+
                 $z = "insert into sap_but020(old_key,dat_type3,adext_addr,chind_addr,city1,post_code1,
                                          post_code2,po_box,street,house_num1,house_num2,str_suppl1,
                                          str_suppl2,roomnumber,region,chind_tel,tel_number,chind_smtp,
@@ -1111,6 +1132,7 @@ function f_partner_ind($n_struct,$rem,$v) {
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~','~',
                           '~','~',$$$street_cek$$,'$house_num1','$roomnumber','$region','$chind_tel','$tel_number','$chind_smtp',
                           '$smtp_addr','$tel_mobile','$iuru_pro')";
+            }
             else {
                 if ($l_c == 1)
                     $z = "insert into sap_but020(old_key,dat_type3,adext_addr,chind_addr,city1,post_code1,
