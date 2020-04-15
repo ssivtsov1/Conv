@@ -1619,7 +1619,8 @@ else
         (mb_substr(trim($street_cek),0,3,'UTF-8')=='с-т' ||
             mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
             trim($street_cek)=='Садове товариство'))
-    { $pos      = strripos($town, "'");
+    { $town = $v['town'];
+        $pos      = strripos($town, "'");
         if ($pos === false) {
        ;
     } else {
@@ -1663,7 +1664,7 @@ else
                 mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
                 trim($street_cek)=='Садове товариство')) {
             // Если садовое товарищество
-            $town = $v['town'];
+
             $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
                                          street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,cek_type_street,house_num2)
                     values('$oldkey','$n_struct',$$$town$$,'$post_code1','~',
