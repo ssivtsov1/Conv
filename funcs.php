@@ -1628,8 +1628,8 @@ else
             $town  = mb_substr($town,$pos,$y-($pos),"UTF-8") ;
             $sql = 'select town from addr_sap where (town like' . "'%" . "$town" . "%'" . ' or '. "trim(town)="."'$town'".
                 ") and trim(note)='Дніпропетровська' limit 1";
-//            debug($sql);
-//            return;
+            debug($sql);
+            return;
 
     }
 //        $sql = 'select town from addr_sap where (town like' . "'%" . "$$$town$$" . "%'" . ' or '. "trim(town)="."$$$town$$".
