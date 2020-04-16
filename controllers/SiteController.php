@@ -1091,6 +1091,8 @@ b.phone,get_email(b.e_mail) as e_mail
         WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
         and a.code_okpo<>'0000000'
 	    and a.code_okpo<>'000000' --and a.id=10373
+	   and (a.code>999 or  a.code=900)
+	    
    ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER' order by id_object";
@@ -3871,7 +3873,9 @@ where qqq.oldkey is not null and www.code<>999 and id_cl<>2062
         --where zz_eic='62Z6359402983688'
     --where p.neqp like '%62Z5210118812927%'   
                            
-		order by code_area ";
+		order by code_area 
+		limit 100
+		";
 
 
         if($helper==1)
@@ -5862,7 +5866,12 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
 		left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy=3 and dt_e is null) as en2 on en2.code_eqp = m.code_eqp
 		left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy in(2,5) and dt_e is null) as en3 on en3.code_eqp = m.code_eqp
 		left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy in(6,4) and dt_e is null) as en4 on en4.code_eqp = m.code_eqp
+		left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+       left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+       left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+       left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 inner join sap_const const on 1=1
+        where c.code>999 or  c.code=900      
 union                
 
 select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
@@ -6576,7 +6585,8 @@ order by tzap
 
         $sql = "select min(id) as id,coalesce(town,'') as town,coalesce(post_index,'') as post_index,
 coalesce(street,'') as street,coalesce(house,'') as house,stort,ver,begru,region,swerk,
-case when coalesce(street,'')='' and coalesce(house,'')='' then name end as str_suppl1,'' as str_suppl2,''::char(20) as house_num2 from
+case when coalesce(street,'')='' and coalesce(house,'')='' then name end as str_suppl1,
+'' as str_suppl2,''::char(20) as house_num2,town_sap,reg,street_sap,numobl from
 (select a.id,'' as pltxt,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
 case when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 0 then  '03'  else '03' end as BU_GROUP,
 case when coalesce(b.FLAG_JUR,0)= 1 then '0002' when coalesce(b.FLAG_JUR,0)= 0 then  '0003' else '0001' end as BPKIND,
@@ -6709,7 +6719,7 @@ case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^
 	    else '' end as ID_TYPE,
 kt.shot_name||' '||t.name as town,b2.post_index,ks.shot_name||' '||s.name as street,am.building as house,am.office as flat,
 b.phone,b.e_mail,
-const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
+const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town as town_sap,ads.street as street_sap,ads.reg,ads.numobl
  from clm_client_tbl a
         left join clm_statecl_tbl b on
         a.id=b.id_client
@@ -6720,6 +6730,11 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
        -- LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
        LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name)
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end 
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end 
+         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end   
        -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
          on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
@@ -6728,12 +6743,13 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
         and a.code_okpo<>'0000000'
 	    and a.code_okpo<>'000000' --and a.id=20648
+	    and  (a.code>999 or a.code=900)
 	    ) u
 	    --where id=20648
 	    group by coalesce(town,''),coalesce(post_index,''),
 		coalesce(street,''),coalesce(house,''),stort,ver,begru,region,swerk,
-		case when coalesce(street,'')='' and coalesce(house,'')='' then name end
-	order by id      
+		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,town_sap,reg,street_sap,numobl
+	order by id     
    ";
         $sql_c = "select * from sap_export where objectsap='CONNOBJ' order by id_object";
         $zsql = 'delete from sap_co_eha';
@@ -6912,7 +6928,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
                     }
 
                     foreach ($cur_data as $d1) {
-                        $d1=array_slice($d1, 0, 9);
+                        $d1=array_slice($d1, 0, 10);
 //                        debug($d1);
 //                        return;
                         $d1 = array_map('trim', $d1);
@@ -6955,7 +6971,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
         $sql = "select distinct const.begru as pltxt,'PREMISE' as name, cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'" . $rem . "'||'P_'||case when length(eq.id::varchar)<8 then 
              (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
-             ref.oldkey as HAUS,ref.house_num2,const.ver
+             dd.oldkey as HAUS,dd.house_num2,const.ver
              from eqm_area_tbl as eqa 
             join  eqm_equipment_tbl AS eq  on (eqa.code_eqp=eq.id) 
             join  eqm_equipment_h AS eqh  on (eqa.code_eqp=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id and dt_b < '$dt' order by dt_b desc limit 1 ) ) 
@@ -6965,7 +6981,15 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             left join ( select code_eqp_inst, count(*)::integer as eqp_cnt from eqm_compens_station_inst_tbl group by code_eqp_inst order by code_eqp_inst) as u on (eq.id=u.code_eqp_inst) 
             left join clm_client_tbl as cl1 on (cl1.id=eqa.id_client) 
             left join clm_statecl_tbl as st on cl1.id = st.id_client
-            left join sap_co_adr ref on substr(ref.oldkey,9)=cl1.id::text
+          --  left join sap_co_adr ref on substr(ref.oldkey,9)=cl1.id::text
+           
+        left join sap_but020 c1 on c1.oldkey='04_C'||'$rem'||'P_'||cl1.id
+        left join sap_co_adr dd on
+        trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and 
+        upper(trim(c1.house_num1))=upper(trim(dd.house_num1))
+       -- and coalesce(trim(replace(c1.house_num2,'корп.','')),'~')=case when trim(dd.house_num2)='' then '~' ELSE coalesce(trim(dd.house_num2),'~') END
+       -- and dd.str_suppl1='~') or (dd.str_suppl1<>'~' and trim(c1.str_suppl1)=trim(dd.str_suppl1) and trim(c1.str_suppl2)=trim(dd.str_suppl2))
+        
             inner join sap_const const on
             1=1
             left join clm_statecl_h as sth on cl1.id = sth.id_client and 
@@ -6973,11 +6997,8 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region
             where (eq.type_eqp = 11) and cl1.book = -1 and coalesce(cl1.id_state,0) not in(50,99,80,49,100) and coalesce(cl1.idk_work,0) not in (0) 
              and sth.mmgg_b is not null and st.doc_dat is not null  and st.id_section not in (205,206,207,208,209,218)  and sth.mmgg_b is not null and st.doc_dat is not null 
                  and cl1.id <> syi_resid_fun() 
-                 and cl1.id <>999999999
+                 and cl1.id <>999999999 and (cl1.code>999 or cl1.code=900)
             order by 5 ";
-
-
-
 
         $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
         $zsql = 'delete from sap_evbsd';
@@ -8163,7 +8184,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
-        $sql = "select cl.id,'04_C04P_'||cl.id as haus,b.oldkey as vstelle,const.swerk,
+        $sql = "select cl.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
                   const.stort,const.begru_all as begru,const.ver
                 from clm_client_tbl as cl
                 left join clm_statecl_tbl as st on cl.id = st.id_client
@@ -8171,7 +8192,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                 inner join sap_const const on 1=1
                 WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                         and cl.code_okpo<>'0000000'
-                        and cl.code_okpo<>'000000'
+                        and cl.code_okpo<>'000000' AND (cl.code>999 or cl.code=900)
                 and b.oldkey is not null";
 
         $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";

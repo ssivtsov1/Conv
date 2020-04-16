@@ -1,0 +1,2 @@
+insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru,zz_nameplvm)
+                    values('04_C08P_80115739','EVBSD','04_C08P_11269','          ','~','P0001','CK01',$$ШУЗО РП-28$$)

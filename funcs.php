@@ -1710,20 +1710,18 @@ else
 function f_connobj($n_struct,$rem,$v) {
     $oldkey_const='04_C'.$rem.'P_';
     $r = $v['id'];
-    $town=$v['town'];
+    $town=$v['town_sap'];
     $post_code1=trim($v['post_index']);
-    $street = $v['street'];
+    $street = $v['street_sap'];
     $house_num1 =$v['house'];
 //    $roomnumber=$v['flat'];
     $house_num2=$v['house_num2'];
-    $region=$v['region'];
-    //$iuru_pro=$v['kod_reg'];
-    $iuru_pro='';
     $pltxt='';
     $begru=$v['begru'];
-//    $swerk=$v['swerk'];
     $swerk='C01M';
     $stort=$v['stort'];
+    $iuru_pro=$v['numobl'];
+    $region=$v['reg'];
 
     $oldkey = $oldkey_const . $r;
 
@@ -1737,7 +1735,7 @@ function f_connobj($n_struct,$rem,$v) {
         $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
                                          street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,house_num2)
                     values('$oldkey','$n_struct',$$$town$$,'$post_code1',$$$street$$,
-                          '$house_num1','~','~','~','~','$house_num2')";
+                          '$house_num1','~','~',$$$region$$,'$iuru_pro','$house_num2')";
 
     //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
     switch ((int) $rem) {
@@ -2372,7 +2370,8 @@ function f_facts($rem,$v) {
     $factor_hour = $v['factor_hour'];
     $count_lost = $v['count_lost'];
     $safe_category = $v['safe_category'];
-    $eerm=$v['eerm'];
+    $eerm=str_replace(',','.',$v['eerm']);
+
     $no_lost=$v['no_lost'];
     $main=$v['main'];
     $main_obj=$v['main_obj'];

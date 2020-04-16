@@ -1,0 +1,13 @@
+1.
+
+-- Связь счетчиков с клиентами
+  select c.id,c.code,eq.num_eqp,eq.name_eqp,upper(sd.sap_meter_name) as matnr from eqm_meter_tbl m
+ join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
+  left join (select code as id,min(sap_cnt) as sap_meter_id from sap_meter_cnt where sap_cnt<>'' group by code) s on s.id::integer=m.id_type_eqp
+  left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+  where length(trim(eq.num_eqp))>16
+
