@@ -1508,7 +1508,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
              upper(c.korp) as korp,c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
         left join clm_abon_tbl b on
-        a.id=b.id
+        a.id_abon=b.id
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
