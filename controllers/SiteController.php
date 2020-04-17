@@ -1496,7 +1496,7 @@ b.phone,get_email(b.e_mail) as e_mail
         $routine = strtoupper(substr($method,10));
 
         $sql = "select * from (
-select a.id,a.activ,case when i.inn is null then 
+        select a.id,a.activ,case when i.inn is null then 
 case when b.tax_number is not null and length(trim(b.tax_number))=10 then 
 b.tax_number else null end else null end as tax_number,b.last_name,
                 b.name,b.patron_name,b1.town,c.town as town_cek,b2.post_index,c.indx as index_cek,
@@ -1505,12 +1505,10 @@ b.tax_number else null end else null end as tax_number,b.last_name,
              case when c.korp is null then upper(c.house) else 
              case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||trim(c.korp) 
              else upper(trim(c.house))||'/'||c.korp end end as house,  
-             case when NOT(c.korp ~ '[0-9]+$') then upper(c.korp) else '' end as korp,
-             --upper(c.korp) as korp,
-             c.flat,b.mob_phone,b.e_mail,const.id_res,
+             upper(c.korp) as korp,c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport from clm_paccnt_tbl a
         left join clm_abon_tbl b on
-        a.id_abon=b.id
+        a.id=b.id
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
@@ -1530,9 +1528,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region where a.archive='0' 
-        and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end
-        ) x  
-        WHERE 1=1          
+        and case when '03'='05' then (trim(b1.rnobl)='Криворізький район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x     
         ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
