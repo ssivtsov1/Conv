@@ -5434,8 +5434,8 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
                  from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id_abon=b.id
-        left join vw_address c on
-        a.id=c.id
+        left join vw_address c on  
+            a.id=c.id
         left join addr_sap b1 on
          trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
