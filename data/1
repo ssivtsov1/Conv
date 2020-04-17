@@ -1,0 +1,39 @@
+select min(id) as id,trim(town) as town,trim(town_sap) as town_sap,trim(street) as street,trim(street_sap) as street_sap,
+trim(type_street) as type_street,trim(house) as house,id_res,swerk,
+stort,ver,begru,trim(region) as region,trim(type_street) as type_street,trim(kod_reg) as kod_reg,coalesce(str_supl2,'') as str_supl1,
+coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
+(select min(a.id) as id,
+                c.town,trim(b1.town) as town_sap,trim(c.street) as street,
+                case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
+                case when c.korp is null or trim(c.korp) like "."'%".'"'."%'" ."  then upper(trim(c.house)) else 
+                case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||upper(trim(c.korp)) 
+               else upper(trim(c.house))||'/'||upper(trim(c.korp))  end end as house
+               -- else c.house end end as house
+                ,const.id_res,
+                const.swerk,const.stort,const.ver,const.begru,
+                const.region,d.kod_reg,
+                case when b1.street is null then c.street else '' end as str_supl1,
+                case when b1.street is null then c.house else '' end as str_supl2,
+                case when NOT(c.korp ~ '[0-9]+$') then '' else c.korp end as korp,
+                case when trim(c.korp) not like ". "'%".'"'."%'". " then upper(trim(c.korp)) else '' end as korp1
+                 from clm_paccnt_tbl a
+        left join clm_abon_tbl b on
+        a.id_abon=b.id
+        left join vw_address c on
+        a.id=c.id
+        left join addr_sap b1 on
+         trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
+        and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+        else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end 
+         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+         
+        inner join sap_const const on
+        1=1
+        left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
+        trim(c.district)=d.region
+        where a.archive='0'  --and c.street like '%Східний%' -- and a.id=100033028 --and  b1.street is null
+        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18 
+        order by 5,7) z 
+        group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
+        order by 5,7
+

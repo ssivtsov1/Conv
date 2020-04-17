@@ -1528,7 +1528,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region where a.archive='0' 
-        and case when '03'='05' then (trim(b1.rnobl)='Криворізький район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x     
+        and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x     
         ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
