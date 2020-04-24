@@ -1245,6 +1245,10 @@ function f_partner($n_struct, $rem, $v) {
     $zz_nameshort= str_replace('!','',$zz_nameshort);
     $zz_nameshort= str_replace('временно','',$zz_nameshort);
     $zz_nameshort= str_replace('(розділеними меражами)','',$zz_nameshort);
+    if (mb_substr(trim($zz_nameshort),0,2,'UTF-8')=='Р ') {
+        $yyy=mb_strlen(trim($zz_nameshort),'UTF-8');
+        $zz_nameshort= mb_substr(trim($zz_nameshort),2,$yyy-2,'UTF-8');
+    }
    $zz_document=$v['zz_document'];
    $chind_tel=$v['chind_tel'];
    $chind_smtp=$v['chind_smtp'];
@@ -3552,14 +3556,17 @@ function masc ($s,$rem){
     $j=0;
     $ss='';
     $stop=1;
-    if (strpos($s,'INST_MGMT') || strpos($s,'MOVE_IN'))  $stop=2;
+    $p1=strpos($s,'INST_MGMT') ;
+    $p2=strpos($s,'MOVE_IN') ;
+    if (!($p1 === false))  $stop=2;
+    if (!($p2 === false))  $stop=2;
     for($i=0;$i<$y;$i++) {
         $c = substr($s, $i, 1);
         $ss = $ss . $c;
         if ($c == "_" ) {
             $j++;
         }
-        if($j> $stop) break;
+        if($j > $stop) break;
     }
     return $ss.'CK'.$rem;
 
