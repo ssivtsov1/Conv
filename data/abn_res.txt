@@ -1,0 +1,17 @@
+1. Задвоения по счетчикам.
+
+select a.id_paccnt,b.* from (
+select id_type_meter,trim(num_meter) as num_meter,count(*)
+
+ from clm_meterpoint_tbl as m
+ join clm_paccnt_tbl as p on p.id=m.id_paccnt
+ where p.archive = 0
+  group by id_type_meter,trim(num_meter) having count(*)
+
+ >1) b
+ join clm_meterpoint_tbl as a
+ on a.id_type_meter=b.id_type_meter and trim(a.num_meter)=trim(b.num_meter)
+ join clm_paccnt_tbl as z
+ on z.id=a.id_paccnt
+ where archive = 0 and a.id_type_meter not in (300000010 ,200000005,999)
+ order by 2,3

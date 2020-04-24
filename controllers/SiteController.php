@@ -1075,7 +1075,7 @@ case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^
 	
 kt.shot_name||' '||t.name as town,ads.town as town_sap,am.post_index,b2.post_index as post_index_sap,ks.shot_name||' '||s.name as street,ads.street as street_sap,
 UPPER(am.building) as house,UPPER(am.office) as flat,
-b.phone,get_email(b.e_mail) as e_mail
+b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
  from clm_client_tbl a
         left join clm_statecl_tbl b on
         a.id=b.id_client
@@ -1085,13 +1085,23 @@ b.phone,get_email(b.e_mail) as e_mail
         LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
         --LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
-       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name) 
+       --LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name) 
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end 
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end 
+         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end   
+       -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+        
        LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
          on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
-        WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
-        and a.code_okpo<>'0000000'
-	    and a.code_okpo<>'000000' --and a.id=10373
-	   and (a.code>999 or  a.code=900)
+        WHERE 
+--    a.code_okpo<>'' and a.code_okpo<>'000000000'
+--       and a.code_okpo<>'0000000'
+--    and a.code_okpo<>'000000' --and a.id=10373
+	   (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 and a.code<>1000000 and a.code<>1000001
+	   
 	    
    ";
 
@@ -1628,17 +1638,8 @@ b.tax_number else null end else null end as tax_number,b.last_name,
     }
 // Test
     public function actionTest_task(){
-        $str = 'abcdefghijklmnopqrstuvwxyz';
-        $s = "";
-        $n = strlen($str);
-        for ($i = 0; $i < (int) $n; $i++) {
-            $a = substr($str, $i, 1 );
-            if ($i % 2 == 0) {
-                $a = strtoupper($a);
-            }
-            $s = $s . $a;
-        }
-        echo $s;
+       $fname='CONNOBJ_04'.'_CK01'.'_'.'20200423'.'_'.'08'.'_R'.'.txt';
+        echo masc($fname);
     }
 // Тестовая функция для записи в файл
     public function actionTest_recfile()
@@ -1747,6 +1748,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
@@ -2176,6 +2178,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
 
         // Считываем данные в файл с каждой таблицы
@@ -2349,7 +2352,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                     $v2['zwnabr'] . "\t" .
                     $v2['tarifart'] . "\t" .
                     $v2['perverbr'] . "\t" .
-                    $v2['equnre'] . "\t" .
+                    '04_C'.$rem.'P_'.$v2['equnre'] . "\t" .
                     $v2['anzdaysofperiod'] . "\t" .
                     $v2['pruefkla'] . "\n"));
             }
@@ -2380,7 +2383,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                         left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
                         left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
                         ) as sti on (sti.id_meter = eq.id) 
-                left join group_trans as grp on grp.id_meter=m.code_eqp
+                left join group_trans1 as grp on grp.id_meter=m.code_eqp
                 where m.code_eqp= $id_eq and sti.id_comp is not null and grp.code_t_new is not null";
             $data_2 = data_from_server($sql_2, $res, $vid);
             // Запись в файл структуры DI_GER
@@ -2415,7 +2418,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                             left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
                             left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
                             ) as sti on (sti.id_meter = eq.id) 
-                    left join group_trans as grp on grp.id_meter=m.code_eqp
+                    left join group_trans1 as grp on grp.id_meter=m.code_eqp
                     where m.code_eqp=$id_eq limit 1";
             $data_3 = data_from_server($sql_3, $res, $vid);
             // Запись в файл структуры DI_GER
@@ -2473,7 +2476,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $period = str_replace('-','',$period);
 
         $sql="select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
-        from group_trans as eq
+        from group_trans1 as eq
          join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, eq.name_eqp,
 		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
 	      ic.id as id_type_tr, ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner 
@@ -2665,6 +2668,7 @@ order by sort";
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+            deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
@@ -3033,7 +3037,7 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
 		       case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
 		       const.ver as ver,
 		       case when v.normative is null or trim(v.normative)='' then v.id_sap else v1.id_sap end as id_sap,
-		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then u1.voltage_min::dec(6,2) else u.voltage_min::dec(6,2) end 
+		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then uu2.u_sap else uu1.u_sap end 
 		       else v1.normative::dec(6,2) end as voltage			
                 from tmp_eqm_schema_point_tbl as p
                 join (select id_point, name as name_point from tmp_eqm_schema_point_tbl where type_eqp=12 and id_point=code_eqp) as p2 on (p.id_point=p2.id_point)
@@ -3052,9 +3056,12 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
                 left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
                 left join sap_lines as v on v.id::int=cable.id and (v.normative is null or trim(v.normative)='') and v.kod_res='$res'
                 left join sap_lines as v1 on v1.id::int=cable.id and (v1.normative is not null and trim(v1.normative)<>'') and v1.kod_res='$res'
+                left join voltage_line uu1 on u.voltage_min=uu1.u_our
+                left join voltage_line uu2 on u1.voltage_min=uu2.u_our
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  and  p.type_eqp<>2
                 order by p.id_point, p.lvl desc
+
 
                 ";
 
@@ -4062,6 +4069,7 @@ inner join
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
 
         // Считываем данные в файл с массива $facts
@@ -4166,6 +4174,7 @@ group by id,power,plita,opal,mmgg,mmgg_end,ver,id_res,ver) as ext
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+            deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
@@ -4288,6 +4297,7 @@ where  (dat_ind=dat_ind_last or dat_ind is null) ";
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
 
         // Считываем данные в файл с массивов $di_int и $di_zw
@@ -4393,6 +4403,7 @@ where a.archive='0'
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
 
         // Считываем данные в файл с массивов $di_int и $di_zw
@@ -4732,6 +4743,7 @@ where a.archive='0'
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+            deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
@@ -5122,6 +5134,7 @@ public function actionIdfile_seals($res)
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
@@ -5525,6 +5538,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname='CONNOBJ_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
 
         // Считываем данные в файл с каждой таблицы
@@ -5608,7 +5622,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select s1.*,s2.*,m.id as id_cnt,
-             case when m.id_type_meter=0 or trim(num_meter)='0' or m.num_meter is null then 'X' else '~' end as znodev
+             case when m.id_type_meter IN(0,300000010 ,200000005,999) or trim(num_meter)='0' or m.num_meter is null then 'X' else '~' end as znodev
                 from
                 --INIT
                 (select 'INIT' as struct,a.id,a.code as vkona,
@@ -5677,6 +5691,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
 
         // Считываем данные в файл с каждой таблицы
@@ -5773,6 +5788,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
@@ -6101,6 +6117,7 @@ order by tzap
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname='DEVLOC_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_egpld";
@@ -6199,6 +6216,7 @@ order by tzap
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
@@ -6254,7 +6272,7 @@ order by tzap
                 left join (select (fun_mmgg())::date as mmgg_current) w1 on 1=1
                 left join clm_paccnt_tbl p on p.id=a.id_paccnt
 		        where p.archive='0' and b1.dt_e is null
-		        and not(a.id_type_meter=0 or trim(a.num_meter)='0' or a.num_meter is null)
+		        and not(a.id_type_meter in(0,300000010 ,200000005,999) or trim(a.num_meter)='0' or a.num_meter is null)
 		        --and a.id=100033776 and b1.dt_e is null
                 order by sd.sap_meter_name        
                 ";
@@ -6371,6 +6389,7 @@ order by tzap
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname='DEVICE_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
         // Считываем данные в файл с каждой таблицы
         $i=0;
@@ -6546,6 +6565,7 @@ order by tzap
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
@@ -6725,7 +6745,9 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
         LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
        -- LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
-       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name)
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) 
+        and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
+
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end 
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end 
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
@@ -6736,10 +6758,11 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
          on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
         inner join sap_const const on
         1=1
-        WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
-        and a.code_okpo<>'0000000'
-	    and a.code_okpo<>'000000' --and a.id=20648
-	    and  (a.code>999 or a.code=900)
+        WHERE
+--     a.code_okpo<>'' and a.code_okpo<>'000000000'
+--      and a.code_okpo<>'0000000'
+--	    and a.code_okpo<>'000000' --and a.id=20648
+	     (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 and a.code<>1000000 and a.code<>1000001
 	    ) u
 	    --where id=20648
 	    group by coalesce(town,''),coalesce(post_index,''),
@@ -7578,6 +7601,7 @@ inner join sap_const const on 1=1
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname='PREMISE_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
         // Считываем данные в файл с каждой таблицы
         $i=0;
@@ -7736,6 +7760,7 @@ inner join sap_const const on 1=1
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+        deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
@@ -7764,8 +7789,6 @@ inner join sap_const const on 1=1
         
     }
 
-
-    
     
 
     // Форматирование файла partner для САП для юридических партнеров
@@ -7776,15 +7799,27 @@ inner join sap_const const on 1=1
         $rem = '0'.$res;  // Код РЭС
 
         $sql = "-- INIT
-select s1.*,s2.*,s3.*,s4.*,s5.*
+select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_meter_tbl m
+ join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
+  left join (select code as id,min(sap_cnt) as sap_meter_id from sap_meter_cnt where sap_cnt<>'' group by code) s on s.id::integer=m.id_type_eqp
+  left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client))) then '' else 'X' end as znodev 
 from
 (select 'INIT' as struct,a.id,a.code as vkona,const.vktyp as vktyp,'04_C04P_'||a.id as gpart
 from clm_client_tbl as a
 left join clm_statecl_tbl as b on a.id = b.id_client
 inner join sap_const const on 1=1
-WHERE a.code_okpo<>'' and a.code_okpo<>'000000000'
-        and a.code_okpo<>'0000000'
-	    and a.code_okpo<>'000000') s1
+WHERE 
+        --a.code_okpo<>'' and a.code_okpo<>'000000000'
+       -- and a.code_okpo<>'0000000'
+	    --and a.code_okpo<>'000000'
+	       (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 and a.code<>1000000 and a.code<>1000001
+	     and case when $res=2 then a.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999')  else 1=1 end
+	    ) s1
 left join
 --VK
 (select 'VK' as struct,cl.id,
@@ -7794,9 +7829,15 @@ else (case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varcha
 from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
 inner join sap_const const on 1=1
-WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
-        and cl.code_okpo<>'0000000'
-	    and cl.code_okpo<>'000000') s2 on s1.id=s2.id
+WHERE 
+      -- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+       -- and cl.code_okpo<>'0000000'
+	   -- and cl.code_okpo<>'000000'
+	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
+	     and case when $res=2 then cl.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999') and
+	     substr(trim(cl.short_name),1,2)<>'Р ' and  substr(trim(cl.short_name),1,2)<>'P ' else 1=1 end
+	   ) s2 on s1.id=s2.id
 left join
 -- VKP
 (select distinct 'VKP' as struct,cl.id,vktyp as vktyp,'04_C04P_'||cl.id as partner,const.opbuk,51 as ikey,13 as mahnv,
@@ -7842,30 +7883,46 @@ from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
 inner join sap_const const on 1=1
 left join sap_but020 b on '04_C04P_'||cl.id=b.oldkey
-WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
-        and cl.code_okpo<>'0000000'
-	    and cl.code_okpo<>'000000') s3 on s2.id=s3.id
+WHERE 
+       --cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+        --and cl.code_okpo<>'0000000'
+	    --and cl.code_okpo<>'000000'
+	      (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
+	     and case when $res=2 then cl.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999')  else 1=1 end
+	    ) s3 on s2.id=s3.id
 
 left join
 -- KVV
-(select 'KVV' as struct,cl.id,'20200501' as date_from,'99991231' as date_to
+(select 'KVV' as struct,cl.id,'20200301' as date_from,'99991231' as date_to
 from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
 inner join sap_const const on 1=1
-WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
-        and cl.code_okpo<>'0000000'
-	    and cl.code_okpo<>'000000') s4 on s3.id=s4.id
+WHERE 
+        --cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+        --and cl.code_okpo<>'0000000'
+	    --and cl.code_okpo<>'000000'
+	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
+	     and case when $res=2 then cl.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999')  else 1=1 end
+	    ) s4 on s3.id=s4.id
 left join
 --ZSTAT
 (select 'ZSTAT' as struct,cl.id,'' as obj,'CON003' as status,
-'20200501' as date_reg,'99991231' as date_to,'' as price,
+'20200301' as date_reg,'99991231' as date_to,'' as price,
 '' as COMMENTS,'' as LOEVM
 from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
 inner join sap_const const on 1=1
-WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
-        and cl.code_okpo<>'0000000'
-	    and cl.code_okpo<>'000000') s5 on s4.id=s5.id
+WHERE 
+        -- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+        -- and cl.code_okpo<>'0000000'
+	    -- and cl.code_okpo<>'000000'
+	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
+	     and case when $res=2 then cl.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999')  else 1=1 end
+	    ) s5 on s4.id=s5.id  
+         
 ";
 
         $sql_c = "select * from sap_export where objectsap='ACCOUNT' order by id_object";
@@ -8186,9 +8243,11 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                 left join clm_statecl_tbl as st on cl.id = st.id_client
                 left join sap_evbsd b on b.haus='04_C'||$$$rem$$||'P_'||cl.id  
                 inner join sap_const const on 1=1
-                WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
-                        and cl.code_okpo<>'0000000'
-                        and cl.code_okpo<>'000000' AND (cl.code>999 or cl.code=900)
+                WHERE
+--                  cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+--                      and cl.code_okpo<>'0000000'
+--                      and cl.code_okpo<>'000000' AND (cl.code>999 or cl.code=900)
+                           (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
                 and b.oldkey is not null";
 
         $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";
@@ -8477,6 +8536,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
 //        debug($di_inf);
 //        return;
@@ -8575,6 +8635,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
 //        debug($di_inf);
 //        return;
@@ -8658,6 +8719,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         $ver=$data[0]['ver'];
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname,'w+');
 //        debug($di_inf);
 //        return;
@@ -8771,8 +8833,8 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
             $street = $data[9];
             $street2 = $data[10];
             $short_street = $data[11];
-            if (trim($note)!='Дніпропетровська' and trim($note)!='Вінницька') {
-                $sql = "INSERT INTO addr_sap (contry,numstreet,numtown,town,рг,note,numobl,rnobl,type_street,
+//            if (trim($note)!='Дніпропетровська' and trim($note)!='Вінницька') {
+                $sql = "INSERT INTO addr_sap (contry,numstreet,numtown,town,reg,note,numobl,rnobl,type_street,
                     street,street2,short_street)
                     VALUES(" .
                     '$$' . $contry . '$$' . ',' . '$$' . $numstreet . '$$' . "," . "'" . $numtown . "'" . "," . "$$" . $town . "$$" . "," . '$$' . $pr . '$$' . "," .
@@ -8780,7 +8842,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                     "," . "$$" . $street2 . "$$" . "," . "$$" . $short_street . "$$" .
                     ')';
                 Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
-            }
+//            }
 
             //debug($town);
         }
@@ -8791,7 +8853,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
     // Запись данных по измер. трансформаторам
     public function actionGet_data_tv()
     {
-        $file = "izm_vg.csv";
+        $file = "izm_pv.csv";
         $f = fopen($file,'r');
         $i = 0;
         while (!feof($f)) {
@@ -8826,7 +8888,7 @@ WHERE cl.code_okpo<>'' and cl.code_okpo<>'000000000'
                     "," . "$$" . $code_i . "$$" . "," . "$$" . $numbers_i . "$$" . "," . "$$" . $type_tr_u . "$$" . "," .
                     "$$" . $code_u . "$$" . "," . "$$" . $numbers_u . "$$" .
                     ')';
-                Yii::$app->db_pg_vg_energo->createCommand($sql)->execute();
+                Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
 
 
             //debug($town);

@@ -1232,7 +1232,19 @@ function f_partner($n_struct, $rem, $v) {
    $zcodelicense=$v['zcodelicense'];
    $znameall=$v['znameall'];
    $zz_nameshort=$v['zz_nameshort'];
+   // Удаление левых символов в коротком названии
+    $zz_nameshort= str_replace('суб+','',$zz_nameshort);
+//    $zz_nameshort= str_replace('ПМР+','',$zz_nameshort);
+    $zz_nameshort= str_replace('АВШ+','',$zz_nameshort);
+    $zz_nameshort= str_replace(' АВШ','',$zz_nameshort);
+//    $zz_nameshort= str_replace(' ПМР','',$zz_nameshort);
+    $zz_nameshort= str_replace(' суб ','',$zz_nameshort);
+    $zz_nameshort= str_replace(' (відкл) ','',$zz_nameshort);
     $zz_nameshort= str_replace('+','',$zz_nameshort);
+    $zz_nameshort= str_replace('*','',$zz_nameshort);
+    $zz_nameshort= str_replace('!','',$zz_nameshort);
+    $zz_nameshort= str_replace('временно','',$zz_nameshort);
+    $zz_nameshort= str_replace('(розділеними меражами)','',$zz_nameshort);
    $zz_document=$v['zz_document'];
    $chind_tel=$v['chind_tel'];
    $chind_smtp=$v['chind_smtp'];
@@ -1253,11 +1265,11 @@ function f_partner($n_struct, $rem, $v) {
     $house_num2=trim($v['flat']);
     $house_num1=str_replace(' ','',$house_num1);
     $house_num2=str_replace(' ','',$house_num2);
-    $region='~';
+    $region=$v['reg'];
 
     $smtp_addr=$v['e_mail'];
     if (!empty($smtp_addr)) $chind_smtp="I"; else $chind_smtp='~';
-    $iuru_pro='~';
+    $iuru_pro=$v['numobl'];;
 
     $oldkey = $oldkey_const . $r;
     $str_supll1='~';
@@ -1371,6 +1383,7 @@ function f_account($n_struct, $rem, $v) {
     $stdbk = $v['stdbk'];
     $fkru_fis = $v['fkru_fis'];
     $zsector=$v['zsector'];
+    $znodev=$v['znodev'];
     $zz_ministry=$v['zz_ministry'];
     $zz_start=$v['zz_start'];
     $zz_end=$v['zz_end'];
@@ -1394,7 +1407,7 @@ function f_account($n_struct, $rem, $v) {
 
     if($n_struct=='VK')
         $z = "insert into sap_vk(oldkey,dat_type,zdaterep,znodev)
-                    values('$oldkey','$n_struct','$zdaterep','~')";
+                    values('$oldkey','$n_struct','$zdaterep','$znodev')";
 
     if($n_struct=='VKP')
         $z = "insert into sap_vkp(oldkey,dat_type,partner,opbuk,ebvty,abvty,abwvk,
@@ -3449,6 +3462,7 @@ function date2file_Partner_ind($res,$vid)
     $rem = '0'.$res;  // Код РЭС
     $fd = date('Ymd');
     $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'_07'.'_R'.'.txt';
+    deleterOM($fname,$rem);
     $f = fopen($fname, 'w+');
     $i = 0;
     $sql = "select a.*,b.*,c.*,d.*,e.* from sap_init a  
@@ -3497,4 +3511,53 @@ function date2file_Partner_ind($res,$vid)
     return $fname;
 }
 
+function deleterOM ($str,$rem){
+//    $rest = substr($str, 0, strpos($str, '_'));
+    $rest = masc($str,$rem);
+    $rest_a = $rest.'*_R.txt';
+
+    $filess = yii\helpers\FileHelper::findFiles('.',['only'=>[$rest_a]]);
+    $filess = str_replace('./', '', $filess);
+
+    $n = count($filess);
+
+    if($n>0){
+        for($i=0;$i<$n;$i++){
+            unlink($filess[$i]);}
+    }
+    return 0;
+}
+
+function deleterOM_ext ($str,$rem){
+//    $rest = substr($str, 0, strpos($str, '_'));
+    $rest = masc($str,$rem);
+    $rest_a = $rest.'*_R_ext.txt';
+
+    $filess = yii\helpers\FileHelper::findFiles('.',['only'=>[$rest_a]]);
+    $filess = str_replace('./', '', $filess);
+
+    $n = count($filess);
+
+    if($n>0){
+        for($i=0;$i<$n;$i++){
+            unlink($filess[$i]);}
+    }
+    return 0;
+}
+
+function masc ($s,$rem){
+    $y=strlen($s);
+    $j=0;
+    $ss='';
+    for($i=0;$i<$y;$i++) {
+        $c = substr($s, $i, 1);
+        $ss = $ss . $c;
+        if ($c == "_" ) {
+            $j++;
+        }
+        if($j>1) break;
+    }
+    return $ss.'CK'.$rem;
+
+}
 ?>
