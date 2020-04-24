@@ -3532,6 +3532,8 @@ function deleterOM_ext ($str,$rem){
 //    $rest = substr($str, 0, strpos($str, '_'));
     $rest = masc($str,$rem);
     $rest_a = $rest.'*_R_ext.txt';
+//    $f=fopen("aaaaaaaaa.aaa",'w+');
+//    fputs($f,$rest_a);
 
     $filess = yii\helpers\FileHelper::findFiles('.',['only'=>[$rest_a]]);
     $filess = str_replace('./', '', $filess);
@@ -3549,13 +3551,15 @@ function masc ($s,$rem){
     $y=strlen($s);
     $j=0;
     $ss='';
+    $stop=1;
+    if (strpos($s,'INST_MGMT') || strpos($s,'MOVE_IN'))  $stop=2;
     for($i=0;$i<$y;$i++) {
         $c = substr($s, $i, 1);
         $ss = $ss . $c;
         if ($c == "_" ) {
             $j++;
         }
-        if($j>1) break;
+        if($j> $stop) break;
     }
     return $ss.'CK'.$rem;
 

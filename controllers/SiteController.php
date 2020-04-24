@@ -1910,6 +1910,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        deleterOM($fname,$rem);
         $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
@@ -2006,6 +2007,7 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
+         deleterOM_ext($fname,$rem);
         $f = fopen($fname, 'w+');
 
                     foreach ($data as $d1) {
