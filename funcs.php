@@ -1245,9 +1245,24 @@ function f_partner($n_struct, $rem, $v) {
     $zz_nameshort= str_replace('!','',$zz_nameshort);
     $zz_nameshort= str_replace('временно','',$zz_nameshort);
     $zz_nameshort= str_replace('(розділеними меражами)','',$zz_nameshort);
-    if (mb_substr(trim($zz_nameshort),0,2,'UTF-8')=='Р ') {
-        $yyy=mb_strlen(trim($zz_nameshort),'UTF-8');
-        $zz_nameshort= mb_substr(trim($zz_nameshort),2,$yyy-2,'UTF-8');
+    // Убираем ненужные символы из сокращенного названия
+    if ($rem=='02' || $rem=='04' || $rem=='01' || $rem=='05') {
+        if (mb_substr(trim($zz_nameshort), 0, 2, 'UTF-8') == 'Р ') {
+            $yyy = mb_strlen(trim($zz_nameshort), 'UTF-8');
+            $zz_nameshort = mb_substr(trim($zz_nameshort), 2, $yyy - 2, 'UTF-8');
+        }
+    }
+    if ($rem=='01') {
+        if (mb_substr(trim($zz_nameshort), 0, 3, 'UTF-8') == 'РП ') {
+            $yyy = mb_strlen(trim($zz_nameshort), 'UTF-8');
+            $zz_nameshort = mb_substr(trim($zz_nameshort), 3, $yyy - 3, 'UTF-8');
+        }
+    }
+    if ($rem=='05') {
+        if (mb_substr(trim($zz_nameshort), 0, 3, 'UTF-8') == 'ПР ') {
+            $yyy = mb_strlen(trim($zz_nameshort), 'UTF-8');
+            $zz_nameshort = mb_substr(trim($zz_nameshort), 3, $yyy - 3, 'UTF-8');
+        }
     }
    $zz_document=$v['zz_document'];
    $chind_tel=$v['chind_tel'];

@@ -1097,12 +1097,10 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
        LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
          on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
         WHERE 
---    a.code_okpo<>'' and a.code_okpo<>'000000000'
---       and a.code_okpo<>'0000000'
---    and a.code_okpo<>'000000' --and a.id=10373
-	   (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 and a.code<>1000000 and a.code<>1000001
-	   
-	    
+        (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
+	     and  a.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
    ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER' order by id_object";
@@ -2855,6 +2853,11 @@ left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr
 left join clm_client_tbl www on www.id=qqq.id_potr
 inner join sap_const const on 1=1
 where qqq.id_potr is not null and www.code<>999 
+and
+(www.code>999 or  www.code=900) AND coalesce(www.idk_work,0)<>0 
+	     and  www.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
 and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null) 
 ";
 
@@ -3873,13 +3876,20 @@ left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr
 left join clm_client_tbl www on www.id=qqq.id_potr
 inner join sap_const const on 1=1 
 where qqq.oldkey is not null and www.code<>999 and id_cl<>2062
+and
+(www.code>999 or  www.code=900) AND coalesce(www.idk_work,0)<>0 
+	     and  www.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
+and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null) 
+
     and qqq.id_potr is not null and (yy.oldkey is not null or qqq.oldkey is not null)   
 ) uuu on uuu.zz_eic=p.neqp
         --where zz_eic='62Z6359402983688'
     --where p.neqp like '%62Z5210118812927%'   
                            
-		order by code_area 
-		limit 100
+		--order by code_area 
+		--limit 100
 		";
 
 
@@ -4620,6 +4630,10 @@ left join clm_client_tbl as cc2 on (tt.id_cl = cc2.id)
 left join (select * from clm_contractor_tbl where dt_contr_end is null) ct on ct.id_client=cc2.id
 left join cli_contractor_tbl ci on ci.id=ct.id_contractor and ci.edrpou_contr is not null 
 inner join sap_const const on 1=1
+WHERE (cc2.code>999 or cc2.code=900) AND coalesce(cc2.idk_work,0)<>0 
+	     and  cc2.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	    '10999999','11000000','19999369','50999999','1000000','1000001')
 order by 8,zz_point_num,zz_plosch_num,zz_object_num
 ";
         // Получаем необходимые данные
@@ -5885,7 +5899,11 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
        left join eqm_tree_tbl tr on tr.id = ttr.id_tree
        left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 inner join sap_const const on 1=1
-        where c.code>999 or  c.code=900      
+        where (c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0 
+	     and  c.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	    '10999999','11000000','19999369','50999999','1000000','1000001')
+   
 union                
 
 select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
@@ -6761,10 +6779,10 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
         inner join sap_const const on
         1=1
         WHERE
---     a.code_okpo<>'' and a.code_okpo<>'000000000'
---      and a.code_okpo<>'0000000'
---	    and a.code_okpo<>'000000' --and a.id=20648
-	     (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 and a.code<>1000000 and a.code<>1000001
+        (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
+	     and  a.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
 	    ) u
 	    --where id=20648
 	    group by coalesce(town,''),coalesce(post_index,''),
@@ -7018,7 +7036,11 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
             where (eq.type_eqp = 11) and cl1.book = -1 and coalesce(cl1.id_state,0) not in(50,99,80,49,100) and coalesce(cl1.idk_work,0) not in (0) 
              and sth.mmgg_b is not null and st.doc_dat is not null  and st.id_section not in (205,206,207,208,209,218)  and sth.mmgg_b is not null and st.doc_dat is not null 
                  and cl1.id <> syi_resid_fun() 
-                 and cl1.id <>999999999 and (cl1.code>999 or cl1.code=900)
+                 and cl1.id <>999999999 and 
+                  (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0 
+                 and  cl1.code not in('20000556','20000565','20000753',
+                 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+                 '10999999','11000000','19999369','50999999','1000000','1000001')
             order by 5 ";
 
         $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
@@ -7818,9 +7840,10 @@ WHERE
         --a.code_okpo<>'' and a.code_okpo<>'000000000'
        -- and a.code_okpo<>'0000000'
 	    --and a.code_okpo<>'000000'
-	       (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 and a.code<>1000000 and a.code<>1000001
-	     and case when $res=2 then a.code not in('20000556','20000565','20000753',
-	     '20555555','20888888','20999999')  else 1=1 end
+	       (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
+	     and  a.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001') 
 	    ) s1
 left join
 --VK
@@ -7835,10 +7858,10 @@ WHERE
       -- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
        -- and cl.code_okpo<>'0000000'
 	   -- and cl.code_okpo<>'000000'
-	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
-	     and case when $res=2 then cl.code not in('20000556','20000565','20000753',
-	     '20555555','20888888','20999999') and
-	     substr(trim(cl.short_name),1,2)<>'Р ' and  substr(trim(cl.short_name),1,2)<>'P ' else 1=1 end
+	       (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
+	     and  cl.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001') 
 	   ) s2 on s1.id=s2.id
 left join
 -- VKP
@@ -7889,9 +7912,10 @@ WHERE
        --cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         --and cl.code_okpo<>'0000000'
 	    --and cl.code_okpo<>'000000'
-	      (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
-	     and case when $res=2 then cl.code not in('20000556','20000565','20000753',
-	     '20555555','20888888','20999999')  else 1=1 end
+	      (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
+	     and  cl.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001') 
 	    ) s3 on s2.id=s3.id
 
 left join
@@ -7904,9 +7928,10 @@ WHERE
         --cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         --and cl.code_okpo<>'0000000'
 	    --and cl.code_okpo<>'000000'
-	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
-	     and case when $res=2 then cl.code not in('20000556','20000565','20000753',
-	     '20555555','20888888','20999999')  else 1=1 end
+	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
+	     and  cl.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001') 
 	    ) s4 on s3.id=s4.id
 left join
 --ZSTAT
@@ -7920,9 +7945,10 @@ WHERE
         -- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         -- and cl.code_okpo<>'0000000'
 	    -- and cl.code_okpo<>'000000'
-	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
-	     and case when $res=2 then cl.code not in('20000556','20000565','20000753',
-	     '20555555','20888888','20999999')  else 1=1 end
+	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
+	     and  cl.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001') 
 	    ) s5 on s4.id=s5.id  
          
 ";
@@ -8246,10 +8272,10 @@ WHERE
                 left join sap_evbsd b on b.haus='04_C'||$$$rem$$||'P_'||cl.id  
                 inner join sap_const const on 1=1
                 WHERE
---                  cl.code_okpo<>'' and cl.code_okpo<>'000000000'
---                      and cl.code_okpo<>'0000000'
---                      and cl.code_okpo<>'000000' AND (cl.code>999 or cl.code=900)
-                           (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 and cl.code<>1000000 and cl.code<>1000001
+                (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
+                 and  cl.code not in('20000556','20000565','20000753',
+                 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+                 '10999999','11000000','19999369','50999999','1000000','1000001')
                 and b.oldkey is not null";
 
         $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";
@@ -8855,7 +8881,7 @@ WHERE
     // Запись данных по измер. трансформаторам
     public function actionGet_data_tv()
     {
-        $file = "izm_pv.csv";
+        $file = "izm_zv.csv";
         $f = fopen($file,'r');
         $i = 0;
         while (!feof($f)) {
@@ -8863,6 +8889,7 @@ WHERE
             $s = fgets($f);
             $data = explode("~",$s);
             $id = $data[1];
+            if (!isset($data[25])) continue;
             $type_tr = $data[25];
             $code_i = $data[27];
             $numbers_i = str_replace(';',',',$data[28]);
@@ -8890,7 +8917,7 @@ WHERE
                     "," . "$$" . $code_i . "$$" . "," . "$$" . $numbers_i . "$$" . "," . "$$" . $type_tr_u . "$$" . "," .
                     "$$" . $code_u . "$$" . "," . "$$" . $numbers_u . "$$" .
                     ')';
-                Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+                Yii::$app->db_pg_zv_energo->createCommand($sql)->execute();
 
 
             //debug($town);
