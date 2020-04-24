@@ -1333,7 +1333,7 @@ function f_partner($n_struct, $rem, $v) {
                                          fax_number,chind_smtp,
                                          smtp_addr,tel_mobile,iuru_pro)
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
-                          '$house_num1','$house_num2',$$$str_supll1$$,'$str_supll2','$roomnumber','$region','$chind_tel','$tel_number','~','~',
+                          '$house_num1','$house_num2',$$$str_supll1$$,'$str_supll2','$roomnumber',$$$region$$,'$chind_tel','$tel_number','~','~',
                           '$chind_smtp','$smtp_addr','$tel_mobile','$iuru_pro')";
 
     if($n_struct=='BUT021')
@@ -3007,8 +3007,9 @@ function f_instln($n_struct,$rem,$v,$vid) {
      '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic')";
     }
 
-//    debug($z);
-//    return;
+    debug($z);
+
+
     switch ((int) $rem) {
         case 1:
             Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
@@ -3035,6 +3036,8 @@ function f_instln($n_struct,$rem,$v,$vid) {
             Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
             break;
     }
+    debug($z);
+    return;
 
 //    exec_on_server($z, (int)$rem, $vid);
 }
