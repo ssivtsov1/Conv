@@ -3009,8 +3009,34 @@ function f_instln($n_struct,$rem,$v,$vid) {
 
 //    debug($z);
 //    return;
+    switch ((int) $rem) {
+        case 1:
+            Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+            break;
+        case 2:
+            Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+            break;
+        case 3:
+            Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+            break;
+        case 4:
+            Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+            break;
+        case 5:
+            Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
+            break;
+        case 6:
+            Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+            break;
+        case 7:
+            Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+            break;
+        case 8:
+            Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+            break;
+    }
 
-    exec_on_server($z, (int)$rem, $vid);
+//    exec_on_server($z, (int)$rem, $vid);
 }
 
 // Выгрузка по ЗАВОДСКИМ пломбам  юридич.
