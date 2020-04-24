@@ -2998,17 +2998,17 @@ function f_instln($n_struct,$rem,$v,$vid) {
                 tariftyp,branche,aklasse,ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
      values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,
      '$zz_nametu','$zz_fider',$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
-     '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic')";
+     '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic');";
         else
         $z = " insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,
                 tariftyp,branche,aklasse,ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic) 
      values($$$oldkey$$,'$n_struct',$$$vstelle$$,$$$spebene$$,$$$anlart$$,$$$ablesartst$$,".
     '$$'.$zz_nametu.'$$'.",'$zz_fider',$$$ab$$,'$tariftyp','$branche',$$$aklasse$$,'$ableinh',
-     '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic')";
+     '$zzcode4nkre','$zzcode4nkre_dop','$zzotherarea','$begru','$zz_eic');";
     }
 
-    debug($z);
-
+//    debug($z);
+//   return;
 
     switch ((int) $rem) {
         case 1:
@@ -3036,8 +3036,8 @@ function f_instln($n_struct,$rem,$v,$vid) {
             Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
             break;
     }
-    debug($z);
-    return;
+//    debug($z);
+//    return;
 
 //    exec_on_server($z, (int)$rem, $vid);
 }
