@@ -142,6 +142,7 @@ AppAsset::register($this);
                             ]
                     ],
                     ['label' => 'О сайте', 'url' => ['/site/about']],
+                    ['label' => 'миг. САП', 'url' => ['/sap/general']],
                 ],
         ]);
         NavBar::end();
