@@ -943,7 +943,8 @@ public function actionIdfile()
         $rem = '0'.$res;  // Код РЭС
 
         $sql = "select distinct a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
-case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '03' else '02' end as BU_GROUP,
+case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа ' in a.name)>0 
+then '03' else '02' end as BU_GROUP,
 case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '0003' else '0002' end as BPKIND,
 'MKK' as ROLE1,
 case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end  as ROLE2,
@@ -2927,23 +2928,26 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
         }
 
         // Удаляем данные в таблицах структур
+
         $i=0;
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
             if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
             $zsql = "delete from sap_".strtolower($n_struct);
-            exec_on_server($zsql,$res,$vid);
+//            exec_on_server($zsql,$res,$vid);
         }
 
         // Заполняем структуры
-        foreach ($data as $w) {
-            foreach ($cnt as $v) {
-                $n_struct = trim($v['dattype']);
-                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
-                eval($func_fill);
-            }
-        }
+        /*
+       foreach ($data as $w) {
+           foreach ($cnt as $v) {
+               $n_struct = trim($v['dattype']);
+               $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+               eval($func_fill);
+           }
+       }
+       */
 
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
