@@ -7033,7 +7033,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
         left join sap_but020 c1 on c1.oldkey='04_C'||'$rem'||'P_'||cl1.id
         left join sap_co_adr dd on
         trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and 
-        upper(trim(c1.house_num1))=upper(trim(dd.house_num1))
+        upper(trim(c1.house_num1))=upper(trim(dd.house_num1)) and trim(dd.city1)<>''
        -- and coalesce(trim(replace(c1.house_num2,'корп.','')),'~')=case when trim(dd.house_num2)='' then '~' ELSE coalesce(trim(dd.house_num2),'~') END
        -- and dd.str_suppl1='~') or (dd.str_suppl1<>'~' and trim(c1.str_suppl1)=trim(dd.str_suppl1) and trim(c1.str_suppl2)=trim(dd.str_suppl2))
         
