@@ -1092,6 +1092,7 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end 
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
          and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end   
        -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         
@@ -1101,7 +1102,7 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
         (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
 	     and  a.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001')
+	     '10999999','11000000','19999369','50999999','1000000','1000001')  -- AND a.id=12098
    ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER' order by id_object";
@@ -6780,6 +6781,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end 
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
          and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end   
        -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
@@ -7911,11 +7913,43 @@ case when st.id_section in(210,211) then '10'
      else '' end as ZSECTOR,
      ''  as ZZ_MINISTRY,
      replace((case when st.doc_dat<'2019-01-01' then '2019-01-01' else st.doc_dat end)::varchar ,'-','') as ZZ_START,
-     '' as ZZ_END,''  as ZZ_BUDGET,'' as ZZ_TERRITORY
+     '' as ZZ_END,''  as ZZ_BUDGET,ww.ZZ_TERRITORY as ZZ_TERRITORY
 from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
 inner join sap_const const on 1=1
 left join sap_but020 b on '04_C04P_'||cl.id=b.oldkey
+
+left join
+(select distinct id_potr,case when substr(trim(first_value(adr) over(partition by id_potr)),1,3)='м. ' then 1 else 2 end as zz_territory from
+(
+select p.*, c.code,c2.id as id_potr, c.short_name as name, c2.code as use_code, c2.name as use_name, area.area_name, en.energy , abonpar.doc_num
+from ( select dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg,
+ p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, 
+ dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts,
+  dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva,
+   dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.id_addres,q.adr, eq.num_eqp as eis_cod, eq.is_owner, eq.dt_install from eqm_equipment_tbl as eq 
+   join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
+   left join adv_address_tbl q on (q.id=eq.id_addres) 
+   left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif) left join cla_param_tbl as p on (dt.industry=p.id)
+   left join eqk_tg_tbl as tg on (dt.id_tg=tg.id) left join eqk_voltage_tbl AS v on (dt.id_voltage=v.id) left join eqk_voltage_tbl AS vun on (dt.id_un=vun.id) 
+   left join eqk_zone_tbl AS z on (dt.zone=z.id) left join cla_param_tbl AS cla on (dt.id_depart=cla.id) left join cla_param_tbl AS cla2 on (dt.id_extra=cla2.id) 
+   left join clm_position_tbl as cp on (cp.id = dt.id_position)) as p join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp) 
+   join eqm_tree_tbl as t on (t.id = tt.id_tree) 
+   join clm_client_tbl as c on (c.id = t.id_client) 
+   left join eqm_eqp_use_tbl as use on (use.code_eqp = p.code_eqp) 
+   
+   left join clm_client_tbl as c2 on (c2.id = coalesce (use.id_client, t.id_client)) 
+   left join clm_statecl_tbl as abonpar on (abonpar.id_client = c2.id) 
+   
+   left join (select ins.code_eqp, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area
+    on (area.code_eqp = p.code_eqp) left join (select code_eqp, trim(sum(e.name||','),',') as energy 
+    from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en 
+    on (en.code_eqp = p.code_eqp) where coalesce (use.id_client, t.id_client) <> syi_resid_fun() and (c2.id = NULL or NULL is null 
+    and c2.idk_work not in (0,99) and coalesce(c2.id_state,0) not in (50,99) ) 
+    order by c2.code, p.name_eqp
+    ) w ) ww on ww.id_potr=cl.id 
+
+
 WHERE 
        --cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         --and cl.code_okpo<>'0000000'

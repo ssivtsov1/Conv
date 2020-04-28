@@ -1408,6 +1408,7 @@ function f_account($n_struct, $rem, $v) {
     $zz_end=$v['zz_end'];
     $zz_budget=$v['zz_budget'];
     $zz_territory=$v['zz_territory'];
+    if(empty($zz_territory)) $zz_territory='1';
 
     $date_from=$v['date_from'];
     $date_to=$v['date_to'];
@@ -1746,6 +1747,7 @@ function f_connobj($n_struct,$rem,$v) {
     $post_code1=trim($v['post_index']);
     $street = $v['street_sap'];
     $house_num1 =$v['house'];
+    $house_num1=str_replace(' ','',$house_num1);
 //    $roomnumber=$v['flat'];
     $house_num2=$v['house_num2'];
     $pltxt='';
@@ -1991,6 +1993,7 @@ function f_device($n_struct,$rem,$v,$vid) {
     $r = $v['id'];
     $eqart=$v['eqart'];
     $baujj=$v['baujj'];
+    if(((int) $baujj)==2020) $baujj='2019';
     $datab = $v['datab'];
     $datab = str_replace('-','',$datab);
     $kostl =$v['kostl'];
@@ -2040,8 +2043,8 @@ function f_premise($n_struct,$rem,$v) {
         $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru,zz_nameplvm)
                     values('$oldkey','$n_struct','$haus','$house_num2','~','P0001','$pltxt',$$$zz_nameplvn$$)";
 
-    $fff=fopen('a_tst.sql','w+');
-    fputs($fff,$z);
+//    $fff=fopen('a_tst.sql','w+');
+//    fputs($fff,$z);
 
     switch ((int) $rem) {
         case 1:
@@ -2186,6 +2189,12 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     $id_sap=trim($v['id_sap']);
     //$line_voltage_nom = $v['line_voltage_nom'];
     $line_voltage_nom = $v['voltage'];
+
+    if($line_voltage_nom==0.22 || $line_voltage_nom==0.38)
+        $line_voltage_nom = str_replace('.', ',', $line_voltage_nom);
+    else
+        $line_voltage_nom = (int) $line_voltage_nom;
+
     $text =$v['text'];
     $oldkey = $oldkey_const . $r;
     $anlage = $oldkey_const . $v['id_point'];
