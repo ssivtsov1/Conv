@@ -62,7 +62,10 @@ and
     
       public function actionPhone(){
          
-        $sql = "select code,length(mob_phone),mob_phone from clm_abon_tbl where length(trim(mob_phone))<>10 and trim(mob_phone) <> '' "; 
+        $sql = "select p.code,length(mob_phone),mob_phone from clm_abon_tbl as a
+                join clm_paccnt_tbl as p on a.id=p.id_abon
+                where length(trim(mob_phone))<>10 and trim(mob_phone) <> '' "; 
+        
         $s = abn_connect::findBySql($sql)->asArray()->all();
    
         return $this->render('phone', compact('s'));
