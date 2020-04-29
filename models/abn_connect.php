@@ -25,10 +25,10 @@ class abn_connect extends ActiveRecord {
                 $s=Yii::$app->request->hostInfo;
                 $s= substr($s, 7);   
 
-        if($s=='localhost')
+        if($s=='192.168.15.15')
             return Yii::$app->get('db_pg_dn_abn');
-//        if($s=='localhost')
-//            return Yii::$app->get('db_pg_gv_abn');
+        if($s=='192.168.17.1')
+            return Yii::$app->get('db_pg_gv_abn');
         if($s=='192.168.20.1')
             return Yii::$app->get('db_pg_vg_abn');
         if($s=='192.168.21.1')
