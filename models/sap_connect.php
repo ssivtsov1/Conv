@@ -25,22 +25,22 @@ class sap_connect extends ActiveRecord {
                 $s=Yii::$app->request->hostInfo;
                 $s= substr($s, 7);   
 
-        if($s=='localhost')
+        if($s=='192.168.15.15')
             return Yii::$app->get('db_pg_dn_energo');
-//        if($s=='localhost')
-//            return Yii::$app->get('db_pg_gv_energo');
+        if($s=='192.168.17.1')
+            return Yii::$app->get('db_pg_gv_energo');
         if($s=='192.168.20.1')
             return Yii::$app->get('db_pg_vg_energo');
         if($s=='192.168.21.1')
-            return Yii::$app->get('db_pg_vg_energo');
+            return Yii::$app->get('db_pg_pv_energo');
         if($s=='192.168.26.1')
-            return Yii::$app->get('db_pg_vg_energo');
+            return Yii::$app->get('db_pg_zv_energo');
         if($s=='192.168.75.1')
-            return Yii::$app->get('db_pg_vg_energo');
+            return Yii::$app->get('db_pg_krg_energo');
         if($s=='192.168.85.1')
-            return Yii::$app->get('db_pg_vg_energo');
+            return Yii::$app->get('db_pg_in_energo');
         if($s=='192.168.85.1')
-            return Yii::$app->get('db_pg_vg_energo');
+            return Yii::$app->get('db_pg_in_energo');
     }
     
 }

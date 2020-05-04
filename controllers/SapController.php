@@ -47,7 +47,13 @@ class SapController extends AppController {
     
          public function actionOkpo(){
          
-        $sql = 'select * from clm_client_tbl where length(trim(code_okpo)) = 0 or code_okpo is null or length(trim(code_okpo)) < 8 or length(trim(code_okpo)) > 12'; 
+        $sql = "select * from clm_client_tbl as a where code_okpo is null or length(trim(code_okpo)) < 8 or length(trim(code_okpo)) > 12
+and
+        (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
+	     and  a.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
+	     AND (a.code_okpo is null or trim(a.code_okpo)='')";
         $s = sap_connect::findBySql($sql)->asArray()->all();
    
         return $this->render('okpo', compact('s'));
@@ -56,7 +62,10 @@ class SapController extends AppController {
     
       public function actionPhone(){
          
-        $sql = "select code,length(mob_phone),mob_phone from clm_abon_tbl where length(trim(mob_phone))<>10 and trim(mob_phone) <> '' "; 
+        $sql = "select p.code,length(mob_phone),mob_phone from clm_abon_tbl as a
+                join clm_paccnt_tbl as p on a.id=p.id_abon
+                where length(trim(mob_phone))<>10 and trim(mob_phone) <> '' "; 
+        
         $s = abn_connect::findBySql($sql)->asArray()->all();
    
         return $this->render('phone', compact('s'));
