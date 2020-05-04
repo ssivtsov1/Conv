@@ -3029,7 +3029,7 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
           $sql_f = "select eqm_schema_point_fun()";
           $data_f = data_from_server($sql_f, $res, $vid);
         // Главный запрос со всеми необходимыми данными
-        $sql = "select p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+        $sql = "select DISTINCT p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -5879,7 +5879,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
                 case when m.dt_control is null then '2005' else substring(m.dt_control::varchar,1,4)  end as bgljahr,
                 case  when coalesce(eq.is_owner,0) = 0 then 'CK01232820' else '' end as KOSTL, 
                  trim(eq.num_eqp) as SERNR,
-                 'CK_RANDOM' as zz_pernr,
+                 case when eq.is_owner <> 1 then 'CK_RANDOM' else '' end as zz_pernr,
                   substring(replace(m.dt_control::varchar,'-',''),1,8) as CERT_DATE,
                   upper(sd.sap_meter_name) as matnr,
                  case when en1.kind_energy =1 then case when eqz1.zone in (4,5,9,10) then '2' when eqz1.zone in (1,2,3,6,7,8) then '3' when  eqz1.zone = 0 then '1' else '0' end ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||'0'::varchar||')' else '0_(000)' end||
