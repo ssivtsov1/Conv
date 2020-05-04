@@ -2600,6 +2600,7 @@ order by sort";
 //            debug($data_1);
 //            return;
             // Запись в файл структуры DI_INT
+            $oldkey2='';
             foreach ($data_1 as $v1) {
                    $oldkey2 = $oldkey1 . $v1['id_point'];
                     fwrite($f, iconv("utf-8","windows-1251",$oldkey2."\t".
