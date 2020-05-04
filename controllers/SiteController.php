@@ -2600,7 +2600,7 @@ order by sort";
 //            debug($data_1);
 //            return;
             // Запись в файл структуры DI_INT
-            $oldkey2='';
+//            $oldkey2='';
             foreach ($data_1 as $v1) {
                    $oldkey2 = $oldkey1 . $v1['id_point'];
                     fwrite($f, iconv("utf-8","windows-1251",$oldkey2."\t".
@@ -2609,7 +2609,8 @@ order by sort";
                     $v1['keydate']."\n") );
 
             }
-            fwrite($f, $oldkey2."\t".
+            if (isset($oldkey2))
+            { fwrite($f, $oldkey2."\t".
                 $end."\n");
 
             // Запись в _ext файл
@@ -2617,7 +2618,7 @@ order by sort";
                 $oldkey2."\t".
                 $code."\t".
                 $short_name."\n"
-                ) );
+                ) );}
             }
 
 
