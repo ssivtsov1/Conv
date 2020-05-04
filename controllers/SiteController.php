@@ -85,7 +85,7 @@ class SiteController extends Controller
 
     }
 
-    // Импорт бюджета
+    // Импорт бюджета использрвался в 2019 году
     public function actionImport_budget()
     {
         $f = fopen('budget_18.csv','r');
