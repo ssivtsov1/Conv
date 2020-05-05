@@ -53,6 +53,8 @@ AppAsset::register($this);
                                                                                             [
                                                                                             ['label' => 'перевірка ОКПО', 'url' => ['/sap/okpo']],
                                                                                             ['label' => 'перевірка ІПН', 'url' => ['/sap/inn']],
+                                                                                            ['label' => 'Пусті площадки', 'url' => ['/sap/plosh']],
+                                                                                            ['label' => 'Відсутня юр.адреса спож.', 'url' => ['/sap/yspoj']],
                                                                                             ],
                                                                                  ],     
                                                                                  ]

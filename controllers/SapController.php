@@ -98,6 +98,330 @@ order by num_meter";
 
     }
     
+              public function actionPlosh(){
+
+        $sql = "select lic_schet,short_name,count(*)
+as kol from
+(select distinct on(zz_eic) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+www.short_name as real_name,www.code as lic_schet,const.ver,const.begru,
+'10' as sparte,qqq.* from
+(select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,
+case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
+q1.num_eqp as zz_eic,q.* from
+(select distinct 'DATA' as DATA,c.id as id_cl,
+case when p.voltage_max = 0.22 then '02'
+when p.voltage_max = 0.4 then '03'
+when p.voltage_max = 10.00 then '05'
+when p.voltage_max = 6.0 then '04'
+when p.voltage_max = 27.5 then '06'
+when p.voltage_max = 35.0 then '07'
+when p.voltage_max = 110.0 then '08' else '' end as SPEBENE,
+'0001' as ANLART,
+'0002' as ABLESARTST,
+p.name_eqp as ZZ_NAMETU,
+'' as ZZ_FIDER,
+'2020-01-01' as AB,
+case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01???'
+when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 14 then 'CN_4HN2_01???'
+else
+case when p.id_tarif in (27,28,150,900001,900002) then 'CN_2TH2_01???'
+else '???' --tar_sap.id_sap_tar
+end
+end as TARIFTYP,p.vid_trf,
+case when st.id_section = 201 then '02'
+when st.id_section = 202 then '50'
+when st.id_section = 203 then '60'
+when st.id_section in(210,211,213,214,215) then '68'
+when c2.idk_work = 99 then '72'
+else '67' end as BRANCHE,
+--case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
+case when c.code = '900' then '0004' else '0002' end as AKLASSE,
+'PC01311' as ABLEINH,
+case when tgr.ident in('tgr1') and tcl.ident='tcl1' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
+when tgr.ident in('tgr2') and tcl.ident='tcl1' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '012'
+when tgr.ident in('tgr6') and tcl.ident='tcl1' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '020'
+when tgr.ident in('tgr3') and tcl.ident='tcl1' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '028'
+when tgr.ident in('tgr4') and tcl.ident='tcl1' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '036'
+when tgr.ident in('tgr5',' tgr8_62','tgr8_63') and tcl.ident='tcl1' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '044'
+when tgr.ident in('tgr1') and tcl.ident='tcl2' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '054'
+when tgr.ident in('tgr2') and tcl.ident='tcl2' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '060'
+when tgr.ident in('tgr6') and tcl.ident='tcl2' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '066'
+when tgr.ident in('tgr3') and tcl.ident='tcl2' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '072'
+when tgr.ident in('tgr4') and tcl.ident='tcl2' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '078'
+when tgr.ident in('tgr5',' tgr8_62','tgr8_63') and tcl.ident='tcl2' and st.id_section not in (208,218) and tar.id not in (900001,999999) then '084'
+when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) in (1009,1017,1018,1019,1020,1021,1001)then '286'
+when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) =1010 then '288'
+when tgr.ident in('tgr8_10','tgr8_30') then '298'
+when tgr.ident in('tgr8_12','tgr8_22','tgr8_32','tgr8_4') then '300'
+when tgr.ident in('tgr7_1','tgr7_11','tgr7_21','tgr7_211','tgr7_21','tgr7_211') and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '352'
+when ((tgr.ident='tgr7_12') or (tgr.ident='tgr7_22') or (tgr.ident= 'tgr7_13') or (tgr.ident = 'tgr7_23') or (tgr.ident= 'tgr8_101') or (tgr.ident = 'tgr8_61') ) and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '354'
+when tgr.ident in ('tgr7_511','tgr7_514','tgr7_5141') and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '384'
+when (tgr.ident ~ 'tgr7_51') and tgr.ident not in ('tgr7_511','tgr7_514','tgr7_5141') and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '385'
+when coalesce(st.id_section,1007) in (1007,1008) and (tgr.ident ~ 'tgr7_52') and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) and tar.id not in (900001,999999) then '391'
+when tgr.ident~ 'tgr7_521' and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '392'
+when tgr.ident ~ 'tgr7_522' and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '394'
+when tgr.ident in ('tgr7_611','tgr7_614','tgr7_6141') and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '402'
+when (tgr.ident ~ 'tgr7_61') and tgr.ident not in ('tgr7_611','tgr7_614','tgr7_6141') and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '403'
+when coalesce(st.id_section,1015) in (1015,1016,1007,1008) and (tgr.ident ~ 'tgr7_62') and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218)then '409'
+when tgr.ident ~ 'tgr7_621' and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '410'
+when tgr.ident ~ 'tgr7_622' and tcl.ident='tcl2' and c.idk_work <> 0 and st.id_section not in (208,218) then '412'
+when tgr.ident in ( 'tgr7_15','tgr7_25','tgr7_35','tgr7_53','tgr7_63','tgr7_7') then '414'
+when tcl.ident='tcl1' and st.id_section = 209 and tar.id not in (900001,999999) then '574'
+when tcl.ident='tcl2' and st.id_section = 209 and tar.id not in (900001,999999) then '582'
+when c.idk_work=99 and p.voltage_min>10 and tcl.ident='tcl1' then '604'
+when c.idk_work=99 and p.voltage_min<=10 and tcl.ident='tcl2' then '606'
+when tcl.ident='tcl1' and p.id_extra =1003 then '632'
+when tcl.ident='tcl2' and p.id_extra =1003 then '634'
+when tcl.ident='tcl1' and p.id_extra in (1001,1002,1012,1013) then '638'
+when tcl.ident='tcl2' and p.id_extra in (1001,1002,1012,1013) then '640'
+when tgr.ident in('tgr8_101') then '666'
+else '' end as ZZCODE4NKRE,
+'' as ZZCODE4NKRE_DOP,
+'' as ZZOTHERAREA,
+'1' as sort
+from (select tr.name as vid_trf,dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage,
+dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un,
+dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, tr.id_grouptarif --, ph.id_extra --, tr.id_classtarif
+from eqm_equipment_tbl as eq
+join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id order by dt_b desc limit 1 ) )
+join eqm_point_tbl AS dt on (dt.code_eqp= eq.id)
+left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif)
+left join cla_param_tbl as p on (dt.industry=p.id)
+left join eqk_tg_tbl as tg on (dt.id_tg=tg.id)
+left join eqk_voltage_tbl AS v on (dt.id_voltage=v.id)
+left join eqk_voltage_tbl AS vun on (dt.id_un=vun.id)
+left join eqk_zone_tbl AS z on (dt.zone=z.id)
+left join cla_param_tbl AS cla on (dt.id_depart=cla.id)
+left join cla_param_tbl AS cla2 on (dt.id_extra=cla2.id)
+left join clm_position_tbl as cp on (cp.id = dt.id_position) ) as p
+join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp)
+join eqm_tree_tbl as t on (t.id = tt.id_tree)
+join (select distinct id,code,idk_work from clm_client_tbl) as c on (c.id = t.id_client)
+left join eqm_eqp_use_tbl as use on (use.code_eqp = p.code_eqp)
+left join clm_client_tbl as c2 on (c2.id = coalesce (use.id_client, t.id_client))
+left join clm_statecl_tbl as st on (st.id_client = c2.id)
+left join aci_tarif_tbl as tar on (tar.id=p.id_tarif)
+--left join sap_energo_tarif as tar_sap on tar_sap.id_tar = p.id_tarif
+left join eqi_grouptarif_tbl as tgr on tgr.id= p.id_grouptarif
+left join eqi_classtarif_tbl as tcl on (p.id_classtarif=tcl.id)
+--left join reading_controller as w on w.tabel_numb = p.num_tab
+left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = p.code_eqp)
+left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp)
+) q
+left join eqm_equipment_tbl q1
+on q.zz_nametu::text=q1.name_eqp::text and substr(q1.num_eqp::text,1,3)='62Z'
+left join eqm_area_tbl ar on ar.code_eqp=q1.id
+left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q.id_cl
+left join clm_client_tbl as cc on cc.id = q.id_cl
+left join
+(select u.id_client,a.id from eqm_equipment_tbl a
+left join eqm_point_tbl tu1 on tu1.code_eqp=a.id
+left JOIN eqm_compens_station_inst_tbl AS area ON (a.id=area.code_eqp)
+left JOIN eqm_equipment_tbl AS eq2 ON (area.code_eqp_inst=eq2.id)
+left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
+left join clm_client_tbl u1 on u1.id=u.id_client) rr
+on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
+where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
+left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
+left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=qqq.id_potr
+left join clm_client_tbl www on www.id=qqq.id_potr
+inner join sap_const const on 1=1
+where --qqq.id_potr is not null and www.code<>999
+--www.code<>999
+--and
+--qqq.id=116541
+--and
+(www.code>999 or www.code=900) AND coalesce(www.idk_work,0)<>0
+and www.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001')
+and yy.oldkey is null
+) obana
+group by 1,2
+having count(*)>1"; 
+        
+        $s = sap_connect::findBySql($sql)->asArray()->all();
+
+
+        return $this->render('plosh', compact('s'));
+
+    }
+    
+    
+             public function actionYspoj(){
+         
+        $sql = "select town,street,id,code,name from (
+select distinct a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
+case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа ' in a.name)>0
+then '03' else '02' end as BU_GROUP,
+case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '0003' else '0002' end as BPKIND,
+'MKK' as ROLE1,
+case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end as ROLE2,
+'00010101' as VALID_FROM_1,
+'I' as CHIND_1,
+case when coalesce(a.id_state,0) in (80,49) then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end as VALID_FROM_2,
+case when coalesce(a.id_state,0) in (80,49) then 'I' else '' end as CHIND_2,
+'1' as FKUA_RSD,
+'3' as FKUA_RIS,
+case when coalesce(b.FLAG_JUR,0)= 1 then
+
+a.code_okpo
+
+else
+case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000' then trim(coalesce (a.code_okpo, b.okpo_num))
+when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))='0000000000' then a.code_okpo else '' end
+end as BU_SORT1,
+'' as BU_SORT2,
+'0006' as SOURCE,
+'LEG' as AUGRP,
+substr(trim(a.name),1,40) as name_org1,
+substr(trim(a.name),41,40) as name_org2,
+substr(trim(a.name),81,40) as name_org3,
+substr(trim(a.name),121,40) as name_org4,
+case when coalesce(b.FLAG_JUR,0)= 1 then
+case
+when upper(trim(a.name)) LIKE 'ФЕРМЕР%' AND upper(trim(a.name)) LIKE '%ГОСП%' then '02'
+when (upper(trim(a.name)) LIKE 'ПРИВАТ%' OR upper(trim(a.name)) LIKE '%ПРИВАТ%') AND upper(trim(a.name)) LIKE '%ПІДПР%' then '03'
+when upper(trim(a.name)) LIKE 'КОЛЕКТИВ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '04'
+when upper(trim(a.name)) LIKE 'ДЕРЖ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '05'
+when (upper(trim(a.name)) LIKE 'КОМУНАЛЬНЕ%' AND upper(trim(a.name)) LIKE '%ПІДПР%') then '07'
+when ((upper(trim(a.name)) LIKE 'ДОЧІРНЄ%' OR upper(trim(a.name)) LIKE 'ДОЧІРНЕ%') AND upper(trim(a.name)) LIKE '%ПІДПР%') then '08'
+when upper(trim(a.name)) LIKE 'РЕЛІГ%' or upper(trim(a.name)) LIKE '%РЕЛІГ%' then '10'
+when upper(trim(a.name)) LIKE 'ПІДПР%' AND upper(trim(a.name)) LIKE '%СПОЖИВ%' AND upper(trim(a.name)) LIKE '%КООП%' then '11'
+when (upper(trim(a.name)) LIKE 'АКЦІОНЕРНЕ ТОВАРИСТВО%' or ((upper(trim(a.name)) LIKE 'ПУБЛІЧНЕ%' OR upper(trim(a.name)) LIKE 'ПРИВАТНЕ%') and upper(trim(a.name)) LIKE '%АКЦІОНЕРНЕ%' and upper(trim(a.name)) LIKE '%ТОВАРИСТВО%')) then '17'
+when upper(trim(a.name)) LIKE 'ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО%' then '18'
+when upper(trim(a.name)) LIKE 'ЗАКРИТЕ%' AND upper(trim(a.name)) LIKE '%АКЦІОНЕР%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '19'
+when (upper(trim(a.name)) LIKE 'ТОВ%' AND upper(trim(a.name)) LIKE '%ОБМЕЖ%' AND upper(trim(a.name)) LIKE '%ВІДП%') OR upper(trim(a.name)) LIKE 'ТОВ %' then '21'
+when upper(trim(a.name)) LIKE 'ТОВ%' AND upper(trim(a.name)) LIKE '%ДОД%' AND upper(trim(a.name)) LIKE '%ВІДП%' then '22'
+when upper(trim(a.name)) LIKE 'ПОВНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '23'
+when upper(trim(a.name)) LIKE 'КОМАНДИТНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '24'
+when upper(trim(a.name)) like 'АВТОКООПЕРАТИВ%' OR upper(trim(a.name)) like '%АВТОКООПЕРАТИВ%' OR (upper(trim(a.name)) like 'АВТО%' AND upper(trim(a.name)) like '%КООПЕРАТИВ%') then '25'
+when upper(trim(a.name)) LIKE 'ВИРОБНИЧ%' AND upper(trim(a.name)) LIKE '%КООП%' then '26'
+when upper(trim(a.name)) LIKE 'ОБСЛУГОВ%' AND upper(trim(a.name)) LIKE '%КООП%' then '27'
+WHEN (upper(trim(a.name)) like 'ДЕРЖАВНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name)) like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name)) like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '35'
+WHEN (upper(trim(a.name)) like 'КОМУНАЛЬНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name)) like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name)) like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '36'
+WHEN (upper(trim(a.name)) like 'ПРИВАТНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name)) like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name)) like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '37'
+when upper(trim(a.name)) LIKE 'ГРОМАДСЬКА%' AND upper(trim(a.name)) LIKE '%ОРГ%' then '38'
+when (upper(trim(a.name)) LIKE 'КОРПОРАЦІЯ%' OR upper(trim(a.name)) LIKE 'КООРПОРАЦІЯ%') then '43'
+when upper(trim(a.name)) LIKE 'КОНЦЕРН%' AND upper(trim(a.name)) LIKE '%КОНЦЕРН%' then '45'
+else '01'
+end
+else ''
+end as LEGAL_ENTY,
+case when coalesce(a.id_state,0) in (80,49) then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end as LIQUID_DAT,
+''::char(4) as ZFILCODE,
+'' as ZFILHEAD,
+case when coalesce(b.FLAG_JUR,0)= 0 then 'X' else '' end as ZPROCIND,
+'' as ZCODEFORMOWN,
+'' as ZCODESPODU,
+'' as ZCODEBANKROOT,
+'' as ZCODELICENSE,
+case when length(trim(a.name))> 160 then trim(a.name) else '' end as ZNAMEALL,
+replace(replace(replace(trim(a.short_name),' ',' '),' ',' '),'''','’') as ZZ_NAMESHORT,
+b.doc_ground as ZZ_DOCUMENT,
+'' as ADEXT_ADDR,
+'I' as CHIND_ADDR,
+'' as POST_CODE2,
+'' as PO_BOX,
+UPPER(am.building) as HOUSE_NUM1,
+UPPER(am.office) as HOUSE_NUM2,
+'UA' as COUNTRY,
+case when substring(trim(b.phone),1,30) <> '' then 'I' else '' end as CHIND_TEL,
+case when position(',' in trim(b.phone))>0 then get_phone(b.phone) else
+case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')) =10 then
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')
+else '' end end as TEL_NUMBER,
+'' as CHIND_FAX,
+'' as FAX_NUMBER,
+case when trim(a.email) <>'' then 'I' else '' end as CHIND_SMTP,
+trim(a.email) as SMTP_ADDR,
+
+case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')) =10 then
+case when regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '039%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '050%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '063%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '066%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '067%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '068%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '073%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '091%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '092%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '093%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '094%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '095%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '096%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '097%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '098%'
+or
+regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '099%'
+then '3'
+else '1' end
+
+else '' end as TEL_MOBILE,
+'CEKPOST' as ADR_KIND,
+'X' as XDFADU,
+case when (length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000')
+then trim(coalesce (a.code_okpo, b.okpo_num))
+when length(trim(coalesce (a.code_okpo, b.okpo_num)))=8 then trim(coalesce (a.code_okpo, b.okpo_num))
+end as IDNUMBER,
+case when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=8 then 'EDRPOU'
+when (coalesce(b.FLAG_JUR,0)= 0 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10) then 'FS0001'
+when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then 'FS0001'
+else '' end as ID_TYPE,
+
+kt.shot_name||' '||t.name as town,ads.town as town_sap,am.post_index,b2.post_index as post_index_sap,ks.shot_name||' '||s.name as street,ads.street as street_sap,
+UPPER(am.building) as house,UPPER(am.office) as flat,
+b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl,a.code
+from clm_client_tbl a
+left join clm_statecl_tbl b on
+a.id=b.id_client
+LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+--LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
+--LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name)
+LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
+and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '08'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and '08'='05' then trim(ads.reg)='DNP' else 1=1 end
+and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and '08'='05' then trim(ads.reg)='DNP' else 1=1 end
+and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '08'='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and '08'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and '08'='06' then trim(ads.reg)='DNP' else 1=1 end
+-- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+
+LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from post_index_sap) b2
+on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
+WHERE
+(a.code>999 or a.code=900) AND coalesce(a.idk_work,0)<>0
+and a.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001') -- AND a.id=12098
+--AND ads.street is null
+and trim(s.name)='' or trim(t.name)=''
+) v"; 
+        
+        $s = sap_connect::findBySql($sql)->asArray()->all();
+   
+        return $this->render('yspoj', compact('s'));
+
+    } 
+    
     
     
     
