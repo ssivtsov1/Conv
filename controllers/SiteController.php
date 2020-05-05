@@ -2600,7 +2600,7 @@ order by sort";
 //            debug($data_1);
 //            return;
             // Запись в файл структуры DI_INT
-//            $oldkey2='';
+            $oldkey2='';
             foreach ($data_1 as $v1) {
                    $oldkey2 = $oldkey1 . $v1['id_point'];
                     fwrite($f, iconv("utf-8","windows-1251",$oldkey2."\t".
@@ -2609,7 +2609,7 @@ order by sort";
                     $v1['keydate']."\n") );
 
             }
-            if (isset($oldkey2))
+            if (trim($oldkey2)<>'')
             { fwrite($f, $oldkey2."\t".
                 $end."\n");
 
@@ -5927,7 +5927,7 @@ select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.c
                 case  when coalesce(eq.is_owner,0) = 0 then 'CK01232820' else '' end as KOSTL, 
                  --trim(eq.num_eqp) as SERNR,
                   get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
-                 'CK_RANDOM' as zz_pernr,
+                  case when eq.is_owner <> 1 then 'CK_RANDOM' else '' end as zz_pernr,
                   '' as CERT_DATE,
                   upper(type_tr.type_tr_sap) as MATNR,
                   '' as zwgruppe,
@@ -7842,7 +7842,8 @@ select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_met
      left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
      left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
      left join eqm_tree_tbl tr on tr.id = ttr.id_tree
-     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client))) then '' else 'X' end as znodev 
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client))) then '' else 'X' end as znodev,
+     row_number() OVER() as id_str  
 from
 (select 'INIT' as struct,a.id,a.code as vkona,const.vktyp as vktyp,'04_C04P_'||a.id as gpart
 from clm_client_tbl as a
@@ -7979,9 +7980,12 @@ WHERE
 	    ) s4 on s3.id=s4.id
 left join
 --ZSTAT
-(select 'ZSTAT' as struct,cl.id,'' as obj,'CON003' as status,
-'20200301' as date_reg,'99991231' as date_to,'' as price,
-'' as COMMENTS,'' as LOEVM
+(select 'ZSTAT' as struct,cl.id,'CONT07' as obj,
+case when ($res='01' or  $res='02') and 
+(substr(cl.short_name,1,3)='РП '  or substr(cl.short_name,1,2)='Р ') then  'CON005' else 'CON003' end as status,
+case when st.doc_dat is null then '20200101'::varchar else replace(st.doc_dat::varchar ,'-','') end as date_reg,
+'99991231' as date_to,''::text as price,
+''::text as COMMENTS,''::text as LOEVM
 from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
 inner join sap_const const on 1=1
@@ -7992,8 +7996,10 @@ WHERE
 	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
 	     and  cl.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001') 
+	     '10999999','11000000','19999369','50999999','1000000','1000001')  
+	     
 	    ) s5 on s4.id=s5.id  
+	   -- where s1.id>=13060 and s1.id<=13075
          
 ";
 
@@ -8230,6 +8236,9 @@ WHERE
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
         fclose($f);
+
+        // Проверка файла выгрузки
+
         $model = new info();
         $model->title = 'УВАГА!';
         $model->info1 = "Файл сформовано.";

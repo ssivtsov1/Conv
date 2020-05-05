@@ -1420,6 +1420,8 @@ function f_account($n_struct, $rem, $v) {
     $loevm=$v['loevm'];
 
     $oldkey = $oldkey_const . $r;
+    $id=$v['id_str'];
+    $id=str_pad($id, 5, "0", STR_PAD_LEFT);
 
     if($n_struct=='INIT')
         $z = "insert into sap_init_acc(oldkey,dat_type,gpart,vktyp,vkona)
@@ -1440,15 +1442,17 @@ function f_account($n_struct, $rem, $v) {
                            '$zsector','$zz_ministry','$zz_start','$zz_end','$zz_budget','$zz_territory')";
 
 
+
 //    if($n_struct=='KVV')
 //        $z = "insert into sap_kvv(oldkey,dat_type,date_from,date_to)
 //                    values('$oldkey','$n_struct','$date_from','$date_to')";
 //
-//    if($n_struct=='ZSTAT')
-//
-//        $z = "insert into sap_zstat(oldkey,dat_type,obj,status,date_reg,date_to,price,comments,loevm)
-//                    values('$oldkey','$n_struct','$obj','$status','$date_reg',
-//                    '$date_to','$price','$comments','$loevm')";
+    // Информация по договорам
+    if($n_struct=='ZSTAT')
+
+        $z = "insert into sap_zstat(oldkey,dat_type,id,obj,status,date_reg,date_to,price,comments,loevm)
+                    values('$oldkey','$n_struct','$id','$obj','$status','$date_reg',
+                    '$date_to','$price','$comments','$loevm')";
 
 
     switch ((int) $rem) {
