@@ -1223,7 +1223,7 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
 
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
-        $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'_05'.'_L'.'.txt';
+        $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'_08'.'_L'.'.txt';
         $f = fopen($fname,'w+');
         // Считываем данные в файл с каждой таблицы
         $i=0;
@@ -1350,6 +1350,74 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
 
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
+
+// Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+        // проверка адреса  на соответствие его с названием в САП {
+        $err = check_adres_partner($fname,1);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // проверка индекса  на соответствие его с названием в САП {
+        $err = check_adres($fname,2);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // проверка адреса  на соответствие его с названием в САП   }
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $cnt=7;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+
+
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -1405,7 +1473,10 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
-                    }   
+                    }
+
+
+
                     
         fclose($f);
         $model = new info();
@@ -1638,8 +1709,8 @@ b.tax_number else null end else null end as tax_number,b.last_name,
     }
 // Test
     public function actionTest_task(){
-       $fname='CONNOBJ_04'.'_CK01'.'_'.'20200423'.'_'.'08'.'_R'.'.txt';
-        echo masc($fname);
+       $s='15151511';
+        echo test_f($s);
     }
 // Тестовая функция для записи в файл
     public function actionTest_recfile()
@@ -6996,6 +7067,73 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
             fputs($f, "\n");
         }
 
+// Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+
+        // Получаем название подпрограммы
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+        // проверка адреса  на соответствие его с названием в САП {
+        $err = check_adres($fname,1);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // проверка индекса  на соответствие его с названием в САП {
+        $err = check_adres($fname,2);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // проверка адреса  на соответствие его с названием в САП   }
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $cnt=3;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+
 
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
@@ -7234,6 +7372,84 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
 
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
+
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $cnt=2;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+        // нет объекта высшего уровня {
+        $sql="SELECT * from sap_refer where upload='$filename'";
+        $data_u = data_from_server($sql, $res, $vid);
+        $refer = $data_u[0]['refer'];
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        if(!empty($data_u[0]['upload'])) {
+            $err = no_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+        }
+        // нет объекта высшего уровня }
+
+        // пустая ссылка {
+        $msg = 'Пустая ссылка';
+            $err = empty_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+
+        }
+        // пустая ссылка }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -7845,7 +8061,7 @@ select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_met
      left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client))) then '' else 'X' end as znodev,
      row_number() OVER() as id_str  
 from
-(select 'INIT' as struct,a.id,a.code as vkona,const.vktyp as vktyp,'04_C04P_'||a.id as gpart
+(select 'INIT' as struct,a.id,a.code as vkona,const.vktyp as vktyp,'04_C'||'$rem'||'P_'||a.id as gpart
 from clm_client_tbl as a
 left join clm_statecl_tbl as b on a.id = b.id_client
 inner join sap_const const on 1=1
@@ -7878,7 +8094,7 @@ WHERE
 	   ) s2 on s1.id=s2.id
 left join
 -- VKP
-(select distinct 'VKP' as struct,cl.id,vktyp as vktyp,'04_C04P_'||cl.id as partner,const.opbuk,51 as ikey,13 as mahnv,
+(select distinct 'VKP' as struct,cl.id,vktyp as vktyp,'04_C'||'$rem'||'P_'||cl.id as partner,const.opbuk,51 as ikey,13 as mahnv,
 const.begru_all as begru,b.adext_addr as adrnb_ext,
 '0005' as ZAHLKOND,'0002' as VERTYP,
 case when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99  then '04' 
@@ -7981,7 +8197,7 @@ WHERE
 left join
 --ZSTAT
 (select 'ZSTAT' as struct,cl.id,'CONT07' as obj,
-case when ($res='01' or  $res='02') and 
+case when ($rem='01' or  $rem='02') and 
 (substr(cl.short_name,1,3)='РП '  or substr(cl.short_name,1,2)='Р ') then  'CON005' else 'CON003' end as status,
 case when st.doc_dat is null then '20200101'::varchar else replace(st.doc_dat::varchar ,'-','') end as date_reg,
 '99991231' as date_to,''::text as price,
@@ -8003,7 +8219,346 @@ WHERE
          
 ";
 
+       $sql1 = " select * from (
+            select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_meter_tbl m
+ join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
+  left join (select code as id,min(sap_cnt) as sap_meter_id from sap_meter_cnt where sap_cnt<>'' group by code) s on s.id::integer=m.id_type_eqp
+  left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client))) then '' else 'X' end as znodev,
+     row_number() OVER() as id_str  
+from
+(select 'INIT'::text as struct,a.id,a.code as vkona,const.vktyp as vktyp,'04_C01P_'||a.id as gpart
+from clm_client_tbl as a
+left join clm_statecl_tbl as b on a.id = b.id_client
+inner join sap_const const on 1=1
+WHERE
+--a.code_okpo<>'' and a.code_okpo<>'000000000'
+    -- and a.code_okpo<>'0000000'
+    --and a.code_okpo<>'000000'
+	       (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0
+           and  a.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001') 
+	    ) s1
+left join
+    --VK
+    (select 'VK'::text as struct,cl.id,
+case when length((case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar)=1 
+then '0'||(case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar 
+else (case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar end   as ZDATEREP
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE
+-- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+    -- and cl.code_okpo<>'0000000'
+    -- and cl.code_okpo<>'000000'
+	       (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0
+           and  cl.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001') 
+	   ) s2 on s1.id=s2.id
+left join
+    -- VKP
+    (select distinct 'VKP'::text as struct,cl.id,vktyp as vktyp,'04_C04P_'||cl.id as partner,const.opbuk,51 as ikey,13 as mahnv,
+const.begru_all as begru,b.adext_addr as adrnb_ext,
+'0005' as ZAHLKOND,'0002' as VERTYP,
+case when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99  then '04' 
+     when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)<>99  then '02'
+     when coalesce(st.flag_budjet,0)=1 then '03' 
+     else '02' 
+     end as KOFIZ_SD,
+     '5' as KZABSVER,
+     const.opbuk as stdbk,
+     case when coalesce(st.flag_budjet,0)=1 then
+     case when st.id_budjet=1000510 or st.id_section =211 then '1'
+          when st.id_budjet=1000521 or st.id_section =213 then '2'
+          when st.id_budjet=1000522 or st.id_section =215 then '3'
+          when st.id_budjet=1000523 or st.id_section =214 then '4'	
+          when st.id_budjet=1000520 or st.id_section is null then
+	  case when st.id_section=213 then '2'
+	       when st.id_section=214 then '4'
+	       when st.id_section=215 then '3'
+	  else ''
+	  end
+     else '' end
+else '5' end as FKRU_FIS,
+case when st.id_section in(210,211) then '10'
+     when st.id_section=212 then '20'
+     when st.id_section=213 then '21'
+     when st.id_section=214 then '22'
+     when st.id_section=215 then '23'
+     when st.id_section=203 then '30'
+     when st.id_section=201 then '40'
+     when st.id_section=202 then '60'
+     when st.id_section=205 then '81'
+     when st.id_section=207 then '82'
+     when st.id_section=206 then '83'
+     when st.id_section=204 then '50'
+     else '' end as ZSECTOR,
+     ''  as ZZ_MINISTRY,
+     replace((case when st.doc_dat<'2019-01-01' then '2019-01-01' else st.doc_dat end)::varchar ,'-','') as ZZ_START,
+     '' as ZZ_END,''  as ZZ_BUDGET,ww.ZZ_TERRITORY as ZZ_TERRITORY
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+left join sap_but020 b on '04_C04P_'||cl.id=b.oldkey
+
+left join
+    (select distinct id_potr,case when substr(trim(first_value(adr) over(partition by id_potr)),1,3)='м. ' then 1 else 2 end as zz_territory from
+    (
+        select p.*, c.code,c2.id as id_potr, c.short_name as name, c2.code as use_code, c2.name as use_name, area.area_name, en.energy , abonpar.doc_num
+from ( select dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg,
+ p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, 
+ dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts,
+  dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva,
+   dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.id_addres,q.adr, eq.num_eqp as eis_cod, eq.is_owner, eq.dt_install from eqm_equipment_tbl as eq 
+   join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
+   left join adv_address_tbl q on (q.id=eq.id_addres) 
+   left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif) left join cla_param_tbl as p on (dt.industry=p.id)
+   left join eqk_tg_tbl as tg on (dt.id_tg=tg.id) left join eqk_voltage_tbl AS v on (dt.id_voltage=v.id) left join eqk_voltage_tbl AS vun on (dt.id_un=vun.id) 
+   left join eqk_zone_tbl AS z on (dt.zone=z.id) left join cla_param_tbl AS cla on (dt.id_depart=cla.id) left join cla_param_tbl AS cla2 on (dt.id_extra=cla2.id) 
+   left join clm_position_tbl as cp on (cp.id = dt.id_position)) as p join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp) 
+   join eqm_tree_tbl as t on (t.id = tt.id_tree) 
+   join clm_client_tbl as c on (c.id = t.id_client) 
+   left join eqm_eqp_use_tbl as use on (use.code_eqp = p.code_eqp) 
+   
+   left join clm_client_tbl as c2 on (c2.id = coalesce (use.id_client, t.id_client)) 
+   left join clm_statecl_tbl as abonpar on (abonpar.id_client = c2.id) 
+   
+   left join (select ins.code_eqp, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area
+    on (area.code_eqp = p.code_eqp) left join (select code_eqp, trim(sum(e.name||','),',') as energy 
+    from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en 
+    on (en.code_eqp = p.code_eqp) where coalesce (use.id_client, t.id_client) <> syi_resid_fun() and (c2.id = NULL or NULL is null
+    and c2.idk_work not in (0,99) and coalesce(c2.id_state,0) not in (50,99) ) 
+    order by c2.code, p.name_eqp
+    ) w ) ww on ww.id_potr=cl.id 
+
+
+WHERE
+--cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+    --and cl.code_okpo<>'0000000'
+    --and cl.code_okpo<>'000000'
+	      (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0
+          and  cl.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001') 
+	    ) s3 on s2.id=s3.id
+
+left join
+    -- KVV
+    (select 'KVV'::text as struct,cl.id,'20200301'::text as date_from,'99991231'::text as date_to
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE
+--cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+    --and cl.code_okpo<>'0000000'
+    --and cl.code_okpo<>'000000'
+	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0
+         and  cl.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001') 
+	    ) s4 on s3.id=s4.id
+left join
+    --ZSTAT
+    (select 'ZSTAT'::text as struct,cl.id,'CONT07'::text as obj,
+case when ('01'='01' or  '01'='02') and
+    (substr(cl.short_name,1,3)='РП '  or substr(cl.short_name,1,2)='Р ') then  'CON005' else 'CON003' end as status,
+case when st.doc_dat is null then '20200101'::varchar else replace(st.doc_dat::varchar ,'-','') end as date_reg,
+'99991231'::text as date_to,''::text as price,
+''::text as COMMENTS,''::text as LOEVM
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE
+-- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+    -- and cl.code_okpo<>'0000000'
+    -- and cl.code_okpo<>'000000'
+	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0
+         and  cl.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001')  
+	     
+	    ) s5 on s4.id=s5.id  
+	    where (s1.id>=13060 and s1.id<=13070) or s1.id=13061
+union all
+
+select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_meter_tbl m
+ join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
+  left join (select code as id,min(sap_cnt) as sap_meter_id from sap_meter_cnt where sap_cnt<>'' group by code) s on s.id::integer=m.id_type_eqp
+  left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client))) then '' else 'X' end as znodev,
+     row_number() OVER() as id_str  
+from
+(select 'INIT'::text as struct,a.id,a.code as vkona,const.vktyp as vktyp,'04_C01P_'||a.id as gpart
+from clm_client_tbl as a
+left join clm_statecl_tbl as b on a.id = b.id_client
+inner join sap_const const on 1=1
+WHERE
+--a.code_okpo<>'' and a.code_okpo<>'000000000'
+    -- and a.code_okpo<>'0000000'
+    --and a.code_okpo<>'000000'
+	       (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0
+           and  a.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001') 
+	    ) s1
+left join
+    --VK
+    (select 'VK'::text as struct,cl.id,
+case when length((case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar)=1 
+then '0'||(case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar 
+else (case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar end   as ZDATEREP
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE
+-- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+    -- and cl.code_okpo<>'0000000'
+    -- and cl.code_okpo<>'000000'
+	       (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0
+           and  cl.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001') 
+	   ) s2 on s1.id=s2.id
+left join
+    -- VKP
+    (select distinct 'VKP'::text as struct,cl.id,vktyp as vktyp,'04_C04P_'||cl.id as partner,const.opbuk,51 as ikey,13 as mahnv,
+const.begru_all as begru,b.adext_addr as adrnb_ext,
+'0005' as ZAHLKOND,'0002' as VERTYP,
+case when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99  then '04' 
+     when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)<>99  then '02'
+     when coalesce(st.flag_budjet,0)=1 then '03' 
+     else '02' 
+     end as KOFIZ_SD,
+     '5' as KZABSVER,
+     const.opbuk as stdbk,
+     case when coalesce(st.flag_budjet,0)=1 then
+     case when st.id_budjet=1000510 or st.id_section =211 then '1'
+          when st.id_budjet=1000521 or st.id_section =213 then '2'
+          when st.id_budjet=1000522 or st.id_section =215 then '3'
+          when st.id_budjet=1000523 or st.id_section =214 then '4'	
+          when st.id_budjet=1000520 or st.id_section is null then
+	  case when st.id_section=213 then '2'
+	       when st.id_section=214 then '4'
+	       when st.id_section=215 then '3'
+	  else ''
+	  end
+     else '' end
+else '5' end as FKRU_FIS,
+case when st.id_section in(210,211) then '10'
+     when st.id_section=212 then '20'
+     when st.id_section=213 then '21'
+     when st.id_section=214 then '22'
+     when st.id_section=215 then '23'
+     when st.id_section=203 then '30'
+     when st.id_section=201 then '40'
+     when st.id_section=202 then '60'
+     when st.id_section=205 then '81'
+     when st.id_section=207 then '82'
+     when st.id_section=206 then '83'
+     when st.id_section=204 then '50'
+     else '' end as ZSECTOR,
+     ''  as ZZ_MINISTRY,
+     replace((case when st.doc_dat<'2019-01-01' then '2019-01-01' else st.doc_dat end)::varchar ,'-','') as ZZ_START,
+     '' as ZZ_END,''  as ZZ_BUDGET,ww.ZZ_TERRITORY as ZZ_TERRITORY
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+left join sap_but020 b on '04_C04P_'||cl.id=b.oldkey
+
+left join
+    (select distinct id_potr,case when substr(trim(first_value(adr) over(partition by id_potr)),1,3)='м. ' then 1 else 2 end as zz_territory from
+    (
+        select p.*, c.code,c2.id as id_potr, c.short_name as name, c2.code as use_code, c2.name as use_name, area.area_name, en.energy , abonpar.doc_num
+from ( select dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg,
+ p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, 
+ dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts,
+  dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva,
+   dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.id_addres,q.adr, eq.num_eqp as eis_cod, eq.is_owner, eq.dt_install from eqm_equipment_tbl as eq 
+   join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
+   left join adv_address_tbl q on (q.id=eq.id_addres) 
+   left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif) left join cla_param_tbl as p on (dt.industry=p.id)
+   left join eqk_tg_tbl as tg on (dt.id_tg=tg.id) left join eqk_voltage_tbl AS v on (dt.id_voltage=v.id) left join eqk_voltage_tbl AS vun on (dt.id_un=vun.id) 
+   left join eqk_zone_tbl AS z on (dt.zone=z.id) left join cla_param_tbl AS cla on (dt.id_depart=cla.id) left join cla_param_tbl AS cla2 on (dt.id_extra=cla2.id) 
+   left join clm_position_tbl as cp on (cp.id = dt.id_position)) as p join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp) 
+   join eqm_tree_tbl as t on (t.id = tt.id_tree) 
+   join clm_client_tbl as c on (c.id = t.id_client) 
+   left join eqm_eqp_use_tbl as use on (use.code_eqp = p.code_eqp) 
+   
+   left join clm_client_tbl as c2 on (c2.id = coalesce (use.id_client, t.id_client)) 
+   left join clm_statecl_tbl as abonpar on (abonpar.id_client = c2.id) 
+   
+   left join (select ins.code_eqp, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area
+    on (area.code_eqp = p.code_eqp) left join (select code_eqp, trim(sum(e.name||','),',') as energy 
+    from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en 
+    on (en.code_eqp = p.code_eqp) where coalesce (use.id_client, t.id_client) <> syi_resid_fun() and (c2.id = NULL or NULL is null
+    and c2.idk_work not in (0,99) and coalesce(c2.id_state,0) not in (50,99) ) 
+    order by c2.code, p.name_eqp
+    ) w ) ww on ww.id_potr=cl.id 
+
+
+WHERE
+--cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+    --and cl.code_okpo<>'0000000'
+    --and cl.code_okpo<>'000000'
+	      (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0
+          and  cl.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001') 
+	    ) s3 on s2.id=s3.id
+
+left join
+    -- KVV
+    (select 'KVV'::text as struct,cl.id,'20200301'::text as date_from,'99991231'::text as date_to
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE
+--cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+    --and cl.code_okpo<>'0000000'
+    --and cl.code_okpo<>'000000'
+	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0
+         and  cl.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001') 
+	    ) s4 on s3.id=s4.id
+left join
+    --ZSTAT
+    (select 'ZSTAT'::text as struct,cl.id,'CONT07'::text as obj,
+case when ('01'='01' or  '01'='02') and
+    (substr(cl.short_name,1,3)='РП '  or substr(cl.short_name,1,2)='Р ') then  'CON005' else 'CON003' end as status,
+case when st.doc_dat is null then '20200101'::varchar else replace(st.doc_dat::varchar ,'-','') end as date_reg,
+'99991231'::text as date_to,''::text as price,
+''::text as COMMENTS,''::text as LOEVM
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE
+-- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+    -- and cl.code_okpo<>'0000000'
+    -- and cl.code_okpo<>'000000'
+	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0
+         and  cl.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001')  
+	     
+	    ) s5 on s4.id=s5.id  
+	    where (s1.id>=13060 and s1.id<=13070) or s1.id=13061	
+	        ) w";
+
+
+
         $sql_c = "select * from sap_export where objectsap='ACCOUNT' order by id_object";
+        $sql_err="delete from sap_err where upload='ACCOUNT' and res=$res";
+
 //        $zsql =  'delete from sap_vk';
 //        $zsql1 = 'delete from sap_but000';
 //        $zsql2 = 'delete from sap_ekun';
@@ -8027,6 +8582,7 @@ WHERE
 
                         Yii::$app->db_pg_dn_energo->createCommand($z)->execute();
                     }
+                    Yii::$app->db_pg_dn_energo->createCommand($sql_err)->execute();
                     break;
 
                 case 2:
@@ -8041,6 +8597,7 @@ WHERE
 
                         Yii::$app->db_pg_zv_energo->createCommand($z)->execute();
                     }
+                    Yii::$app->db_pg_zv_energo->createCommand($sql_err)->execute();
                     break;
                 case 3:
                     $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
@@ -8053,6 +8610,7 @@ WHERE
                             $z='delete from sap_'.trim($v['dattype']);
                         Yii::$app->db_pg_vg_energo->createCommand($z)->execute();
                     }
+                    Yii::$app->db_pg_vg_energo->createCommand($sql_err)->execute();
                     break;
                 case 4:
                     $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
@@ -8066,6 +8624,7 @@ WHERE
 
                         Yii::$app->db_pg_pv_energo->createCommand($z)->execute();
                     }
+                    Yii::$app->db_pg_pv_energo->createCommand($sql_err)->execute();
                     break;
                 case 5:
                     $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
@@ -8078,6 +8637,7 @@ WHERE
                             $z='delete from sap_'.trim($v['dattype']);
                         Yii::$app->db_pg_krg_energo->createCommand($z)->execute();
                     }
+                    Yii::$app->db_pg_krg_energo->createCommand($sql_err)->execute();
                     break;
                 case 6:
                     $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
@@ -8090,6 +8650,7 @@ WHERE
                             $z='delete from sap_'.trim($v['dattype']);
                         Yii::$app->db_pg_ap_energo->createCommand($z)->execute();
                     }
+                    Yii::$app->db_pg_ap_energo->createCommand($sql_err)->execute();
                     break;
                 case 7:
                     $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
@@ -8102,6 +8663,7 @@ WHERE
                             $z='delete from sap_'.trim($v['dattype']);
                         Yii::$app->db_pg_gv_energo->createCommand($z)->execute();
                     }
+                    Yii::$app->db_pg_gv_energo->createCommand($sql_err)->execute();
                     break;
                 case 8:
                     $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
@@ -8114,6 +8676,7 @@ WHERE
                             $z='delete from sap_'.trim($v['dattype']);
                         Yii::$app->db_pg_in_energo->createCommand($z)->execute();
                     }
+                    Yii::$app->db_pg_in_energo->createCommand($sql_err)->execute();
                     break;
             }
             $i = 0;
@@ -8238,6 +8801,82 @@ WHERE
         fclose($f);
 
         // Проверка файла выгрузки
+        echo '<br>';
+        echo'<br>';;
+        echo '<br>';
+        echo '<br>';
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        $res=(int)$rem;
+       // задвоения по oldkey  {
+       $err = double_oldkey($fname);
+      // Запись в таблицу ошибок
+       if (count($err)) {
+           foreach ($err as $v) {
+               $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+               exec_on_server($z, (int)$rem, $vid);
+           }
+       }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $err = double_struct($fname);
+       if($err<>'') {
+
+           $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+           exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+       }
+        // задвоения структур }
+
+        // отсутствие структуры {
+//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+         $cnt=5;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+
+        // нет объекта высшего уровня {
+        $sql="SELECT * from sap_refer where upload='$filename'";
+        $data_u = data_from_server($sql, $res, $vid);
+        $refer = $data_u[0]['refer'];
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        if(!empty($data_u[0]['upload'])) {
+            $err = no_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+        }
+        // нет объекта высшего уровня }
+
+        // пустая ссылка {
+        $msg = 'Пустая ссылка';
+        $err = empty_refer($fname, $data_u);
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // пустая ссылка }
 
         $model = new info();
         $model->title = 'УВАГА!';

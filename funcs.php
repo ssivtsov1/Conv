@@ -3628,4 +3628,249 @@ function masc ($s,$rem){
     return $ss.'CK'.$rem;
 
 }
+
+// Проверка файла выгрузки - задвоения по oldkey
+function double_oldkey ($filename)
+{
+    $f = fopen($filename, 'r');
+    $i = 0;
+    $j=0;
+    $arr_k = [];
+    while (!feof($f)) {
+        $i++;
+        $s = fgets($f);
+        $data = explode("\t", $s);
+        if (isset($data[1])) {
+            if ($data[1] == 'INIT' || $data[1] == 'CO_EHA' ||  $data[1] == 'EVBSD') {
+                $arr_k[$j] = $data[0];
+                $j++;
+            }
+        }
+    }
+    // Seek double - result will be in array res
+    $res = [];
+    $k=0;
+    for($m=0;$m<$j;$m++) {
+        $prev = $arr_k[$m];
+        for ($n = $m+1; $n < $j; $n++) {
+            if ($arr_k[$n]==$prev) {
+                $res[$k] = $prev;
+                $k++;
+            }
+        }
+    }
+    fclose($f);
+    return $res;
+}
+
+// Проверка файла выгрузки - задвоения структур
+function double_struct ($filename)
+{
+    $f = fopen($filename, 'r');
+    $i = 0;
+    $prev='';
+    while (!feof($f)) {
+        $i++;
+        $s = fgets($f);
+        $data = explode("\t", $s);
+        if (isset($data[1])) {
+            if($data[1]==$prev) {
+                fclose($f);
+                return $data[0];
+            }
+            $prev=$data[1];
+        }
+    }
+    fclose($f);
+    return '';
+}
+
+// Проверка файла выгрузки - отсутствие структуры
+// Аргументы:
+// $filename - имя файла выгрузки
+// $cnt - кол-во структур в каждом блоке данных
+function no_struct ($filename,$cnt)
+{
+    $f = fopen($filename, 'r');
+    $i = 0;
+    $prev='';
+    $oldkey='';
+    $flag=0;
+    $ok=1;  // Признак нормальности структуры
+    while (!feof($f)) {
+        $s = fgets($f);
+        $i++;
+        $data = explode("\t", $s);
+        if (isset($data[0])) {
+            $oldkey = $data[0];
+            if ($oldkey <> $prev && $prev <> '') {
+                $flag = 1;  // Конец структуры
+            }
+
+            if (($i-1) == $cnt && $flag == 1) {
+                $ok = 1;   // Normal structure
+                $i = 1;
+                $flag = 0;
+                $prev = $oldkey;
+                continue;
+            }
+            if (($i-1) <> $cnt && $flag == 1) {
+                $ok = 0;   // not normal structure
+                fclose($f);
+                return $prev;
+            }
+            $prev = $oldkey;
+        }
+    }
+    fclose($f);
+    return '';
+}
+
+// Проверка файла выгрузки - нет объекта высшего уровня
+function no_refer ($filename,$data_u)
+{
+    $f = fopen($filename, 'r');
+    $i = 0;
+    $j=0;
+   $upload=$data_u[0]['upload'];
+   $struct=$data_u[0]['struct'];
+   $pole=$data_u[0]['n_data'];
+   $refer=$data_u[0]['refer'];
+   $tail=substr($filename,strlen($upload));
+    $arr_k = [];
+
+    for($q=0;$q<count($data_u);$q++) {
+        $pole = $data_u[$q]['n_data'];
+        $refer=$data_u[$q]['refer'];
+        $ref_file=$refer . $tail;
+        $fr = fopen($ref_file, 'r');
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode("\t", $s);
+            if (isset($data[1])) {
+                if ($data[1] == $struct) {
+                    // Ищем ссылку в файле $ref_file (высшего уровня)
+                    $f_seek = 0;
+                    rewind($fr);
+                    while (!feof($fr)) {
+                        $sr = fgets($fr);
+                        $data_r = explode("\t", $sr);
+                        if ($data_r[0] == $data[$pole - 1]) {
+                            $f_seek = 1;
+                            break;
+                        }
+                    }
+                    if ($f_seek == 0) {
+                        // not found reference
+                        $arr_k[$j] = $data[$pole - 1];
+                        $j++;
+                    }
+                }
+            }
+        }
+        fclose($fr);
+    }
+    fclose($f);
+    return $arr_k;
+}
+
+// Проверка файла выгрузки - пустая ссылка
+function empty_refer ($filename,$data_u)
+{
+    $f = fopen($filename, 'r');
+    $i = 0;
+    $j = 0;
+    $struct = $data_u[0]['struct'];
+    $pole = $data_u[0]['n_data'];
+    $arr_k = [];
+    while (!feof($f)) {
+        $i++;
+        $s = fgets($f);
+        $data = explode("\t", $s);
+        if (isset($data[1])) {
+            if ($data[1] == $struct) {
+                if (empty($data[$pole - 1])) {
+                    $arr_k[$j] = $data[0];
+                    $j++;
+                }
+            }
+        }
+    }
+    fclose($f);
+    return $arr_k;
+}
+
+// Проверка файла выгрузки - проверка адреса  на соответствие его с названием в САП или индекса
+// Аргументы:
+// $filename - имя файла выгрузки
+// $mode - режим работы (1 - проверка адреса, 2 - проверка почтового индекса)
+function check_adres ($filename,$mode)
+{
+    $f = fopen($filename, 'r');
+    $i = 0;
+    $j = 0;
+    $arr_k = [];
+    if ($mode==1)
+        $ind=3;
+    if ($mode==2)
+        $ind=4;
+    while (!feof($f)) {
+        $i++;
+        $s = fgets($f);
+        $data = explode("\t", $s);
+        if (isset($data[1])) {
+            if ($data[1] == 'CO_ADR' || $data[1] == 'BUT020') {
+
+                if(empty($data[$ind] )) {
+                    $arr_k[$j] = $data[0];
+                    $j++;
+                }
+            }
+        }
+    }
+    return $arr_k;
+}
+
+function check_adres_partner ($filename,$mode)
+{
+    $f = fopen($filename, 'r');
+    $i = 0;
+    $j = 0;
+    $arr_k = [];
+    if ($mode==1)
+        $ind=5;
+    if ($mode==2)
+        $ind=6;
+    while (!feof($f)) {
+        $i++;
+        $s = fgets($f);
+        $data = explode("\t", $s);
+        if (isset($data[1])) {
+            if ($data[1] == 'CO_ADR' || $data[1] == 'BUT020') {
+
+                if(empty($data[$ind] )) {
+                    $arr_k[$j] = $data[0];
+                    $j++;
+                }
+            }
+        }
+    }
+    return $arr_k;
+}
+
+function test_f($s) {
+    $p=true;
+    $y=strlen($s);
+    for($i=0;$i<$y;$i++)
+    {
+        $c=substr($s,$i,1);
+//        $p=((!$p) && ($c=='5')) || ($p && (!($c=='5')));
+        $p= ($c=='5') xor ($p);
+//        echo $c . ' ';
+//        echo ($p)?1:0 . ' ';
+    }
+    return  ($p)?1:0;
+}
+
 ?>
