@@ -3726,6 +3726,28 @@ function no_struct ($filename,$cnt)
     return '';
 }
 
+
+
+function count_str ($filename)
+{
+    $f = fopen($filename, 'r');
+        $count = 0;
+        $a = "";
+        $b = 0;
+        while(($s = fgets($f)) !== false) {
+        $count++;
+        $rez = explode("\t", $s);
+        if ($a != $rez[0]) {
+        $b++;
+        }
+        $a = $rez[0];
+        }
+        return 'количество строк '.$count.'  '.',количество уникалных кодов '.$b;
+        
+}
+
+
+
 // Проверка файла выгрузки - нет объекта высшего уровня
 function no_refer ($filename,$data_u)
 {
