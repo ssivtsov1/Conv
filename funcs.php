@@ -3641,7 +3641,9 @@ function double_oldkey ($filename)
         $s = fgets($f);
         $data = explode("\t", $s);
         if (isset($data[1])) {
-            if ($data[1] == 'INIT' || $data[1] == 'CO_EHA' ||  $data[1] == 'EVBSD') {
+            if ($data[1] == 'INIT' || $data[1] == 'CO_EHA' ||  $data[1] == 'EVBSD'
+                || $data[1] == 'DATA' || $data[1] == 'EGPLD' || $data[1] == 'AUTO' || $data[1] == 'EGRH'
+                || $data[1] == 'DI_INT' || $data[1] == 'EVER') {
                 $arr_k[$j] = $data[0];
                 $j++;
             }
@@ -3755,7 +3757,6 @@ function no_refer ($filename,$data_u)
     $i = 0;
     $j=0;
    $upload=$data_u[0]['upload'];
-   $struct=$data_u[0]['struct'];
    $pole=$data_u[0]['n_data'];
    $refer=$data_u[0]['refer'];
    $tail=substr($filename,strlen($upload));
@@ -3764,8 +3765,14 @@ function no_refer ($filename,$data_u)
     for($q=0;$q<count($data_u);$q++) {
         $pole = $data_u[$q]['n_data'];
         $refer=$data_u[$q]['refer'];
+        $struct=$data_u[$q]['struct'];
         $ref_file=$refer . $tail;
+        echo '<br>';
+        echo '<br>';
+        echo '<br>';
+
         $fr = fopen($ref_file, 'r');
+        rewind($f);
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
@@ -3785,7 +3792,7 @@ function no_refer ($filename,$data_u)
                     }
                     if ($f_seek == 0) {
                         // not found reference
-                        $arr_k[$j] = $data[$pole - 1];
+                        $arr_k[$j] = $refer.' '.$data[$pole - 1];
                         $j++;
                     }
                 }
@@ -3844,7 +3851,7 @@ function check_adres ($filename,$mode)
         if (isset($data[1])) {
             if ($data[1] == 'CO_ADR' || $data[1] == 'BUT020') {
 
-                if(empty($data[$ind] )) {
+                if(empty($data[$ind-1] )) {
                     $arr_k[$j] = $data[0];
                     $j++;
                 }
@@ -3871,7 +3878,7 @@ function check_adres_partner ($filename,$mode)
         if (isset($data[1])) {
             if ($data[1] == 'CO_ADR' || $data[1] == 'BUT020') {
 
-                if(empty($data[$ind] )) {
+                if(empty($data[$ind-1] )) {
                     $arr_k[$j] = $data[0];
                     $j++;
                 }
