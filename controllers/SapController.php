@@ -413,7 +413,7 @@ and a.code not in('20000556','20000565','20000753',
 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 '10999999','11000000','19999369','50999999','1000000','1000001') -- AND a.id=12098
 --AND ads.street is null
-and trim(s.name)='' or trim(t.name)=''
+ and (trim(s.name)='' or trim(t.name)='' or s.name is null or t.name is null)
 ) v"; 
         
         $s = sap_connect::findBySql($sql)->asArray()->all();

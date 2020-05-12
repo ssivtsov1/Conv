@@ -3175,14 +3175,15 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
             $err = no_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
-//                    debug($v);
                     $z="INSERT  INTO sap_err
                         VALUES('$filename','$v','$refer',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
             }
         }
-        // нет объекта высшего уровня }
+         // нет объекта высшего уровня }
+
+
 
         // пустая ссылка {
         $msg = 'Пустая ссылка';
@@ -5410,6 +5411,10 @@ where a.archive='0'
         left join adv_address_tbl as adr on (adr.id = eq.id_addres ) 
          inner join sap_const const on 1=1
          left join (select oldkey,get_tu(substr(oldkey,9)::integer) as id_tu,matnr,sernr from sap_equi) u on u.id_tu=eq.id
+         where (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
+                 and  c.code not in('20000556','20000565','20000753',
+                 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+                '10999999','11000000','19999369','50999999','1000000','1000001')
           ";
 
         if ($helper == 1)
