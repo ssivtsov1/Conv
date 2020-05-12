@@ -39,7 +39,7 @@ class sap_connect extends ActiveRecord {
             return Yii::$app->get('db_pg_krg_energo');
         if($s=='192.168.85.1')
             return Yii::$app->get('db_pg_in_energo');
-        if($s=='192.168.85.1')
+        if($s=='localhost')
             return Yii::$app->get('db_pg_in_energo');
     }
     

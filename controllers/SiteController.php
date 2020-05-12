@@ -31,7 +31,7 @@ use app\models\all_tmc;
 use app\models\tmp_works;
 use app\models\tmp_works_1;
 use yii\web\UploadedFile;
-
+use app\models\sap_connect; 
 
 class SiteController extends Controller
 {  /**
@@ -1415,19 +1415,32 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
+        // 
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-
-
-        fclose($f);
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
         //формирование файла идентификации
         // Формирование файла partner для САП для юридических лиц
@@ -2565,17 +2578,31 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
 
         }
         // пустая ссылка }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-        // Выдаем предупреждение на экран об окончании формирования файла
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл INST_MGMT сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
 
     // Формирование файла группировки устройств DEVGRP (юридические лица)
@@ -3198,18 +3225,31 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
 
         }
         // пустая ссылка }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-        fclose($f);
-        // Выдаем предупреждение на экран об окончании формирования файла
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
 
     // Формирование файла линий(zlines) для САП для юридических потребителей
@@ -3507,18 +3547,31 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
 
         }
         // пустая ссылка }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-        fclose($f);
-        // Выдаем предупреждение на экран об окончании формирования файла
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл ZLINES сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
 
     // Формирование файла трансформаторов (ztransf) для САП для юридических потребителей
@@ -3808,17 +3861,31 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
         }
         // пустая ссылка }
 
-        fclose($f);
-        // Выдаем предупреждение на экран об окончании формирования файла
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл ZTRANSF сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
 
     // Формирование файла facts для САП для юридических потребителей
@@ -4324,17 +4391,7 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
                 fputs($f, "\n");
             }
         }
-        fclose($f);
-        // Выдаем предупреждение на экран об окончании формирования файла
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
 
-        return $this->render('info', [
-            'model' => $model]);
     }
 
     // Формирование файла facts для САП для бытовых потребителей
@@ -5119,23 +5176,31 @@ order by 8,zz_point_num,zz_plosch_num,zz_object_num
 
         }
         // пустая ссылка }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-
-        fclose($f);
-
-//        if (file_exists($fname)) {
-//            return \Yii::$app->response->sendFile($fname);
-//        }
-
-        // Выдаем предупреждение на экран об окончании формирования файла
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл MOVE_IN сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
 
     //выгрузка ид фалов сап imove_in , для бытовых потребителей
@@ -5580,18 +5645,31 @@ where a.archive='0'
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-        fclose($f);
-        // Выдаем предупреждение на экран об окончании формирования файла
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
     
     
@@ -6533,18 +6611,31 @@ order by tzap
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-        fclose($f);
-        // Выдаем предупреждение на экран об окончании формирования файла
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
 
     //формирование файла идентификации
@@ -7580,20 +7671,32 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
+        // 
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-
-//        fputs($f, "\t&ENDE");
-//        fputs($f, "\n");
-        fclose($f);
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
      }
 
     // Формирование файла premise для САП для Юридических потребителей
@@ -7896,18 +7999,34 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
 
         }
         // пустая ссылка }
+        // 
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-        fclose($f);
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
+    
     
     //формирование файлов идентификации в САП абонентов ЕНЕРГО структруры "премайс"
     //юридические лица
@@ -9325,16 +9444,34 @@ WHERE
         }
         // пустая ссылка }
 
+        // 
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
+    
 
     //формирование файла идентификации
         // Формирование файла account для САП для Юр.лиц
@@ -9662,18 +9799,31 @@ WHERE
 
         }
         // пустая ссылка }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-
-        fclose($f);
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл сформовано.".$col;
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
-
+            
         return $this->render('info', [
             'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
     }
 
         //формирование файла идентификации
