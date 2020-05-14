@@ -251,26 +251,26 @@ having count(*)>1";
              public function actionYspoj(){
          
         $sql = "select town,street,id,code,name from (
-select distinct a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
-case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа ' in a.name)>0
+select distinct a.code,a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
+case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа ' in a.name)>0 
 then '03' else '02' end as BU_GROUP,
 case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '0003' else '0002' end as BPKIND,
 'MKK' as ROLE1,
-case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end as ROLE2,
+case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end  as ROLE2,
 '00010101' as VALID_FROM_1,
 'I' as CHIND_1,
-case when coalesce(a.id_state,0) in (80,49) then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end as VALID_FROM_2,
-case when coalesce(a.id_state,0) in (80,49) then 'I' else '' end as CHIND_2,
+case when coalesce(a.id_state,0) in (80,49) then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end  as VALID_FROM_2,
+case when coalesce(a.id_state,0) in (80,49) then 'I' else '' end  as CHIND_2,
 '1' as FKUA_RSD,
 '3' as FKUA_RIS,
-case when coalesce(b.FLAG_JUR,0)= 1 then
+case when coalesce(b.FLAG_JUR,0)= 1 then 
 
-a.code_okpo
-
-else
-case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000' then trim(coalesce (a.code_okpo, b.okpo_num))
-when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))='0000000000' then a.code_okpo else '' end
-end as BU_SORT1,
+	a.code_okpo
+        
+else 
+	case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000' then trim(coalesce (a.code_okpo, b.okpo_num))
+	 when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))='0000000000' then a.code_okpo else '' end
+end  as BU_SORT1,
 '' as BU_SORT2,
 '0006' as SOURCE,
 'LEG' as AUGRP,
@@ -278,46 +278,46 @@ substr(trim(a.name),1,40) as name_org1,
 substr(trim(a.name),41,40) as name_org2,
 substr(trim(a.name),81,40) as name_org3,
 substr(trim(a.name),121,40) as name_org4,
-case when coalesce(b.FLAG_JUR,0)= 1 then
-case
-when upper(trim(a.name)) LIKE 'ФЕРМЕР%' AND upper(trim(a.name)) LIKE '%ГОСП%' then '02'
-when (upper(trim(a.name)) LIKE 'ПРИВАТ%' OR upper(trim(a.name)) LIKE '%ПРИВАТ%') AND upper(trim(a.name)) LIKE '%ПІДПР%' then '03'
-when upper(trim(a.name)) LIKE 'КОЛЕКТИВ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '04'
-when upper(trim(a.name)) LIKE 'ДЕРЖ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '05'
-when (upper(trim(a.name)) LIKE 'КОМУНАЛЬНЕ%' AND upper(trim(a.name)) LIKE '%ПІДПР%') then '07'
-when ((upper(trim(a.name)) LIKE 'ДОЧІРНЄ%' OR upper(trim(a.name)) LIKE 'ДОЧІРНЕ%') AND upper(trim(a.name)) LIKE '%ПІДПР%') then '08'
-when upper(trim(a.name)) LIKE 'РЕЛІГ%' or upper(trim(a.name)) LIKE '%РЕЛІГ%' then '10'
-when upper(trim(a.name)) LIKE 'ПІДПР%' AND upper(trim(a.name)) LIKE '%СПОЖИВ%' AND upper(trim(a.name)) LIKE '%КООП%' then '11'
-when (upper(trim(a.name)) LIKE 'АКЦІОНЕРНЕ ТОВАРИСТВО%' or ((upper(trim(a.name)) LIKE 'ПУБЛІЧНЕ%' OR upper(trim(a.name)) LIKE 'ПРИВАТНЕ%') and upper(trim(a.name)) LIKE '%АКЦІОНЕРНЕ%' and upper(trim(a.name)) LIKE '%ТОВАРИСТВО%')) then '17'
-when upper(trim(a.name)) LIKE 'ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО%' then '18'
-when upper(trim(a.name)) LIKE 'ЗАКРИТЕ%' AND upper(trim(a.name)) LIKE '%АКЦІОНЕР%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '19'
-when (upper(trim(a.name)) LIKE 'ТОВ%' AND upper(trim(a.name)) LIKE '%ОБМЕЖ%' AND upper(trim(a.name)) LIKE '%ВІДП%') OR upper(trim(a.name)) LIKE 'ТОВ %' then '21'
-when upper(trim(a.name)) LIKE 'ТОВ%' AND upper(trim(a.name)) LIKE '%ДОД%' AND upper(trim(a.name)) LIKE '%ВІДП%' then '22'
-when upper(trim(a.name)) LIKE 'ПОВНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '23'
-when upper(trim(a.name)) LIKE 'КОМАНДИТНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '24'
-when upper(trim(a.name)) like 'АВТОКООПЕРАТИВ%' OR upper(trim(a.name)) like '%АВТОКООПЕРАТИВ%' OR (upper(trim(a.name)) like 'АВТО%' AND upper(trim(a.name)) like '%КООПЕРАТИВ%') then '25'
-when upper(trim(a.name)) LIKE 'ВИРОБНИЧ%' AND upper(trim(a.name)) LIKE '%КООП%' then '26'
-when upper(trim(a.name)) LIKE 'ОБСЛУГОВ%' AND upper(trim(a.name)) LIKE '%КООП%' then '27'
-WHEN (upper(trim(a.name)) like 'ДЕРЖАВНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name)) like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name)) like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '35'
-WHEN (upper(trim(a.name)) like 'КОМУНАЛЬНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name)) like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name)) like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '36'
-WHEN (upper(trim(a.name)) like 'ПРИВАТНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name)) like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name)) like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '37'
-when upper(trim(a.name)) LIKE 'ГРОМАДСЬКА%' AND upper(trim(a.name)) LIKE '%ОРГ%' then '38'
-when (upper(trim(a.name)) LIKE 'КОРПОРАЦІЯ%' OR upper(trim(a.name)) LIKE 'КООРПОРАЦІЯ%') then '43'
-when upper(trim(a.name)) LIKE 'КОНЦЕРН%' AND upper(trim(a.name)) LIKE '%КОНЦЕРН%' then '45'
-else '01'
-end
-else ''
+case when coalesce(b.FLAG_JUR,0)= 1 then  
+     case 
+     when upper(trim(a.name)) LIKE  'ФЕРМЕР%' AND upper(trim(a.name)) LIKE '%ГОСП%' then '02' 
+     when (upper(trim(a.name)) LIKE  'ПРИВАТ%' OR  upper(trim(a.name)) LIKE  '%ПРИВАТ%') AND upper(trim(a.name)) LIKE '%ПІДПР%' then '03' 
+     when upper(trim(a.name)) LIKE 'КОЛЕКТИВ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '04' 
+     when upper(trim(a.name)) LIKE 'ДЕРЖ%' AND upper(trim(a.name)) LIKE '%ПІДПР%' then '05' 
+     when (upper(trim(a.name)) LIKE  'КОМУНАЛЬНЕ%' AND upper(trim(a.name)) LIKE '%ПІДПР%') then '07' 
+     when ((upper(trim(a.name)) LIKE 'ДОЧІРНЄ%' OR upper(trim(a.name)) LIKE 'ДОЧІРНЕ%') AND upper(trim(a.name)) LIKE '%ПІДПР%') then '08' 
+     when upper(trim(a.name)) LIKE  'РЕЛІГ%' or  upper(trim(a.name)) LIKE '%РЕЛІГ%' then '10' 
+     when upper(trim(a.name)) LIKE  'ПІДПР%' AND  upper(trim(a.name)) LIKE '%СПОЖИВ%' AND  upper(trim(a.name)) LIKE '%КООП%' then '11' 
+     when (upper(trim(a.name)) LIKE  'АКЦІОНЕРНЕ ТОВАРИСТВО%' or ((upper(trim(a.name)) LIKE  'ПУБЛІЧНЕ%' OR upper(trim(a.name)) LIKE  'ПРИВАТНЕ%') and  upper(trim(a.name)) LIKE  '%АКЦІОНЕРНЕ%' and upper(trim(a.name)) LIKE  '%ТОВАРИСТВО%')) then '17' 
+     when upper(trim(a.name)) LIKE 'ВІДКРИТЕ АКЦІОНЕРНЕ ТОВАРИСТВО%' then '18' 
+     when upper(trim(a.name)) LIKE 'ЗАКРИТЕ%' AND upper(trim(a.name)) LIKE  '%АКЦІОНЕР%' AND  upper(trim(a.name)) LIKE '%ТОВ%' then '19' 
+     when (upper(trim(a.name)) LIKE  'ТОВ%' AND upper(trim(a.name)) LIKE '%ОБМЕЖ%' AND upper(trim(a.name))  LIKE '%ВІДП%') OR upper(trim(a.name)) LIKE  'ТОВ %' then '21' 
+     when upper(trim(a.name)) LIKE  'ТОВ%' AND upper(trim(a.name)) LIKE '%ДОД%' AND upper(trim(a.name))  LIKE '%ВІДП%' then '22'
+     when upper(trim(a.name)) LIKE  'ПОВНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '23' 
+     when upper(trim(a.name)) LIKE  'КОМАНДИТНЕ%' AND upper(trim(a.name)) LIKE '%ТОВ%' then '24' 
+     when upper(trim(a.name)) like 'АВТОКООПЕРАТИВ%'  OR upper(trim(a.name)) like '%АВТОКООПЕРАТИВ%' OR (upper(trim(a.name))  like 'АВТО%' AND upper(trim(a.name))  like '%КООПЕРАТИВ%') then '25' 
+     when upper(trim(a.name)) LIKE  'ВИРОБНИЧ%' AND upper(trim(a.name)) LIKE '%КООП%' then '26' 
+     when upper(trim(a.name)) LIKE  'ОБСЛУГОВ%' AND upper(trim(a.name)) LIKE '%КООП%' then '27'   
+     WHEN (upper(trim(a.name)) like 'ДЕРЖАВНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name))  like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name))  like 'ДЕРЖАВНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '35'
+     WHEN (upper(trim(a.name)) like 'КОМУНАЛЬНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name))  like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name))  like 'КОМУНАЛЬНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '36'
+     WHEN (upper(trim(a.name)) like 'ПРИВАТНИЙ%' AND upper(trim(a.name)) like '%ЗАКЛАД%') OR (upper(trim(a.name))  like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%УСТАНОВА%') OR (upper(trim(a.name))  like 'ПРИВАТНА%' AND upper(trim(a.name)) like '%ОРГАНІЗАЦІЯ%') THEN '37'
+     when upper(trim(a.name)) LIKE  'ГРОМАДСЬКА%' AND upper(trim(a.name)) LIKE '%ОРГ%' then '38' 
+     when (upper(trim(a.name)) LIKE  'КОРПОРАЦІЯ%' OR upper(trim(a.name)) LIKE 'КООРПОРАЦІЯ%') then '43' 
+     when upper(trim(a.name)) LIKE  'КОНЦЕРН%' AND upper(trim(a.name)) LIKE '%КОНЦЕРН%' then '45' 
+     else '01'
+     end
+else '' 
 end as LEGAL_ENTY,
-case when coalesce(a.id_state,0) in (80,49) then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end as LIQUID_DAT,
+case when coalesce(a.id_state,0) in (80,49)  then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end as LIQUID_DAT,
 ''::char(4) as ZFILCODE,
 '' as ZFILHEAD,
-case when coalesce(b.FLAG_JUR,0)= 0 then 'X' else '' end as ZPROCIND,
+case when coalesce(b.FLAG_JUR,0)= 0 then  'X' else '' end as ZPROCIND,
 '' as ZCODEFORMOWN,
 '' as ZCODESPODU,
 '' as ZCODEBANKROOT,
 '' as ZCODELICENSE,
 case when length(trim(a.name))> 160 then trim(a.name) else '' end as ZNAMEALL,
-replace(replace(replace(trim(a.short_name),' ',' '),' ',' '),'''','’') as ZZ_NAMESHORT,
+replace(replace(replace(trim(a.short_name),'   ',' '),'  ',' '),'''','’') as ZZ_NAMESHORT,
 b.doc_ground as ZZ_DOCUMENT,
 '' as ADEXT_ADDR,
 'I' as CHIND_ADDR,
@@ -329,90 +329,89 @@ UPPER(am.office) as HOUSE_NUM2,
 case when substring(trim(b.phone),1,30) <> '' then 'I' else '' end as CHIND_TEL,
 case when position(',' in trim(b.phone))>0 then get_phone(b.phone) else
 case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')) =10 then
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')
-else '' end end as TEL_NUMBER,
+		regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')
+		 else '' end end as TEL_NUMBER,
 '' as CHIND_FAX,
 '' as FAX_NUMBER,
 case when trim(a.email) <>'' then 'I' else '' end as CHIND_SMTP,
 trim(a.email) as SMTP_ADDR,
 
 case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g')) =10 then
-case when regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '039%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '050%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '063%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '066%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '067%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '068%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '073%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '091%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '092%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '093%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '094%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '095%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '096%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '097%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '098%'
-or
-regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '099%'
-then '3'
-else '1' end
+	case when regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '039%'
+	or	
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '050%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '063%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '066%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '067%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '068%'
+        or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '073%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '091%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '092%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '093%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '094%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '095%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '096%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '097%'
+	or
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '098%'
+	or 
+	regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^0-9]', '','g') like '099%'
+	then '3'
+	else '1' end
 
-else '' end as TEL_MOBILE,
-'CEKPOST' as ADR_KIND,
-'X' as XDFADU,
-case when (length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000')
-then trim(coalesce (a.code_okpo, b.okpo_num))
-when length(trim(coalesce (a.code_okpo, b.okpo_num)))=8 then trim(coalesce (a.code_okpo, b.okpo_num))
-end as IDNUMBER,
-case when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=8 then 'EDRPOU'
-when (coalesce(b.FLAG_JUR,0)= 0 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10) then 'FS0001'
-when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then 'FS0001'
-else '' end as ID_TYPE,
-
+	else '' end as TEL_MOBILE,
+	'CEKPOST' as ADR_KIND,
+	'X' as XDFADU,
+	case when (length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 and trim(coalesce (a.code_okpo, b.okpo_num))<>'0000000000')
+	   then trim(coalesce (a.code_okpo, b.okpo_num)) 
+	   when length(trim(coalesce (a.code_okpo, b.okpo_num)))=8 then trim(coalesce (a.code_okpo, b.okpo_num))
+	   end as IDNUMBER,
+	   case when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=8 then 'EDRPOU'
+	    when (coalesce(b.FLAG_JUR,0)= 0 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10) then  'FS0001' 
+	    when coalesce(b.FLAG_JUR,0)= 1 and length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then  'FS0001'
+	    else '' end as ID_TYPE,
+	
 kt.shot_name||' '||t.name as town,ads.town as town_sap,am.post_index,b2.post_index as post_index_sap,ks.shot_name||' '||s.name as street,ads.street as street_sap,
 UPPER(am.building) as house,UPPER(am.office) as flat,
-b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl,a.code
-from clm_client_tbl a
-left join clm_statecl_tbl b on
-a.id=b.id_client
-LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
-LEFT JOIN adi_street_tbl s ON s.id = am.id_street
-LEFT JOIN adi_town_tbl t ON t.id = s.id_town
-LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
-LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
---LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
---LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name)
-LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
-and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '08'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
-and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and '08'='05' then trim(ads.reg)='DNP' else 1=1 end
-and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and '08'='05' then trim(ads.reg)='DNP' else 1=1 end
-and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '08'='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
-and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and '08'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
-and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and '08'='06' then trim(ads.reg)='DNP' else 1=1 end
--- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
-
-LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from post_index_sap) b2
-on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
-WHERE
-(a.code>999 or a.code=900) AND coalesce(a.idk_work,0)<>0
-and a.code not in('20000556','20000565','20000753',
-'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-'10999999','11000000','19999369','50999999','1000000','1000001') -- AND a.id=12098
---AND ads.street is null
+b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
+ from clm_client_tbl a
+        left join clm_statecl_tbl b on
+        a.id=b.id_client
+        LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+        LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+        LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+        LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+        LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+        --LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
+       --LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name) 
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '07'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end 
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and '07'='05' then trim(ads.reg)='DNP' else 1=1 end 
+         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and '07'='05' then trim(ads.reg)='DNP' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '07'='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and '07'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and '07'='06' then trim(ads.reg)='DNP' else 1=1 end   
+       -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+        
+       LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
+         on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
+        WHERE 
+        (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
+	     and  a.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
  and (trim(s.name)='' or trim(t.name)='' or s.name is null or t.name is null)
 ) v"; 
         

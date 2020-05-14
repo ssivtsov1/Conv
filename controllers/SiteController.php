@@ -1085,9 +1085,9 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
         LEFT JOIN adi_town_tbl t ON t.id = s.id_town
         LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
-        --LEFT JOIN addr_sap ads on lower(ads.town)=kt.shot_name||' '||lower(t.name) and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
+        --LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
        --LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name) 
-       LEFT JOIN addr_sap ads on trim(ads.town)=lower(trim(kt.shot_name))||' '||lower(trim(t.name)) and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end 
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end 
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
