@@ -4411,12 +4411,28 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
             }
 
         // нет объекта высшего уровня }
+                fclose($f);  
+        
+        
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
+        
+        $sql_ab = data_from_server($sql_err, $res, $vid);  
+        
+        if(empty($sql_ab)){
+        
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.".$col;
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+            
+        return $this->render('info', [
+            'model' => $model]);
+        } else {
+        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
         }
-        else
-            return 1;
     }
 
     // Формирование файла facts для САП для бытовых потребителей
