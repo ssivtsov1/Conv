@@ -55,6 +55,8 @@ AppAsset::register($this);
                                                                                             ['label' => 'перевірка ІПН', 'url' => ['/sap/inn']],
                                                                                             ['label' => 'Пусті площадки', 'url' => ['/sap/plosh']],
                                                                                             ['label' => 'Відсутня юр.адреса спож.', 'url' => ['/sap/yspoj']],
+                                                                                            ['label' => 'Відсутня адреса на точці вым.', 'url' => ['/sap/missingaddres']],
+                                                                                            ['label' => 'Відсутня площадка вим.', 'url' => ['/sap/missingarea']],
                                                                                             ],
                                                                                  ],     
                                                                                  ]

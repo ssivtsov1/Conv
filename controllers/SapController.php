@@ -422,7 +422,50 @@ and a.code not in('20000556','20000565','20000753',
 
     } 
     
+             public function actionMissingaddres(){
+         
+        $sql = "SELECT row_number() OVER() as num,eq.id,c.code,c.name from eqm_equipment_tbl as eq
+left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id)
+left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client))
+where eq.type_eqp=12 and
+(c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0
+and c.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001')
+and (eq.id_addres is null or eq.id_addres=0)"; 
+        $s = sap_connect::findBySql($sql)->asArray()->all();
+   
+        return $this->render('missingaddres', compact('s'));
+
+    } 
     
-    
+                 public function actionMissingarea(){
+         
+        $sql = "select a.code,a.name from clm_client_tbl a where a.code not in
+(select code from
+(select p.code_eqp as oldkey, area.id_area as VSTELLE,cl1.code,cl1.name
+from eqm_point_tbl as p
+left join (select ins.code_eqp, eq3.id as id_area
+from eqm_compens_station_inst_tbl as ins
+join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = p.code_eqp)
+join eqm_area_tbl as dt on dt.code_eqp=area.id_area
+left join clm_client_tbl as cl1 on (cl1.id=dt.id_client)
+where p.code_eqp in (select id from eqm_equipment_tbl where type_eqp = 12) --and area.id_area is null
+and (cl1.code>999 or cl1.code=900) AND coalesce(cl1.idk_work,0)<>0
+and cl1.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001')
+) x)
+and (a.code>999 or a.code=900) AND coalesce(a.idk_work,0)<>0
+and a.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001')"; 
+        $s = sap_connect::findBySql($sql)->asArray()->all();
+   
+        return $this->render('missingarea', compact('s'));
+
+    }
     
 }
