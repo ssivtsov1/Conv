@@ -52,7 +52,8 @@ AppAsset::register($this);
                         'items' =>
                             [
 //                                ['label' => 'Импорт списка работников в тел. справ.(старый)', 'url' => ['/site/import_list_works']],
-                                ['label' => 'Импорт списка работников в тел. справ.(новый)', 'url' => ['/site/import_list_works_new']],
+//                                ['label' => 'Импорт списка работников в тел. справ.(новый)', 'url' => ['/site/import_list_works_new']],
+                                ['label' => 'Импорт списка работников в тел. справ.(новый)', 'url' => ['/site/import_list_works_tel']],
                                 ['label' => 'Импорт списка работников во врем. таблицу', 'url' => ['/site/import_list_new']],
                                 ['label' => 'Импорт списка новых работников во врем. таблицу', 'url' => ['/site/import_new']],
                                 ['label' => 'Импорт населенных пунктов Украины в таблицу на MySQL', 'url' => ['/site/import_towns']],

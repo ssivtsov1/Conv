@@ -1085,9 +1085,9 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
         LEFT JOIN adi_town_tbl t ON t.id = s.id_town
         LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
-        --LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
+        --LEFT JOIN addr_sap ads on lower(ads.town)=kt.shot_name||' '||lower(t.name) and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
        --LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name) 
-       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
+       LEFT JOIN addr_sap ads on trim(ads.town)=lower(trim(kt.shot_name))||' '||lower(trim(t.name)) and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end 
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end 
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
@@ -2922,7 +2922,7 @@ case when st.id_section = 201 then '02'
      else '67' end  as BRANCHE,
 --case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
 case when c.code = '900' then '0004' else '0002' end as AKLASSE,
-     'PC01311' as ABLEINH,
+     'PC010131' as ABLEINH,
 case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
      when tgr.ident in('tgr2') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '012'
      when tgr.ident in('tgr6') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '020'
@@ -3018,7 +3018,8 @@ and
 	     and  www.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	     '10999999','11000000','19999369','50999999','1000000','1000001')
-and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null) 
+and id_cl<>2062 
+-- and (yy.oldkey is not null or qqq.oldkey is not null) 
 ";
 
         if($helper==1)
@@ -3094,11 +3095,11 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
             $n_struct = trim($v['dattype']);
             if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
             $zsql = "delete from sap_".strtolower($n_struct);
-//            exec_on_server($zsql,$res,$vid);
+            exec_on_server($zsql,$res,$vid);
         }
 
         // Заполняем структуры
-        /*
+
        foreach ($data as $w) {
            foreach ($cnt as $v) {
                $n_struct = trim($v['dattype']);
@@ -3106,7 +3107,6 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
                eval($func_fill);
            }
        }
-       */
 
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
@@ -4392,6 +4392,31 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
             }
         }
 
+        // нет объекта высшего уровня {
+
+        $refer = 'INSTLN';
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+
+            $err = no_refer_facts($fname);
+//            debug($err);
+//            return;
+
+             if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('FACTS','$v','$refer',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+
+        // нет объекта высшего уровня }
+
+        if (file_exists($fname)) {
+            return \Yii::$app->response->sendFile($fname);
+        }
+        else
+            return 1;
     }
 
     // Формирование файла facts для САП для бытовых потребителей
@@ -6428,9 +6453,9 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
                 '$date_ab' as datab,
                  '' as EQKTX,
                 case when m.dt_control is null then '2005' else substring(m.dt_control::varchar,1,4)  end as bgljahr,
-                case  when coalesce(eq.is_owner,0) = 0 then 'CK01232820' else '' end as KOSTL, 
+                case  when coalesce(eq.is_owner,0) = 0 then 'CK01230370' else '' end as KOSTL, 
                  trim(eq.num_eqp) as SERNR,
-                 case when eq.is_owner <> 1 then 'CK_RANDOM' else '' end as zz_pernr,
+                 case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
                   substring(replace(m.dt_control::varchar,'-',''),1,8) as CERT_DATE,
                   upper(sd.sap_meter_name) as matnr,
                  case when en1.kind_energy =1 then case when eqz1.zone in (4,5,9,10) then '2' when eqz1.zone in (1,2,3,6,7,8) then '3' when  eqz1.zone = 0 then '1' else '0' end ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||'0'::varchar||')' else '0_(000)' end||
@@ -6466,11 +6491,11 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
    
 union                
 
-select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
+select distinct 2000000-gr.code_t_new::int+row_number() OVER (order BY c.code_eqp) as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
                 '2004' as BAUJJ, 
-                '' as datab,
+                '$date_ab' as datab,
                  '' as EQKTX,
                  '2005' as bgljahr,
                 case  when coalesce(eq.is_owner,0) = 0 then 'CK01232820' else '' end as KOSTL, 
@@ -6482,7 +6507,7 @@ select distinct gr.code_t_new::int as id,0 as id_type_eqp,'' as sap_meter_id,c.c
                   '' as zwgruppe,
                   type_tr.group_ob as WGRUPPE,
                   const.swerk,const.stort,const.ver,const.begru_b as begru,2 as tzap
-                 from group_trans as gr
+                 from group_trans1 as gr
                  join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int
 		    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
 		    left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
@@ -6593,17 +6618,14 @@ order by tzap
         // задвоения по oldkey  }
 
         // задвоения структур {
-//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
         if($err<>'') {
-
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // задвоения структур }
 
         // отсутствие структуры {
-//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $cnt=4;
         $err = no_struct($fname,$cnt);
         if($err<>'') {
@@ -6611,6 +6633,14 @@ order by tzap
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
+
+//         Проверка на пустые поля {
+        $sql = 'SELECT * FROM sap_check_fields';
+        $f_data = data_from_server($sql,$res,$vid);
+        $err = empty_fields($fname, $f_data);
+        debug($err);
+//         Проверка на пустые поля }
+
         //kol struckt{
         $col= count_str($fname);
         //kol struckt}
@@ -7408,7 +7438,8 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
 	    --where id=20648
 	    group by coalesce(town,''),coalesce(post_index,''),
 		coalesce(street,''),coalesce(house,''),stort,ver,begru,region,swerk,
-		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,town_sap,reg,street_sap,numobl
+		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,
+		town_sap,reg,street_sap,numobl,id
 	order by id     
    ";
         $sql_c = "select * from sap_export where objectsap='CONNOBJ' order by id_object";
@@ -7726,6 +7757,7 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
         left join sap_co_adr dd on
         trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and 
         upper(trim(c1.house_num1))=upper(trim(dd.house_num1)) and trim(dd.city1)<>''
+        and substr(dd.oldkey,9)::integer=cl1.id
        -- and coalesce(trim(replace(c1.house_num2,'корп.','')),'~')=case when trim(dd.house_num2)='' then '~' ELSE coalesce(trim(dd.house_num2),'~') END
        -- and dd.str_suppl1='~') or (dd.str_suppl1<>'~' and trim(c1.str_suppl1)=trim(dd.str_suppl1) and trim(c1.str_suppl2)=trim(dd.str_suppl2))
         
@@ -9448,7 +9480,7 @@ WHERE
         //kol struckt{
         $col= count_str($fname);
         //kol struckt}
-        fclose($f);  
+//        fclose($f);
         
         
         $sql_err = "select * from sap_err where upload = '$filename'";
@@ -11956,43 +11988,42 @@ WHERE
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('new_list_09_2019.csv','r');
+        $f = fopen('new_list_09_2019.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
             //if($i==1) continue;
-            $data = explode(";",$s);
-            if(empty($data[0])) break;
-            $data[5] = str_replace('"',' ',$data[5]);
-            $data[3]=date("Y-m-d", strtotime($data[3]));
-            $data[1] = ltrim($data[1],'0');
-            if(isset($data[6]))
-                $data8=trim($data[6]);
+            $data = explode(";", $s);
+            if (empty($data[0])) break;
+            $data[5] = str_replace('"', ' ', $data[5]);
+            $data[3] = date("Y-m-d", strtotime($data[3]));
+            $data[1] = ltrim($data[1], '0');
+            if (isset($data[6]))
+                $data8 = trim($data[6]);
             else
-                $data8='';
+                $data8 = '';
 
-            $priz_rem=0;
-            $flag=0;
-            if(!empty($data8) && $data8<>'Група РЕМ'){
-                $rrem = mb_substr($data8,mb_strlen($data8,'UTF-8')-3,3,'UTF-8');
-                if($rrem=='РЕМ') $priz_rem=1;
+            $priz_rem = 0;
+            $flag = 0;
+            if (!empty($data8) && $data8 <> 'Група РЕМ') {
+                $rrem = mb_substr($data8, mb_strlen($data8, 'UTF-8') - 3, 3, 'UTF-8');
+                if ($rrem == 'РЕМ') $priz_rem = 1;
             }
-            $e=1;
-            while($e==1)
-            {
+            $e = 1;
+            while ($e == 1) {
                 $pos = strpos($data[2], "'");
-                if($data8=='Група РЕМ') {
-                    $flag=1;
+                if ($data8 == 'Група РЕМ') {
+                    $flag = 1;
                     if (!$pos) {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . "','" . $data[5] . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . "','" . $data[5] . "'" . ')';
 
                     } else {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . "," . "'" . $data[6] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[5] . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[5] . "'" . ')';
                         break;
                     }
 
@@ -12000,24 +12031,24 @@ WHERE
                     if (!$pos)
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[5] . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[5] . "'" . ')';
                     else
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . "'" . "," . '"' . $data[5] . '"' . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[5] . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[5] . "'" . ')';
                 }
 
-                if($data8=='Загальновиробничий персонал' || (empty($data8) && $data[6]<>'Загальновиробничий персонал')) {
-                    $flag=1;
+                if ($data8 == 'Загальновиробничий персонал' || (empty($data8) && $data[6] <> 'Загальновиробничий персонал')) {
+                    $flag = 1;
                     if (!$pos) {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . ",'" . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . ",'" . "'" . ')';
 
                     } else {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . "," . "'" . $data[6] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'" . ')';
                         break;
                     }
 
@@ -12025,24 +12056,24 @@ WHERE
                     if (!$pos)
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" .  "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'" . ')';
                     else
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . "'" . "," . '"' . $data[5] . '"' . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" .  "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'" . ')';
                 }
 
-                if(empty($data8) && $data[6]=='Загальновиробничий персонал') {
-                    $flag=1;
+                if (empty($data8) && $data[6] == 'Загальновиробничий персонал') {
+                    $flag = 1;
                     if (!$pos) {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . ",'" . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . ",'" . "'" . ')';
 
                     } else {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . "," . "'" . $data[6] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'" . ')';
                         break;
                     }
 
@@ -12050,24 +12081,24 @@ WHERE
                     if (!$pos)
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" .  "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'" . ')';
                     else
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . "'" . "," . '"' . $data[5] . '"' . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" .  "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'" . ')';
                 }
 
-                if($priz_rem==1) {
-                    $flag=1;
+                if ($priz_rem == 1) {
+                    $flag = 1;
                     if (!$pos) {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . ",'" . $data[6] . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . ",'" . $data[6] . "'" . ')';
 
                     } else {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[6] . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[6] . "'" . ')';
                         break;
                     }
 
@@ -12075,41 +12106,40 @@ WHERE
                     if (!$pos)
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[6] . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[6] . "'" . ')';
                     else
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
                             "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[5] . "'" . "," . '"' . $data[6] . '"' . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[6] . "'". ')';
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . $data[6] . "'" . ')';
                 }
 
-                if($flag==0) {
+                if ($flag == 0) {
 
                     if (!$pos) {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
-                            "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6].' '.$data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . "','"  . "'". ')';
+                            "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[6] . ' ' . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[4] . "'" .
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "'" . "','" . "'" . ')';
 
                     } else {
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
-                            "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . "," . "'" . $data[6].' '.$data[5]  . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','"  . "'". ')';
+                            "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . "," . "'" . $data[6] . ' ' . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[4] . "'" .
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'" . ')';
                         break;
                     }
 
                     $pos = strpos($data[6], "'");
                     if (!$pos)
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
-                            "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[5].' '.$data[4]  . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','"  . "'". ')';
+                            "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[5] . ' ' . $data[4] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[4] . "'" .
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'" . ')';
                     else
                         $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,date_b,main_unit) VALUES(" .
-                            "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[5].' '.$data[4]  . "'" . "," . '"' . $data[6] . '"' . "," . "'" . $data[4] . "'" .
-                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','"  . "'". ')';
+                            "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[5] . ' ' . $data[4] . "'" . "," . '"' . $data[6] . '"' . "," . "'" . $data[4] . "'" .
+                            "," . 'null' . "," . 'null' . ",'" . $data[3] . "','" . "'" . ')';
                 }
 
 
-
-                $e=0;
+                $e = 0;
             }
 
             Yii::$app->db_phone_loc->createCommand($sql)->execute();
@@ -12117,6 +12147,45 @@ WHERE
 
         fclose($f);
         return;
+    }
+        // Импорт списка рабочих в справочник телефонов для нового телефонного справочника
+        public function actionImport_list_works_tel()
+    {
+        $sql = "CREATE TABLE tmp_works (
+              tab_nom varchar(255) NOT NULL,
+              unit_1 varchar(255) NOT NULL,
+              unit_2 varchar(255) DEFAULT NULL,
+              post varchar(255) DEFAULT NULL,
+              fio varchar(255) DEFAULT NULL,
+              main_unit varchar(255) DEFAULT NULL,
+              id int(11) NOT NULL AUTO_INCREMENT,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        Yii::$app->db_phone_loc->createCommand($sql)->execute();
+
+        // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
+        // файл list_works.csv нужно предварительно сформировать
+        $f = fopen('list_works.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            //if($i==1) continue;
+            $data = explode("~",$s);
+
+            if(empty($data[0])) break;
+
+                        $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,main_unit) VALUES(" .
+                            "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" . "," . "'" . $data[3] . "'" .
+                             ","."'" . $data[6] . "'". ')';
+
+
+            Yii::$app->db_phone_loc->createCommand($sql)->execute();
+        }
+
+        fclose($f);
+        return;
+
         // Делаем обновление полей id_podr и id_name проверяем совпадение строк по fio
         $sql = 'UPDATE tmp_works a,1c b SET a.id_podr=b.id_podr,a.id_name=b.id_name,a.main_unit=b.main_unit
                 WHERE a.fio = b.fio ';

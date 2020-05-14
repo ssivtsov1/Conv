@@ -474,7 +474,9 @@ function a2sql($sql,$arr){
     $where = strpos($t2,'where');
     
     $t3 = ltrim(substr($t2,0+$where+5));    // Поисковое выражение
-    $where_space = strpos($t3,' ');  
+
+    $where_space = strpos($t3,' ');
+
     $where_pole = substr($t3,0,$where_space);
     $where_oper = ltrim(rtrim(substr($t3,0+$where_space,3)));
     if($where_oper=='!=')
@@ -489,6 +491,14 @@ function a2sql($sql,$arr){
     $data_where['pole'][0] = ltrim(rtrim($where_pole));
     $data_where['oper'][0] = ltrim(rtrim($where_oper));
     $data_where['val'][0] = ltrim(rtrim($where_val));
+
+//    debug($data_where);
+//
+//    debug('t1='.$t1);
+//    debug('t2='.$t2);
+//    debug('t3='.$t3);
+//    debug('where='.$where);
+
     if(is_numeric($data_where['val'][0]))
         $data_where['datatype'][0] = 'i';  // число
     else
@@ -546,8 +556,7 @@ function a2sql($sql,$arr){
 // $data_orderby - массив данных для сортировки
 function proc_where($arr,$fields,$where,$orderby,$data_where,$data_orderby)
 {
-       
-                 
+
         $keys = array_keys($arr);
         $k = count($keys);
         $field = explode(',',$fields);
@@ -575,6 +584,10 @@ function proc_where($arr,$fields,$where,$orderby,$data_where,$data_orderby)
                           }
                           else{
                                $data_where['val'][0] = del_quote($data_where['val'][0]);
+//                              debug($arr);
+//                              debug($keys);
+//                              return;
+
                               if(ltrim(rtrim($arr[$keys[$i]][$j]))==$data_where['val'][0])
                                 $line = $j;
                           }
@@ -3728,8 +3741,6 @@ function no_struct ($filename,$cnt)
     return '';
 }
 
-
-
 function count_str ($filename)
 {
     $f = fopen($filename, 'r');
@@ -3748,8 +3759,6 @@ function count_str ($filename)
         
 }
 
-
-
 // Проверка файла выгрузки - нет объекта высшего уровня
 function no_refer ($filename,$data_u)
 {
@@ -3767,9 +3776,6 @@ function no_refer ($filename,$data_u)
         $refer=$data_u[$q]['refer'];
         $struct=$data_u[$q]['struct'];
         $ref_file=$refer . $tail;
-        echo '<br>';
-        echo '<br>';
-        echo '<br>';
 
         $fr = fopen($ref_file, 'r');
         rewind($f);
@@ -3799,6 +3805,52 @@ function no_refer ($filename,$data_u)
             }
         }
         fclose($fr);
+    }
+    fclose($f);
+    return $arr_k;
+}
+
+// Проверка файла выгрузки фактов - нет объекта высшего уровня (в INSTLN)
+function no_refer_facts ($filename)
+{
+    $f = fopen($filename, 'r');
+    $i = 0;
+    $j=0;
+    $upload='FACTS';
+    $refer='INSTLN';
+    $tail=substr($filename,strlen($upload));
+    $arr_k = [];
+
+        $ref_file=$refer . $tail;
+
+
+        rewind($f);
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode("\t", $s);
+            if (isset($data[1]) && $data[1]=='KEY') {
+                $ref = $data[2];
+                    // Ищем ссылку в файле $ref_file (высшего уровня)
+                    $f_seek = 0;
+                    $fr1 = fopen($ref_file, 'r');
+                    rewind($fr1);
+                    while (!feof($fr1)) {
+                        $sr = fgets($fr1);
+                        $data_r = explode("\t", $sr);
+                        if ($data_r[0] == $ref) {
+                            $f_seek = 1;
+                            break;
+                        }
+                    }
+                    if ($f_seek == 0) {
+                        // not found reference
+                        $arr_k[$j] = $refer.' '.$ref;
+                        $j++;
+                    }
+
+        }
+//        fclose($fr1);
     }
     fclose($f);
     return $arr_k;
@@ -3886,6 +3938,38 @@ function check_adres_partner ($filename,$mode)
         }
     }
     return $arr_k;
+}
+
+// Проверка на пустые поля
+function empty_fields ($filename,$mas)
+{
+//    $r = a2sql("select * from mas where num = '12'",$mas);
+//    debug($r);
+//    return 0;
+
+    $f = fopen($filename, 'r');
+    $kol=0;
+    $i=0;
+    $q=0;
+    $res=[];
+    while (!feof($f)) {
+        $i++;
+        $s = fgets($f);
+        $data = explode("\t", $s);
+        for ($j = 0; $j < count($data); $j++) {
+            if (empty($data[$j])) {
+//                $r = a2sql("select * from mas where num=$j", $mas);
+                for ($k = 0; $k < count($mas); $k++) {
+                    if ((strtolower((trim($mas[$k]['field'])) == strtolower(trim($data[$j])))) && $mas[$k]['num']==$j ) {
+                            $res[$q] = $data[$j];
+                            $q++;
+                    }
+                }
+            }
+        }
+    }
+    fclose($f);
+    return $res;
 }
 
 function test_f($s) {
