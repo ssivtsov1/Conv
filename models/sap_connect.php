@@ -25,7 +25,7 @@ class sap_connect extends ActiveRecord {
                 $s=Yii::$app->request->hostInfo;
                 $s= substr($s, 7);   
 
-        if($s=='localhost')
+        if($s=='192.168.15.15')
             return Yii::$app->get('db_pg_dn_energo');
         if($s=='192.168.17.1')
             return Yii::$app->get('db_pg_gv_energo');
