@@ -1087,7 +1087,13 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
         --LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
        --LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.short_street)=trim(s.name) 
-       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) 
+       
+       and (trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name) or 
+        case when ks.shot_name='шосе' and trim(s.name)='Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)||' шосе'
+             when ks.shot_name='шосе' and trim(s.name)<>'Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)
+         end)
+       
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end 
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end 
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
@@ -7416,8 +7422,12 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
         LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
        -- LEFT JOIN addr_sap ads on ads.town=kt.shot_name||' '||t.name and ads.type_street||' '||get_street(ads.street)=ks.shot_name||' '||s.name
        LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name) 
-        and trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name)
-
+       
+       and (trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name) or 
+        case when ks.shot_name='шосе' and trim(s.name)='Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)||' шосе'
+             when ks.shot_name='шосе' and trim(s.name)<>'Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)
+         end)
+       
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end 
         and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end 
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
