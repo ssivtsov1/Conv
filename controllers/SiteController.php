@@ -1099,7 +1099,8 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
-         and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end   
+         and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Високе' and $res='01' then trim(ads.reg)='VIN' else 1=1 end    
        -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         
        LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
@@ -7474,7 +7475,8 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
          and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
-         and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end   
+         and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end
+         and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Високе' and $res='01' then trim(ads.reg)='VIN' else 1=1 end   
        -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
          on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
