@@ -1612,7 +1612,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
-        case when trim(lower(c.street))='кіровоградське шосе' then  'шосе кіровоградське'=trim(lower(get_sap_street(b1.street))) else trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) end  
+        trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
         else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end 
         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
@@ -2381,7 +2381,8 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     and coalesce (use.id_client, tr.id_client) <> syi_resid_fun()
     and coalesce (use.id_client, tr.id_client)<>999999999
     order by 5 
-    limit 12";
+    -- limit 12
+    ";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
         $fd=date('Ymd');
@@ -2432,10 +2433,11 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
 //                    $v1['anlage'] . "\t" .
 //                    $v1['eadat'] . "\t" .
 //                    $v1['action'] . "\n"));
-
+                $devloc1 = '04_C04P_'.trim($id_eq);
                 fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                     $v1['struc'] . "\t" .
-                    $v1['devloc'] . "\t" .
+//                    $v1['devloc'] . "\t" .
+                    $devloc1 . "\t" .
                     $v1['anlage'] . "\t" .
                     $v1['eadat'] . "\t" .
                     $v1['action'] . "\n"));
@@ -6093,8 +6095,8 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         left join vw_address c on  
             a.id=c.id
         left join addr_sap b1 on
-        case when trim(lower(c.street))='кіровоградське шосе' then  'шосе кіровоградське'=trim(lower(get_sap_street(b1.street))) else trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) end 
-        and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+        trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
+         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
         -- and case when trim(lower(get_sap_street(b1.street)))='шосе кіровоградське' then  lower(trim(c.type_street))='вул.'
         else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end 
          and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
