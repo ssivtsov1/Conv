@@ -3016,9 +3016,11 @@ function f_instln($n_struct,$rem,$v,$vid) {
     $zzotherarea = $v['zzotherarea'];
     $begru = $v['begru'];
     $zz_eic = substr($v['zz_eic'],0,16);
+    if(ord(substr($zz_eic,15,1))>90)
+        $zz_eic = substr($zz_eic,0,15);
     $oldkey = $oldkey_const . $v['id'];;
 
-    if($v['id']==159223) return;
+//    if($v['id']==159223 || $v['id']==158868) return;
 
     if ($n_struct == 'DATA') {
         $pos = strpos($zz_nametu, "'");
