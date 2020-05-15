@@ -2356,9 +2356,8 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
         $period = str_replace('-', '', $period);
 
-    $sql="select distinct 'INST_MGMT' as name, c.id,c.code, eq.name_eqp,m.code_eqp as id_eq,
-    row_number() over(partition by m.code_eqp) as n_point,
-    '04_C'||'$rem'||'P_'||m.code_eqp as oldkey,const.ver,c.short_name,bb.oldkey as vstelle
+        $sql="select distinct 'INST_MGMT' as name, c.id,c.code, eq.name_eqp,m.code_eqp as id_eq,
+    '04_C'||'$rem'||'P_'||m.code_eqp as oldkey,const.ver,c.short_name
      from eqm_tree_tbl as tr 
     join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
     join eqm_equipment_tbl as eq on (ttr.code_eqp = eq.id) 
@@ -2368,22 +2367,15 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     left join clm_statecl_h as sc on (c.id = sc.id_client) 
     left join eqm_equipment_h as hm on (hm.id = eq.id) 
     left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
-    left join sap_evbsd bb on bb.haus='04_C'||$$$rem$$||'P_'||c.id 
     inner join sap_const const on 1=1
     where hm.dt_b = (select dt_b from eqm_equipment_h where id = eq.id and num_eqp = eq.num_eqp and dt_e is null order by dt_b desc limit 1 ) 
-    and c.book=-1 and c.idk_work not in (0) AND
-     (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
-                 and  c.code not in('20000556','20000565','20000753',
-                 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-                 '10999999','11000000','19999369','50999999','1000000','1000001')
+    and c.book=-1 and c.idk_work not in (0) 
     and coalesce(c.id_state,0) not in (50,99,80,49,100)
     and sc.mmgg_b = (select max(mmgg_b) from clm_statecl_h as sc2 where sc2.id_client = sc.id_client and sc2.mmgg_b <= date_trunc('month', '$period'::date ) )  
     and sc.id_section not in (205,206,207,208,209,218) 
     and coalesce (use.id_client, tr.id_client) <> syi_resid_fun()
     and coalesce (use.id_client, tr.id_client)<>999999999
-    order by 5 
-    -- limit 12
-    ";
+    order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
         $fd=date('Ymd');
@@ -2402,17 +2394,14 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
 //            );
             $id_eq = $v['id_eq'];
             $id = $v['id'];
-            $oldkey = $v['oldkey'].'_'.$v['n_point'];
-            $vstelle=$v['vstelle'];
+            $oldkey = $v['oldkey'];
             $code= $v['code'];
             $short_name=$v['short_name'];
             $sql_f = "select di_zw($id_eq , '$period')";
             $data_f = data_from_server($sql_f, $res, $vid);
             $sql_f = "select * from di_zw_struc order by knde,sort";
             $data_f = data_from_server($sql_f, $res, $vid);
-            //$devloc = '04_C04P_' . strtoupper(hash('crc32', $id).$vstelle);
-//            $devloc = '04_C04P_'.strtoupper(hash('crc32',$id . $vstelle));
-            $devloc = '04_C04P_'.trim($vstelle).trim($id_eq);
+            $devloc = '04_C04P_' . strtoupper(hash('crc32', $id));
             $sql_1 = "select distinct
                  '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                 '$devloc' as devloc,
@@ -2428,17 +2417,9 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             $data_1 = data_from_server($sql_1, $res, $vid);
             // Запись в файл структуры DI_INT
             foreach ($data_1 as $v1) {
-//                fwrite($f, iconv("utf-8", "windows-1251", $v1['oldkey'] . "\t" .
-//                    $v1['struc'] . "\t" .
-//                    $v1['devloc'] . "\t" .
-//                    $v1['anlage'] . "\t" .
-//                    $v1['eadat'] . "\t" .
-//                    $v1['action'] . "\n"));
-                $devloc1 = '04_C04P_'.trim($id_eq);
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                fwrite($f, iconv("utf-8", "windows-1251", $v1['oldkey'] . "\t" .
                     $v1['struc'] . "\t" .
-//                    $v1['devloc'] . "\t" .
-                    $devloc1 . "\t" .
+                    $v1['devloc'] . "\t" .
                     $v1['anlage'] . "\t" .
                     $v1['eadat'] . "\t" .
                     $v1['action'] . "\n"));
@@ -2607,30 +2588,30 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         //kol struckt{
         $col= count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
         if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
         }
     }
-
+    
     // Формирование файла группировки устройств DEVGRP (юридические лица)
     public function actionSap_devgrp($res)
     {
