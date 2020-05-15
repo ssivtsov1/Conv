@@ -3018,6 +3018,8 @@ function f_instln($n_struct,$rem,$v,$vid) {
     $zz_eic = substr($v['zz_eic'],0,16);
     $oldkey = $oldkey_const . $v['id'];;
 
+    if($v['id']==159223) return;
+
     if ($n_struct == 'DATA') {
         $pos = strpos($zz_nametu, "'");
 
