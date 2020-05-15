@@ -3856,7 +3856,7 @@ and id_cl<>2062
         }
         // отсутствие структуры }
         // нет объекта высшего уровня {
-        if(1==2) {
+//        if(1==2) {
             $sql = "SELECT * from sap_refer where upload='$filename'";
             $data_u = data_from_server($sql, $res, $vid);
             $refer = $data_u[0]['refer'];
@@ -3872,7 +3872,7 @@ and id_cl<>2062
                     }
                 }
             }
-        }
+//        }
         // нет объекта высшего уровня }
 
         // пустая ссылка {
