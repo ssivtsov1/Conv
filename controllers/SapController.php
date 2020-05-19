@@ -462,6 +462,11 @@ and a.code not in('20000556','20000565','20000753',
 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 '10999999','11000000','19999369','50999999','1000000','1000001')";
  */
+
+                     // Получаем дату ab
+
+                     $date_ab='2020-05-01';
+
    $sql="select row_number() over() as npp,ww.code,ww.name,qq.zz_nametu,qq.zz_eic,qq.id from (
 select distinct on(zz_eic) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru_all as begru,
