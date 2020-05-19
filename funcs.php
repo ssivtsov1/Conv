@@ -3949,12 +3949,7 @@ function check_adres_partner ($filename,$mode)
 // Проверка на пустые поля
 function empty_fields ($filename,$mas)
 {
-//    $r = a2sql("select * from mas where num = '12'",$mas);
-//    debug($r);
-//    return 0;
-
     $f = fopen($filename, 'r');
-    $kol=0;
     $i=0;
     $q=0;
     $res=[];
@@ -3964,10 +3959,10 @@ function empty_fields ($filename,$mas)
         $data = explode("\t", $s);
         for ($j = 0; $j < count($data); $j++) {
             if (empty($data[$j])) {
-//                $r = a2sql("select * from mas where num=$j", $mas);
                 for ($k = 0; $k < count($mas); $k++) {
-                    if ((strtolower((trim($mas[$k]['field'])) == strtolower(trim($data[$j])))) && $mas[$k]['num']==$j ) {
-                            $res[$q] = $data[$j];
+                    if (($mas[$k]['num']-1)==$j && (strtolower((trim($mas[$k]['struct'])) == strtolower(trim($data[1]))))) {
+                            $res[$q] = trim($mas[$k]['field']).' в структуре '.
+                                trim($mas[$k]['struct']).' по ключу '.$data[0].' (строка '.$i.')';
                             $q++;
                     }
                 }

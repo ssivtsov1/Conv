@@ -943,7 +943,8 @@ public function actionIdfile()
         $rem = '0'.$res;  // Код РЭС
 
         $sql = "select distinct a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
-case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа ' in a.name)>0 
+case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа ' in a.name)>0
+or position('Фізична особа' in a.name)>0  
 then '03' else '02' end as BU_GROUP,
 case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '0003' else '0002' end as BPKIND,
 'MKK' as ROLE1,
@@ -2611,7 +2612,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
         }
     }
-    
+
     // Формирование файла группировки устройств DEVGRP (юридические лица)
     public function actionSap_devgrp($res)
     {
@@ -2896,7 +2897,7 @@ order by sort";
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select distinct on(zz_eic) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
-www.short_name as real_name,const.ver,const.begru,
+www.short_name as real_name,const.ver,const.begru_all as begru,
 '10' as sparte,qqq.* from
 (select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,
 case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
@@ -6527,7 +6528,7 @@ select distinct 2000000-gr.code_t_new::int+row_number() OVER (order BY c.code_eq
                 '$date_ab' as datab,
                  '' as EQKTX,
                  '2005' as bgljahr,
-                case  when coalesce(eq.is_owner,0) = 0 then 'CK01232820' else '' end as KOSTL, 
+                case  when coalesce(eq.is_owner,0) = 0 then 'CK01230370' else '' end as KOSTL, 
                  --trim(eq.num_eqp) as SERNR,
                   get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
                   case when eq.is_owner <> 1 then 'CK_RANDOM' else '' end as zz_pernr,
@@ -6547,6 +6548,7 @@ select distinct 2000000-gr.code_t_new::int+row_number() OVER (order BY c.code_eq
 		     left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = ic.id 
                     inner join sap_const const on 1=1 ) x
 order by tzap   
+--limit 3
 ";
 
         // Запрос для получения списка необходимых
@@ -6667,7 +6669,14 @@ order by tzap
         $sql = 'SELECT * FROM sap_check_fields';
         $f_data = data_from_server($sql,$res,$vid);
         $err = empty_fields($fname, $f_data);
-        debug($err);
+//        debug($err);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Пустое поле',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
 //         Проверка на пустые поля }
 
         //kol struckt{
