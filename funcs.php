@@ -1069,6 +1069,9 @@ function f_partner_ind($n_struct,$rem,$v) {
         $region=$v['region'];
         $tel_number=normal_tel($v['mob_phone']);
 
+        if(define_type_tel(substr($tel_number,0,3))==1)
+            $tel_number='';
+
         if (!empty($tel_number)) $chind_tel="I"; else $chind_tel='~';
         $smtp_addr=$v['e_mail'];
         if (!empty($smtp_addr)) $chind_smtp="I"; else $chind_smtp='~';
