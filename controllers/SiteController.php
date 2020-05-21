@@ -1668,7 +1668,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         else case when trim(lower(c.street))='шосе кіровоградське' then 1=1 else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end end 
         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
         and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' else 1=1 end 
-         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
+         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap5) b2
           on trim(b1.numtown)= trim(b2.numtown) --and b2.post_index=c.indx  
         left join
         (select id,last_name,name,patron_name,tax_number as inn,'ИНН не проходит контрольную сумму'::text as Error  
@@ -1680,7 +1680,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region where a.archive='0' 
         and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or trim(b1.rnobl)='Широківський район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x
-        -- where id=500000024
+        --where id=500000115
      
         ";
 
@@ -1689,7 +1689,9 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 //        if(3==4) {
             // Получаем необходимые данные
             $data = data_from_server($sql, $res, $vid);
-
+//debug($sql);
+//debug($data);
+//return;
             $cnt = data_from_server($sql_c, $res, $vid);
 
             // Удаляем данные в таблицах
