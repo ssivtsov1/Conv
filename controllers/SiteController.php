@@ -605,6 +605,50 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+    // Добавление счетчиков (соотв с САП)
+    public function actionAdd_cnt()
+    {
+        $f = fopen('add_cnt.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode("~",$s);
+            $sql = "INSERT INTO add_cnt (id_type,cek_name,sap_name) VALUES(".
+                $data[1] . ",". '$$'.$data[2].'$$'.",".'$$'.$data[3].'$$'.
+                ')';
+
+            Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
+    // Добавление типов пломб (соотв с САП)
+    public function actionAdd_type_plomb()
+    {
+        $f = fopen('sap_type_plombs.csv','r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode("~",$s);
+            $sql = "INSERT INTO sap_type_plombs (sap_name,sap_desc,cek_name) VALUES(".
+                '$$'. $data[0] .'$$'. ",". '$$'.$data[1].'$$'.",".'$$'.$data[2].'$$'.
+                ')';
+
+            Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
+
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
     // Импорт районов
     public function actionImp_region()
     {
@@ -1077,7 +1121,8 @@ case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^
 	
 kt.shot_name||' '||t.name as town,ads.town as town_sap,am.post_index,b2.post_index as post_index_sap,ks.shot_name||' '||s.name as street,ads.street as street_sap,
 UPPER(am.building) as house,UPPER(am.office) as flat,
-b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
+b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl,
+u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo
  from clm_client_tbl a
         left join clm_statecl_tbl b on
         a.id=b.id_client
@@ -1106,11 +1151,15 @@ b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl
         
        LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
          on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
+       LEFT JOIN  sap_wo_adr u on coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
+        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')
+         and u.res=$rem
         WHERE 
         (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
 	     and  a.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	     '10999999','11000000','19999369','50999999','1000000','1000001')  -- AND a.id=12098
+	     -- and u.town is not null
    ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER' order by id_object";
@@ -1630,7 +1679,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region where a.archive='0' 
-        and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x     
+        and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or trim(b1.rnobl)='Широківський район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x     
         ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
@@ -5506,8 +5555,9 @@ where a.archive='0'
         // Главный запрос со всеми необходимыми данными
         $sql = "select distinct 
         p.id,'AUTO' as AUTO, 
-        p.id_type as SCAT,
-        --t_p.kateg_sap as SCAT,
+        --p.id_type as SCAT,
+        sp.sap_name as SCAT,
+        t.name as SCAT_cek,
         trim(p.plomb_num) as SCODE,
         'I' as STATUS,
         '3' as COLOR,
@@ -5523,7 +5573,9 @@ where a.archive='0'
         from clm_plomb_tbl as p 
         left join cli_plomb_type_tbl as t on (t.id = p.id_type) 
         left join clm_position_tbl as cp on (cp.id = p.id_position) 
-        left join clm_position_tbl as cp2 on (cp2.id = p.id_person) 
+        left join clm_position_tbl as cp2 on (cp2.id = p.id_person)
+        left join sap_type_plombs sp on case when trim(t.name)='Пластикова' then upper(trim(sp.cek_name))='ФАВОРИТ' 
+        else upper(trim(sp.cek_name))=upper(trim(t.name)) end 
         left join clm_client_tbl as c on (c.id = p.id_client ) 
         left join clm_statecl_tbl as st on st.id_client = c.id
         left join eqm_equipment_h as eq on (eq.id = p.id_point) 
@@ -5534,6 +5586,7 @@ where a.archive='0'
                  and  c.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                 '10999999','11000000','19999369','50999999','1000000','1000001')
+                
           ";
 
         if ($helper == 1)
@@ -7310,7 +7363,8 @@ order by tzap
         $sql = "select min(id) as id,coalesce(town,'') as town,coalesce(post_index,'') as post_index,
 coalesce(street,'') as street,coalesce(house,'') as house,stort,ver,begru,region,swerk,
 case when coalesce(street,'')='' and coalesce(house,'')='' then name end as str_suppl1,
-'' as str_suppl2,''::char(20) as house_num2,town_sap,reg,street_sap,numobl from
+'' as str_suppl2,''::char(20) as house_num2,town_sap,reg,street_sap,numobl,
+ town_wo,street_wo,ind_wo,numobl_wo,reg_wo from
 (select a.id,'' as pltxt,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
 case when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 0 then  '03'  else '03' end as BU_GROUP,
 case when coalesce(b.FLAG_JUR,0)= 1 then '0002' when coalesce(b.FLAG_JUR,0)= 0 then  '0003' else '0001' end as BPKIND,
@@ -7443,7 +7497,9 @@ case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^
 	    else '' end as ID_TYPE,
 kt.shot_name||' '||t.name as town,b2.post_index,ks.shot_name||' '||s.name as street,am.building as house,am.office as flat,
 b.phone,b.e_mail,
-const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town as town_sap,ads.street as street_sap,ads.reg,ads.numobl
+const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town as town_sap,
+ads.street as street_sap,ads.reg,ads.numobl,
+u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.reg as reg_wo
  from clm_client_tbl a
         left join clm_statecl_tbl b on
         a.id=b.id_client
@@ -7470,6 +7526,9 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
        -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
          on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
+         LEFT JOIN  sap_wo_adr u on coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
+        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')
+        and u.res=$rem
         inner join sap_const const on
         1=1
         WHERE
@@ -7478,11 +7537,11 @@ const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	     '10999999','11000000','19999369','50999999','1000000','1000001')
 	    ) u
-	    --where id=20648
-	    group by coalesce(town,''),coalesce(post_index,''),
+	    --where u.town_wo is not null
+	   	    group by coalesce(town,''),coalesce(post_index,''),
 		coalesce(street,''),coalesce(house,''),stort,ver,begru,region,swerk,
 		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,
-		town_sap,reg,street_sap,numobl,id
+		town_sap,reg,street_sap,numobl,id,town_wo,street_wo,ind_wo,numobl_wo,reg_wo
 	order by id     
    ";
         $sql_c = "select * from sap_export where objectsap='CONNOBJ' order by id_object";
@@ -8842,9 +8901,10 @@ case when ($rem='01' or  $rem='02') and
 (substr(cl.short_name,1,3)='РП '  or substr(cl.short_name,1,2)='Р ') then  'CON005' else 'CON003' end as status,
 case when st.doc_dat is null then '20200101'::varchar else replace(st.doc_dat::varchar ,'-','') end as date_reg,
 '99991231' as date_to,''::text as price,
-''::text as COMMENTS,''::text as LOEVM
+''::text as COMMENTS,''::text as LOEVM,acc.cat_sap as zz_categ
 from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
+left join sap_categ_acc acc on acc.id_cat::int=st.id_nkrekp
 inner join sap_const const on 1=1
 WHERE 
         -- cl.code_okpo<>'' and cl.code_okpo<>'000000000'

@@ -1301,23 +1301,51 @@ function f_partner($n_struct, $rem, $v) {
 
     $smtp_addr=$v['e_mail'];
     if (!empty($smtp_addr)) $chind_smtp="I"; else $chind_smtp='~';
-    $iuru_pro=$v['numobl'];;
+    $iuru_pro=$v['numobl'];
 
     $oldkey = $oldkey_const . $r;
     $str_supll1='~';
     $str_supll2='~';
+    $wo = $v['town_wo'];
 
    // Если садовое товарищество
-    if(empty($street)) {
-        if(!empty($v['street'])) {
-            $str_supll1 = str_replace("'",'`',trim($v['street']));
+    if(!empty($wo)) {
+            $dacha[1] = 'Дачна';
+            $dacha[2] = 'Сонячна';
+            $dacha[3] = 'Богатирська';
+            $dacha[4] = 'Всемогутня';
+            $dacha[5] = 'Довгожителів';
+            $dacha[6] = 'Совісті та честі';
+            $dacha[7] = 'Розумна';
+            $dacha[8] = 'Добра';
+            $dacha[9] = 'Світлих душ';
+            $dacha[10] = 'Взаємовиручки';
+            $dacha[11] = 'Добрих побажань';
+            $dacha[12] = 'Всепроникаючого щастя';
+            $dacha[13] = 'Ентузіастів';
+            $dacha[14] = 'Оптимістів';
+            $dacha[15] = 'Істини';
+            $dacha[16] = 'Правдивої історії';
+            $dacha[17] = 'Міцного здоровя';
+            $dacha[18] = 'Безмежних можливостей';
+            $dacha[19] = 'Могутньої волі';
+            $dacha[20] = 'Старанності';
+            $dacha[21] = 'Трудолюбів';
+            $dacha[22] = 'Добрих справ';
+            $dacha[23] = 'Величності людини';
+            $dacha[24] = 'Высокой морали';
+            $dacha[25] = 'Человечности';
+
+//            $u_r=rand(1,23);
+            $str_supll1 = str_replace("'",'`',trim($v['street_wo']));
+            if(empty($str_supll1))
+                $str_supll1 = $dacha[10];
             $str_supll2 = $house_num1;
-        }
-        else {
-            $str_supll1 = trim($v['name_org1']);
-            $str_supll2 = '~';
-        }
-    };
+            $town = trim($v['town_wo']);
+            $post_code1 = trim($v['ind_wo']);
+            $region=trim($v['reg_wo']);;
+            $iuru_pro=$v['numobl'];
+    }
 
     if($n_struct=='INIT')
         $z = "insert into sap_init(oldkey,dat_type,bu_type,bu_group,bpkind,role1,role2,valid_from_1,chind_1,valid_from_2,chind_2)
@@ -1421,6 +1449,8 @@ function f_account($n_struct, $rem, $v) {
     $zz_end=$v['zz_end'];
     $zz_budget=$v['zz_budget'];
     $zz_territory=$v['zz_territory'];
+    $zz_categ=$v['zz_categ'];
+    if(empty($zz_categ)) $zz_categ='03';
     if(empty($zz_territory)) $zz_territory='1';
 
     $date_from=$v['date_from'];
@@ -1448,13 +1478,11 @@ function f_account($n_struct, $rem, $v) {
         $z = "insert into sap_vkp(oldkey,dat_type,partner,opbuk,ebvty,abvty,abwvk,
                                        ikey,mahnv,begru,adrnb_ext,
                                        zahlkond,vertyp,kofiz_sd,kzabsver,stdbk,fkru_fis,zsector,zz_ministry,
-                                       zz_start,zz_end,zz_budget,zz_territory)
+                                       zz_start,zz_end,zz_budget,zz_territory,zz_categ)
                     values('$oldkey','$n_struct','$partner','$opbuk','$ebvty','$abvty',$$$abwvk$$,
                            $$$ikey$$,$$$mahnv$$,'$begru','$adrnb_ext','$zahlkond','$vertyp',
                            '$kofiz_sd','$kzabsver','$stdbk','$fkru_fis',
-                           '$zsector','$zz_ministry','$zz_start','$zz_end','$zz_budget','$zz_territory')";
-
-
+                           '$zsector','$zz_ministry','$zz_start','$zz_end','$zz_budget','$zz_territory','$zz_categ')";
 
 //    if($n_struct=='KVV')
 //        $z = "insert into sap_kvv(oldkey,dat_type,date_from,date_to)
@@ -1581,6 +1609,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
 
     $house_num1 =mb_strtoupper(trim($v['house']),'UTF-8');
     $house_num1 = str_replace(' ','',$house_num1);
+    $house_num1 =str_replace('"','',$house_num1);
     $region=$v['region'];
     $iuru_pro=$v['kod_reg'];
 
@@ -1775,6 +1804,21 @@ function f_connobj($n_struct,$rem,$v) {
     $region=$v['reg'];
 
     $oldkey = $oldkey_const . $r;
+    $str_supll1 = '~';
+    $str_supll2 = '~';
+    $wo = $v['town_wo'];
+    // Если садовое товарищество
+    if(!empty($wo)) {
+        $str_supll1 = str_replace("'",'`',trim($v['street_wo']));
+        if(empty($str_supll1))
+            $str_supll1 = 'вул. Взаємовиручки';
+        $str_supll2 = $house_num1;
+        $town = trim($v['town_wo']);
+        $post_code1 = trim($v['ind_wo']);
+//        $region='DNP';
+        $region=trim($v['reg_wo']);;
+        $iuru_pro=$v['numobl'];
+    }
 
     if($n_struct=='CO_EHA')
         $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
@@ -1786,7 +1830,7 @@ function f_connobj($n_struct,$rem,$v) {
         $z = "insert into sap_co_adr(oldkey,dat_type,city1,post_code1,
                                          street,house_num1,str_suppl1,str_suppl2,region,iuru_pro,house_num2)
                     values('$oldkey','$n_struct',$$$town$$,'$post_code1',$$$street$$,
-                          '$house_num1','~','~',$$$region$$,'$iuru_pro','$house_num2')";
+                          '$house_num1','$str_supll1','$str_supll2',$$$region$$,'$iuru_pro','$house_num2')";
 
     //Yii::$app->db_pg_pv_abn_test->createCommand($z)->execute();
     switch ((int) $rem) {

@@ -102,6 +102,8 @@ AppAsset::register($this);
                         'options' => ['id' => 'down_menu'],
                         'items' =>
                             [
+                                ['label' => 'Добавление типов счетчиков', 'url' => ['/site/add_cnt']],
+                                ['label' => 'Добавление типов пломб', 'url' => ['/site/add_type_plomb']],
                                 ['label' => 'Импорт street с Ингульца [Энерго]', 'url' => ['/site/imp_street']],
                                 ['label' => 'Импорт таблицы областей', 'url' => ['/site/imp_obl']],
                                 ['label' => 'Импорт таблицы районов', 'url' => ['/site/imp_region']],
