@@ -1669,7 +1669,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
         and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' else 1=1 end 
          left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
-          on b1.numtown=b2.numtown --and b2.post_index=c.indx  
+          on trim(b1.numtown)= trim(b2.numtown) --and b2.post_index=c.indx  
         left join
         (select id,last_name,name,patron_name,tax_number as inn,'ИНН не проходит контрольную сумму'::text as Error  
         from clm_abon_tbl 
@@ -1679,7 +1679,9 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region where a.archive='0' 
-        and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or trim(b1.rnobl)='Широківський район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x     
+        and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or trim(b1.rnobl)='Широківський район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x
+        -- where id=500000024
+     
         ";
 
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
@@ -1687,6 +1689,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 //        if(3==4) {
             // Получаем необходимые данные
             $data = data_from_server($sql, $res, $vid);
+
             $cnt = data_from_server($sql_c, $res, $vid);
 
             // Удаляем данные в таблицах
@@ -1714,6 +1717,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
                     f_partner_ind($n_struct, $rem, $w);
                 }
             }
+//        return;
 //        } // endif 3==4
         // Формируем имя файла и создаем файл
         $fname = date2file_Partner_ind($res,$vid);  // Быстрая функция для записи в файл
