@@ -1663,9 +1663,9 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         left join vw_address c on
         a.id=c.id
         left join addr_sap b1 on
-        trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
+       case when trim(lower(c.street))='шосе кіровоградське' then  trim(lower(c.street))=trim(lower(b1.street)) else trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) end
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
-        else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end 
+        else case when trim(lower(c.street))='шосе кіровоградське' then 1=1 else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end end 
         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
         and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' else 1=1 end 
          left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
@@ -6133,10 +6133,9 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         left join vw_address c on  
             a.id=c.id
         left join addr_sap b1 on
-        trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
+        case when trim(lower(c.street))='шосе кіровоградське' then  trim(lower(c.street))=trim(lower(b1.street)) else trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) end
          and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
-        -- and case when trim(lower(get_sap_street(b1.street)))='шосе кіровоградське' then  lower(trim(c.type_street))='вул.'
-        else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end 
+          else case when trim(lower(c.street))='шосе кіровоградське' then 1=1 else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end end 
          and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
          
         inner join sap_const const on
