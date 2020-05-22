@@ -1150,7 +1150,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo
        -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         
        LEFT JOIN (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
-         on ads.numtown=b2.numtown --and b2.post_index::integer=am.post_index
+         on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
        LEFT JOIN  sap_wo_adr u on coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
         and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')
          and u.res=$rem
