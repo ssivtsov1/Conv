@@ -7685,21 +7685,21 @@ order by tzap
         }
         // отсутствие структуры }
         // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
-        $data_u = data_from_server($sql, $res, $vid);
-        $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
-            $err = no_refer($fname, $data_u);
-            if (count($err)) {
-                foreach ($err as $v) {
-//                    debug($v);
-                    $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$refer',$res)";
-                    exec_on_server($z, (int)$rem, $vid);
-                }
-            }
-        }
+//        $sql="SELECT * from sap_refer where upload='$filename'";
+//        $data_u = data_from_server($sql, $res, $vid);
+//        $refer = $data_u[0]['refer'];
+//        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+//        if(!empty($data_u[0]['upload'])) {
+//            $err = no_refer($fname, $data_u);
+//            if (count($err)) {
+//                foreach ($err as $v) {
+////                    debug($v);
+//                    $z="INSERT  INTO sap_err
+//                        VALUES('$filename','$v','$refer',$res)";
+//                    exec_on_server($z, (int)$rem, $vid);
+//                }
+//            }
+//        }
         // нет объекта высшего уровня }
 
         // пустая ссылка {
