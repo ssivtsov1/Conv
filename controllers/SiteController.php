@@ -5768,11 +5768,12 @@ order by 8,zz_point_num,zz_plosch_num,zz_object_num
             }
         }
         // задвоения по oldkey  }
-/*
+
         // нет объекта высшего уровня {
         $sql="SELECT * from sap_refer where upload='$filename'";
         $data_u = data_from_server($sql, $res, $vid);
         $refer = $data_u[0]['refer'];
+/*
         $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
         if(!empty($data_u[0]['upload'])) {
             $err = no_refer($fname, $data_u);
