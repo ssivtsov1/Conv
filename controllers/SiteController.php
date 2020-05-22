@@ -6079,14 +6079,16 @@ where a.archive='0'
         trim(p.plomb_num) as SCODE,
         'I' as STATUS,
         '3' as COLOR,
-        '' as UTMAS, 
+        'C010099' as UTMAS, 
         substring(replace(p.dt_b::varchar, '-',''),1,8) as DPURCH,
-        '' as REPER,
+        'C010099' as REPER,
         substring(replace(p.dt_b::varchar, '-',''),1,8) as DISSUE,
         u.matnr as MATNR,
         u.sernr as SERNR,
         --coalesce(obj.id_sap,8) as PLACE,
-        left(p.object_name,8) as PLACE,
+        p.object_name,
+        p2.id as PLACE,
+        
         substring(replace(p.dt_b::varchar, '-',''),1,8) as DINST,const.ver
         from clm_plomb_tbl as p 
         left join cli_plomb_type_tbl as t on (t.id = p.id_type) 
@@ -6098,6 +6100,8 @@ where a.archive='0'
         left join clm_statecl_tbl as st on st.id_client = c.id
         left join eqm_equipment_h as eq on (eq.id = p.id_point) 
         left join adv_address_tbl as adr on (adr.id = eq.id_addres ) 
+        left join sap_recode_place_plomb p1 on trim(p1.place_cek)=trim(p.object_name)
+        left join spr_place_plomb p2 on trim(p2.name)=trim(p1.place_sap)
          inner join sap_const const on 1=1
          left join (select oldkey,get_tu(substr(oldkey,9)::integer) as id_tu,matnr,sernr from sap_equi) u on u.id_tu=eq.id
          where (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
