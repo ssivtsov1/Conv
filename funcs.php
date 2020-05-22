@@ -1959,6 +1959,72 @@ function f_device_ind($n_struct,$rem,$v) {
     $bukrs='CK01';
     $matnr=mb_strtoupper($v['matnr'],'UTF-8');
     $sernr=$v['sernr'];
+
+    $excl[1]=100002386;
+    $excl[2]=100025729;
+    $excl[3]=100002523;
+    $excl[4]=100003449;
+    $excl[5]=100011345;
+    $excl[6]=100013031;
+    $excl[7]=100017827;
+    $excl[8]=100006949;
+    $excl[9]=100009504;
+    $excl[10]=100024498;
+    $excl[11]=100029404;
+    $excl[12]=100033928;
+    $excl[13]=100042940;
+    $excl[14]=100045582;
+    $excl[15]=100048108;
+    $excl[16]=100054690;
+    $excl[17]=200034394;
+    $excl[18]=200034540;
+$excl[19]=200034549;
+$excl[20]=200034550;
+$excl[21]=200034583;
+$excl[22]=200034603;
+$excl[23]=200034645;
+$excl[24]=200034738;
+$excl[25]=200034748;
+$excl[26]=200034792;
+$excl[27]=200034839;
+$excl[28]=200034841;
+$excl[29]=200034892;
+$excl[30]=200034925;
+$excl[31]=200035045;
+$excl[32]=200035179;
+$excl[33]=200035364;
+$excl[34]=200035399;
+$excl[35]=200035402;
+$excl[36]=200035404;
+$excl[37]=200035410;
+$excl[38]=200035446;
+$excl[39]=200034385;
+$excl[40]=200034416;
+$excl[41]=200034418;
+$excl[42]=200034421;
+$excl[43]=200034430;
+$excl[44]=200034433;
+$excl[45]=200034439;
+$excl[46]=200034444;
+$excl[47]=200034449;
+$excl[48]=200034457;
+$excl[49]=200034530;
+$excl[50]=200034544;
+$excl[51]=200034716;
+$excl[52]=200034720;
+$excl[53]=200034951;
+$excl[54]=200035418;
+$excl[55]=200035444;
+$excl[56]=200035454;
+$excl[57]=200035460;
+// Химия с Сумскими счетчиками
+    for($j=1;$j<=count($excl);$j++){
+        if($r==$excl[$j]) {
+            $sernr = $sernr . 'S';
+            break;
+        }
+    }
+
     $zz_pernr=$v['zz_pernr'];
     $cert_date=$v['cert_date'];
     $bgljahr=$v['bgljahr'];
@@ -2201,7 +2267,7 @@ function f_seal_ind($n_struct,$rem,$v,$vid) {
     $reper=$v['reper'];
     $dissue=$v['dissue'];
     $matnr=mb_strtoupper($v['matnr'],'UTF-8');
-    $sernr=$v['sernr'];
+    $sernr=$v['sernr_t'];
     $place=$v['place'];
     $dinst=$v['dinst'];
 
@@ -3589,7 +3655,7 @@ function date2file_Partner_ind($res,$vid)
 {
     $rem = '0'.$res;  // Код РЭС
     $fd = date('Ymd');
-    $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'_07'.'_R'.'.txt';
+    $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'_08'.'_R'.'.txt';
     deleterOM($fname,$rem);
     $f = fopen($fname, 'w+');
     $i = 0;

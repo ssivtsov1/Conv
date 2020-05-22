@@ -1668,7 +1668,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         else case when trim(lower(c.street))='шосе кіровоградське' then 1=1 else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end end 
         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
         and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' else 1=1 end 
-         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap5) b2
+         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
           on trim(b1.numtown)= trim(b2.numtown) --and b2.post_index=c.indx  
         left join
         (select id,last_name,name,patron_name,tax_number as inn,'ИНН не проходит контрольную сумму'::text as Error  
@@ -1681,6 +1681,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         trim(c.district)=d.region where a.archive='0' 
         and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or trim(b1.rnobl)='Широківський район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x
         --where id=500000115
+        -- limit 10
      
         ";
 
@@ -1726,7 +1727,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 
         if(1==2) {  // Так работала программа раньше - было существенно медленее
             $fd = date('Ymd');
-            $fname = 'PARTNER_04' . '_CK' . $rem . '_' . $fd . '_07' . '_R' . '.txt';
+            $fname = 'PARTNER_04' . '_CK' . $rem . '_' . $fd . '_08' . '_R' . '.txt';
             $f = fopen($fname, 'w+');
             $i = 0;
             $sql = "select * from sap_init";
@@ -1765,19 +1766,111 @@ b.tax_number else null end else null end as tax_number,b.last_name,
             }
         }  //  endif  1==2
 
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл PARTNER_IND сформовано.";
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+        // проверка адреса  на соответствие его с названием в САП {
+        $err = check_adres_partner($fname,1);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
+                exec_on_server($z, (int)$rem, $vid);
             }
-        else
-            return 1;
+        }
+        // проверка индекса  на соответствие его с названием в САП {
+        $err = check_adres_partner($fname,2);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // проверка адреса  на соответствие его с названием в САП   }
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+//        $cnt=6;
+//        $err = no_struct($fname,$cnt);
+//        if($err<>'') {
+//            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+//            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+//        }
+        // отсутствие структуры }
+        //
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        //fclose($f);
+
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл PARTNER_IND сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//        else
+//            return 1;
 
 
 //        return $this->render('info', [
@@ -1947,7 +2040,9 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place,coalesce(sp.short_name,'СЕЙФ-ПАКЕТ') as scat,a.id_type,a.dt_on,a.id,
+        $sql = "select *,case when nn>1 then trim(sernr)||'_'||nn else trim(sernr) end as sernr_t from (
+select *,row_number() over(partition by scat,sernr) as nn from (
+select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place,coalesce(sp.short_name,'СЕЙФ-ПАКЕТ') as scat,a.id_type,a.dt_on,a.id,
                 'I' as status,'3' as color,'C010099' as utmas,'C010099' as reper,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as DPURCH,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as dissue,
@@ -1970,7 +2065,10 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
                 trim(w.num_meter)=trim(d.sernr) and upper(trim(d.matnr))=upper(trim(sd.sap_meter_name))
                 inner join sap_const const on 1=1
                 left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
-                where dt_off is null and length(a.plomb_num) <= 15 
+                where dt_off is null and length(a.plomb_num) <= 15 --AND a.id in(800000148,800000147)
+                ) g
+                ) gg
+                -- limit 10
                 ";
 
         if ($helper == 1)
@@ -2093,12 +2191,85 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
             fputs($f, "\n");
         }
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
+
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
             }
-        else
-                return 1;
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $cnt=2;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);
+
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//        else
+//                return 1;
 
 //        if (file_exists($fname)) {
 //            return \Yii::$app->response->sendFile($fname);
@@ -2239,6 +2410,7 @@ order by c.name
 ) ff
 on ff.id=p.id_sector
 where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
+-- limit 10
                 ";
 
         if($helper==1)
@@ -2363,14 +2535,119 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             fputs($f, "\n");
         }
 
-        fclose($f);
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
             }
-        else
-                return 1;
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+            $err = double_struct($fname);
+            if($err<>'') {
+
+                $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+                exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+            }
+            // задвоения структур }
+
+            // отсутствие структуры {
+//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+            $cnt=2;
+            $err = no_struct($fname,$cnt);
+            if($err<>'') {
+                $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+                exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+            }
+            // отсутствие структуры }
+            // нет объекта высшего уровня {
+            $sql="SELECT * from sap_refer where upload='$filename'";
+            $data_u = data_from_server($sql, $res, $vid);
+            $refer = $data_u[0]['refer'];
+            $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+            if(!empty($data_u[0]['upload'])) {
+                $err = no_refer($fname, $data_u);
+                if (count($err)) {
+                    foreach ($err as $v) {
+                        $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                        exec_on_server($z, (int)$rem, $vid);
+                    }
+                }
+            }
+            // нет объекта высшего уровня }
+
+
+
+            // пустая ссылка {
+            $msg = 'Пустая ссылка';
+            $err = empty_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+
+            }
+            // пустая ссылка }
+            //kol struckt{
+            $col= count_str($fname);
+            //kol struckt}
+            fclose($f);
+
+
+            $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+            $sql_ab = data_from_server($sql_err, $res, $vid);
+
+            if(empty($sql_ab)){
+
+                $model = new info();
+                $model->title = 'УВАГА!';
+                $model->info1 = "Файл сформовано.".$col;
+                $model->style1 = "d15";
+                $model->style2 = "info-text";
+                $model->style_title = "d9";
+
+                return $this->render('info', [
+                    'model' => $model]);
+            } else {
+                return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            }
+
+
+//        fclose($f);
+//
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//        else
+//                return 1;
 
         // Выдаем предупреждение на экран об окончании формирования файла
 //        $model = new info();
@@ -4602,6 +4879,7 @@ inner join
                 facts.id=instln.id
                 group by 1,facts.id,facts.power,facts.ver
                 order by facts.id
+                -- limit 10
 ";
 
         // Получаем необходимые данные
@@ -4635,13 +4913,74 @@ inner join
                 fputs($f, "\n");
             }
         }
-        fclose($f);
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
+
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+        // нет объекта высшего уровня {
+
+        $refer = 'INSTLN';
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+
+        $err = no_refer_facts($fname);
+//            debug($err);
+//            return;
+
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z="INSERT  INTO sap_err
+                        VALUES('FACTS','$v','$refer',$res)";
+                exec_on_server($z, (int)$rem, $vid);
             }
-        else
-                return 1;
+        }
+
+        // нет объекта высшего уровня }
+        fclose($f);
+
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+//        fclose($f);
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//        else
+//                return 1;
 
         // Выдаем предупреждение на экран об окончании формирования файла
 //        $model = new info();
@@ -4830,7 +5169,9 @@ and not(m.id_type_meter=0 or trim(m.num_meter)='0' or m.num_meter is null)
 order by 1) t
 group by 1,9,10,11,12,13,20,21,22
 order by 1) w ) ww
-where  (dat_ind=dat_ind_last or dat_ind is null) ";
+where  (dat_ind=dat_ind_last or dat_ind is null)
+-- limit 10
+";
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
 
@@ -4869,14 +5210,99 @@ where  (dat_ind=dat_ind_last or dat_ind is null) ";
             }
             $i++;
         }
+
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // нет объекта высшего уровня {
+        $sql="SELECT * from sap_refer where upload='$filename'";
+        $data_u = data_from_server($sql, $res, $vid);
+        $refer = $data_u[0]['refer'];
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        if(!empty($data_u[0]['upload'])) {
+            $err = no_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+        }
+        // нет объекта высшего уровня }
+
+        // пустая ссылка {
+        $msg = 'Пустая ссылка';
+        $err = empty_refer($fname, $data_u);
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+
+        }
+        // пустая ссылка }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
         fclose($f);
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
-            }
-        else
-                return 1;
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+//        fclose($f);
+//
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//        else
+//                return 1;
 
 //        if (file_exists($fname)) {
 //            return \Yii::$app->response->sendFile($fname);
@@ -4932,7 +5358,8 @@ left join sap_data instln on substr(instln.oldkey,12)::int=a.id
 left join sap_init_acc account on substr(account.oldkey,9)::int=a.id
 left join sap_init partner on substr(partner.old_key,9)::int=a.id
 left join (select (fun_mmgg())::date as mmgg_current) w1 on 1=1
-where a.archive='0'		       
+where a.archive='0'	
+-- limit 10	       
 ";
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
@@ -4971,14 +5398,99 @@ where a.archive='0'
             fputs($f, "\n");
         }
 
+
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // нет объекта высшего уровня {
+        $sql="SELECT * from sap_refer where upload='$filename'";
+        $data_u = data_from_server($sql, $res, $vid);
+        $refer = $data_u[0]['refer'];
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        if(!empty($data_u[0]['upload'])) {
+            $err = no_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+        }
+        // нет объекта высшего уровня }
+
+        // пустая ссылка {
+        $msg = 'Пустая ссылка';
+        $err = empty_refer($fname, $data_u);
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+
+        }
+        // пустая ссылка }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
         fclose($f);
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
-            }
-        else
-                return 1;
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+//        fclose($f);
+//
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//        else
+//                return 1;
 
 //        if (file_exists($fname)) {
 //            return \Yii::$app->response->sendFile($fname);
@@ -6153,6 +6665,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         order by 5,7) z 
         group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
         order by 5,7
+        -- limit 10
         ";
 
 //debug($sql);
@@ -6266,24 +6779,120 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
             fputs($f, "\n");
         }
 
+        //fclose($f);
+
+
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+
+        // Получаем название подпрограммы
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+        // проверка адреса  на соответствие его с названием в САП {
+        $err = check_adres($fname,1);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // проверка индекса  на соответствие его с названием в САП {
+        $err = check_adres($fname,2);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // проверка адреса  на соответствие его с названием в САП   }
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+        $cnt=3;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+        //
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
         fclose($f);
+
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+
         // Выдаем предупреждение на экран об окончании формирования файла
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
 
 //        return $this->render('info', [
 //            'model' => $model]);
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
-            }
-            else
-                return 1;
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//            else
+//                return 1;
 
     }
 
@@ -6349,11 +6958,14 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
                 on q.id=a.id) s2
                 on s1.id=s2.id
                 left join clm_meterpoint_tbl m on m.id_paccnt=s1.id
+              -- limit 10
+                
 ";
 
             // Запрос для получения списка необходимых
             // для экспорта структур
             $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+            $sql_err="delete from sap_err where upload='ACCOUNT' and res=$res";
 
             // Получаем необходимые данные
             $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
@@ -6366,6 +6978,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
             exec_on_server($zsql,$res,$vid);
             exec_on_server($zsql1,$res,$vid);
             exec_on_server($zsql2,$res,$vid);
+            exec_on_server($sql_err,$res,$vid);
 
             // Заполняем структуры
             foreach ($data as $w) {
@@ -6418,20 +7031,120 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         }
 
         fclose($f);
-        // Выдаем предупреждение на экран об окончании формирования файла
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        $res=(int)$rem;
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
             }
-        else
-                return 1;
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+
+        $cnt=4;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+
+        // нет объекта высшего уровня {
+        $sql="SELECT * from sap_refer where upload='$filename'";
+        $data_u = data_from_server($sql, $res, $vid);
+        $refer = $data_u[0]['refer'];
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        if(!empty($data_u[0]['upload'])) {
+            $err = no_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+        }
+        // нет объекта высшего уровня }
+
+        // пустая ссылка {
+        $msg = 'Пустая ссылка';
+        $err = empty_refer($fname, $data_u);
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // пустая ссылка }
+
+        //
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+//        fclose($f);
+
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+//        $model = new info();
+//        $model->title = 'УВАГА!';
+//        $model->info1 = "Файл сформовано.";
+//        $model->style1 = "d15";
+//        $model->style2 = "info-text";
+//        $model->style_title = "d9";
+//
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//        else
+//                return 1;
 
 //        if (file_exists($fname)) {
 //            return \Yii::$app->response->sendFile($fname);
@@ -6856,7 +7569,9 @@ order by tzap
                 from clm_paccnt_tbl as a
                 left join sap_evbsd b on b.oldkey='04_C'||$$$rem$$||'B_'||a.id
                 inner join sap_const const on 1=1
-                where a.archive='0' ";
+                where a.archive='0' 
+                -- limit 10 
+                ";
 
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
@@ -6919,14 +7634,119 @@ order by tzap
             fputs($f, "\n");
         }
 
+
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $cnt=2;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+        // нет объекта высшего уровня {
+        $sql="SELECT * from sap_refer where upload='$filename'";
+        $data_u = data_from_server($sql, $res, $vid);
+        $refer = $data_u[0]['refer'];
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        if(!empty($data_u[0]['upload'])) {
+            $err = no_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+        }
+        // нет объекта высшего уровня }
+
+        // пустая ссылка {
+        $msg = 'Пустая ссылка';
+        $err = empty_refer($fname, $data_u);
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+
+        }
+        // пустая ссылка }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
         fclose($f);
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
-            }
-        else
-                return 1;
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+
+//        fclose($f);
+//
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//        else
+//                return 1;
 
 //        if (file_exists($fname)) {
 //            return \Yii::$app->response->sendFile($fname);
@@ -7040,7 +7860,8 @@ order by tzap
 		        where p.archive='0' and b1.dt_e is null
 		        and not(a.id_type_meter in(0,300000010 ,200000005,999) or trim(a.num_meter)='0' or a.num_meter is null)
 		        --and a.id=100033776 and b1.dt_e is null
-                order by sd.sap_meter_name        
+                order by sd.sap_meter_name 
+               --  limit 10       
                 ";
 
         $sql_c = "select * from sap_export where objectsap='DEVICE_IND' order by id_object";
@@ -7251,16 +8072,103 @@ order by tzap
         }
 
 
-//        fputs($f, "\t&ENDE");
-//        fputs($f, "\n");
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+        $err = double_struct($fname);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+        $cnt=4;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+
+//         Проверка на пустые поля {
+        if(1==2) { // off
+            $sql = 'SELECT * FROM sap_check_fields';
+            $f_data = data_from_server($sql, $res, $vid);
+            $err = empty_fields($fname, $f_data);
+//        debug($err);
+            // Запись в таблицу ошибок
+            if (count($err)) {
+                foreach ($err as $v) {
+                    $z = "INSERT  INTO sap_err VALUES('$filename','$v','Пустое поле',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+        }
+//         Проверка на пустые поля }
+
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
         fclose($f);
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
-            }
-            else
-                return 1;
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+
+//        fputs($f, "\t&ENDE");
+//        fputs($f, "\n");
+//        fclose($f);
+//
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//            else
+//                return 1;
 
 //        if (file_exists($fname)) {
 //            return \Yii::$app->response->sendFile($fname);
@@ -8470,6 +9378,7 @@ inner join sap_const const on 1=1
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
         where a.archive='0' 
+       -- limit 10
        ";
         $sql_c = "select * from sap_export where objectsap='PREMISE_IND' order by id_object";
         $zsql = 'delete from sap_evbsd';
@@ -8654,14 +9563,119 @@ inner join sap_const const on 1=1
             fputs($f, $old_key . "\t&ENDE");
             fputs($f, "\n");
         }
+        //fclose($f);
+
+
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $cnt=2;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+        // нет объекта высшего уровня {
+        $sql="SELECT * from sap_refer where upload='$filename'";
+        $data_u = data_from_server($sql, $res, $vid);
+        $refer = $data_u[0]['refer'];
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        if(!empty($data_u[0]['upload'])) {
+            $err = no_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+        }
+        // нет объекта высшего уровня }
+
+        // пустая ссылка {
+        $msg = 'Пустая ссылка';
+        $err = empty_refer($fname, $data_u);
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+
+        }
+        // пустая ссылка }
+        //
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
         fclose($f);
 
-        if($par==0)
-            if (file_exists($fname)) {
-                return \Yii::$app->response->sendFile($fname);
-            }
-        else
-                return 1;
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+
+
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//        else
+//                return 1;
 
 //        if (file_exists($fname)) {
 //            return \Yii::$app->response->sendFile($fname);
