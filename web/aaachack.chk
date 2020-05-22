@@ -1,3 +1,0 @@
- insert into sap_data(oldkey,dat_type,vstelle,spebene,anlart,ablesartst,zz_nametu,zz_fider,ab,tariftyp,branche,aklasse,
-            ableinh,zzcode4nkre,zzcode4nkre_dop,zzotherarea,begru,zz_eic)
-     values($$04_C08B_01_800000010$$,'DATA',$$04_C08B_800000010$$,$$02$$,$$0002$$,$$0001$$,'Диженко Ольга Костянтинівна',$$$$,$$20200101$$,'CK_1AL2_01','70',$$0001$$,'BC010631','355','~','~','CK01',$$62Z5677418865052$$)
