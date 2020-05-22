@@ -8116,7 +8116,7 @@ order by tzap
         // отсутствие структуры }
 
 //         Проверка на пустые поля {
-        if(1==2) { // off
+//        if(1==2) { // off
             $sql = 'SELECT * FROM sap_check_fields';
             $f_data = data_from_server($sql, $res, $vid);
             $err = empty_fields($fname, $f_data);
@@ -8128,7 +8128,7 @@ order by tzap
                     exec_on_server($z, (int)$rem, $vid);
                 }
             }
-        }
+//        }
 //         Проверка на пустые поля }
 
         //kol struckt{
