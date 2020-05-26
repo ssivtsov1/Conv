@@ -2043,8 +2043,8 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select *,case when nn>1 then trim(sernr)||'_'||nn else trim(sernr) end as sernr_t from (
-select *,row_number() over(partition by scat,sernr) as nn from (
+        $sql = "select *,case when nn>1 then trim(scode)||'_'||nn else trim(scode) end as plomb_num_t from (
+select *,row_number() over(partition by scat,scode) as nn from (
 select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place,coalesce(sp.short_name,'СЕЙФ-ПАКЕТ') as scat,a.id_type,a.dt_on,a.id,
                 'I' as status,'3' as color,'C010099' as utmas,'C010099' as reper,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as DPURCH,
@@ -2394,7 +2394,7 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
 case when length(adr.last_name||' '||adr.name||' '||adr.patron_name)>0 then
 adr.last_name||' '||adr.name||' '||adr.patron_name else
 adr.code end as zz_nametu,'' as zz_fider,'$date_ab' as ab,'CK_1AL2_01' as tariftyp,
-'0001' as aklasse,ff.ableinh as ableinh,b.begru,a.eic,b.ver,c.oldkey as vstelle,
+'0001' as aklasse,ff.ableinh as ableinh,b.begru_b as begru,a.eic,b.ver,c.oldkey as vstelle,
 case when trim(adr.type_city)='м.' then '70' else '71' end as branche, p.id_sector
 from clm_paccnt_tbl a
 inner join sap_const b on 1=1

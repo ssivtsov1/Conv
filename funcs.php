@@ -2259,7 +2259,7 @@ function f_seal_ind($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'B_01_';
     $r = $v['id'];
     $scat=$v['scat'];
-    $scode=$v['scode'];
+    $scode=$v['plomb_num_t'];
     $status = $v['status'];
     $color =$v['color'];
     $utmas=$v['utmas'];
@@ -2267,7 +2267,7 @@ function f_seal_ind($n_struct,$rem,$v,$vid) {
     $reper=$v['reper'];
     $dissue=$v['dissue'];
     $matnr=mb_strtoupper($v['matnr'],'UTF-8');
-    $sernr=$v['sernr_t'];
+    $sernr=$v['sernr'];
     $place=$v['place'];
     $dinst=$v['dinst'];
 
