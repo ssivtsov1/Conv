@@ -8780,10 +8780,11 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
             left join clm_statecl_tbl as st on cl1.id = st.id_client
           --  left join sap_co_adr ref on substr(ref.oldkey,9)=cl1.id::text
            
-        left join sap_but020 c1 on c1.oldkey='04_C'||'$rem'||'P_'||cl1.id
+        left join sap_but020 c1 on c1.oldkey='04_C'||'$rem'||'P_'||cl1.id or (cl1.id::character varying=c1.str_supll2 and c1.str_supll2<>'~') 
         left join sap_co_adr dd on
-        trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and 
-        upper(trim(c1.house_num1))=upper(trim(dd.house_num1)) and trim(dd.city1)<>''
+        ((trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and 
+        upper(trim(c1.house_num1))=upper(trim(dd.house_num1)) and trim(dd.city1)<>'') or (cl1.id::character varying=dd.str_suppl2 and dd.str_suppl2<>'~')) 
+        and substr(dd.oldkey,9)::integer=cl1.id 
         and substr(dd.oldkey,9)::integer=cl1.id
        -- and coalesce(trim(replace(c1.house_num2,'корп.','')),'~')=case when trim(dd.house_num2)='' then '~' ELSE coalesce(trim(dd.house_num2),'~') END
        -- and dd.str_suppl1='~') or (dd.str_suppl1<>'~' and trim(c1.str_suppl1)=trim(dd.str_suppl1) and trim(c1.str_suppl2)=trim(dd.str_suppl2))
