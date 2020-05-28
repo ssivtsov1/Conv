@@ -1819,7 +1819,10 @@ function f_connobj($n_struct,$rem,$v) {
         $str_supll1 = str_replace("'",'`',trim($v['street_wo']));
         if(empty($str_supll1))
             $str_supll1 = 'вул. Взаємовиручки';
+
         $str_supll2 = $house_num1;
+        if(!empty($v['id_wo']))
+            $str_supll2 = $v['id_wo'];
         $town = trim($v['town_wo']);
         $post_code1 = trim($v['ind_wo']);
 //        $region='DNP';

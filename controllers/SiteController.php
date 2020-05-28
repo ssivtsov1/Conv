@@ -8286,7 +8286,7 @@ order by tzap
 coalesce(street,'') as street,coalesce(house,'') as house,stort,ver,begru,region,swerk,
 case when coalesce(street,'')='' and coalesce(house,'')='' then name end as str_suppl1,
 '' as str_suppl2,''::char(20) as house_num2,town_sap,reg,street_sap,numobl,
- town_wo,street_wo,ind_wo,numobl_wo,reg_wo from
+ town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo from
 (select a.id,'' as pltxt,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
 case when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 1  then '03' when coalesce(b.FLAG_JUR,0)= 0 then  '03'  else '03' end as BU_GROUP,
 case when coalesce(b.FLAG_JUR,0)= 1 then '0002' when coalesce(b.FLAG_JUR,0)= 0 then  '0003' else '0001' end as BPKIND,
@@ -8421,7 +8421,7 @@ kt.shot_name||' '||t.name as town,b2.post_index,ks.shot_name||' '||s.name as str
 b.phone,b.e_mail,
 const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town as town_sap,
 ads.street as street_sap,ads.reg,ads.numobl,
-u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.reg as reg_wo
+u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.reg as reg_wo,u.id_client as id_wo
  from clm_client_tbl a
         left join clm_statecl_tbl b on
         a.id=b.id_client
@@ -8451,8 +8451,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
        select distinct trim(numtown) as numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) 
        b20 group by 1) b2
          on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
-         LEFT JOIN  sap_wo_adr u on coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
-        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')
+        LEFT JOIN  sap_wo_adr u on ((coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
+        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')) or (a.id=u.id_client))
         and u.res=$rem
         inner join sap_const const on
         1=1
@@ -8466,7 +8466,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 	   	    group by coalesce(town,''),coalesce(post_index,''),
 		coalesce(street,''),coalesce(house,''),stort,ver,begru,region,swerk,
 		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,
-		town_sap,reg,street_sap,numobl,id,town_wo,street_wo,ind_wo,numobl_wo,reg_wo
+		town_sap,reg,street_sap,numobl,id,town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo
 	order by id     
    ";
         $sql_c = "select * from sap_export where objectsap='CONNOBJ' order by id_object";
