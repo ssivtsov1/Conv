@@ -7313,7 +7313,7 @@ select distinct 2000000-gr.code_t_new::int+row_number() OVER (order BY c.code_eq
                   get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
                   case when eq.is_owner <> 1 then 'CK_RANDOM' else '' end as zz_pernr,
                   '' as CERT_DATE,
-                  upper(type_tr.type_tr_sap) as MATNR,
+                  coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
                   '' as zwgruppe,
                   type_tr.group_ob as WGRUPPE,
                   const.swerk,const.stort,const.ver,const.begru_b as begru,2 as tzap
