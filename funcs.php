@@ -1339,12 +1339,15 @@ function f_partner($n_struct, $rem, $v) {
             $dacha[23] = 'Величності людини';
             $dacha[24] = 'Высокой морали';
             $dacha[25] = 'Человечности';
+            $dacha[26] = 'Польоту душі';
 
 //            $u_r=rand(1,23);
             $str_supll1 = str_replace("'",'`',trim($v['street_wo']));
             if(empty($str_supll1))
-                $str_supll1 = $dacha[10];
+                $str_supll1 = 'вул. ' . $dacha[10];
             $str_supll2 = $house_num1;
+            if(!empty($v['id_wo']))
+                $str_supll2 = $v['id_wo'];
             $town = trim($v['town_wo']);
             $post_code1 = trim($v['ind_wo']);
             $region=trim($v['reg_wo']);;
@@ -2747,7 +2750,7 @@ function f_facts($rem,$v) {
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_RATE','ВТ_РЕАКТ','','')";
 //        exec_on_server($z, (int)$rem, $vid);
-
+    if( !((($v['id'])==124553 || $v['id'] == 115032 || $v['id'] == 144788) && $rem=='01'))
         $facts['data32'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_РЕАКТ'.';'.' '.';'.' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)

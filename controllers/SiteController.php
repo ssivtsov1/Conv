@@ -1122,7 +1122,7 @@ case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^
 kt.shot_name||' '||t.name as town,ads.town as town_sap,am.post_index,b2.post_index as post_index_sap,ks.shot_name||' '||s.name as street,ads.street as street_sap,
 UPPER(am.building) as house,UPPER(am.office) as flat,
 b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl,
-u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo
+u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_client as id_wo
  from clm_client_tbl a
         left join clm_statecl_tbl b on
         a.id=b.id_client
@@ -1154,8 +1154,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo
        select distinct trim(numtown) as numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) 
        b20 group by 1) b2
          on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
-       LEFT JOIN  sap_wo_adr u on coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
-        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')
+       LEFT JOIN  sap_wo_adr u on ((coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
+        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')) or (a.id=u.id_client))
          and u.res=$rem
         WHERE 
         (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
