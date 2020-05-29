@@ -623,4 +623,189 @@ where qq.vstelle is null ";
 
     }
     
+    
+    public function actionMissingcategory(){
+   
+   // $date_ab='2020-05-01';
+
+    $sql="select vkona,zz.name from (
+select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_meter_tbl m
+join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
+left join (select code as id,min(sap_cnt) as sap_meter_id from sap_meter_cnt where sap_cnt<>'' group by code) s on s.id::integer=m.id_type_eqp
+left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
+left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id)
+left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client))) then '' else 'X' end as znodev,
+row_number() OVER() as id_str
+from
+(select 'INIT' as struct,a.id,a.code as vkona,const.vktyp as vktyp,'04_C'||''||'P_'||a.id as gpart
+from clm_client_tbl as a
+left join clm_statecl_tbl as b on a.id = b.id_client
+inner join sap_const const on 1=1
+WHERE
+--a.code_okpo<>'' and a.code_okpo<>'000000000'
+-- and a.code_okpo<>'0000000'
+--and a.code_okpo<>'000000'
+(a.code>999 or a.code=900) AND coalesce(a.idk_work,0)<>0
+and a.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001')
+) s1
+left join
+--VK
+(select 'VK' as struct,cl.id,
+case when length((case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar)=1
+then '0'||(case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar
+else (case when st.dt_indicat=31 then '01' else (st.dt_indicat+ 1) end )::varchar end as ZDATEREP
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE
+-- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+-- and cl.code_okpo<>'0000000'
+-- and cl.code_okpo<>'000000'
+(cl.code>999 or cl.code=900) AND coalesce(cl.idk_work,0)<>0
+and cl.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001')
+) s2 on s1.id=s2.id
+left join
+-- VKP
+(select distinct 'VKP' as struct,cl.id,vktyp as vktyp,'04_C'||''||'P_'||cl.id as partner,const.opbuk,51 as ikey,13 as mahnv,
+const.begru_all as begru,b.adext_addr as adrnb_ext,
+'0005' as ZAHLKOND,'0002' as VERTYP,
+case when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99 then '04'
+when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)<>99 then '02'
+when coalesce(st.flag_budjet,0)=1 then '03'
+else '02'
+end as KOFIZ_SD,
+'5' as KZABSVER,
+const.opbuk as stdbk,
+case when coalesce(st.flag_budjet,0)=1 then
+case when st.id_budjet=1000510 or st.id_section =211 then '1'
+when st.id_budjet=1000521 or st.id_section =213 then '2'
+when st.id_budjet=1000522 or st.id_section =215 then '3'
+when st.id_budjet=1000523 or st.id_section =214 then '4'
+when st.id_budjet=1000520 or st.id_section is null then
+case when st.id_section=213 then '2'
+when st.id_section=214 then '4'
+when st.id_section=215 then '3'
+else ''
+end
+else '' end
+else '5' end as FKRU_FIS,
+case when st.id_section in(210,211) then '10'
+when st.id_section=212 then '20'
+when st.id_section=213 then '21'
+when st.id_section=214 then '22'
+when st.id_section=215 then '23'
+when st.id_section=203 then '30'
+when st.id_section=201 then '40'
+when st.id_section=202 then '60'
+when st.id_section=205 then '81'
+when st.id_section=207 then '82'
+when st.id_section=206 then '83'
+when st.id_section=204 then '50'
+else '' end as ZSECTOR,
+'' as ZZ_MINISTRY,
+replace((case when st.doc_dat<'2019-01-01' then '2019-01-01' else st.doc_dat end)::varchar ,'-','') as ZZ_START,
+'' as ZZ_END,'' as ZZ_BUDGET,ww.ZZ_TERRITORY as ZZ_TERRITORY
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+left join sap_but020 b on '04_C04P_'||cl.id=b.oldkey
+
+left join
+(select distinct id_potr,case when substr(trim(first_value(adr) over(partition by id_potr)),1,3)='м. ' then 1 else 2 end as zz_territory from
+(
+select p.*, c.code,c2.id as id_potr, c.short_name as name, c2.code as use_code, c2.name as use_name, area.area_name, en.energy , abonpar.doc_num
+from ( select dt.power,dt.connect_power, dt.id_tarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, dt.id_tg,
+p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment,
+dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts,
+dt.ldemandr,dt.ldemandg,dt.id_un, dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva,
+dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.id_addres,q.adr, eq.num_eqp as eis_cod, eq.is_owner, eq.dt_install from eqm_equipment_tbl as eq
+join eqm_point_tbl AS dt on (dt.code_eqp= eq.id)
+left join adv_address_tbl q on (q.id=eq.id_addres)
+left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif) left join cla_param_tbl as p on (dt.industry=p.id)
+left join eqk_tg_tbl as tg on (dt.id_tg=tg.id) left join eqk_voltage_tbl AS v on (dt.id_voltage=v.id) left join eqk_voltage_tbl AS vun on (dt.id_un=vun.id)
+left join eqk_zone_tbl AS z on (dt.zone=z.id) left join cla_param_tbl AS cla on (dt.id_depart=cla.id) left join cla_param_tbl AS cla2 on (dt.id_extra=cla2.id)
+left join clm_position_tbl as cp on (cp.id = dt.id_position)) as p join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp)
+join eqm_tree_tbl as t on (t.id = tt.id_tree)
+join clm_client_tbl as c on (c.id = t.id_client)
+left join eqm_eqp_use_tbl as use on (use.code_eqp = p.code_eqp)
+
+left join clm_client_tbl as c2 on (c2.id = coalesce (use.id_client, t.id_client))
+left join clm_statecl_tbl as abonpar on (abonpar.id_client = c2.id)
+
+left join (select ins.code_eqp, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area
+on (area.code_eqp = p.code_eqp) left join (select code_eqp, trim(sum(e.name||','),',') as energy
+from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en
+on (en.code_eqp = p.code_eqp) where coalesce (use.id_client, t.id_client) <> syi_resid_fun() and (c2.id = NULL or NULL is null
+and c2.idk_work not in (0,99) and coalesce(c2.id_state,0) not in (50,99) )
+order by c2.code, p.name_eqp
+) w ) ww on ww.id_potr=cl.id
+
+
+WHERE
+--cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+--and cl.code_okpo<>'0000000'
+--and cl.code_okpo<>'000000'
+(cl.code>999 or cl.code=900) AND coalesce(cl.idk_work,0)<>0
+and cl.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001')
+) s3 on s2.id=s3.id
+
+left join
+-- KVV
+(select 'KVV' as struct,cl.id,'20200301' as date_from,'99991231' as date_to
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+inner join sap_const const on 1=1
+WHERE
+--cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+--and cl.code_okpo<>'0000000'
+--and cl.code_okpo<>'000000'
+(cl.code>999 or cl.code=900) AND coalesce(cl.idk_work,0)<>0
+and cl.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001')
+) s4 on s3.id=s4.id
+left join
+--ZSTAT
+(select 'ZSTAT' as struct,cl.id,'CONT07' as obj,
+case when ('04'='01' or '04'='02') and
+(substr(cl.short_name,1,3)='РП ' or substr(cl.short_name,1,2)='Р ') then 'CON005' else 'CON003' end as status,
+case when st.doc_dat is null then '20200101'::varchar else replace(st.doc_dat::varchar ,'-','') end as date_reg,
+'99991231' as date_to,''::text as price,
+''::text as COMMENTS,''::text as LOEVM,acc.cat_sap as zz_categ
+from clm_client_tbl as cl
+left join clm_statecl_tbl as st on cl.id = st.id_client
+left join sap_categ_acc acc on acc.id_cat::int=st.id_nkrekp
+inner join sap_const const on 1=1
+WHERE
+-- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
+-- and cl.code_okpo<>'0000000'
+-- and cl.code_okpo<>'000000'
+(cl.code>999 or cl.code=900) AND coalesce(cl.idk_work,0)<>0
+and cl.code not in('20000556','20000565','20000753',
+'20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+'10999999','11000000','19999369','50999999','1000000','1000001')
+
+) s5 on s4.id=s5.id
+-- where s1.id>=13060 and s1.id<=13075
+) z
+left join clm_client_tbl zz on zz.code=z.vkona
+where zz_categ is null";
+
+        $s = sap_connect::findBySql($sql)->asArray()->all();
+   
+        return $this->render('missingcategory', compact('s'));
+
+    }
+    
+    
+    
+    
 }

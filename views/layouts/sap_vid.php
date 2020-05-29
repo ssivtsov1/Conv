@@ -57,6 +57,7 @@ AppAsset::register($this);
                                                                                             ['label' => 'Відсутня юр.адреса спож.', 'url' => ['/sap/yspoj']],
                                                                                             ['label' => 'Відсутня адреса на точці вым.', 'url' => ['/sap/missingaddres']],
                                                                                             ['label' => 'Відсутня площадка вим.', 'url' => ['/sap/missingarea']],
+                                                                                            ['label' => 'Відсутня категорія', 'url' => ['/sap/missingcategory']],
                                                                                             ],
                                                                                  ],     
                                                                                  ]
