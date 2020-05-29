@@ -2706,11 +2706,11 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     inner join sap_const const on 1=1
     where hm.dt_b = (select dt_b from eqm_equipment_h where id = eq.id and num_eqp = eq.num_eqp and dt_e is null order by dt_b desc limit 1 ) 
     and c.book=-1 and c.idk_work not in (0) 
-    and coalesce(c.id_state,0) not in (50,99,80,49,100)
+    and coalesce(c.id_state,0) not in (50,99,49)
     and sc.mmgg_b = (select max(mmgg_b) from clm_statecl_h as sc2 where sc2.id_client = sc.id_client and sc2.mmgg_b <= date_trunc('month', '$period'::date ) )  
     and sc.id_section not in (205,206,207,208,209,218) 
     and coalesce (use.id_client, tr.id_client) <> syi_resid_fun()
-    and coalesce (use.id_client, tr.id_client)<>999999999
+    and coalesce (use.id_client, tr.id_client)<>999999999  and eq.id=115539
     order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
@@ -2737,18 +2737,20 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             $data_f = data_from_server($sql_f, $res, $vid);
             $sql_f = "select * from di_zw_struc order by knde,sort";
             $data_f = data_from_server($sql_f, $res, $vid);
-            $devloc = '04_C04P_' . strtoupper(hash('crc32', $id));
+//            $devloc = '04_C04P_' . strtoupper(hash('crc32', $id));
+//            $devloc = '04_C04P_' . $id;
             $sql_1 = "select distinct
                  '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
-                '$devloc' as devloc,
+                '04_C04P_' || p.oldkey as devloc,
                 'DI_INT' as struc,'$period' as eadat,
-                 '04_C'||'$rem'||'P_01_'||eq.id::varchar as anlage,
+                 '04_C'||'$rem'||'P_01_'||get_tu(eq.id)::varchar as anlage,
                 '01' as ACTION
                 from eqm_meter_tbl as m
                 join eqm_equipment_tbl as eq on (m.code_eqp = eq.id) 
                 left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
                 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join 
-                eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = mp.id_point) 
+                eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = mp.id_point)
+              left join sap_evbsd p on p.haus='04_C'||$$$rem$$||'P_'||$id  
                 where m.code_eqp= $id_eq";
             $data_1 = data_from_server($sql_1, $res, $vid);
             // Запись в файл структуры DI_INT
@@ -11415,7 +11417,7 @@ WHERE
     // Запись данных по измер. трансформаторам
     public function actionGet_data_tv()
     {
-        $file = "izm_zv.csv";
+        $file = "izm_dn.csv";
         $f = fopen($file,'r');
         $i = 0;
         while (!feof($f)) {
@@ -11451,7 +11453,7 @@ WHERE
                     "," . "$$" . $code_i . "$$" . "," . "$$" . $numbers_i . "$$" . "," . "$$" . $type_tr_u . "$$" . "," .
                     "$$" . $code_u . "$$" . "," . "$$" . $numbers_u . "$$" .
                     ')';
-                Yii::$app->db_pg_zv_energo->createCommand($sql)->execute();
+                Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
 
 
             //debug($town);
