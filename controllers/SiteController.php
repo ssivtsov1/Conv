@@ -6080,12 +6080,14 @@ where a.archive='0'
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select distinct 
+        $sql = "select *,case when gg=1 then scode1 else scode1 || '_' || gg end as scode from (
+select *,row_number() over(partition by SCAT,scode1) as gg from (
+select distinct 
         p.id,'AUTO' as AUTO, 
         --p.id_type as SCAT,
         sp.sap_name as SCAT,
         t.name as SCAT_cek,
-        trim(p.plomb_num) as SCODE,
+        trim(p.plomb_num) as SCODE1,
         'I' as STATUS,
         '3' as COLOR,
         'C010099' as UTMAS, 
@@ -6097,7 +6099,6 @@ where a.archive='0'
         --coalesce(obj.id_sap,8) as PLACE,
         p.object_name,
         p2.id as PLACE,
-        
         substring(replace(p.dt_b::varchar, '-',''),1,8) as DINST,const.ver
         from clm_plomb_tbl as p 
         left join cli_plomb_type_tbl as t on (t.id = p.id_type) 
@@ -6112,13 +6113,13 @@ where a.archive='0'
         left join sap_recode_place_plomb p1 on trim(p1.place_cek)=trim(p.object_name)
         left join spr_place_plomb p2 on trim(p2.name)=trim(p1.place_sap)
          inner join sap_const const on 1=1
-         left join (select oldkey,get_tu(substr(oldkey,9)::integer) as id_tu,matnr,sernr from sap_equi) u on u.id_tu=eq.id
+         left join (select oldkey,get_tu(substr(oldkey,9,6)::integer) as id_tu,matnr,sernr from sap_equi) u on u.id_tu=eq.id
          where (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
                  and  c.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                 '10999999','11000000','19999369','50999999','1000000','1000001')
-                and sp.sap_name is not null
-                
+                and sp.sap_name is not null -- AND c.id=3123	
+         ORDER BY 13 ) plombs) q     
           ";
 
         if ($helper == 1)
