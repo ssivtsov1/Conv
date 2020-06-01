@@ -2710,7 +2710,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     and sc.mmgg_b = (select max(mmgg_b) from clm_statecl_h as sc2 where sc2.id_client = sc.id_client and sc2.mmgg_b <= date_trunc('month', '$period'::date ) )  
     and sc.id_section not in (205,206,207,208,209,218) 
     and coalesce (use.id_client, tr.id_client) <> syi_resid_fun()
-    and coalesce (use.id_client, tr.id_client)<>999999999  and eq.id=115539
+    and coalesce (use.id_client, tr.id_client)<>999999999  -- and c.id=10330
     order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
@@ -2722,12 +2722,9 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $f = fopen($fname,'w+');
         $fname1 = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $ff = fopen($fname1, 'w+');
+        $j=0;
         foreach($data as $v) {
-//            fwrite($f, iconv("utf-8", "windows-1251", $v['name'] . "\t" .
-//                    $v['oldkey'] . "\t" .
-//                    $v['code'] . "\t" .
-//                    $v['name_eqp'] . "\t" . "\n")
-//            );
+            $j++;
             $id_eq = $v['id_eq'];
             $id = $v['id'];
             $oldkey = $v['oldkey'];
@@ -2740,7 +2737,8 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
 //            $devloc = '04_C04P_' . strtoupper(hash('crc32', $id));
 //            $devloc = '04_C04P_' . $id;
             $sql_1 = "select distinct
-                 '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
+                -- '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
+                 p.oldkey as oldkey,
                 '04_C04P_' || p.oldkey as devloc,
                 'DI_INT' as struc,'$period' as eadat,
                  '04_C'||'$rem'||'P_01_'||get_tu(eq.id)::varchar as anlage,
@@ -2754,41 +2752,42 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 where m.code_eqp= $id_eq";
             $data_1 = data_from_server($sql_1, $res, $vid);
             // Запись в файл структуры DI_INT
+           $i=0;
             foreach ($data_1 as $v1) {
-                fwrite($f, iconv("utf-8", "windows-1251", $v1['oldkey'] . "\t" .
+                $i++;
+                $oldkey = '04_C'.$rem.'P_01_'.$id_eq. '_'.$i;
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                     $v1['struc'] . "\t" .
                     $v1['devloc'] . "\t" .
                     $v1['anlage'] . "\t" .
                     $v1['eadat'] . "\t" .
                     $v1['action'] . "\n"));
 
-                fwrite($ff, iconv("utf-8", "windows-1251", 'INST_MGMT'. "\t" .
+                fwrite($ff, iconv("utf-8", "windows-1251", 'INST_MGMT' . "\t" .
                     $oldkey . "\t" .
                     $code . "\t" .
-                    $short_name . "\n" ));
+                    $short_name . "\n"));
 
-            }
-            $c = 0;
-            $c1 = '';
-            // Запись в файл структуры DI_ZW
+                $c = 0;
+                $c1 = '';
+                // Запись в файл структуры DI_ZW
+                foreach ($data_f as $v2) {
+                    $c = $c + 1;
+                    $c1 = '00' . "$c";
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                        'DI_ZW' . "\t" . $c1 . "\t" .
+                        $v2['kondigre'] . "\t" .
+                        $v2['zwstandce'] . "\t" .
+                        $v2['zwnabr'] . "\t" .
+                        $v2['tarifart'] . "\t" .
+                        $v2['perverbr'] . "\t" .
+                        '04_C' . $rem . 'P_' . $v2['equnre'] . "\t" .
+                        $v2['anzdaysofperiod'] . "\t" .
+                        $v2['pruefkla'] . "\n"));
+                }
 
 
-            foreach ($data_f as $v2) {
-                $c = $c + 1;
-                $c1 = '00' . "$c";
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
-                    'DI_ZW' . "\t" . $c1 . "\t" .
-                    $v2['kondigre'] . "\t" .
-                    $v2['zwstandce'] . "\t" .
-                    $v2['zwnabr'] . "\t" .
-                    $v2['tarifart'] . "\t" .
-                    $v2['perverbr'] . "\t" .
-                    '04_C'.$rem.'P_'.$v2['equnre'] . "\t" .
-                    $v2['anzdaysofperiod'] . "\t" .
-                    $v2['pruefkla'] . "\n"));
-            }
-
-            $sql_2 = "select distinct 
+                $sql_2 = "select distinct 
                 '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                 'DI_GER' as struc,
                 case when grp.code_t_new is null then 
@@ -2815,15 +2814,17 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                         left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
                         ) as sti on (sti.id_meter = eq.id) 
                 left join group_trans1 as grp on grp.id_meter=m.code_eqp
-                where m.code_eqp= $id_eq and sti.id_comp is not null and grp.code_t_new is not null";
-            $data_2 = data_from_server($sql_2, $res, $vid);
-            // Запись в файл структуры DI_GER
-            foreach ($data_2 as $v2) {
-                fwrite($f, iconv("utf-8", "windows-1251", $v2['oldkey'] . "\t" .
-                    $v2['struc'] . "\t" .
-                    $v2['equnrneu'] . "\n"));
-            }
-            $sql_3 = "select distinct 
+                where m.code_eqp= $id_eq and sti.id_comp is not null and grp.code_t_new is not null
+                -- order by grp.ord 
+                ";
+                $data_2 = data_from_server($sql_2, $res, $vid);
+                // Запись в файл структуры DI_GER
+                foreach ($data_2 as $v2) {
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                        $v2['struc'] . "\t" .
+                        $v2['equnrneu'] . "\n"));
+                }
+                $sql_3 = "select distinct 
                     '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                     'DI_GER' as struc,
                     '04_C'||'$rem'||'P_'||m.code_eqp::text  as EQUNRNEU,
@@ -2851,18 +2852,19 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                             ) as sti on (sti.id_meter = eq.id) 
                     left join group_trans1 as grp on grp.id_meter=m.code_eqp
                     where m.code_eqp=$id_eq limit 1";
-            $data_3 = data_from_server($sql_3, $res, $vid);
-            // Запись в файл структуры DI_GER
-            $end = '&ENDE';
-            foreach ($data_3 as $v3) {
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
-                    $v3['struc'] . "\t" .
-                    $v3['equnrneu'] . "\t" .
-                    '' . "\t" .
-                    $v3['met_id'] . "\n"));
+                $data_3 = data_from_server($sql_3, $res, $vid);
+                // Запись в файл структуры DI_GER
+                $end = '&ENDE';
+                foreach ($data_3 as $v3) {
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                        $v3['struc'] . "\t" .
+                        $v3['equnrneu'] . "\t" .
+                        '' . "\t" .
+                        $v3['met_id'] . "\n"));
 
-                fwrite($f, $oldkey . "\t" .
-                    $end . "\n");
+                    fwrite($f, $oldkey . "\t" .
+                        $end . "\n");
+                }
             }
         }
 
@@ -3003,7 +3005,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             left join clm_statecl_tbl as sc on (c.id = sc.id_client) 
             left join eqm_equipment_tbl as e on e.id= eq.id_point
             inner join sap_const const on 1=1 
-            where  c.book=-1 and c.idk_work not in (0) and coalesce(c.id_state,0) not in (50,99,80,49,100) and sc.id_section not in (205,206,207,208,209,218) and c.id <> syi_resid_fun() and c.id <>999999999 and eq.code_t_new is not null
+            where  c.book=-1 and c.idk_work not in (0) and coalesce(c.id_state,0) not in (50,99,49,100) and sc.id_section not in (205,206,207,208,209,218) and c.id <> syi_resid_fun() and c.id <>999999999 and eq.code_t_new is not null
             order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
@@ -3025,13 +3027,13 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             $code=$v['code'];
             $oldkey = $oldkey_const . $id;
             $oldkey1= '04_C'.$rem.'P_';
-            $sql_1="select  distinct  eq.id_point ,
+            $sql_1="select  distinct  1 as ord,eq.id_point ,
 'EDEVGR' as n_struct,
 case when substr(zz.clas,1,1)='J'  then '0002'  else '0003' end as devgrptyp,
 '$period'  as keydate, 
 '' as dop,
 '1' as sort
-from group_trans as eq
+from group_trans1 as eq
 join ( select eq.num_eqp as num_comp , 
     CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter
       from eqm_compensator_i_tbl as c 
@@ -3067,13 +3069,13 @@ join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp)
     
 union
 --eq.code_t_new
-select  distinct  eq.id_point,
+select  distinct  eq.ord,eq.id_point,
 'DEVICE' as n_struct,
 '$oldkey1' || eq.code_t_new as devgrptyp,
  '' as  keydate, 
 ''  as dop,
 '2' as sort
-from group_trans as eq
+from group_trans1 as eq
 join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, 
 		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
 	       gr.id_area, ic.amperage_nom, ic.conversion , ic.type as tt_type,ic.id as id_type_tr, ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner 
@@ -3094,12 +3096,13 @@ join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b,
             left join sap_type_tr_i_tbl as type_tr on type_tr.id_type = sti.id_type_tr
                left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = sti.id_type_tr
                where eq.id_point = $id_eq and eq.code_t_new is not null
-order by sort";
+order by sort,ord";
 
             $data_1 = data_from_server($sql_1, $res, $vid);
 
 //            debug($data_1);
 //            return;
+
             // Запись в файл структуры DI_INT
             $oldkey2='';
             foreach ($data_1 as $v1) {
@@ -7257,7 +7260,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         $date_ab=$data_d[0]['mmgg_current'];
         // Главный запрос со всеми необходимыми данными
         $sql = "select * from 
-(select distinct m.code_eqp as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
+(select distinct m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
@@ -7303,7 +7306,7 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
    
 union                
 
-select distinct 2000000-gr.code_t_new::int+row_number() OVER (order BY c.code_eqp) as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
+select distinct gr.code_t_new::text as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
                 '2004' as BAUJJ, 
@@ -7317,7 +7320,7 @@ select distinct 2000000-gr.code_t_new::int+row_number() OVER (order BY c.code_eq
                   '' as CERT_DATE,
                   coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
                   '' as zwgruppe,
-                  type_tr.group_ob as WGRUPPE,
+                 coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
                   const.swerk,const.stort,const.ver,const.begru_b as begru,2 as tzap
                  from group_trans1 as gr
                  join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int

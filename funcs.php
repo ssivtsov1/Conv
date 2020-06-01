@@ -2889,7 +2889,8 @@ function f_move_in($rem,$v) {
     $oldkey_const='04_C'.$rem.'P_';
     $oldkey_const1='04_C'.$rem.'P_01_';
     $oldkey = $oldkey_const . $v['id'];
-    $vkonto = $oldkey_const1 . $v['id_cl'];
+    $oldkey_instln = $oldkey_const1 . $v['id'];
+    $vkonto = $oldkey_const . $v['id_cl'];
     $ever=[];
     $ever[0]=$oldkey;
     $ever[1]='EVER';
@@ -2899,7 +2900,7 @@ function f_move_in($rem,$v) {
     $ever[5]=$v['vbez'];
     $ever[6]=$v['vrefer'];
     $ever[7]=$v['begru'];
-    $ever[8] = $oldkey;
+    $ever[8] = $oldkey_instln;
     $ever[9]= $vkonto;
     $ever[10]= str_replace('-', '',$v['einzdat']);
     $ever[11]=str_replace('-', '',$v['auszdat']);
