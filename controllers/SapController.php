@@ -806,6 +806,18 @@ where zz_categ is null";
     }
     
     
-    
+              public function actionExsistmeter(){
+         
+        $sql = "select p.code,mm.id_type_meter,e.name from (select SUBSTRING(oldkey,9)::int as id_paccnt from sap_EGPLD) as z
+left join clm_paccnt_tbl as p on p.id=z.id_paccnt
+left join clm_meterpoint_tbl as mm on mm.id_paccnt=p.id
+left join eqi_meter_tbl as e on e.id=mm.id_type_meter
+where z.id_paccnt not in 
+(select c.id_paccnt from sap_EGERS d join clm_meterpoint_tbl c on SUBSTRING(d.oldkey,9)::int = c.id)"; 
+        $s = abn_connect::findBySql($sql)->asArray()->all();
+   
+        return $this->render('exsistmeter', compact('s'));
+
+    }
     
 }
