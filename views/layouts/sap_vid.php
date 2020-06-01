@@ -58,6 +58,8 @@ AppAsset::register($this);
                                                                                             ['label' => 'Відсутня адреса на точці вым.', 'url' => ['/sap/missingaddres']],
                                                                                             ['label' => 'Відсутня площадка вим.', 'url' => ['/sap/missingarea']],
                                                                                             ['label' => 'Відсутня категорія', 'url' => ['/sap/missingcategory']],
+                                                                                            ['label' => 'Не визначено лічильник', 'url' => ['/sap/exsistmeter']],
+                                                                                                exsistmeter
                                                                                             ],
                                                                                  ],     
                                                                                  ]
