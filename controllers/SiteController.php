@@ -6081,10 +6081,11 @@ where a.archive='0'
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select *,case when gg=1 then scode1 else scode1 || '_' || gg end as scode from (
+        $sql = "select *,case when gg=1 then scode1 else scode1 || '_' || gg end as scode,
+ case when gg=1 then id1::text else id1 || '_' || gg end as id from (
 select *,row_number() over(partition by SCAT,scode1) as gg from (
 select distinct 
-        p.id,'AUTO' as AUTO, 
+        p.id as id1,'AUTO' as AUTO, 
         --p.id_type as SCAT,
         sp.sap_name as SCAT,
         t.name as SCAT_cek,
@@ -6119,8 +6120,10 @@ select distinct
                  and  c.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                 '10999999','11000000','19999369','50999999','1000000','1000001')
-                and sp.sap_name is not null -- AND c.id=3123	
-         ORDER BY 13 ) plombs) q     
+                and sp.sap_name is not null  AND -- p.id=3130
+         ORDER BY 13 ) plombs) q      
+
+
           ";
 
         if ($helper == 1)
