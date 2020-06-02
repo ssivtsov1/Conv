@@ -987,8 +987,9 @@ public function actionIdfile()
         $rem = '0'.$res;  // Код РЭС
 
         $sql = "select distinct a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
-case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа ' in a.name)>0
-or position('Фізична особа' in a.name)>0  
+case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа' in a.name)>0
+or position('Фізична  особа' in a.name)>0 or position('Приватний підприємець' in a.name)>0  
+or position('Приватна особа' in a.name)>0
 then '03' else '02' end as BU_GROUP,
 case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '0003' else '0002' end as BPKIND,
 'MKK' as ROLE1,

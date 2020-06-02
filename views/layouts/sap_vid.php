@@ -26,7 +26,7 @@ AppAsset::register($this);
 <div class="wrap">
     <?php
     NavBar::begin([
-        'brandLabel' => 'CEK',
+        'brandLabel' => 'ЦEK',
         'brandUrl' => ['sap/general'],
         'options' => [
             'class' => 'navbar-default navbar-fixed-top',
@@ -43,10 +43,11 @@ AppAsset::register($this);
                                                                                             [
                                                                                             ['label' => 'мобільні телефони', 'url' => ['/sap/phone']],
                                                                                             ['label' => 'Дублі лічильник+номер', 'url' => ['/sap/doublemeter']],
+                                                                                            ['label' => 'Не визначено лічильник', 'url' => ['/sap/exsistmeter']],
                                                                                             ],
                                                                                  ],
                                                                                      
-                                                                                 ['label' => 'Юридичні спожиачі', 'url' => ['/site/index'],
+                                                                                 ['label' => 'Юридичні споживачі', 'url' => ['/site/index'],
                                                                                      
                                                                                      'options' => ['id' => 'down_menu'],
                                                                                         'items' =>
@@ -58,8 +59,7 @@ AppAsset::register($this);
                                                                                             ['label' => 'Відсутня адреса на точці вым.', 'url' => ['/sap/missingaddres']],
                                                                                             ['label' => 'Відсутня площадка вим.', 'url' => ['/sap/missingarea']],
                                                                                             ['label' => 'Відсутня категорія', 'url' => ['/sap/missingcategory']],
-                                                                                            ['label' => 'Не визначено лічильник', 'url' => ['/sap/exsistmeter']],
-                                                                                           
+
                                                                                             ],
                                                                                  ],     
                                                                                  ]
