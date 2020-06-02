@@ -4527,13 +4527,13 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
                         from acm_headdemandlimit_tbl as h2 join acd_demandlimit_tbl as d2 on (h2.id_doc = d2.id_doc) 
                         left join ( select distinct g.code_eqp from eqm_ground_tbl as g join eqm_compens_station_inst_tbl as csi on
     (csi.code_eqp_inst = g.code_eqp) )as g on (g.code_eqp = d2.id_area)
-                          where h2.idk_document = 600 and date_part('year',d2.month_limit)= date_part('year', '2020-03-01'::date )
+                          where h2.idk_document = 600 and date_part('year',d2.month_limit)= date_part('year', '2020-05-01'::date )
                            and (d2.id_area is null or g.code_eqp is not null)
                            
                             group by h2.id_client , d2.id_area, d2.month_limit order by h2.id_client ) as hh
                              on (hh.id_client = hl.id_client and hh.maxdate = hl.reg_date and hh.maxmmgg = hl.mmgg
                                  and hh.month_limit = d1.month_limit and hh.id_area = d1.id_area) where hl.idk_document = 600
-    and date_part('year',d1.month_limit)= date_part('year', '2020-03-01'::date ) 
+    and date_part('year',d1.month_limit)= date_part('year', '2020-05-01'::date ) 
                               order by hl.id_client,id_area ) as ss group by id_client, id_area ) as s1 on
     (s1.id_client =cl.id and s1.id_area = area.code_eqp) order by cl.code,area_name) lm 
                               on lm.id_area=code_area
