@@ -3957,24 +3957,34 @@ function no_refer_facts ($filename)
             $s = fgets($f);
             $data = explode("\t", $s);
             if (isset($data[1]) && $data[1]=='KEY') {
-                $ref = $data[2];
+                $ref = trim($data[2]);
                     // Ищем ссылку в файле $ref_file (высшего уровня)
                     $f_seek = 0;
                     $fr1 = fopen($ref_file, 'r');
                     rewind($fr1);
+                    $was=0;
                     while (!feof($fr1)) {
+                        $was=1;
                         $sr = fgets($fr1);
                         $data_r = explode("\t", $sr);
-                        if ($data_r[0] == $ref) {
+
+                        if (trim($data_r[0]) == $ref) {
                             $f_seek = 1;
-                            break;
+                            //$ref='';
+                             break;
                         }
                     }
+//                if($ref=='04_C08P_01_115014') {
+//                    debug( $data_r);
+//                    debug( 'f_seek='.$f_seek);
+//                }
+
                     if ($f_seek == 0) {
                         // not found reference
-                        $arr_k[$j] = $refer.' '.$ref;
+                        $arr_k[$j] = $refer . ' ' . $ref;
                         $j++;
                     }
+
 
         }
 //        fclose($fr1);

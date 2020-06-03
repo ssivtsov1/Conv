@@ -3367,7 +3367,7 @@ and
 	     and  www.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	     '10999999','11000000','19999369','50999999','1000000','1000001')
-and id_cl<>2062 
+--and id_cl<>2062 
 -- and (yy.oldkey is not null or qqq.oldkey is not null) 
 ";
 
@@ -4744,15 +4744,17 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
         }
 
         // нет объекта высшего уровня {
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
 
         $refer = 'INSTLN';
         $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
 
             $err = no_refer_facts($fname);
-//            debug($err);
-//            return;
 
-             if (count($err)) {
+             if (count($err)>0) {
                 foreach ($err as $v) {
 //                    debug($v);
                     $z="INSERT  INTO sap_err
