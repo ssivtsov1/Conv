@@ -3237,7 +3237,8 @@ order by sort,ord";
         $date_ab=$data_d[0]['mmgg_current'];
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select distinct on(zz_eic) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+        $sql = "select * from (
+        select distinct on(zz_eic) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru_all as begru,
 '10' as sparte,qqq.* from
 (select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,
@@ -3358,9 +3359,10 @@ left join
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
 where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
 left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
-left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=qqq.id_potr
-left join clm_client_tbl www on www.id=qqq.id_potr
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
+left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
+case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
+left join clm_client_tbl www on www.id=qqq.id_potr
 inner join sap_const const on 1=1
 where qqq.id_potr is not null and www.code<>999 or (www.code=999 and use.code_eqp is not null)
 and
@@ -3368,6 +3370,7 @@ and
 	     and  www.code not in('20000556','20000565','20000753',
 	    '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
+)  r	where vstelle is not null      
 ";
 
         if($helper==1)
