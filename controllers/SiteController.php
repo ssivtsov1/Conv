@@ -5548,7 +5548,8 @@ where a.archive='0'
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = str_replace('-','',$data_p[0]['mmgg']);  // Получаем текущий отчетный период
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select const.opbuk as bukrs,stt.doc_num as vrefer,
+        $sql = "select * from (
+select const.opbuk as bukrs,stt.doc_num as vrefer,
 tt.*,
 case when stt.flag_budjet = 1 then '03' else case when coalesce(cc2.idk_work,0)=99 then '04' else '02' end  end  as kofiz,
 '1' as gemfakt,'' as vbez,stt.doc_num as vreffer,'$period'::text as einzdat,''::text as auszdat,dt_b as einzdat_alt,
@@ -5685,19 +5686,24 @@ left join
    left join clm_client_tbl u1 on u1.id=u.id_client) rr 
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
 where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
-left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=qqq.id_potr
+left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id 	
+left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
+case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
 left join clm_client_tbl www on www.id=qqq.id_potr
 inner join sap_const const on 1=1) tt
 left join clm_statecl_tbl as stt on (stt.id_client = tt.id_cl) 
 left join clm_client_tbl as cc2 on (tt.id_cl = cc2.id) 
+left join eqm_eqp_use_tbl use1 on use1.code_eqp=tt.id 	
 left join (select * from clm_contractor_tbl where dt_contr_end is null limit 1) ct on ct.id_client=cc2.id
 left join cli_contractor_tbl ci on ci.id=ct.id_contractor and ci.edrpou_contr is not null 
 inner join sap_const const on 1=1
-WHERE (cc2.code>999 or cc2.code=900) AND coalesce(cc2.idk_work,0)<>0 
+WHERE (cc2.code>999 or cc2.code=900) AND coalesce(cc2.idk_work,0)<>0 or (cc2.code=999 and use1.code_eqp is not null) 
 	     and  cc2.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
-order by 8,zz_point_num,zz_plosch_num,zz_object_num
+	   
+order by 8,zz_point_num,zz_plosch_num,zz_object_num  
+) r where  vstelle is not null
 ";
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
