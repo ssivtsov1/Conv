@@ -3360,15 +3360,14 @@ where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
 left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
 left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=qqq.id_potr
 left join clm_client_tbl www on www.id=qqq.id_potr
+left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
 inner join sap_const const on 1=1
-where qqq.id_potr is not null and www.code<>999 
+where qqq.id_potr is not null and www.code<>999 or (www.code=999 and use.code_eqp is not null)
 and
-(www.code>999 or  www.code=900) AND coalesce(www.idk_work,0)<>0 
+(www.code>999 or  www.code=900) AND coalesce(www.idk_work,0)<>0 or (coalesce(www.idk_work,0)=0 and use.code_eqp is not null)
 	     and  www.code not in('20000556','20000565','20000753',
-	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001')
---and id_cl<>2062 
--- and (yy.oldkey is not null or qqq.oldkey is not null) 
+	    '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	    '10999999','11000000','19999369','50999999','1000000','1000001')
 ";
 
         if($helper==1)
