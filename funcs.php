@@ -2024,12 +2024,12 @@ $excl[55]=200035444;
 $excl[56]=200035454;
 $excl[57]=200035460;
 // Химия с Сумскими счетчиками
-    for($j=1;$j<=count($excl);$j++){
-        if($r==$excl[$j]) {
-            $sernr = $sernr . 'S';
-            break;
-        }
-    }
+//    for($j=1;$j<=count($excl);$j++){
+//        if($r==$excl[$j]) {
+//            $sernr = $sernr . 'S';
+//            break;
+//        }
+//    }
 
     $zz_pernr=$v['zz_pernr'];
     $cert_date=$v['cert_date'];
@@ -3112,22 +3112,37 @@ function f_discenter_ind($rem,$v) {
     return $di_ent;
 }
 
+// Подписанты
 function f_zsign_ca($rem,$v) {
-    $oldkey_const='04_C'.$rem.'P_01_';
     $oldkey =  $v['ref_acc'];
     $vkont =  $v['ref_acc'];
     $zsign=[];
-    $zsign[0]=$oldkey;     //oldkey
+    $zsign[0]=$oldkey;     // oldkey
     $zsign[1]='AUTO';
-    $di_ent[2]=$vkont;     //Account
-    $di_ent[3]=$v['id'];
-    $di_ent[4]=$v['type'];
-    $di_ent[5]=$v['description'];
-    $di_ent[6]=$v['description2'];
-    $di_ent[7]=$v['last_name1'];
-    $di_ent[8]=$v['first_name1'];
-    $di_ent[9]=$v['middle_name1'];
-    return $di_ent;
+    $zsign[2]=$vkont;     // Account`s reference
+    $zsign[3]=$v['id'];
+    $zsign[4]=$v['type'];
+    $zsign[5]=$v['description'];
+    $zsign[6]=$v['description2'];
+    $zsign[7]=$v['last_name1'];
+    $zsign[8]=$v['first_name1'];
+    $zsign[9]=$v['middle_name1'];
+    $zsign[10]=$v['last_name2'];
+    $zsign[11]=$v['first_name2'];
+     $zsign[12]=$v['middle_name2'];
+    $zsign[13]=$v['doc_name'];
+    $zsign[14]=$v['doc_date'];
+    $zsign[15]=$v['sign_right'];
+    $zsign[16]=$v['get_right'];
+    $zsign[17]=$v['telephone'];
+    $zsign[18]=$v['mobilephone'];
+    $zsign[19]=$v['e_mail'];
+    $zsign[20]=$v['comm'];
+    $zsign[21]=$v['standart'];
+    $zsign[22]=$v['actual'];
+    $zsign[23]=$v['eds'];
+    $zsign[24]=$v['responsible'];
+    return $zsign;
 }
 
 // Выгрузка instln юридические потребители

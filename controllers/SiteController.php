@@ -3652,6 +3652,9 @@ and
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
 
+//        debug($data);
+//        return;
+
         $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
 
         // Включение режима помощника
@@ -3715,157 +3718,44 @@ and
         }
 
         // Заполняем структуры
-
+        $i=0;
         foreach ($data as $w) {
-            foreach ($cnt as $v) {
-                $n_struct = trim($v['dattype']);
-                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
-                eval($func_fill);
-            }
+            $zsign[$i]=f_zsign_ca($rem,$w);
+            $i++;
         }
 
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
-        $ver=$data[0]['ver'];
+        $ver='8';
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
         $f = fopen($fname,'w+');
 
-        // Считываем данные в файл с каждой таблицы
-        $sql = "select * from sap_$first_struct";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
-        foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
-            $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+        // Считываем данные в файл с массивов $di_int и $di_zw
+        $i=0;
+        foreach ($zsign as $d) {
+            $d1 = array_map('trim', $d);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
-            foreach ($cnt as $v) {
-                $table_struct = 'sap_' . trim($v['dattype']);
-                $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
-                    $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
-                    foreach ($cur_data as $d1) {
-                        $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }
-                }
-            }
-            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, $d1[0]."\t".'&ENDE');
             fputs($f, "\n");
+
+            $i++;
         }
-
-        // Проверка файла выгрузки
-        $method=__FUNCTION__;
-        if (substr($method, -4) == '_ind') {
-            $vid = 1;
-            $_suffix = '_R';
-        } else {
-            $vid = 2;
-            $_suffix = '_L';
-        }
-        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
-        // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
-        exec_on_server($sql_err, (int)$rem, $vid);
-
-        // задвоения по oldkey  {
-        $err = double_oldkey($fname);
-        // Запись в таблицу ошибок
-        if (count($err)) {
-            foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
-                exec_on_server($z, (int)$rem, $vid);
-            }
-        }
-        // задвоения по oldkey  }
-
-        // задвоения структур {
-//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $err = double_struct($fname);
-        if($err<>'') {
-
-            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
-            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
-        }
-        // задвоения структур }
-
-        // отсутствие структуры {
-//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
-            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
-            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
-        }
-        // отсутствие структуры }
-        // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
-        $data_u = data_from_server($sql, $res, $vid);
-        $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
-            $err = no_refer($fname, $data_u);
-            if (count($err)) {
-                foreach ($err as $v) {
-                    $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$refer',$res)";
-                    exec_on_server($z, (int)$rem, $vid);
-                }
-            }
-        }
-        // нет объекта высшего уровня }
-
-
-
-        // пустая ссылка {
-        $msg = 'Пустая ссылка';
-        $err = empty_refer($fname, $data_u);
-        if (count($err)) {
-            foreach ($err as $v) {
-//                    debug($v);
-                $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$msg',$res)";
-                exec_on_server($z, (int)$rem, $vid);
-            }
-
-        }
-        // пустая ссылка }
-        //kol struckt{
-        $col= count_str($fname);
-        //kol struckt}
-        fclose($f);
-
-
-        $sql_err = "select * from sap_err where upload = '$filename'";
-
-
-        $sql_ab = data_from_server($sql_err, $res, $vid);
-
-        if(empty($sql_ab)){
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано.";
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
 
             return $this->render('info', [
                 'model' => $model]);
-        } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
-        }
+
     }
 
     // Формирование файла линий(zlines) для САП для юридических потребителей
