@@ -2711,8 +2711,11 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     and sc.mmgg_b = (select max(mmgg_b) from clm_statecl_h as sc2 where sc2.id_client = sc.id_client and sc2.mmgg_b <= date_trunc('month', '$period'::date ) )  
     and sc.id_section not in (205,206,207,208,209,218) 
     and coalesce (use.id_client, tr.id_client) <> syi_resid_fun()
-    and coalesce (use.id_client, tr.id_client)<>999999999  -- and c.id=10330
-    order by 5";
+    and coalesce (use.id_client, tr.id_client)<>999999999  -- and c.id=10330and (c.code>999 or c.code=900)
+	        and  c.code not in(20000556,20000565,20000753,
+	       20555555,20888888,20999999,30999999,40999999,41000000,42000000,43000000,
+	       10999999,11000000,19999369,50999999,1000000,1000001)
+        order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
         $fd=date('Ymd');
@@ -3675,15 +3678,12 @@ select DISTINCT c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name,
                 left join sap_lines as v1 on v1.id::int=cable.id and (v1.normative is not null and trim(v1.normative)<>'') and v1.kod_res='6'
                 left join voltage_line uu1 on u.voltage_min=uu1.u_our
                 left join voltage_line uu2 on u1.voltage_min=uu2.u_our
-                
                 left join eqm_eqp_use_tbl as use on (use.code_eqp = p.id_point) 
-		left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = p.id_point
-		left join eqm_tree_tbl tr on tr.id = ttr.id_tree
-		left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = p.id_point
+                left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+                left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  and  p.type_eqp<>2
-                
-                --order by p.id_point, p.lvl desc
                 order by 1) r
                 where (code>999 or code=900) AND coalesce(idk_work,0)<>0
 	        and  code not in(20000556,20000565,20000753,

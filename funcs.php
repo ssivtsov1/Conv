@@ -3564,8 +3564,8 @@ function exec_on_server($sql,$rem,$type)
     $data="Yii::".'$app'."->".$base."->createCommand($sql)"."->execute();";
 //debug($data);
 //return;
-//    $f=fopen('aaaaa_sap.sap','w+');
-//    fputs($f,$data);
+    $f=fopen('aaaaa_sap.sap','w+');
+    fputs($f,$data);
 
     eval($data);
     return;
