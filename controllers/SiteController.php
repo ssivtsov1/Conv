@@ -8822,7 +8822,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         and substr(dd.oldkey,9)::integer=cl1.id
        -- and coalesce(trim(replace(c1.house_num2,'корп.','')),'~')=case when trim(dd.house_num2)='' then '~' ELSE coalesce(trim(dd.house_num2),'~') END
        -- and dd.str_suppl1='~') or (dd.str_suppl1<>'~' and trim(c1.str_suppl1)=trim(dd.str_suppl1) and trim(c1.str_suppl2)=trim(dd.str_suppl2))
-        
+        left join eqm_eqp_use_tbl use on use.code_eqp=eq.id
             inner join sap_const const on
             1=1
             left join clm_statecl_h as sth on cl1.id = sth.id_client and 
@@ -8832,6 +8832,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
                  and cl1.id <> syi_resid_fun() 
                  and cl1.id <>999999999 and 
                   (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0 
+                   or (coalesce(cl1.idk_work,0)=0 and use.code_eqp is not null)
                  and  cl1.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                  '10999999','11000000','19999369','50999999','1000000','1000001')
