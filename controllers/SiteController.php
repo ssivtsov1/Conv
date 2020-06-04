@@ -8832,7 +8832,6 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
                  and cl1.id <> syi_resid_fun() 
                  and cl1.id <>999999999 and 
                   (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0 
-                   or (coalesce(cl1.idk_work,0)=0 and use.code_eqp is not null)
                  and  cl1.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                  '10999999','11000000','19999369','50999999','1000000','1000001')
