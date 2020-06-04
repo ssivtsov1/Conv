@@ -8798,7 +8798,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         $rem = '0'.$res;  // Код РЭС
         $dt=date('Y-m-d');
 
-        $sql = "select distinct const.begru as pltxt,'PREMISE' as name, cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
+        $sql = "select distinct const.begru as pltxt,'PREMISE' as name,
+         case when cl1.id=2062 then use.id_client else cl1.id end as id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'" . $rem . "'||'P_'||case when length(eq.id::varchar)<8 then 
              (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
              dd.oldkey as HAUS,dd.house_num2,const.ver
