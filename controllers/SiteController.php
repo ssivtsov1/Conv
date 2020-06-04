@@ -3631,7 +3631,8 @@ and
           $sql_f = "select eqm_schema_point_fun()";
           $data_f = data_from_server($sql_f, $res, $vid);
         // Главный запрос со всеми необходимыми данными
-        $sql = "select DISTINCT p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+        $sql = "select * from (
+select DISTINCT c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -3670,15 +3671,24 @@ and
                 left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
                 left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
                 left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
-                left join sap_lines as v on v.id::int=cable.id and (v.normative is null or trim(v.normative)='') and v.kod_res='$res'
-                left join sap_lines as v1 on v1.id::int=cable.id and (v1.normative is not null and trim(v1.normative)<>'') and v1.kod_res='$res'
+                left join sap_lines as v on v.id::int=cable.id and (v.normative is null or trim(v.normative)='') and v.kod_res='6'
+                left join sap_lines as v1 on v1.id::int=cable.id and (v1.normative is not null and trim(v1.normative)<>'') and v1.kod_res='6'
                 left join voltage_line uu1 on u.voltage_min=uu1.u_our
                 left join voltage_line uu2 on u1.voltage_min=uu2.u_our
+                
+                left join eqm_eqp_use_tbl as use on (use.code_eqp = p.id_point) 
+		left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = p.id_point
+		left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+		left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  and  p.type_eqp<>2
-                order by p.id_point, p.lvl desc
-
-
+                
+                --order by p.id_point, p.lvl desc
+                order by 1) r
+                where (code>999 or code=900) AND coalesce(idk_work,0)<>0
+	        and  code not in(20000556,20000565,20000753,
+	       20555555,20888888,20999999,30999999,40999999,41000000,42000000,43000000,
+	       10999999,11000000,19999369,50999999,1000000,1000001)
                 ";
 
         if($helper==1)
