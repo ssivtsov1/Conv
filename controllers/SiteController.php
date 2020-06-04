@@ -3349,7 +3349,7 @@ left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name fro
 left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
 ) q 
 left join eqm_equipment_tbl q1 
-on q.zz_nametu::text=q1.name_eqp::text and substr(q1.num_eqp::text,1,3)='62Z' 
+on q.zz_nametu::text=q1.name_eqp::text and substr(trim(q1.num_eqp)::text,1,3)='62Z' 
 and trim(q1.num_eqp)=trim(q.eic_code) 
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
 left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q.id_cl
