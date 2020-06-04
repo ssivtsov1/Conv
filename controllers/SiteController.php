@@ -3367,9 +3367,9 @@ left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
 left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
 case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
-left join clm_client_tbl www on www.id=qqq.id_potr
+left join clm_client_tbl www on www.id=coalesce(qqq.id_potr,use.id_client)
 inner join sap_const const on 1=1
-where qqq.id_potr is not null and www.code<>999 or (www.code=999 and use.code_eqp is not null)
+where coalesce(qqq.id_potr,use.id_client) is not null and www.code<>999 or (www.code=999 and use.code_eqp is not null)
 and
 (www.code>999 or  www.code=900) AND coalesce(www.idk_work,0)<>0 or (coalesce(www.idk_work,0)=0 and use.code_eqp is not null)
 	     and  www.code not in('20000556','20000565','20000753',
@@ -8799,7 +8799,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         $dt=date('Y-m-d');
 
         $sql = "select distinct const.begru as pltxt,'PREMISE' as name,
-         case when cl1.id=2062 and use.id_client is not null then use.id_client else cl1.id end as id,cl1.code, eq.name_eqp,eq.id as id_eq,
+         cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'" . $rem . "'||'P_'||case when length(eq.id::varchar)<8 then 
              (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
              dd.oldkey as HAUS,dd.house_num2,const.ver
@@ -8822,7 +8822,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         and substr(dd.oldkey,9)::integer=cl1.id
        -- and coalesce(trim(replace(c1.house_num2,'корп.','')),'~')=case when trim(dd.house_num2)='' then '~' ELSE coalesce(trim(dd.house_num2),'~') END
        -- and dd.str_suppl1='~') or (dd.str_suppl1<>'~' and trim(c1.str_suppl1)=trim(dd.str_suppl1) and trim(c1.str_suppl2)=trim(dd.str_suppl2))
-        left join eqm_eqp_use_tbl use on use.code_eqp=eq.id
+       
             inner join sap_const const on
             1=1
             left join clm_statecl_h as sth on cl1.id = sth.id_client and 
