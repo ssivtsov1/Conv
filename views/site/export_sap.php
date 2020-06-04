@@ -18,10 +18,20 @@ $this->title = 'Полезные инструменты';
         </div>
       <?
       $r=mt_rand(1,100);
-      if($r%2==0)
+//      if($r%2==0)
+//         echo Html::img('./eksport.jpg', ['class' => 'img_exportsap']);
+//      else
+//          echo Html::img('./export_sap.jpeg', ['class' => 'img_exportsap']);
+
+     if($r>=1 && $r<34) {
          echo Html::img('./eksport.jpg', ['class' => 'img_exportsap']);
-      else
+     }
+      elseif ($r>=34 && $r<67){
           echo Html::img('./export_sap.jpeg', ['class' => 'img_exportsap']);
+      }
+     else {
+         echo Html::img('./export.png', ['class' => 'img_exportsap']);
+     }
       ?>
         <!--<img src="./ulibka.gif">-->
     </div>
@@ -84,6 +94,7 @@ $this->title = 'Полезные инструменты';
                     '27' =>'INST_MGMT  [Споживачі юридичні]',
                     '28' =>'DEVGRP  [Споживачі юридичні]',
                     '29' =>'MOVE_IN  [Споживачі юридичні]',
+                    '31' =>'ZSIGN_CA  [Споживачі юридичні]',
                     '30' =>'Всі  [Споживачі побутові]',
                 ],
                     [

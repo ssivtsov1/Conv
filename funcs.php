@@ -3112,6 +3112,24 @@ function f_discenter_ind($rem,$v) {
     return $di_ent;
 }
 
+function f_zsign_ca($rem,$v) {
+    $oldkey_const='04_C'.$rem.'P_01_';
+    $oldkey =  $v['ref_acc'];
+    $vkont =  $v['ref_acc'];
+    $zsign=[];
+    $zsign[0]=$oldkey;     //oldkey
+    $zsign[1]='AUTO';
+    $di_ent[2]=$vkont;     //Account
+    $di_ent[3]=$v['id'];
+    $di_ent[4]=$v['type'];
+    $di_ent[5]=$v['description'];
+    $di_ent[6]=$v['description2'];
+    $di_ent[7]=$v['last_name1'];
+    $di_ent[8]=$v['first_name1'];
+    $di_ent[9]=$v['middle_name1'];
+    return $di_ent;
+}
+
 // Выгрузка instln юридические потребители
 function f_instln($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'P_01_';

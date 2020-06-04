@@ -886,6 +886,9 @@ WHERE year_p=0 and year_q>0';
                 case 29:
                     return $this->redirect(['sap_move_in', 'res' => $model->rem]);
                     break;
+                case 31:
+                    return $this->redirect(['sap_zsign_ca', 'res' => $model->rem]);
+                    break;
                 case 30:
                     return $this->redirect(['all_sapfile', 'res' => $model->rem]);
                     break;
@@ -3608,6 +3611,263 @@ and
         }
     }
 
+
+    // Формирование файла zsign_ca(подписанты)  для САП для юридических потребителей
+    public function actionSap_zsign_ca($res)
+    {
+
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select a.*,c.oldkey as ref_acc from sap_signers a
+    left join clm_client_tbl b on a.vkont::int=b.code
+    left join sap_vk c on b.id=substr(c.oldkey,9)::int";
+
+        if($helper==1)
+            $sql = $sql.' LIMIT 1';
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+        // Включение режима помощника
+        if($helper==1){
+            $fhelper=$routine.'_HELPER'.'.txt';
+            $ff = fopen($fhelper,'w+');
+            // Создание переменных
+            foreach ($data as $v) {
+                foreach ($v as $k => $v1) {
+                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    fputs($ff, $var);
+                    fputs($ff, "\n");
+
+                }
+            }
+            $i=0;
+
+            foreach ($cnt as $v) {
+                $i++;
+                $n_struct = trim($v['dattype']);
+                fputs($ff, "\n");
+                $var='if ($n_struct=='."'$n_struct') {";
+                fputs($ff, $var);
+                fputs($ff, "\n");
+                //Создание строки INSERT
+                $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
+                $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
+//                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
+                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = ' exec_on_server($z,(int) $rem,$vid);';
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = "}";
+                fputs($ff, $z);
+                fputs($ff, "\n");
+            }
+
+            // Выдаем предупреждение на экран об окончании формирования файла для помощи
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл допомоги $fhelper сформовано.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        }
+
+        // Удаляем данные в таблицах структур
+
+        $i=0;
+        foreach ($cnt as $v) {
+            $i++;
+            $n_struct = trim($v['dattype']);
+            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_".strtolower($n_struct);
+            exec_on_server($zsql,$res,$vid);
+        }
+
+        // Заполняем структуры
+
+        foreach ($data as $w) {
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                eval($func_fill);
+            }
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        // Считываем данные в файл с каждой таблицы
+        $sql = "select * from sap_$first_struct";
+        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        foreach ($struct_data as $d) {
+            $old_key=trim($d['oldkey']);
+            $d = array_map('trim', $d);
+            $s=implode("\t", $d);
+            $s=str_replace("~","",$s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $i=0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if($i>1) {
+                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1=implode("\t", $d1);
+                        $s1=str_replace("~","",$s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        fputs($f, $s1);
+                        fputs($f, "\n");
+                    }
+                }
+            }
+            fputs($f, $old_key . "\t&ENDE");
+            fputs($f, "\n");
+        }
+
+        // Проверка файла выгрузки
+        $method=__FUNCTION__;
+        if (substr($method, -4) == '_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        } else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+        // Удаляем предыдущую информацию
+        $res=(int) $rem;
+        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        exec_on_server($sql_err, (int)$rem, $vid);
+
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
+        // задвоения по oldkey  }
+
+        // задвоения структур {
+//        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $err = double_struct($fname);
+        if($err<>'') {
+
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // задвоения структур }
+
+        // отсутствие структуры {
+//         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
+        $cnt=2;
+        $err = no_struct($fname,$cnt);
+        if($err<>'') {
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
+        // отсутствие структуры }
+        // нет объекта высшего уровня {
+        $sql="SELECT * from sap_refer where upload='$filename'";
+        $data_u = data_from_server($sql, $res, $vid);
+        $refer = $data_u[0]['refer'];
+        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        if(!empty($data_u[0]['upload'])) {
+            $err = no_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+                    $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
+            }
+        }
+        // нет объекта высшего уровня }
+
+
+
+        // пустая ссылка {
+        $msg = 'Пустая ссылка';
+        $err = empty_refer($fname, $data_u);
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z="INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+
+        }
+        // пустая ссылка }
+        //kol struckt{
+        $col= count_str($fname);
+        //kol struckt}
+        fclose($f);
+
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if(empty($sql_ab)){
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано.".$col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+        }
+    }
+
     // Формирование файла линий(zlines) для САП для юридических потребителей
     public function actionSap_zlines($res)
     {
@@ -5686,7 +5946,7 @@ left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name fro
 left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
 ) q 
 left join eqm_equipment_tbl q1 
-on q.zz_nametu::text=q1.name_eqp::text and substr(q1.num_eqp::text,1,3)='62Z' and trim(q1.num_eqp)=trim(q.eic_code) 
+on q.zz_nametu::text=q1.name_eqp::text and substr(trim(q1.num_eqp)::text,1,3)='62Z' and trim(q1.num_eqp)=trim(q.eic_code) 
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
 left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q.id_cl
 left join clm_client_tbl as cc on cc.id = q.id_cl
@@ -5702,7 +5962,7 @@ where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id 	
 left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
 case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
-left join clm_client_tbl www on www.id=qqq.id_potr
+left join clm_client_tbl www on www.id=coalesce(qqq.id_potr,use.id_client)
 inner join sap_const const on 1=1) tt
 left join clm_statecl_tbl as stt on (stt.id_client = tt.id_cl) 
 left join clm_client_tbl as cc2 on (tt.id_cl = cc2.id) 
