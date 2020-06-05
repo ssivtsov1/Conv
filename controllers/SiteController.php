@@ -7494,7 +7494,7 @@ select distinct gr.code_t_new::text as id,0 as id_type_eqp,'' as sap_meter_id,c.
                 case  when coalesce(eq.is_owner,0) = 0 then 'CK01230370' else '' end as KOSTL, 
                  --trim(eq.num_eqp) as SERNR,
                   get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
-                  case when eq.is_owner <> 1 then 'CK_RANDOM' else '' end as zz_pernr,
+                  case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
                  c.date_check::text as CERT_DATE,
                   coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
                   '' as zwgruppe,
@@ -7891,17 +7891,17 @@ order by tzap
         // нет объекта высшего уровня }
 
         // пустая ссылка {
-        $msg = 'Пустая ссылка';
-        $err = empty_refer($fname, $data_u);
-        if (count($err)) {
-            foreach ($err as $v) {
-//                    debug($v);
-                $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$msg',$res)";
-                exec_on_server($z, (int)$rem, $vid);
-            }
-
-        }
+//        $msg = 'Пустая ссылка';
+//        $err = empty_refer($fname, $data_u);
+//        if (count($err)) {
+//            foreach ($err as $v) {
+////                    debug($v);
+//                $z="INSERT  INTO sap_err
+//                        VALUES('$filename','$v','$msg',$res)";
+//                exec_on_server($z, (int)$rem, $vid);
+//            }
+//
+//        }
         // пустая ссылка }
         //kol struckt{
         $col= count_str($fname);
