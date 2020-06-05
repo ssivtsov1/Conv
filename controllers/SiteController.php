@@ -2719,7 +2719,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     and coalesce (use.id_client, tr.id_client)<>999999999  -- and c.id=10330and (c.code>999 or c.code=900)
 	        and  c.code not in(20000556,20000565,20000753,
 	       20555555,20888888,20999999,30999999,40999999,41000000,42000000,43000000,
-	       10999999,11000000,19999369,50999999,1000000,1000001)
+	       10999999,11000000,19999369,50999999,1000000,1000001) and 112936
         order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
@@ -2757,7 +2757,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
                 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join 
                 eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = mp.id_point)
-              left join sap_evbsd p on p.haus='04_C'||$$$rem$$||'P_'||$id  
+               left join (select * from sap_evbsd where haus='04_C'||$$03$$||'P_'||$id limit 1) p on p.haus='04_C'||$$$rem$$||'P_'||$id  
                 where m.code_eqp= $id_eq";
             $data_1 = data_from_server($sql_1, $res, $vid);
             // Запись в файл структуры DI_INT
@@ -7245,6 +7245,8 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         // Получаем название подпрограммы
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         $res=(int)$rem;
+
+        if(1==2) {  // отключено
         // задвоения по oldkey  {
         $err = double_oldkey($fname);
         // Запись в таблицу ошибок
@@ -7273,7 +7275,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
-        if(1==2) {  // отключено
+
             // нет объекта высшего уровня {
             $sql = "SELECT * from sap_refer where upload='$filename'";
             $data_u = data_from_server($sql, $res, $vid);
