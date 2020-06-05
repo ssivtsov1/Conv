@@ -2580,47 +2580,47 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             }
             // задвоения структур }
 
-            // отсутствие структуры {
+            if(1==2) {  // отключено
+                // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-            $cnt=2;
-            $err = no_struct($fname,$cnt);
-            if($err<>'') {
-                $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
-                exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
-            }
-            // отсутствие структуры }
-            // нет объекта высшего уровня {
-            $sql="SELECT * from sap_refer where upload='$filename'";
-            $data_u = data_from_server($sql, $res, $vid);
-            $refer = $data_u[0]['refer'];
-            $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-            if(!empty($data_u[0]['upload'])) {
-                $err = no_refer($fname, $data_u);
-                if (count($err)) {
-                    foreach ($err as $v) {
-                        $z="INSERT  INTO sap_err
+                $cnt = 2;
+                $err = no_struct($fname, $cnt);
+                if ($err <> '') {
+                    $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+                    exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+                }
+                // отсутствие структуры }
+                // нет объекта высшего уровня {
+                $sql = "SELECT * from sap_refer where upload='$filename'";
+                $data_u = data_from_server($sql, $res, $vid);
+                $refer = $data_u[0]['refer'];
+                $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+                if (!empty($data_u[0]['upload'])) {
+                    $err = no_refer($fname, $data_u);
+                    if (count($err)) {
+                        foreach ($err as $v) {
+                            $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$refer',$res)";
-                        exec_on_server($z, (int)$rem, $vid);
+                            exec_on_server($z, (int)$rem, $vid);
+                        }
                     }
                 }
-            }
-            // нет объекта высшего уровня }
+                // нет объекта высшего уровня }
 
-
-
-            // пустая ссылка {
-            $msg = 'Пустая ссылка';
-            $err = empty_refer($fname, $data_u);
-            if (count($err)) {
-                foreach ($err as $v) {
+                // пустая ссылка {
+                $msg = 'Пустая ссылка';
+                $err = empty_refer($fname, $data_u);
+                if (count($err)) {
+                    foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
+                        $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
-                    exec_on_server($z, (int)$rem, $vid);
-                }
+                        exec_on_server($z, (int)$rem, $vid);
+                    }
 
+                }
+                // пустая ссылка }
             }
-            // пустая ссылка }
             //kol struckt{
             $col= count_str($fname);
             //kol struckt}
@@ -5104,33 +5104,35 @@ inner join
         $res=(int) $rem;
         $sql_err="delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
-        // нет объекта высшего уровня {
 
-        $refer = 'INSTLN';
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        if(1==2) {  // отключено
+            // нет объекта высшего уровня {
+            $refer = 'INSTLN';
+            $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
 
-        $err = no_refer_facts($fname);
+            $err = no_refer_facts($fname);
 //            debug($err);
 //            return;
 
-        if (count($err)) {
-            foreach ($err as $v) {
+            if (count($err)) {
+                foreach ($err as $v) {
 //                    debug($v);
-                $z="INSERT  INTO sap_err
+                    $z = "INSERT  INTO sap_err
                         VALUES('FACTS','$v','$refer',$res)";
-                exec_on_server($z, (int)$rem, $vid);
+                    exec_on_server($z, (int)$rem, $vid);
+                }
             }
+
+            // нет объекта высшего уровня }
+            fclose($f);
         }
 
-        // нет объекта высшего уровня }
-        fclose($f);
+            $sql_err = "select * from sap_err where upload = '$filename'";
 
+            $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        $sql_err = "select * from sap_err where upload = '$filename'";
+            //kol struckt{
 
-        $sql_ab = data_from_server($sql_err, $res, $vid);
-
-        //kol struckt{
         $col= count_str($fname);
         //kol struckt}
 
@@ -5413,37 +5415,39 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
         }
         // задвоения по oldkey  }
 
-        // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
-        $data_u = data_from_server($sql, $res, $vid);
-        $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
-            $err = no_refer($fname, $data_u);
+        if(1==2) {  // отключено
+            // нет объекта высшего уровня {
+            $sql = "SELECT * from sap_refer where upload='$filename'";
+            $data_u = data_from_server($sql, $res, $vid);
+            $refer = $data_u[0]['refer'];
+            $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+            if (!empty($data_u[0]['upload'])) {
+                $err = no_refer($fname, $data_u);
+                if (count($err)) {
+                    foreach ($err as $v) {
+//                    debug($v);
+                        $z = "INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                        exec_on_server($z, (int)$rem, $vid);
+                    }
+                }
+            }
+            // нет объекта высшего уровня }
+
+            // пустая ссылка {
+            $msg = 'Пустая ссылка';
+            $err = empty_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$refer',$res)";
+                    $z = "INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
-            }
-        }
-        // нет объекта высшего уровня }
 
-        // пустая ссылка {
-        $msg = 'Пустая ссылка';
-        $err = empty_refer($fname, $data_u);
-        if (count($err)) {
-            foreach ($err as $v) {
-//                    debug($v);
-                $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$msg',$res)";
-                exec_on_server($z, (int)$rem, $vid);
             }
-
+            // пустая ссылка }
         }
-        // пустая ссылка }
         //kol struckt{
         $col= count_str($fname);
         //kol struckt}
@@ -5601,37 +5605,43 @@ where a.archive='0'
         }
         // задвоения по oldkey  }
 
-        // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
-        $data_u = data_from_server($sql, $res, $vid);
-        $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
-            $err = no_refer($fname, $data_u);
+        if(1==2) {  // отключено
+            // нет объекта высшего уровня {
+
+            $sql = "SELECT * from sap_refer where upload='$filename'";
+            $data_u = data_from_server($sql, $res, $vid);
+
+            $refer = $data_u[0]['refer'];
+            $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+            if (!empty($data_u[0]['upload'])) {
+                $err = no_refer($fname, $data_u);
+                if (count($err)) {
+                    foreach ($err as $v) {
+//                    debug($v);
+                        $z = "INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                        exec_on_server($z, (int)$rem, $vid);
+                    }
+                }
+            }
+            // нет объекта высшего уровня }
+
+
+            // пустая ссылка {
+            $msg = 'Пустая ссылка';
+            $err = empty_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$refer',$res)";
+                    $z = "INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
-            }
-        }
-        // нет объекта высшего уровня }
 
-        // пустая ссылка {
-        $msg = 'Пустая ссылка';
-        $err = empty_refer($fname, $data_u);
-        if (count($err)) {
-            foreach ($err as $v) {
-//                    debug($v);
-                $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$msg',$res)";
-                exec_on_server($z, (int)$rem, $vid);
             }
-
+            // пустая ссылка }
         }
-        // пустая ссылка }
+
         //kol struckt{
         $col= count_str($fname);
         //kol struckt}
@@ -6848,6 +6858,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
          and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
           else case when trim(lower(c.street))='шосе кіровоградське' then 1=1 else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end end 
          and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+        and case when trim(b1.town)='с. Інгулець' then trim(b1.rnobl)='Криворізький район' else 1=1 end  
          
         inner join sap_const const on
         1=1
@@ -7256,7 +7267,6 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         // задвоения структур }
 
         // отсутствие структуры {
-
         $cnt=4;
         $err = no_struct($fname,$cnt);
         if($err<>'') {
@@ -7264,38 +7274,38 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
+        if(1==2) {  // отключено
+            // нет объекта высшего уровня {
+            $sql = "SELECT * from sap_refer where upload='$filename'";
+            $data_u = data_from_server($sql, $res, $vid);
+            $refer = $data_u[0]['refer'];
+            $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+            if (!empty($data_u[0]['upload'])) {
+                $err = no_refer($fname, $data_u);
+                if (count($err)) {
+                    foreach ($err as $v) {
+//                    debug($v);
+                        $z = "INSERT  INTO sap_err
+                        VALUES('$filename','$v','$refer',$res)";
+                        exec_on_server($z, (int)$rem, $vid);
+                    }
+                }
+            }
+            // нет объекта высшего уровня }
 
-        // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
-        $data_u = data_from_server($sql, $res, $vid);
-        $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
-            $err = no_refer($fname, $data_u);
+            // пустая ссылка {
+            $msg = 'Пустая ссылка';
+            $err = empty_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$refer',$res)";
+                    $z = "INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
             }
+            // пустая ссылка }
         }
-        // нет объекта высшего уровня }
-
-        // пустая ссылка {
-        $msg = 'Пустая ссылка';
-        $err = empty_refer($fname, $data_u);
-        if (count($err)) {
-            foreach ($err as $v) {
-//                    debug($v);
-                $z="INSERT  INTO sap_err
-                        VALUES('$filename','$v','$msg',$res)";
-                exec_on_server($z, (int)$rem, $vid);
-            }
-        }
-        // пустая ссылка }
-
         //
         //kol struckt{
         $col= count_str($fname);
@@ -8299,14 +8309,15 @@ order by tzap
         }
         // задвоения структур }
 
-        // отсутствие структуры {
-        $cnt=4;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
-            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
-            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
-        }
-        // отсутствие структуры }
+        if(1==2) {  // отключено
+            // отсутствие структуры {
+            $cnt = 4;
+            $err = no_struct($fname, $cnt);
+            if ($err <> '') {
+                $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+                exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+            }
+            // отсутствие структуры }
 
 //         Проверка на пустые поля {
 //        if(1==2) { // off
@@ -8323,6 +8334,7 @@ order by tzap
             }
 //        }
 //         Проверка на пустые поля }
+        }
 
         //kol struckt{
         $col= count_str($fname);
