@@ -7497,7 +7497,7 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
    
 union                
 
-select distinct gr.code_t_new::text as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
+select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
                 '2004' as BAUJJ, 
