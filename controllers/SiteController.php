@@ -841,9 +841,9 @@ WHERE year_p=0 and year_q>0';
                 case 14:
                     return $this->redirect(['sap_seals', 'res' => $model->rem]);
                     break;
-                case 15:
-                    return $this->redirect(['sap_seals2', 'res' => $model->rem]);
-                    break;
+//                case 15:
+//                    return $this->redirect(['sap_seals2', 'res' => $model->rem]);
+//                    break;
                 case 16:
                     return $this->redirect(['sap_instln_ind', 'res' => $model->rem]);
                     break;
@@ -6519,7 +6519,7 @@ public function actionIdfile_seals($res)
 
         $sql = "select 'SEALS' as OM,oldkey,p.code,p.short_name as name_tu,const.ver from sap_AUTO as a
                 left join clm_plomb_tbl as k
-                on substr(a.oldkey,12)::int=k.id
+                on substr(a.oldkey,12,4)::int=k.id
                 left join clm_client_tbl as p 
                 on k.id_client=p.id
                 left join sap_const as const
@@ -7701,7 +7701,7 @@ order by tzap
         $sql = "select om,oldkey,sernr,qui.code,const.ver from (
                 select f.*,u1.code from (
                 select 'DEVICE' as OM,a.oldkey,a.sernr,get_tu(eq.id) as tu from sap_equi as a
-                join eqm_equipment_tbl as eq on (substr(a.oldkey,9)::int = eq.id)
+                join eqm_equipment_tbl as eq on (substr(a.oldkey,9,6)::int = eq.id)
                 ) f
                 left join eqm_equipment_tbl as v
                 on f.tu=v.id
