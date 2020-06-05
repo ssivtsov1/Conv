@@ -1674,7 +1674,8 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
         else case when trim(lower(c.street))='шосе кіровоградське' then 1=1 else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end end 
         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
-        and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' else 1=1 end 
+        and case when trim(lower(b1.town))='с. Степове' then trim(b1.rnobl)='Криворізький район' else 1=1 end
+        and case when trim(b1.town)='с. Інгулець' then trim(b1.rnobl)='Криворізький район' else 1=1 end  
          left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
           on trim(b1.numtown)= trim(b2.numtown) --and b2.post_index=c.indx  
         left join
