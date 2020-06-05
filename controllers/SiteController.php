@@ -2757,7 +2757,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
                 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join 
                 eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = mp.id_point)
-                left join sap_evbsd p on area.id_area=substr(p.oldkey,11)::int and  p.haus='04_C'||$$$rem$$||'P_'||$id  
+                left join sap_evbsd p on area.id_area=right(p.oldkey,length(trim(area.id_area::text)))::int and  p.haus='04_C'||$$$rem$$||'P_'||$id  
                 where m.code_eqp= $id_eq";
             $data_1 = data_from_server($sql_1, $res, $vid);
             // Запись в файл структуры DI_INT
