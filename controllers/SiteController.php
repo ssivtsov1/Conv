@@ -4842,14 +4842,8 @@ and
 	     and  www.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	     '10999999','11000000','19999369','50999999','1000000','1000001')
-
-) uuu on uuu.zz_eic=p.neqp
-        --where zz_eic='62Z6359402983688'
-    --where p.neqp like '%62Z5210118812927%'   
-                           
-		--order by code_area 
-		--limit 100
-		";
+) uuu on uuu.zz_eic=p.neqp and uuu.vstelle is not null
+";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
