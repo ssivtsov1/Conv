@@ -4261,6 +4261,8 @@ select DISTINCT c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name,
             $ver = $data[0]['ver'];
         else
             $ver=$res;
+
+        $ver='8';
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
         $f = fopen($fname,'w+');
@@ -4723,6 +4725,7 @@ case when p.voltage_max = 0.22 then '02'
 '0001' as ANLART,
 '0002' as ABLESARTST,
 p.name_eqp as ZZ_NAMETU,
+p.eic_code,
 '' as ZZ_FIDER,
 '$date_ab' as AB,
 case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01???'  
@@ -4783,7 +4786,7 @@ when tgr.ident in('tgr8_101') then '666'
 '' as ZZCODE4NKRE_DOP,
 '' as ZZOTHERAREA,
 '1' as sort 
-from (select tr.name as vid_trf,dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, 
+from (select eq.num_eqp as eic_code,tr.name as vid_trf,dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, 
 dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
 dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, tr.id_grouptarif --, ph.id_extra --, tr.id_classtarif
 	from eqm_equipment_tbl as eq 
@@ -4813,7 +4816,8 @@ left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name fro
 left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
 ) q 
 left join eqm_equipment_tbl q1 
-on q.zz_nametu::text=q1.name_eqp::text and substr(q1.num_eqp::text,1,3)='62Z'
+on q.zz_nametu::text=q1.name_eqp::text  and substr(trim(q1.num_eqp)::text,1,3)='62Z' 
+and trim(q1.num_eqp)=trim(q.eic_code) 
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
 left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q.id_cl
 left join clm_client_tbl as cc on cc.id = q.id_cl
@@ -4827,18 +4831,18 @@ left join
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
 where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
 left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
-left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=qqq.id_potr
-left join clm_client_tbl www on www.id=qqq.id_potr
+left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
+left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
+case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
+left join clm_client_tbl www on www.id=coalesce(qqq.id_potr,use.id_client)
 inner join sap_const const on 1=1 
-where qqq.oldkey is not null and www.code<>999 and id_cl<>2062
+where coalesce(qqq.id_potr,use.id_client) is not null and www.code<>999 or (www.code=999 and use.code_eqp is not null)
 and
-(www.code>999 or  www.code=900) AND coalesce(www.idk_work,0)<>0 
+(www.code>999 or  www.code=900) AND coalesce(www.idk_work,0)<>0 or (coalesce(www.idk_work,0)=0 and use.code_eqp is not null)
 	     and  www.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	     '10999999','11000000','19999369','50999999','1000000','1000001')
-and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null) 
 
-    and qqq.id_potr is not null and (yy.oldkey is not null or qqq.oldkey is not null)   
 ) uuu on uuu.zz_eic=p.neqp
         --where zz_eic='62Z6359402983688'
     --where p.neqp like '%62Z5210118812927%'   
@@ -4846,7 +4850,6 @@ and id_cl<>2062 and (yy.oldkey is not null or qqq.oldkey is not null)
 		--order by code_area 
 		--limit 100
 		";
-
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
