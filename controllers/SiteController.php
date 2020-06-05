@@ -2692,7 +2692,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         // Получаем название подпрограммы
         $routine = strtoupper(substr($method,10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
-//   Дальше идет плагиат - взято из выгрузки Чернигова
+//   Дальше идет плагиат - взято из выгрузки Чернигова - НО с нашими особенностями
         $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
@@ -2761,6 +2761,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 where m.code_eqp= $id_eq";
             $data_1 = data_from_server($sql_1, $res, $vid);
             // Запись в файл структуры DI_INT
+
            $i=0;
             foreach ($data_1 as $v1) {
                 $i++;
