@@ -2719,7 +2719,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     and coalesce (use.id_client, tr.id_client)<>999999999  -- and c.id=10330and (c.code>999 or c.code=900)
 	        and  c.code not in(20000556,20000565,20000753,
 	       20555555,20888888,20999999,30999999,40999999,41000000,42000000,43000000,
-	       10999999,11000000,19999369,50999999,1000000,1000001) and 112936
+	       10999999,11000000,19999369,50999999,1000000,1000001) 
         order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
