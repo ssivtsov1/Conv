@@ -2559,6 +2559,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $sql_err="delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
+        if(1==2) {  // отключено
         // задвоения по oldkey  {
         $err = double_oldkey($fname);
         // Запись в таблицу ошибок
@@ -2580,7 +2581,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             }
             // задвоения структур }
 
-            if(1==2) {  // отключено
+
                 // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
                 $cnt = 2;
@@ -5401,6 +5402,7 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
         $sql_err="delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
+        if(1==2) {  // отключено
         // задвоения по oldkey  {
         $err = double_oldkey($fname);
         // Запись в таблицу ошибок
@@ -5412,7 +5414,6 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
         }
         // задвоения по oldkey  }
 
-        if(1==2) {  // отключено
             // нет объекта высшего уровня {
             $sql = "SELECT * from sap_refer where upload='$filename'";
             $data_u = data_from_server($sql, $res, $vid);
@@ -5591,6 +5592,7 @@ where a.archive='0'
         $sql_err="delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
+        if(1==2) {  // отключено
         // задвоения по oldkey  {
         $err = double_oldkey($fname);
         // Запись в таблицу ошибок
@@ -5602,7 +5604,7 @@ where a.archive='0'
         }
         // задвоения по oldkey  }
 
-        if(1==2) {  // отключено
+
             // нет объекта высшего уровня {
 
             $sql = "SELECT * from sap_refer where upload='$filename'";
@@ -8271,7 +8273,6 @@ order by tzap
             fputs($f, "\n");
         }
 
-
         // Проверка файла выгрузки
         $method=__FUNCTION__;
         if (substr($method, -4) == '_ind') {
@@ -8287,6 +8288,7 @@ order by tzap
         $sql_err="delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
+        if(1==2) {  // отключено
         // задвоения по oldkey  {
         $err = double_oldkey($fname);
         // Запись в таблицу ошибок
@@ -8306,8 +8308,7 @@ order by tzap
         }
         // задвоения структур }
 
-        if(1==2) {  // отключено
-            // отсутствие структуры {
+                 // отсутствие структуры {
             $cnt = 4;
             $err = no_struct($fname, $cnt);
             if ($err <> '') {
