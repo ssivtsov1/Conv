@@ -1647,7 +1647,6 @@ function f_connobj_ind($n_struct,$rem,$v) {
         left join vw_address c on
         a.id=c.id 
        left join addr_sap b1 on
-        trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) 
         case when trim(lower(c.street))='шосе кіровоградське' then  trim(lower(c.street))=trim(lower(b1.street)) else trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) end
          and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
          else case when trim(lower(c.street))='шосе кіровоградське' then 1=1 else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end end 
