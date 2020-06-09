@@ -2161,7 +2161,7 @@ function f_device($n_struct,$rem,$v,$vid) {
 
     if($pp>0)
         $r=substr($r,$pp+1);
-    else
+   
         $oldkey = $oldkey_const . $r;
 
     if($n_struct=='EQUI')
