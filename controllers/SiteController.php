@@ -2801,7 +2801,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                 'DI_GER' as struc,
                 case when grp.code_t_new is null then 
-                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||grp.code_t_new end as EQUNRNEU,
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||extract_sn(grp.code_t_new) end as EQUNRNEU,
                 '' as WANDNR,
                 '' as WANDNRE
                 from eqm_tree_tbl as tr 
@@ -2838,7 +2838,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                     '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                     'DI_GER' as struc,
                     '04_C'||'$rem'||'P_'||m.code_eqp::text  as EQUNRNEU,
-                    '04_C'||'$rem'||'P_'||grp.code_t_new as met_id,
+                    '04_C'||'$rem'||'P_'||extract_sn(grp.code_t_new) as met_id,
                     '' as WANDNR,
                     '' as WANDNRE
                     from eqm_tree_tbl as tr 
@@ -3081,7 +3081,7 @@ union
 --eq.code_t_new
 select  distinct  eq.ord,eq.id_point,
 'DEVICE' as n_struct,
-'$oldkey1' || eq.code_t_new as devgrptyp,
+'$oldkey1' || extract_sn(eq.code_t_new) as devgrptyp,
  '' as  keydate, 
 ''  as dop,
 '2' as sort
@@ -7506,7 +7506,8 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                  '2005' as bgljahr,
                 case  when coalesce(eq.is_owner,0) = 0 then 'CK01230370' else '' end as KOSTL, 
                  --trim(eq.num_eqp) as SERNR,
-                  get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
+                 --get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
+                  substr(cyrillic_transliterate(gr.code_t_new::text),8) as sernr,
                   case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
                  c.date_check::text as CERT_DATE,
                   coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,

@@ -1659,7 +1659,13 @@ else
         left join vw_address c on
         a.id=c.id 
        left join addr_sap b1 on
-         trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+          case when trim(lower(c.street))='шосе кіровоградське' then  trim(lower(c.street))=trim(lower(b1.street)) else trim(lower(c.street))=trim(lower(get_sap_street(b1.street))) end
+         and case when trim(lower(get_sap_street(b1.street)))='запорізьке шосе' then  lower(trim(c.type_street))='вул.'
+         else case when trim(lower(c.street))='шосе кіровоградське' then 1=1 else coalesce(lower(trim(c.type_street)),'')=coalesce(lower(trim(get_typestreet(b1.street))),'') end end 
+         and trim(lower(b1.town))=trim(lower(case when c.type_city='смт.' then 'смт' else lower(c.type_city) end ||' '||trim(lower(c.town))))
+         and case when trim(b1.town)='с. Інгулець' then trim(b1.rnobl)='Криворізький район' else 1=1 end 
+         and case when trim(b1.town)='с. Вільне' and $rem='05' then trim(b1.rnobl)='Криворізький район' else 1=1 end   
+         and case when trim(b1.town)='с. Вільне' and $rem='07' then trim(b1.rnobl)='Новомосковський район' else 1=1 end 
          left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
         where a.id=$id and b2.post_index is not null";
 
@@ -2148,8 +2154,12 @@ function f_device($n_struct,$rem,$v,$vid) {
     $stort=$v['stort'];
     $zwgruppe=$v['zwgruppe'];
     $wgruppe=$v['wgruppe'];
+    $pp=strpos($r,'_');
 
-    $oldkey = $oldkey_const . $r;
+    if($pp>0)
+        $r=substr($r,$pp+1);
+    else
+        $oldkey = $oldkey_const . $r;
 
     if($n_struct=='EQUI')
         $z = "insert into sap_equi(oldkey,dat_type,begru,eqart,baujj,datab,swerk,stort,kostl,bukrs,
