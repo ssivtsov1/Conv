@@ -3356,7 +3356,7 @@ left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_
 ) q 
 left join eqm_equipment_tbl q1 
 on q.zz_nametu::text=q1.name_eqp::text and substr(trim(q1.num_eqp)::text,1,3)='62Z' 
-and trim(q1.num_eqp)=trim(q.eic_code) 
+and substr(trim(q1.num_eqp),1,16)=substr(trim(q.eic_code),1,16)
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
 left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q.id_cl
 left join clm_client_tbl as cc on cc.id = q.id_cl
@@ -7522,8 +7522,15 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
 		    and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
 		    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
 		    left join sap_type_tr_i_tbl as type_tr on type_tr.id_type = ic.id 
-		     left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = ic.id 
-                    inner join sap_const const on 1=1 ) x
+		     left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = ic.id left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+		    left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+			left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+			left join clm_client_tbl as cl1 on (cl1.id = coalesce (use.id_client, tr.id_client)) 
+                    inner join sap_const const on 1=1 
+                    where  (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0 
+                 and  cl1.code not in('20000556','20000565','20000753',
+                 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+                 '10999999','11000000','19999369','50999999','1000000','1000001') ) x
 order by tzap   
 --limit 3
 ";
