@@ -7714,7 +7714,7 @@ order by tzap
         $sql = "select om,oldkey,sernr,qui.code,const.ver from (
                 select f.*,u1.code from (
                 select 'DEVICE' as OM,a.oldkey,a.sernr,get_tu(eq.id) as tu from sap_equi as a
-                join eqm_equipment_tbl as eq on (substr(a.oldkey,9,6)::int = eq.id)
+                join eqm_equipment_tbl as eq on (extract_n(substr(a.oldkey,9,6))::int = eq.id)
                 ) f
                 left join eqm_equipment_tbl as v
                 on f.tu=v.id
