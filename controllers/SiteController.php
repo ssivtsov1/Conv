@@ -6299,7 +6299,7 @@ select distinct
         left join sap_recode_place_plomb p1 on trim(p1.place_cek)=trim(p.object_name)
         left join spr_place_plomb p2 on trim(p2.name)=trim(p1.place_sap)
          inner join sap_const const on 1=1
-         left join (select oldkey,get_tu(substr(oldkey,9,6)::integer) as id_tu,matnr,sernr from sap_equi) u on u.id_tu=eq.id
+         left join (select oldkey,get_tu(extract_n(substr(oldkey,9,6))::integer) as id_tu,matnr,sernr from sap_equi) u on u.id_tu=eq.id
          where (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
                  and  c.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
