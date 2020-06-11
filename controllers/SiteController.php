@@ -1886,8 +1886,12 @@ b.tax_number else null end else null end as tax_number,b.last_name,
     }
 // Test
     public function actionTest_task(){
-       $s='15151511';
-        echo test_f($s);
+//       for($i=1;$i<40;$i++)
+//       {
+             $s=r_len('erty0',0);
+            echo $s-1;
+            echo '<br>';
+//       }
     }
 // Тестовая функция для записи в файл
     public function actionTest_recfile()
@@ -4844,7 +4848,7 @@ and
 	     and  www.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	     '10999999','11000000','19999369','50999999','1000000','1000001')
-) uuu on uuu.zz_eic=p.neqp and uuu.vstelle is not null
+) uuu on substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
 ";
 
         if($helper==1)

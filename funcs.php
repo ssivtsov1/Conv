@@ -4164,4 +4164,80 @@ function test_f($s) {
     return  ($p)?1:0;
 }
 
+// Recursive function facnorial
+function r_fact($n) {
+    if($n<=1 && $n>=0)
+        return 1;
+    else
+        return r_fact($n-1)*$n;
+}
+
+// Recursive function Fibbonachi
+function r_fib($n) {
+    if($n<=2 && $n>=1)
+        return 1;
+    else
+        return r_fib($n-2)+r_fib($n-1);
+}
+
+// Recursive function degree
+function r_deg($a,$n) {
+    if($n==0)
+        return 1;
+    else
+        return r_deg($a,$n-1)*$a;
+}
+
+// Recursive output all numbers
+function r_out($a) {
+    if($a==1)
+        return 1;
+    else
+        return r_out($a-1) . ' '.$a;
+}
+
+// Recursive output all numbers from defined range
+function r_outr($a,$b) {
+    if($a==$b)
+        return $b;
+    else
+        return r_outr($a,$b-1) . ' '.$b;
+}
+
+// Recursive summa all digit of number
+function r_sum($n) {
+    if($n<10)
+        return (int) $n;
+    else
+        return r_sum((int) $n/10) +((int) $n)%10;
+}
+
+// Recursive out all digit of number
+function r_num($n) {
+    if($n<10)
+        return (int) $n;
+    else
+        return r_num((int) $n/10)  . ' ' . ((int) $n)%10;
+}
+
+// Recursive out all digit of number - reverse
+function r_rev($n) {
+    if($n<10) {
+        echo (int) $n;
+        return $n;
+    }
+    else {
+        echo $n%10;
+        return r_rev((int) $n / 10) ;
+    }
+}
+
+// Recursive define length of string
+function r_len($n,$q) {
+    if(substr($n,$q,1)===false) {
+        return $q;
+    }
+    else
+        return r_len($n,$q+1);
+}
 ?>
