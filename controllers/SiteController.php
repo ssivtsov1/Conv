@@ -4842,13 +4842,17 @@ left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr
 case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
 left join clm_client_tbl www on www.id=coalesce(qqq.id_potr,use.id_client)
 inner join sap_const const on 1=1 
-where coalesce(qqq.id_potr,use.id_client) is not null and www.code<>999 or (www.code=999 and use.code_eqp is not null)
+where coalesce(qqq.id_potr,use.id_client) is not null and 
+(www.code<>999 or (www.code=999 and use.code_eqp is not null))
 and
-(www.code>999 or  www.code=900) AND coalesce(www.idk_work,0)<>0 or (coalesce(www.idk_work,0)=0 and use.code_eqp is not null)
+(www.code>999 or  www.code=900) AND 
+(coalesce(www.idk_work,0)<>0 or (coalesce(www.idk_work,0)=0 and use.code_eqp is not null))
 	     and  www.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	     '10999999','11000000','19999369','50999999','1000000','1000001')
-) uuu on substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
+) uuu on 
+uuu on uuu.id=p.id and uuu.vstelle is not null and uuu.vstelle is not null
+-- substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
 ";
 
         if($helper==1)
