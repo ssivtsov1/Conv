@@ -4851,7 +4851,7 @@ and
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	     '10999999','11000000','19999369','50999999','1000000','1000001')
 ) uuu on 
-uuu on uuu.id=p.id and uuu.vstelle is not null and uuu.vstelle is not null
+uuu.id=p.id and uuu.vstelle is not null and uuu.vstelle is not null
 -- substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
 ";
 
