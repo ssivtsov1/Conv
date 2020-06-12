@@ -3254,10 +3254,10 @@ order by sort,ord";
         select distinct on(zz_eic||id_cl) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru_all as begru,
 '10' as sparte,qqq.* from
-(select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,
+(select distinct on(q1.num_eqp||id_cl) q1.id,x.oldkey,cc.short_name,
 case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
 q1.num_eqp as zz_eic,q.* from
-(select  distinct 'DATA' as DATA,c.id as id_cl,
+(select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
 case when p.voltage_max = 0.22 then '02'
      when p.voltage_max = 0.4 then '03'
      when p.voltage_max = 10.00 then '05' 
@@ -3269,6 +3269,7 @@ case when p.voltage_max = 0.22 then '02'
 '0002' as ABLESARTST,
 p.name_eqp as ZZ_NAMETU,
 p.eic_code,
+p.code_eqp,
 '' as ZZ_FIDER,
 '$date_ab' as AB,
 case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01???'  
@@ -3357,13 +3358,14 @@ left join eqi_classtarif_tbl as tcl on (p.id_classtarif=tcl.id)
 --left join reading_controller as w on w.tabel_numb = p.num_tab
 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = p.code_eqp) 
 left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
+
 ) q 
 left join eqm_equipment_tbl q1 
 on q.zz_nametu::text=q1.name_eqp::text and substr(trim(q1.num_eqp)::text,1,3)='62Z' 
 and substr(trim(q1.num_eqp),1,16)=substr(trim(q.eic_code),1,16)
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
 left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q.id_cl
-left join clm_client_tbl as cc on cc.id = q.id_cl
+left join clm_client_tbl as cc on cc.id = q.id_cl --and cc.idk_work=1
 left join 
 (select u.id_client,a.id from eqm_equipment_tbl a
    left join eqm_point_tbl tu1 on tu1.code_eqp=a.id 
@@ -3373,9 +3375,10 @@ left join
    left join clm_client_tbl u1 on u1.id=u.id_client) rr 
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
 where SPEBENE::text<>'' and q1.num_eqp is not null
+and q.code_eqp=q1.id 
 and substr(trim(q1.num_eqp),1,16)||q.id_cl in
 
-(select substr(eq.num_eqp,1,16)||c.id from eqm_equipment_tbl eq
+(select substr(eq.num_eqp,1,16)||coalesce (use.id_client, tr.id_client) from eqm_equipment_tbl eq
  left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
      left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
      left join eqm_tree_tbl tr on tr.id = ttr.id_tree
@@ -3388,8 +3391,8 @@ and substr(trim(q1.num_eqp),1,16)||q.id_cl in
 	join eqm_tree_tbl as t on (t.id = tt.id_tree) 
 	left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
 	join (select distinct id,code,idk_work from clm_client_tbl) as c1 on (c1.id = t.id_client) 
-    where c.idk_work<>0)
-    
+    where c.idk_work<>0) 
+   
 ) qqq
 left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
