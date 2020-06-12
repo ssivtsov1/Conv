@@ -3251,7 +3251,7 @@ order by sort,ord";
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select * from (
-        select distinct on(zz_eic) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+        select distinct on(zz_eic||id_cl) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru_all as begru,
 '10' as sparte,qqq.* from
 (select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,
@@ -3403,8 +3403,8 @@ and
 	     and  www.code not in('20000556','20000565','20000753',
 	    '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
-)  r	where vstelle is not null    
-order by 7  
+)  r	where vstelle is not null      
+order by 7	
 ";
 
         if($helper==1)
