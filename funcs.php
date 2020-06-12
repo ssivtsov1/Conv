@@ -2149,6 +2149,7 @@ function f_device($n_struct,$rem,$v,$vid) {
 
     $zz_pernr=$v['zz_pernr'];
     $cert_date=$v['cert_date'];
+    $cert_date = str_replace('-','',$cert_date);
 //    $bgljahr=$v['bgljahr'];
     $bgljahr=$v['bgljahr'];
     $begru=$v['begru'];

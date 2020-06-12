@@ -3372,7 +3372,25 @@ left join
    left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
    left join clm_client_tbl u1 on u1.id=u.id_client) rr 
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
-where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
+where SPEBENE::text<>'' and q1.num_eqp is not null
+and substr(trim(q1.num_eqp),1,16)||q.id_cl in
+
+(select substr(eq.num_eqp,1,16)||c.id from eqm_equipment_tbl eq
+ left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id  order by dt_b desc limit 1 ) ) 
+	join eqm_point_tbl AS dt on (dt.code_eqp= eq.id)
+	left JOIN eqm_compens_station_inst_tbl AS area ON (eq.id=area.code_eqp) 
+	left join cla_param_tbl as p on (dt.industry=p.id) 
+	join eqm_eqp_tree_tbl as tt on (dt.code_eqp = tt.code_eqp) 
+	join eqm_tree_tbl as t on (t.id = tt.id_tree) 
+	left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
+	join (select distinct id,code,idk_work from clm_client_tbl) as c1 on (c1.id = t.id_client) 
+    where c.idk_work<>0)
+    
+) qqq
 left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
 left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
@@ -5085,7 +5103,7 @@ left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_
 left join eqm_equipment_tbl q1 
 on q.zz_nametu::text=q1.name_eqp::text  and substr(trim(q1.num_eqp)::text,1,3)='62Z' 
 and substr(trim(q1.num_eqp),1,16)=substr(trim(q.eic_code),1,16)
-and q.code_eqp=q1.id
+-- and q.code_eqp=q1.id
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
 left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q.id_cl
 left join clm_client_tbl as cc on cc.id = q.id_cl
@@ -5097,7 +5115,26 @@ left join
    left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
    left join clm_client_tbl u1 on u1.id=u.id_client) rr 
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
-where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
+where SPEBENE::text<>'' and q1.num_eqp is not null
+
+and substr(trim(q1.num_eqp),1,16)||q.id_cl in
+
+(select substr(eq.num_eqp,1,16)||c.id from eqm_equipment_tbl eq
+ left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id  order by dt_b desc limit 1 ) ) 
+	join eqm_point_tbl AS dt on (dt.code_eqp= eq.id)
+	left JOIN eqm_compens_station_inst_tbl AS area ON (eq.id=area.code_eqp) 
+	left join cla_param_tbl as p on (dt.industry=p.id) 
+	join eqm_eqp_tree_tbl as tt on (dt.code_eqp = tt.code_eqp) 
+	join eqm_tree_tbl as t on (t.id = tt.id_tree) 
+	left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
+	join (select distinct id,code,idk_work from clm_client_tbl) as c1 on (c1.id = t.id_client) 
+   where c.idk_work<>0)
+
+) qqq
 left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
 left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
