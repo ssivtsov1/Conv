@@ -3417,8 +3417,8 @@ and
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
         
-//debug($data);
-//return;
+debug($data);
+return;
 
         $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
 
