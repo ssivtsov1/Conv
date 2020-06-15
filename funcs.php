@@ -3134,7 +3134,7 @@ function f_zsign_ca($rem,$v) {
     $zsign[0]=$oldkey;     // oldkey
     $zsign[1]='AUTO';
     $zsign[2]=$vkont;     // Account`s reference
-    $zsign[3]=$v['id'];
+    $zsign[3]=$v['id1'];
     $zsign[4]=$v['type'];
     $zsign[5]=$v['description'];
     $zsign[6]=$v['description2'];

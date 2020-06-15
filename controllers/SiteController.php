@@ -2745,7 +2745,9 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             $short_name=$v['short_name'];
             $sql_f = "select di_zw($id_eq , '$period')";
             $data_f = data_from_server($sql_f, $res, $vid);
-            $sql_f = "select * from di_zw_struc order by knde,sort";
+            $sql_f = "select a.*,b.zwgruppe,f_exact(a.pokaz,b.zwgruppe,a.tarifart) as pokaz_true from di_zw_struc a 
+                        left join sap_egerh b on substr(b.oldkey,9,6)::char(6)= $id_eq::char(6)
+                        order by a.knde,a.sort";
             $data_f = data_from_server($sql_f, $res, $vid);
 //            $devloc = '04_C04P_' . strtoupper(hash('crc32', $id));
 //            $devloc = '04_C04P_' . $id;
@@ -2791,7 +2793,8 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                     fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                         'DI_ZW' . "\t" . $c1 . "\t" .
                         $v2['kondigre'] . "\t" .
-                        $v2['zwstandce'] . "\t" .
+//                        $v2['zwstandce'] . "\t" .
+                        $v2['pokaz_true'] . "\t" .
                         $v2['zwnabr'] . "\t" .
                         $v2['tarifart'] . "\t" .
                         $v2['perverbr'] . "\t" .
@@ -3666,9 +3669,10 @@ order by 7
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select a.*,c.oldkey as ref_acc from sap_signers a
+        $sql = "select a.*,c.oldkey as ref_acc,row_number() over(partition by a.vkont) as id1 from sap_signers a
     left join clm_client_tbl b on a.vkont::int=b.code
-    left join sap_vk c on b.id=substr(c.oldkey,9)::int";
+    left join sap_vk c on b.id=substr(c.oldkey,9)::int
+    order by 2";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
