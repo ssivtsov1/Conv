@@ -7775,10 +7775,10 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
                  case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
                   substring(replace(m.dt_control::varchar,'-',''),1,8) as CERT_DATE,
                   upper(sd.sap_meter_name) as matnr,
-                 case when en1.kind_energy =1 then case when eqz1.zone in (4,5,9,10) then '2' when eqz1.zone in (1,2,3,6,7,8) then '3' when  eqz1.zone = 0 then '1' else '0' end ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||'0'::varchar||')' else '0_(000)' end||
-case when en2.kind_energy =3 then case when eqz2.zone in (4,5,9,10) then '2' when eqz2.zone in (1,2,3,6,7,8) then '3' when  eqz2.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||'0'::varchar||')' else '0_(000)' end||
-case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' when eqz3.zone in (1,2,3,6,7,8) then '3' when  eqz3.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||'0'::varchar||')' else '0_(000)' end||
-case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' when eqz4.zone in (1,2,3,6,7,8) then '1' when  eqz4.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||'0'::varchar||')' else '0_(000)' end as ZWGRUPPE,
+                 case when en1.kind_energy =1 then case when eqz1.zone in (4,5,9,10) then '2' when eqz1.zone in (1,2,3,6,7,8) then '3' when  eqz1.zone = 0 then '1' else '0' end ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
+case when en2.kind_energy =3 then case when eqz2.zone in (4,5,9,10) then '2' when eqz2.zone in (1,2,3,6,7,8) then '3' when  eqz2.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
+case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' when eqz3.zone in (1,2,3,6,7,8) then '3' when  eqz3.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
+case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' when eqz4.zone in (1,2,3,6,7,8) then '1' when  eqz4.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end as ZWGRUPPE,
                   '' as wgruppe,
                   const.swerk,const.stort,const.ver,const.begru_b as begru,1 as tzap
                 from eqm_meter_tbl as m 
@@ -7792,6 +7792,7 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
 		left join eqd_meter_zone_h as eqz3 on (eqz3.code_eqp = m.code_eqp and eqz3.dt_e is null and eqz3.kind_energy in(2,5))
 		left join eqd_meter_zone_h as eqz4 on (eqz4.code_eqp = m.code_eqp and eqz4.dt_e is null and eqz4.kind_energy in(4,6))
 		left join eqi_meter_tbl as t on t.id=m.id_type_eqp
+		left join types_meter as t1 on trim(t1.type)=trim(t.type) 
                 left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy=1 and dt_e is null) as en1 on en1.code_eqp = m.code_eqp
 		left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy=3 and dt_e is null) as en2 on en2.code_eqp = m.code_eqp
 		left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy in(2,5) and dt_e is null) as en3 on en3.code_eqp = m.code_eqp
