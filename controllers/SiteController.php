@@ -992,9 +992,16 @@ public function actionIdfile()
         $sql = "select distinct a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
 case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа' in a.name)>0
 or position('Фізична  особа' in a.name)>0 or position('Приватний підприємець' in a.name)>0  
-or position('Приватна особа' in a.name)>0
+or position('Приватна особа' in a.name)>0 or position('ФІЗИЧНА ОСОБА' in a.name)>0 or position('ФІЗИЧНА  ОСОБА' in a.name)>0
+or position('ПРИВАТНА ОСОБА' in a.name)>0 or position('ПРИВАТНИЙ ПІДПРИЄМЕЦЬ' in a.name)>0  
 then '03' else '02' end as BU_GROUP,
-case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 then '0003' else '0002' end as BPKIND,
+case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 or (substr(trim(a.name),1,4)='ФОП '
+ or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа' in a.name)>0
+or position('Фізична  особа' in a.name)>0 or position('Приватний підприємець' in a.name)>0  
+or position('Приватна особа' in a.name)>0 or position('ФІЗИЧНА ОСОБА' in a.name)>0 
+or position('ПРИВАТНА ОСОБА' in a.name)>0 or position('ПРИВАТНИЙ ПІДПРИЄМЕЦЬ' in a.name)>0 
+or position('ФІЗИЧНА  ОСОБА' in a.name)>0)
+then '0003' else '0002' end as BPKIND,
 'MKK' as ROLE1,
 case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end  as ROLE2,
 '00010101' as VALID_FROM_1,
@@ -10470,7 +10477,7 @@ WHERE
 	     '10999999','11000000','19999369','50999999','1000000','1000001')  
 	     
 	    ) s5 on s4.id=s5.id  
-	   -- where s1.id>=13060 and s1.id<=13075
+	  where s1.id=162582
          
 ";
 
