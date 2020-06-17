@@ -994,13 +994,15 @@ case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО '
 or position('Фізична  особа' in a.name)>0 or position('Приватний підприємець' in a.name)>0  
 or position('Приватна особа' in a.name)>0 or position('ФІЗИЧНА ОСОБА' in a.name)>0 or position('ФІЗИЧНА  ОСОБА' in a.name)>0
 or position('ПРИВАТНА ОСОБА' in a.name)>0 or position('ПРИВАТНИЙ ПІДПРИЄМЕЦЬ' in a.name)>0  
+or position('ПРИВАТНИЙ НОТАРІУС' in a.name)>0 or position('Приватний нотаріус' in a.name)>0  
 then '03' else '02' end as BU_GROUP,
 case when length(trim(coalesce (a.code_okpo, b.okpo_num)))=10 or (substr(trim(a.name),1,4)='ФОП '
  or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа' in a.name)>0
 or position('Фізична  особа' in a.name)>0 or position('Приватний підприємець' in a.name)>0  
 or position('Приватна особа' in a.name)>0 or position('ФІЗИЧНА ОСОБА' in a.name)>0 
 or position('ПРИВАТНА ОСОБА' in a.name)>0 or position('ПРИВАТНИЙ ПІДПРИЄМЕЦЬ' in a.name)>0 
-or position('ФІЗИЧНА  ОСОБА' in a.name)>0)
+or position('ФІЗИЧНА  ОСОБА' in a.name)>0
+or position('ПРИВАТНИЙ НОТАРІУС' in a.name)>0 or position('Приватний нотаріус' in a.name)>0)  
 then '0003' else '0002' end as BPKIND,
 'MKK' as ROLE1,
 case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end  as ROLE2,
@@ -3825,7 +3827,7 @@ order by 7
           $data_f = data_from_server($sql_f, $res, $vid);
         // Главный запрос со всеми необходимыми данными
         $sql = "select * from (
-select DISTINCT c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+              select DISTINCT c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -3846,7 +3848,7 @@ select DISTINCT c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name,
                 case when length(p.id_point::varchar)>7 then p.id_point else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.id_point::varchar)::int)),(7-(length(p.id_point::varchar)::int)))||p.id_point::varchar)::int end as instln_key,
 		       case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
 		       const.ver as ver,
-		       case when v.normative is null or trim(v.normative)='' then v.id_sap else v1.id_sap end as id_sap,
+		       coalesce(v.id_sap,v1.id_sap) as id_sap,
 		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then uu2.u_sap else uu1.u_sap end 
 		       else v1.normative::dec(6,2) end as voltage			
                 from tmp_eqm_schema_point_tbl as p
@@ -3864,8 +3866,8 @@ select DISTINCT c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name,
                 left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
                 left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
                 left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
-                left join sap_lines as v on v.id::int=cable.id and (v.normative is null or trim(v.normative)='') and v.kod_res='6'
-                left join sap_lines as v1 on v1.id::int=cable.id and (v1.normative is not null and trim(v1.normative)<>'') and v1.kod_res='6'
+                left join sap_lines as v on v.id::int=cable.id  and v.kod_res='$res' --and (v.normative is null or trim(v.normative)='')
+                left join sap_lines as v1 on v1.id::int=corde.id  and v1.kod_res='$res' --and (v1.normative is not null and trim(v1.normative)<>'')
                 left join voltage_line uu1 on u.voltage_min=uu1.u_our
                 left join voltage_line uu2 on u1.voltage_min=uu2.u_our
                 left join eqm_eqp_use_tbl as use on (use.code_eqp = p.id_point) 
@@ -6588,8 +6590,8 @@ where a.archive='0'
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select *,case when gg=1 then scode1 else scode1 || '_' || gg end as scode,
- case when gg=1 then id1::text else id1 || '_' || gg end as id from (
-select *,row_number() over(partition by SCAT,scode1) as gg from (
+case when gg=100 then id1::text else id1 || '_' || gg end as id from (
+select *,row_number() over(partition by SCAT,scode1)+99 as gg from (
 select distinct 
         p.id as id1,'AUTO' as AUTO, 
         --p.id_type as SCAT,
@@ -10477,7 +10479,7 @@ WHERE
 	     '10999999','11000000','19999369','50999999','1000000','1000001')  
 	     
 	    ) s5 on s4.id=s5.id  
-	  where s1.id=162582
+	  -- where s1.id=162582
          
 ";
 
