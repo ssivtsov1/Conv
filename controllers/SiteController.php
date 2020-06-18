@@ -3375,6 +3375,7 @@ left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_
 left join eqm_equipment_tbl q1 
 on q.zz_nametu::text=q1.name_eqp::text and substr(trim(q1.num_eqp)::text,1,3)='62Z' 
 and substr(trim(q1.num_eqp),1,16)=substr(trim(q.eic_code),1,16)
+left join eqm_eqp_use_tbl as use1 on (use1.code_eqp = q1.id)
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
 left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q.id_cl
 left join clm_client_tbl as cc on cc.id = q.id_cl --and cc.idk_work=1
@@ -3388,7 +3389,7 @@ left join
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
 where SPEBENE::text<>'' and q1.num_eqp is not null
 and q.code_eqp=q1.id 
-and substr(trim(q1.num_eqp),1,16)||q.id_cl in
+and substr(trim(q1.num_eqp),1,16)||case when q.id_cl=2062 then use1.id_client else id_cl end in
 
 (select substr(eq.num_eqp,1,16)||coalesce (use.id_client, tr.id_client) from eqm_equipment_tbl eq
  left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
