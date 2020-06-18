@@ -10395,13 +10395,15 @@ case when st.id_section in(210,211) then '10'
      when st.id_section=206 then '83'
      when st.id_section=204 then '50'
      else '' end as ZSECTOR,
-     ''  as ZZ_MINISTRY,
+    case when zz.code_budget is null then '' else 
+    case when st.id_budjet=1000510 or st.id_section =211 then zz.code_budget else '' end end as ZZ_MINISTRY,
      replace((case when st.doc_dat<'2019-01-01' then '2019-01-01' else st.doc_dat end)::varchar ,'-','') as ZZ_START,
      '' as ZZ_END,''  as ZZ_BUDGET,ww.ZZ_TERRITORY as ZZ_TERRITORY
 from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
 inner join sap_const const on 1=1
 left join sap_but020 b on '04_C04P_'||cl.id=b.oldkey
+left join code_budget zz on trim(zz.code)=trim(cl.code::char(12))
 
 left join
 (select distinct id_potr,case when substr(trim(first_value(adr) over(partition by id_potr)),1,3)='м. ' then 1 else 2 end as zz_territory from
