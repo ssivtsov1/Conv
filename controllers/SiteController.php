@@ -3276,7 +3276,7 @@ case when p.voltage_max = 0.22 then '02'
      when p.voltage_max = 6.0 then '04'
      when p.voltage_max = 27.5 then '06'
      when p.voltage_max = 35.0 then '07'
-     when p.voltage_max = 110.0 then '08' else '' end as SPEBENE,
+     when p.voltage_max = 110.0 then '08' else '-' end as SPEBENE,
 '0001' as ANLART,
 '0002' as ABLESARTST,
 p.name_eqp as ZZ_NAMETU,
@@ -5023,7 +5023,7 @@ case when p.voltage_max = 0.22 then '02'
      when p.voltage_max = 6.0 then '04'
      when p.voltage_max = 27.5 then '06'
      when p.voltage_max = 35.0 then '07'
-     when p.voltage_max = 110.0 then '08' else '' end as SPEBENE,
+     when p.voltage_max = 110.0 then '08' else '-' end as SPEBENE,
 '0001' as ANLART,
 '0002' as ABLESARTST,
 p.name_eqp as ZZ_NAMETU,
