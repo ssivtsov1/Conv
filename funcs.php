@@ -1679,7 +1679,7 @@ else
        left join addr_sap b1 on
         get_sap_street(b1.town)=trim(c.town)
         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
-        where a.id";
+        where a.id=$id and b2.post_index is not null";
 
 //$ef=fopen('aaaaaaaa.fff','w+');
 //fputs($ef,$sql);
