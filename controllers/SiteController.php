@@ -2086,7 +2086,9 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
                 trim(w.num_meter)=trim(d.sernr) and upper(trim(d.matnr))=upper(trim(sd.sap_meter_name))
                 inner join sap_const const on 1=1
                 left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
-                where dt_off is null and length(a.plomb_num) <= 15 --AND a.id in(800000148,800000147)
+                left join clm_paccnt_tbl cl on cl.id=a.id_paccnt
+                where dt_off is null and length(a.plomb_num) <= 15 
+		         and cl.archive=0
                 ) g
                 ) gg
                 -- limit 10
@@ -2817,7 +2819,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                 'DI_GER' as struc,
                 case when grp.code_t_new is null then 
-                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||extract_sn(grp.code_t_new) end as EQUNRNEU,
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(gr.code_t_new::text)) end as EQUNRNEU,
                 '' as WANDNR,
                 '' as WANDNRE
                 from eqm_tree_tbl as tr 
@@ -2854,7 +2856,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                     '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                     'DI_GER' as struc,
                     '04_C'||'$rem'||'P_'||m.code_eqp::text  as EQUNRNEU,
-                    '04_C'||'$rem'||'P_'||extract_sn(grp.code_t_new) as met_id,
+                    '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(gr.code_t_new::text)) as met_id,
                     '' as WANDNR,
                     '' as WANDNRE
                     from eqm_tree_tbl as tr 
@@ -6610,7 +6612,7 @@ select distinct
         u.sernr as SERNR,
         --coalesce(obj.id_sap,8) as PLACE,
         p.object_name,
-        p2.id as PLACE,
+        case when p2.id is not null then p2.id else 8 end as PLACE,
         substring(replace(p.dt_b::varchar, '-',''),1,8) as DINST,const.ver
         from clm_plomb_tbl as p 
         left join cli_plomb_type_tbl as t on (t.id = p.id_type) 
@@ -6620,7 +6622,7 @@ select distinct
         else upper(trim(sp.cek_name))=upper(trim(t.name)) end 
         left join clm_client_tbl as c on (c.id = p.id_client ) 
         left join clm_statecl_tbl as st on st.id_client = c.id
-        left join eqm_equipment_h as eq on (eq.id = p.id_point) 
+        inner join eqm_equipment_tbl as eq on (eq.id = p.id_point) 
         left join adv_address_tbl as adr on (adr.id = eq.id_addres ) 
         left join sap_recode_place_plomb p1 on trim(p1.place_cek)=trim(p.object_name)
         left join spr_place_plomb p2 on trim(p2.name)=trim(p1.place_sap)
@@ -6632,7 +6634,7 @@ select distinct
                 '10999999','11000000','19999369','50999999','1000000','1000001')
                 and sp.sap_name is not null  -- AND  p.id=3130
          ORDER BY 13 ) plombs) q      
-
+       where matnr is not null
 
           ";
 
@@ -9297,7 +9299,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         $rem = '0'.$res;  // Код РЭС
         $dt=date('Y-m-d');
 
-        $sql = "select distinct const.begru as pltxt,'PREMISE' as name,
+        $sql = "select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'" . $rem . "'||'P_'||case when length(eq.id::varchar)<8 then 
              (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
@@ -10398,12 +10400,17 @@ case when st.id_section in(210,211) then '10'
     case when zz.code_budget is null then '' else 
     case when st.id_budjet=1000510 or st.id_section =211 then zz.code_budget else '' end end as ZZ_MINISTRY,
      replace((case when st.doc_dat<'2019-01-01' then '2019-01-01' else st.doc_dat end)::varchar ,'-','') as ZZ_START,
-     '' as ZZ_END,''  as ZZ_BUDGET,ww.ZZ_TERRITORY as ZZ_TERRITORY
+     '' as ZZ_END,''  as ZZ_BUDGET,ww.ZZ_TERRITORY as ZZ_TERRITORY,const.area_id as zz_area_id,
+     case when upper(cntr.name) like '%ДНІПРОВСЬКІ ЕНЕРГЕТИЧНІ ПОСЛУГИ%' then '02'
+             when upper(cntr.name) like '%УКРІНТЕРЕНЕРГО%' then '03'
+             else '01' end as zz_distrib_type
 from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
+left join (select distinct aa.id_client,bb.name from clm_contractor_tbl aa    
+		left join cli_contractor_tbl bb on aa.id_contractor=bb.id where aa.dt_contr_end is null) cntr on cntr.id_client=cl.id
 inner join sap_const const on 1=1
 left join sap_but020 b on '04_C04P_'||cl.id=b.oldkey
-left join code_budget zz on trim(zz.code)=trim(cl.code::char(12))
+left join (select distinct code,code_budget from code_budget) zz on trim(zz.code)=trim(cl.code::char(12))
 
 left join
 (select distinct id_potr,case when substr(trim(first_value(adr) over(partition by id_potr)),1,3)='м. ' then 1 else 2 end as zz_territory from

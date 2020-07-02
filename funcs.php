@@ -1468,6 +1468,8 @@ function f_account($n_struct, $rem, $v) {
     $price=$v['price'];
     $comments=$v['comments'];
     $loevm=$v['loevm'];
+    $zz_distrib_type=$v['zz_distrib_type'];
+    $zz_area_id = $v['zz_area_id'];
 
     $oldkey = $oldkey_const . $r;
     $id=$v['id_str'];
@@ -1485,11 +1487,11 @@ function f_account($n_struct, $rem, $v) {
         $z = "insert into sap_vkp(oldkey,dat_type,partner,opbuk,ebvty,abvty,abwvk,
                                        ikey,mahnv,begru,adrnb_ext,
                                        zahlkond,vertyp,kofiz_sd,kzabsver,stdbk,fkru_fis,zsector,zz_ministry,
-                                       zz_start,zz_end,zz_budget,zz_territory,zz_categ)
+                                       zz_start,zz_end,zz_budget,zz_territory,zz_categ,zz_distrib_type,zz_area_id)
                     values('$oldkey','$n_struct','$partner','$opbuk','$ebvty','$abvty',$$$abwvk$$,
                            $$$ikey$$,$$$mahnv$$,'$begru','$adrnb_ext','$zahlkond','$vertyp',
                            '$kofiz_sd','$kzabsver','$stdbk','$fkru_fis',
-                           '$zsector','$zz_ministry','$zz_start','$zz_end','$zz_budget','$zz_territory','$zz_categ')";
+                           '$zsector','$zz_ministry','$zz_start','$zz_end','$zz_budget','$zz_territory','$zz_categ','$zz_distrib_type','$zz_area_id')";
 
 //    if($n_struct=='KVV')
 //        $z = "insert into sap_kvv(oldkey,dat_type,date_from,date_to)
@@ -1654,6 +1656,7 @@ function f_connobj_ind($n_struct,$rem,$v) {
          and case when trim(b1.town)='с. Інгулець' then trim(b1.rnobl)='Криворізький район' else 1=1 end 
          and case when trim(b1.town)='с. Вільне' and $rem='05' then trim(b1.rnobl)='Криворізький район' else 1=1 end   
          and case when trim(b1.town)='с. Вільне' and $rem='07' then trim(b1.rnobl)='Новомосковський район' else 1=1 end  
+         and case when trim(b1.town)='с. Широке' and $rem='05' then trim(b1.rnobl)='Криворізький район' else 1=1 end  
          left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
         where a.id=$id and b2.post_index is not null ";
 else
