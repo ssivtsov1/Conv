@@ -2814,7 +2814,6 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                         $v2['pruefkla'] . "\n"));
                 }
 
-
                 $sql_2 = "select distinct 
                 '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                 'DI_GER' as struc,
@@ -3681,10 +3680,11 @@ order by 7
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select a.*,c.oldkey as ref_acc,row_number() over(partition by a.vkont) as id1 from sap_signers a
+        $sql = "select a.*,c.oldkey || '_' || row_number() over(partition by a.vkont) as ref_acc ,row_number() over(partition by a.vkont) as id1 from sap_signers a
     left join clm_client_tbl b on a.vkont::int=b.code
-    left join sap_vk c on b.id=substr(c.oldkey,9)::int
-    order by 2";
+    inner join sap_vk c on b.id=substr(c.oldkey,9)::int
+    where last_name2<>'' and last_name2 is not null
+    order by 2     ";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
@@ -3852,8 +3852,8 @@ order by 7
 		       case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
 		       const.ver as ver,
 		       coalesce(v.id_sap,v1.id_sap) as id_sap,
-		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then uu2.u_sap else uu1.u_sap end 
-		       else v1.normative::dec(6,2) end as voltage			
+		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then uu2.u_sap else coalesce(uu1.u_sap,uu2.u_sap) end 
+		       else case when v1.normative is not null then v1.normative::dec(6,2) else coalesce(uu1.u_sap,uu2.u_sap) end end as voltage			
                 from tmp_eqm_schema_point_tbl as p
                 join (select id_point, name as name_point from tmp_eqm_schema_point_tbl where type_eqp=12 and id_point=code_eqp) as p2 on (p.id_point=p2.id_point)
                 left join eqm_line_a_tbl as line_a on (line_a.code_eqp=p.code_eqp)
@@ -11945,7 +11945,7 @@ WHERE
                     "$$" . $note . "$$" . "," . "$$" . $numobl . "$$" . "," . "$$" . $rnobl . "$$" . "," . "'" . $type_street . "'" . "," . "$$" . $street . "$$" .
                     "," . "$$" . $street2 . "$$" . "," . "$$" . $short_street . "$$" .
                     ')';
-                Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+                Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
 //            }
 
             //debug($town);
@@ -14922,6 +14922,7 @@ WHERE
     // Проверка символов на раскладку клавиатуры
     public function actionCheck_symbol()
     {
+//        echo phpinfo();
         $model = new symbol();
 
         if ($model->load(Yii::$app->request->post()))

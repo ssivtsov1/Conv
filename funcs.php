@@ -3140,7 +3140,7 @@ function f_discenter_ind($rem,$v) {
 
 // Подписанты
 function f_zsign_ca($rem,$v) {
-    $oldkey =  $v['ref_acc'];
+    $oldkey =  $v['ref_acc'] ;
     $vkont =  $v['ref_acc'];
     $zsign=[];
     $zsign[0]=$oldkey;     // oldkey
