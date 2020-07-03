@@ -2818,7 +2818,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                 'DI_GER' as struc,
                 case when grp.code_t_new is null then 
-                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(gr.code_t_new::text)) end as EQUNRNEU,
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(grp.code_t_new::text)) end as EQUNRNEU,
                 '' as WANDNR,
                 '' as WANDNRE
                 from eqm_tree_tbl as tr 
@@ -2855,7 +2855,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                     '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                     'DI_GER' as struc,
                     '04_C'||'$rem'||'P_'||m.code_eqp::text  as EQUNRNEU,
-                    '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(gr.code_t_new::text)) as met_id,
+                    '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(grp.code_t_new::text)) as met_id,
                     '' as WANDNR,
                     '' as WANDNRE
                     from eqm_tree_tbl as tr 
