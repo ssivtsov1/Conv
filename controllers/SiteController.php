@@ -6612,7 +6612,7 @@ select distinct
         u.sernr as SERNR,
         --coalesce(obj.id_sap,8) as PLACE,
         p.object_name,
-        case when p2.id is not null then p2.id else 8 end as PLACE,
+        case when p2.id is not null then p2.id else '8' end as PLACE,
         substring(replace(p.dt_b::varchar, '-',''),1,8) as DINST,const.ver
         from clm_plomb_tbl as p 
         left join cli_plomb_type_tbl as t on (t.id = p.id_type) 
