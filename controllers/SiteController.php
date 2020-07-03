@@ -3098,7 +3098,7 @@ union
 --eq.code_t_new
 select  distinct  eq.ord,eq.id_point,
 'DEVICE' as n_struct,
-'$oldkey1' || extract_sn(eq.code_t_new) as devgrptyp,
+'$oldkey1' || cyrillic_transliterate(extract_sn(eq.code_t_new)) as devgrptyp,
  '' as  keydate, 
 ''  as dop,
 '2' as sort
