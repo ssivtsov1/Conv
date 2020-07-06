@@ -889,6 +889,9 @@ WHERE year_p=0 and year_q>0';
                 case 31:
                     return $this->redirect(['sap_zsign_ca', 'res' => $model->rem]);
                     break;
+                case 32:
+                    return $this->redirect(['sap_zpay_ca', 'res' => $model->rem]);
+                    break;
                 case 30:
                     return $this->redirect(['all_sapfile', 'res' => $model->rem]);
                     break;
@@ -3800,6 +3803,150 @@ order by 7
 
             return $this->render('info', [
                 'model' => $model]);
+
+    }
+
+    // Формирование файла zpay_ca(схема платежей)  для САП для юридических потребителей
+    public function actionSap_zpay_ca($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        // Главный запрос со всеми необходимыми данными
+        $sql = "select b.oldkey as oldkey_acc,a.*,b.oldkey||'_PAY' as oldkey_pay from sap_payment_scheme a 
+                 left join sap_init_acc b on trim(a.vkont)=trim(b.vkona)
+                 where b.vkona is not null order by vkont ";
+
+        if($helper==1)
+            $sql = $sql.' LIMIT 1';
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+//        debug($data);
+//        return;
+
+        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+        // Включение режима помощника
+        if($helper==1){
+            $fhelper=$routine.'_HELPER'.'.txt';
+            $ff = fopen($fhelper,'w+');
+            // Создание переменных
+            foreach ($data as $v) {
+                foreach ($v as $k => $v1) {
+                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    fputs($ff, $var);
+                    fputs($ff, "\n");
+
+                }
+            }
+            $i=0;
+
+            foreach ($cnt as $v) {
+                $i++;
+                $n_struct = trim($v['dattype']);
+                fputs($ff, "\n");
+                $var='if ($n_struct=='."'$n_struct') {";
+                fputs($ff, $var);
+                fputs($ff, "\n");
+                //Создание строки INSERT
+                $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
+                $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
+//                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
+                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = ' exec_on_server($z,(int) $rem,$vid);';
+                fputs($ff, $z);
+                fputs($ff, "\n");
+                $z = "}";
+                fputs($ff, $z);
+                fputs($ff, "\n");
+            }
+
+            // Выдаем предупреждение на экран об окончании формирования файла для помощи
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл допомоги $fhelper сформовано.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        }
+
+        // Удаляем данные в таблицах структур
+
+        $i=0;
+        foreach ($cnt as $v) {
+            $i++;
+            $n_struct = trim($v['dattype']);
+            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_".strtolower($n_struct);
+            exec_on_server($zsql,$res,$vid);
+        }
+
+        // Заполняем структуры
+        $i=0;
+        foreach ($data as $w) {
+            $zsign[$i]=f_zpay_ca($rem,$w);
+            $i++;
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver='8';
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        $i=0;
+        foreach ($zsign as $d) {
+            $d1 = array_map('trim', $d);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, "\n");
+
+            $i++;
+        }
+
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл ZPAY_CA сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
 
     }
 

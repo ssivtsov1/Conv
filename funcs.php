@@ -3171,6 +3171,28 @@ function f_zsign_ca($rem,$v) {
     return $zsign;
 }
 
+// Схема платежей
+function f_zpay_ca($rem,$v) {
+    $zpay=[];
+    $oldkey =  $v['oldkey_pay'] ;
+    $vkont =  $v['oldkey_acc'];
+    $zpay[0]=$oldkey;     // oldkey
+    $zsign[1]='AUTO';
+    $zpay[2]=$vkont;     // Account`s reference
+    $zpay[3]=$v['day1'];
+    $zpay[4]=$v['perc1'];
+    $zpay[5]=$v['day2'];
+    $zpay[6]=$v['perc2'];
+    $zpay[7]=$v['day3'];
+    $zpay[8]=$v['perc3'];
+    $zpay[9]=$v['day4'];
+    $zpay[10]=$v['perc4'];
+    $zpay[11]=$v['day5'];
+    $zpay[12]=$v['perc5'];
+    $zpay[13]=$v['TYPE'];
+    return $zpay;
+}
+
 // Выгрузка instln юридические потребители
 function f_instln($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'P_01_';
