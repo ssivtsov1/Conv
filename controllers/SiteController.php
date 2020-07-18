@@ -9918,7 +9918,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         $sql = "select distinct on (oldkey) * from (
 select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
-            '04_C'||'05'||'P_'||case when length(eq.id::varchar)<8 then 
+            '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then 
              (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
              dd.oldkey as HAUS,dd.house_num2,const.ver
              from eqm_area_tbl as eqa 
