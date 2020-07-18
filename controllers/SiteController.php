@@ -11868,7 +11868,7 @@ WHERE
         ini_set('max_execution_time', 900);
         $rem = '0'.$res;  // Код РЭС
 
-        $sql = "select cl.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
+        $sql_old = "select cl.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
                   const.stort,const.begru_all as begru,const.ver
                 from clm_client_tbl as cl
                 left join clm_statecl_tbl as st on cl.id = st.id_client
@@ -11880,6 +11880,22 @@ WHERE
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                  '10999999','11000000','19999369','50999999','1000000','1000001')
                 and b.oldkey is not null";
+
+        $sql = "select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
+                  const.stort,const.begru_all as begru,const.ver
+                from eqm_equipment_tbl a
+		     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+		     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+		     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+		     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                left join sap_evbsd b on b.haus='04_C'||'05'||'P_'||a.id  
+                inner join sap_const const on 1=1
+                WHERE a.type_eqp=12 and
+                (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
+                 and  c.code not in('20000556','20000565','20000753',
+                 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+                 '10999999','11000000','19999369','50999999','1000000','1000001')";
+
 
         $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";
         $zsql = 'delete from sap_egpld';
