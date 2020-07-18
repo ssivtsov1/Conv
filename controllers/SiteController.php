@@ -11889,7 +11889,7 @@ WHERE
 		     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
 		     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
 		     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
-                left join sap_evbsd b on b.haus='04_C'||'05'||'P_'||a.id  
+                left join sap_evbsd b on b.haus='04_C'||'$rem'||'P_'||a.id  
                 inner join sap_const const on 1=1
                 WHERE a.type_eqp=12 and
                 (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
