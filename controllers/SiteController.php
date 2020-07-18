@@ -2745,6 +2745,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $period = str_replace('-', '', $period);
 
         $sql="select distinct 'INST_MGMT' as name, c.id,c.code, eq.name_eqp,m.code_eqp as id_eq,
+     get_tu(m.code_eqp) as id_tu,
     '04_C'||'$rem'||'P_'||m.code_eqp as oldkey,const.ver,c.short_name
      from eqm_tree_tbl as tr 
     join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
@@ -2781,7 +2782,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         foreach($data as $v) {
             $j++;
             $id_eq = $v['id_eq'];
-            $id = $v['id'];
+            $id = $v['id_tu'];
             $oldkey = $v['oldkey'];
             $code= $v['code'];
             $short_name=$v['short_name'];
