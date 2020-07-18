@@ -9914,7 +9914,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         $rem = '0'.$res;  // Код РЭС
         $dt=date('Y-m-d');
 
-        $sql = "select distinct const.begru_all as pltxt,'PREMISE' as name,
+        $sql = "select distinct on (oldkey) * from (
+select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'05'||'P_'||case when length(eq.id::varchar)<8 then 
              (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
@@ -9929,7 +9930,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
             left join clm_client_tbl as cl1 on (cl1.id=eqa.id_client) 
             left join clm_statecl_tbl as st on cl1.id = st.id_client
           --  left join sap_co_adr ref on substr(ref.oldkey,9)=cl1.id::text
-          --left join sap_but020 c1 on c1.oldkey='04_C'||'05'||'P_'||cl1.id or (cl1.id::character varying=c1.str_supll2 and c1.str_supll2<>'~') 
+           
+        --left join sap_but020 c1 on c1.oldkey='04_C'||'05'||'P_'||cl1.id or (cl1.id::character varying=c1.str_supll2 and c1.str_supll2<>'~') 
          left join sap_co_adr dd on
        -- ((trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and 
         --upper(trim(c1.house_num1))=upper(trim(dd.house_num1)) and trim(dd.city1)<>'') or (cl1.id::character varying=dd.str_suppl2 and dd.str_suppl2<>'~')) 
@@ -9938,6 +9940,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
        -- and substr(dd.oldkey,9)::integer=cl1.id
        -- and coalesce(trim(replace(c1.house_num2,'корп.','')),'~')=case when trim(dd.house_num2)='' then '~' ELSE coalesce(trim(dd.house_num2),'~') END
        -- and dd.str_suppl1='~') or (dd.str_suppl1<>'~' and trim(c1.str_suppl1)=trim(dd.str_suppl1) and trim(c1.str_suppl2)=trim(dd.str_suppl2))
+       
             inner join sap_const const on
             1=1
             left join clm_statecl_h as sth on cl1.id = sth.id_client and 
@@ -9951,7 +9954,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                  '10999999','11000000','19999369','50999999','1000000','1000001')
             --and dd.oldkey is null     
-            order by 5";
+            order by 7) e";
 
         $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
         $zsql = 'delete from sap_evbsd';
