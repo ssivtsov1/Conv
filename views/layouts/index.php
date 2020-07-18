@@ -110,6 +110,7 @@ AppAsset::register($this);
                                 ['label' => 'Импорт address с Ингульца [Энерго]', 'url' => ['/site/imp_address']],
                                 ['label' => 'Импорт готовой таблицы street в базы РЭСов', 'url' => ['/site/imp_street_in_bd']],
                                 ['label' => 'Закачка данных в справочник адресов САП', 'url' => ['/site/addr_from_sap']],
+                                ['label' => 'Запись данных по единицам считывания САП', 'url' => ['/site/ed_sch']],
                                 ['label' => 'Запись данных по измер. трансформаторам', 'url' => ['/site/get_data_tv']],
                                 ['label' => 'Запись справочников  измер. трансформаторов САП', 'url' => ['/site/spr_data_tv']],
                                 ['label' => 'Форматирование csv файла', 'url' => ['/site/prepare_csv']],

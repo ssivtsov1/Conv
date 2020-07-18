@@ -1031,16 +1031,17 @@ function f_partner_ind($n_struct,$rem,$v) {
         $r = $v['id'];
         $tax_number=trim($v['tax_number']);
         $last_name=$v['last_name'];
-        preg_match("/[А-Яа-яіІєЄїЇiIoOaAeE'\s]+/u", $last_name, $matches,PREG_OFFSET_CAPTURE);
+
+        preg_match("/[А-Яа-яіІєЄїЇiIoOaAeE'’\s]+/u", $last_name, $matches,PREG_OFFSET_CAPTURE);
         if(isset($matches[0][0]))
             $last_name=$matches[0][0];
         $name_first=str_replace('"','',$v['name']);
 
-        preg_match("/[А-Яа-яіІєЄїЇiIoOaAeE'\s]+/u", $name_first, $matches,PREG_OFFSET_CAPTURE);
+        preg_match("/[А-Яа-яіІєЄїЇiIoOaAeE'’\s]+/u", $name_first, $matches,PREG_OFFSET_CAPTURE);
         if(isset($matches[0][0]))
             $name_first=$matches[0][0];
         $namemiddle=$v['patron_name'];
-        preg_match("/[А-Яа-яіІєЄїЇiIoOaAeE'\s]+/u", $namemiddle, $matches,PREG_OFFSET_CAPTURE);
+        preg_match("/[А-Яа-яіІєЄїЇiIoOaAeE'’\s]+/u", $namemiddle, $matches,PREG_OFFSET_CAPTURE);
         if(isset($matches[0][0]))
             $namemiddle=$matches[0][0];
 
@@ -1222,7 +1223,7 @@ function f_partner($n_struct, $rem, $v) {
     $r = $v['id'];
 
    // -------------------------
-
+   $tax_num = trim($v['tax_num']);
    $bu_type = $v['bu_type'];
    $bu_group = $v['bu_group'];
    $bpkind = $v['bpkind'];
@@ -1353,18 +1354,22 @@ function f_partner($n_struct, $rem, $v) {
             $region=trim($v['reg_wo']);;
             $iuru_pro=$v['numobl'];
     }
-
-    if($n_struct=='INIT')
+$flag_r=0;
+    if($n_struct=='INIT') {
         $z = "insert into sap_init(oldkey,dat_type,bu_type,bu_group,bpkind,role1,role2,valid_from_1,chind_1,valid_from_2,chind_2)
                     values('$oldkey','$n_struct','$bu_type','$bu_group','$bpkind','$role1','$role2','$valid_from_1',
                     'I','$valid_from_2','$chind_2')";
+        $flag_r=1;
+    }
 
-    if($n_struct=='EKUN')
+    if($n_struct=='EKUN') {
 
         $z = "insert into sap_ekun(oldkey,dat_type,fkua_rsd,fkua_ris)
                     values('$oldkey','$n_struct','1','3')";
+        $flag_r=1;
+    }
 
-    if($n_struct=='BUT000')
+    if($n_struct=='BUT000') {
         $z = "insert into sap_but000(oldkey,dat_type,bu_sort1,bu_sort2,source,augrp,name_org1,
                                        name_org2,name_org3,name_org4,legal_enty,liquid_dat,zfilcode,zfilhead,
                                        zprocind,zcodeformown,zcodebankroot,zcodelicense,znameall,zz_nameshort,zz_document)
@@ -1372,9 +1377,11 @@ function f_partner($n_struct, $rem, $v) {
                            $$$name_org3$$,$$$name_org4$$,'$legal_enty','$liquid_dat','$zfilcode','$zfilhead',
                            '$zprocind','$zcodeformown','$zcodebankroot',
                            '$zcodelicense','$znameall','$zz_nameshort','$zz_document')";
+        $flag_r=1;
+    }
 
 
-    if($n_struct=='BUT020')
+    if($n_struct=='BUT020') {
         $z = "insert into sap_but020(oldkey,dat_type,adext_addr,chind_addr,city1,post_code1,
                                          post_code2,po_box,street,house_num1,house_num2,str_supll1,
                                          str_supll2,roomnumber,region,chind_tel,tel_number,chind_fax,
@@ -1383,17 +1390,35 @@ function f_partner($n_struct, $rem, $v) {
                     values('$oldkey','$n_struct','$r','I',$$$town$$,'$post_code1','~','~',$$$street$$,
                           '$house_num1','$house_num2',$$$str_supll1$$,'$str_supll2','$roomnumber',$$$region$$,'$chind_tel','$tel_number','~','~',
                           '$chind_smtp','$smtp_addr','$tel_mobile','$iuru_pro')";
+        $flag_r=1;
+    }
 
-    if($n_struct=='BUT021')
+    if($n_struct=='BUT021') {
 
         $z = "insert into sap_but021(oldkey,dat_type,adext_advw,adr_kind,xdfadu)
                     values('$oldkey','$n_struct','$r','CEKPOST','X')";
+        $flag_r=1;
+    }
 
-    if($n_struct=='BUT0ID')
+    if($n_struct=='BUT0ID') {
 
         $z = "insert into sap_but0id(oldkey,dat_type,idnumber,id_type)
                     values('$oldkey','$n_struct','$idnumber','$id_type')";
+        $flag_r=1;
+    }
 
+    if($n_struct=='BUT0ID2') {
+        $n_struct = 'BUT0ID';
+        if(strlen($tax_num)==12 && $flag_r==0) {
+            $z = "insert into sap_but0id(oldkey,dat_type,idnumber,id_type)
+                        values('$oldkey','$n_struct','$tax_num','TAXRU')";
+            $flag_r=1;
+        }
+    }
+
+
+
+if($flag_r==1)
     switch ((int) $rem) {
         case 1:
             Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
@@ -1432,6 +1457,7 @@ function f_account($n_struct, $rem, $v) {
     $vkona = $v['vkona'];
     $zdaterep = $v['zdaterep'];
     if(empty($zdaterep)) $zdaterep='01';
+    $zdaterep='26';
     $partner=$v['partner'];
     $opbuk=$v['opbuk'];
     $ebvty = '';
@@ -1680,8 +1706,9 @@ else
         left join vw_address c on
         a.id=c.id 
        left join addr_sap b1 on
-        get_sap_street(b1.town)=trim(c.town)
-        left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
+        get_sap_street(b1.town)=trim(c.town) and b1.note like '%Дніпро%'
+        left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
+        on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
         where a.id=$id and b2.post_index is not null";
 
 //$ef=fopen('aaaaaaaa.fff','w+');
@@ -2366,7 +2393,7 @@ function f_seal_ind($n_struct,$rem,$v,$vid) {
     // Устранение дублей с другими обл-энерго
     for($j=1;$j<=count($excl);$j++){
         if($r==$excl[$j]) {
-            $sernr = $sernr . 'S';
+            $scode = $scode . 'S';
             break;
         }
     }
@@ -2430,17 +2457,19 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     $oldkey = $oldkey_const . $r;
     $anlage = $oldkey_const . $v['id_point'];
     $text = str_replace("'",'`',$text);
-
-    if($n_struct=='AUTO')
-        $z = "insert into sap_auto_zlines(oldkey,dat_type,anlage,linum,frdat,frtim,lityp,length,voltage,state,
+    $let = $v['id_type_eqp'];
+    if($let<>2) {
+        if ($n_struct == 'AUTO')
+            $z = "insert into sap_auto_zlines(oldkey,dat_type,anlage,linum,frdat,frtim,lityp,length,voltage,state,
                                     wxshr,fshar,xnegp,text,element_id)
                     values('$oldkey','$n_struct','$anlage','$pnt','$datab','000000','$id_sap','$line_length',
                             '$line_voltage_nom','L','100','X','~','$text','$pnt')";
 
-    exec_on_server($z,(int) $rem,$vid);
+        exec_on_server($z, (int)$rem, $vid);
+    }
 }
 
-// Выгрузка по линиям  юридич.
+// Выгрузка по трансформаторам  юридич.
 function f_ztransf($n_struct,$rem,$v,$vid) {
     $day=((int) date('d'))-1;
     $datab = date('Ymd', strtotime("-$day day"));
@@ -2451,16 +2480,22 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
     $swathe=$v['swathe'];
     $id_sap=$v['id_sap'];
     $text =$v['text'];
+    $text = str_replace($text,'"',"");
     $oldkey = $oldkey_const . $r;
     $anlage = $oldkey_const . $v['id_point'];
+    $let = $v['id_type_eqp'];
+    if($let==2) {
 
-    if($n_struct=='AUTO')
-        $z = "insert into sap_auto_ztransf(oldkey,dat_type,anlage,frdat,frtim,trcat,trtyp,trsta,
+        if ($n_struct == 'AUTO')
+            $z = "insert into sap_auto_ztransf(oldkey,dat_type,anlage,frdat,frtim,trcat,trtyp,trsta,
                                     xnegp,text,element_id)
                     values('$oldkey','$n_struct','$anlage','$datab','000000','$swathe','$id_sap',
                             'L','~','$text','$pnt')";
+//        debug($z);
+//        return;
 
-    exec_on_server($z,(int) $rem,$vid);
+        exec_on_server($z, (int)$rem, $vid);
+    }
 }
 
 
@@ -2650,6 +2685,7 @@ function f_facts($rem,$v) {
     $name_tp=$v['name_tp'];
 //    if(!empty($name_tp))
     $dmonth=(int) substr($datab,4,2);
+    $tariftyp=$v['tariftyp'];
 
     switch($dmonth){
         case 1:
@@ -2714,9 +2750,12 @@ function f_facts($rem,$v) {
 
     $facts['data3'] =  $oldkey.';'.'V_QUAN'.';'.$datab.';'.$datae1.';'.$avg_dem;
     if(!empty($value) && !empty($main)){
-        $facts['data4'] =  $oldkey.';'.'F_QUAN'.';'.'ЛІМ_СПОЖ'.';'.' '.';'.' ';
+        if (!((($v['id']) == 122545  && $rem == '01'))) {
+        $facts['data4'] =  $oldkey.';'.'F_QUAN'.';'.'ЛІМ_СПОЖ'.';'.' '.';'.' ' ;
         $facts['data5'] =  $oldkey.';'.'V_QUAN'.';'.$datab.';'.$datae1.';'.$value;
     }
+    }
+
 
     //    4-я строка
 //    $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
@@ -2845,14 +2884,17 @@ function f_facts($rem,$v) {
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_RATE','ВТ_РЕАКТ','','')";
 //        exec_on_server($z, (int)$rem, $vid);
-    if( !((($v['id'])==124553 || $v['id'] == 115032 || $v['id'] == 144788) && $rem=='01'))
-        $facts['data32'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_РЕАКТ'.';'.' '.';'.' ';
+        if (trim($tariftyp) <> 'CK_2JE2_01' && trim($tariftyp) <> 'CK_2TH2_01' && trim($tariftyp) <> 'CK_2GR2_01') {
+            if (!((($v['id']) == 124553 || $v['id'] == 115032 || $v['id'] == 144788) && $rem == '01')) {
+                $facts['data32'] = $oldkey . ';' . 'F_RATE' . ';' . 'ВТ_РЕАКТ' . ';' . ' ' . ';' . ' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_RATE','$datab','$datae','Р_РОЗР')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data33'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Р_РОЗР';
+                $facts['data33'] = $oldkey . ';' . 'V_RATE' . ';' . $datab . ';' . $datae . ';' . 'Р_РОЗР';
+            }
+        }
     }
     if (!empty($gen_)) {
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
@@ -3206,7 +3248,7 @@ function f_discenter_ind($rem,$v) {
 
 // Подписанты
 function f_zsign_ca($rem,$v) {
-    $oldkey =  $v['ref_acc'] ;
+    $oldkey =  $v['oldkey_true'] ;
     $vkont =  $v['ref_acc'];
     $zsign=[];
     $zsign[0]=$oldkey;     // oldkey
@@ -3243,7 +3285,7 @@ function f_zpay_ca($rem,$v) {
     $oldkey =  $v['oldkey_pay'] ;
     $vkont =  $v['oldkey_acc'];
     $zpay[0]=$oldkey;     // oldkey
-    $zsign[1]='AUTO';
+    $zpay[1]='AUTO';
     $zpay[2]=$vkont;     // Account`s reference
     $zpay[3]=$v['day1'];
     $zpay[4]=$v['perc1'];
@@ -3256,8 +3298,20 @@ function f_zpay_ca($rem,$v) {
     $zpay[11]=$v['day5'];
     $zpay[12]=$v['perc5'];
     $zpay[13]=$v['TYPE'];
+    if(empty($zpay[13]) || is_null($zpay[13]))  $zpay[13]='0';
     return $zpay;
 }
+
+// Миграция субпотребителей
+function f_instlncha($rem,$v) {
+    $zsub=[];
+    $oldkey =  $v['oldkey_pay'] ;
+    $zsub[0]=$oldkey;     // oldkey
+
+
+    return $zsub;
+}
+
 
 // Выгрузка instln юридические потребители
 function f_instln($n_struct,$rem,$v,$vid) {

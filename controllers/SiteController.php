@@ -892,6 +892,9 @@ WHERE year_p=0 and year_q>0';
                 case 32:
                     return $this->redirect(['sap_zpay_ca', 'res' => $model->rem]);
                     break;
+                case 33:
+                    return $this->redirect(['sap_instlncha', 'res' => $model->rem]);
+                    break;
                 case 30:
                     return $this->redirect(['all_sapfile', 'res' => $model->rem]);
                     break;
@@ -1379,6 +1382,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
+                if($i>6) continue;
                 if($i>1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
 
@@ -1700,7 +1704,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region where a.archive='0' 
         and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or trim(b1.rnobl)='Широківський район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x
-        --where id=500000115
+        --where id=200023152
         -- limit 10
      
         ";
@@ -2091,10 +2095,34 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
                 left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
                 left join clm_paccnt_tbl cl on cl.id=a.id_paccnt
                 where dt_off is null and length(a.plomb_num) <= 15 
-		         and cl.archive=0
+		         and cl.archive=0 
+		        -- and w.num_meter='10682627'
                 ) g
+                join
+                ( select min(a.id) as id,w.num_meter as sernr
+                from clm_plomb_tbl a
+                left join 
+                (select a.* from clm_meterpoint_tbl a
+		left join clm_meter_zone_h b on a.id=b.id_meter where b.dt_e is null) w
+                on w.id_paccnt=a.id_paccnt
+                left join eqi_meter_tbl f on w.id_type_meter=f.id
+                left join sap_plomb_place b on
+                a.id_place=b.idcek::integer
+                left join plomb_type c on
+                a.id_type=c.id
+                left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=w.id_type_meter
+                left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22 where sap_meter_id<>'') sd on s.sap_meter_id=sd.sap_meter_id
+                left join sap_equi d on
+                trim(w.num_meter)=trim(d.sernr) and upper(trim(d.matnr))=upper(trim(sd.sap_meter_name))
+                inner join sap_const const on 1=1
+                left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
+                left join clm_paccnt_tbl cl on cl.id=a.id_paccnt
+                where dt_off is null and length(a.plomb_num) <= 15 
+		         and cl.archive=0 
+		 group by w.num_meter  
+		 ) un on un.id=g.id      
+
                 ) gg
-                -- limit 10
                 ";
 
         if ($helper == 1)
@@ -2760,7 +2788,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             $sql_f = "select di_zw($id_eq , '$period')";
             $data_f = data_from_server($sql_f, $res, $vid);
             $sql_f = "select a.*,b.zwgruppe,f_exact(a.pokaz,b.zwgruppe,a.tarifart) as pokaz_true from di_zw_struc a 
-                        left join sap_egerh b on substr(b.oldkey,9,6)::char(6)= $id_eq::char(6)
+                        left join sap_egerh b on substr(b.oldkey,9)::char(10)=$id_eq::char(10)     
                         order by a.knde,a.sort";
             $data_f = data_from_server($sql_f, $res, $vid);
 //            $devloc = '04_C04P_' . strtoupper(hash('crc32', $id));
@@ -3136,10 +3164,12 @@ order by sort,ord";
             // Запись в файл структуры DI_INT
             $oldkey2='';
             foreach ($data_1 as $v1) {
+                   $link_tr = str_replace(chr(13),'',$v1['devgrptyp']);
+                   $link_tr = str_replace(chr(10),'',$v1['devgrptyp']);
                    $oldkey2 = $oldkey1 . $v1['id_point'];
                     fwrite($f, iconv("utf-8","windows-1251",$oldkey2."\t".
                     $v1['n_struct']."\t".
-                    $v1['devgrptyp']."\t".
+                    $link_tr."\t".
                     $v1['keydate']."\n") );
 
             }
@@ -3266,8 +3296,9 @@ order by sort,ord";
         $date_ab=$data_d[0]['mmgg_current'];
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select * from (
-        select distinct on(zz_eic||id_cl) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+        $sql = "select r.*,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh from (
+        select distinct on(zz_eic||id_cl) case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
+        case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru_all as begru,
 '10' as sparte,qqq.* from
 (select distinct on(q1.num_eqp||id_cl) q1.id,x.oldkey,cc.short_name,
@@ -3280,6 +3311,7 @@ case when p.voltage_max = 0.22 then '02'
      when p.voltage_max = 6.0 then '04'
      when p.voltage_max = 27.5 then '06'
      when p.voltage_max = 35.0 then '07'
+     when p.voltage_max = 150.0 then '16'
      when p.voltage_max = 110.0 then '08' else '-' end as SPEBENE,
 '0001' as ANLART,
 '0002' as ABLESARTST,
@@ -3303,7 +3335,8 @@ case when st.id_section = 201 then '02'
      else '67' end  as BRANCHE,
 --case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
 case when c.code = '900' then '0004' else '0002' end as AKLASSE,
-     'PC010131' as ABLEINH,
+    -- 'PC010131' as ABLEINH,
+    -- eds.ed_sch as ABLEINH,
 case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
      when tgr.ident in('tgr2') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '012'
      when tgr.ident in('tgr6') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '020'
@@ -3350,6 +3383,7 @@ from (select eq.num_eqp as eic_code,tr.name as vid_trf,dt.power,dt.connect_power
 dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
 dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, tr.id_grouptarif --, ph.id_extra --, tr.id_classtarif
 	from eqm_equipment_tbl as eq 
+	
 	 join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id  order by dt_b desc limit 1 ) ) 
 	 join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
 	left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif) 
@@ -3423,7 +3457,10 @@ and
 	     and  www.code not in('20000556','20000565','20000753',
 	    '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
-)  r	where vstelle is not null      
+)  r	
+left join ed_sch eds on r.id=eds.code_tu::int
+left join ed_sch_dop eds1 on r.id=eds1.code_tu::int
+where vstelle is not null      
 order by 7	
 ";
 
@@ -3683,11 +3720,11 @@ order by 7
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select a.*,c.oldkey || '_' || row_number() over(partition by a.vkont) as ref_acc ,row_number() over(partition by a.vkont) as id1 from sap_signers a
+        $sql = "select a.*,c.oldkey || '_' || row_number() over(partition by a.vkont) as oldkey_true ,row_number() over(partition by a.vkont) as id1,c.oldkey as ref_acc from sap_signers a
     left join clm_client_tbl b on a.vkont::int=b.code
     inner join sap_vk c on b.id=substr(c.oldkey,9)::int
     where last_name2<>'' and last_name2 is not null
-    order by 2     ";
+    order by 2   ";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
@@ -3831,8 +3868,7 @@ order by 7
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select b.oldkey as oldkey_acc,a.*,b.oldkey||'_PAY' as oldkey_pay from sap_payment_scheme a 
-                 left join sap_init_acc b on trim(a.vkont)=trim(b.vkona)
-                 where b.vkona is not null order by vkont ";
+                 right join sap_init_acc b on trim(a.vkont)=trim(b.vkona) ";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
@@ -3950,6 +3986,338 @@ order by 7
 
     }
 
+    // Формирование файла instlncha (субпотребители) - САП для юридических потребителей
+    public function actionSap_instlncha($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+// Главный запрос со всеми необходимыми данными
+$sql = "select q.*,'*' as div,i.*,
+j.oldkey as oldkey_m,j.vstelle as vstelle_m,j.spebene as spebene_m,j.anlart as anlart_m,
+j.ablesartst as ablesartst_m,j.zz_nametu as zz_nametu_m,j.zz_fider as zz_fider_m,
+j.ab as ab_m,j.tariftyp as tariftyp_m,j.branche as branche_m,j.aklasse as aklasse_m,
+j.ableinh as ableinh_m,j.zzcode4nkre as zzcode4nkre_m,j.zzcode4nkre_dop as zzcode4nkre_dop_m,
+j.zzotherarea as zzotherarea_m,j.begru as begru_m,j.zz_eic as zz_eic_m
+from (
+Select tr.id_client,cl2.name,tr.name,tr.code_eqp,tt.lvl,cl.name as name_sub,eq.id,get_tu2(eq.id) as code_ust,
+get_counter(eq.id) as code_sub
+from eqm_tree_tbl tr
+left join eqm_eqp_tree_tbl AS tt on tr.id=tt.id_tree
+JOIN eqm_equipment_tbl AS eq ON (tt.code_eqp=eq.id)
+JOIN (eqi_device_kinds_tbl AS dk JOIN eqi_device_kinds_prop_tbl AS dkp ON (dk.id=dkp.type_eqp)) ON (eq.type_eqp=dk.id)
+left join eqm_borders_tbl as b on (b.code_eqp=eq.id) 
+left join clm_client_tbl as cl on (cl.id=b.id_clientb)
+left join clm_client_tbl as cl2 on (cl2.id=tr.id_client)
+WHERE 
+tt.code_eqp_e is not null and b.id_clientb is not null 
+) q
+inner join sap_data as i on substr(i.oldkey,12)::int=q.code_sub 
+inner join sap_data as j on substr(j.oldkey,12)::int=q.code_ust 
+where code_sub is not null and id_client<>2062
+and case when $res=1 then id_client not in(10408,10312,11843,162582,12527) else 1=1 end
+order by code_ust,lvl";
+
+        if($helper==1)
+            $sql = $sql.' LIMIT 1';
+
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+//        debug($data);
+//        return;
+
+        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+        // Удаляем данные в таблицах структур
+
+//        $i=0;
+//        foreach ($cnt as $v) {
+//            $i++;
+//            $n_struct = trim($v['dattype']);
+//            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
+//            $zsql = "delete from sap_".strtolower($n_struct);
+//            exec_on_server($zsql,$res,$vid);
+//        }
+
+//        debug($data);
+//        return;
+
+        // Заполняем структуры
+        $i=0;
+        $ust=$data[0]['code_ust'];
+        $zsub=[];
+        $kol=0;
+        $q=count($data);
+//        debug($data);
+//        debug($q);
+//        debug($ust);
+        //return;
+        $j=0;
+        foreach ($data as $v) {
+            $ust1=$v['code_ust'];
+            $kol++;
+            $i_status=0;
+            if($kol>=$q) $i_status=1;
+//            while($i_status==0) {
+                if ($ust1 == $ust) {
+                    $j++;
+                    if ($j == 1) {
+                        // Запись информации по главной установке
+                        $oldkey = $v['oldkey_m'];
+                        $spebene = $v['spebene_m'];
+                        $anlart = $v['anlart_m'];
+                        $vstelle = $v['vstelle_m'];
+                        $ablesartst = $v['ablesartst_m'];
+                        $zz_nametu = $v['zz_nametu_m'];
+                        $zz_fider = $v['zz_fider_m'];
+                        $ab = $v['ab_m'];
+                        $tariftyp = $v['tariftyp_m'];
+                        $branche = $v['branche_m'];
+                        $aklasse = $v['aklasse_m'];
+                        $ableinh = $v['ableinh_m'];
+                        $zzcode4nkre = $v['zzcode4nkre_m'];
+                        $zzcode4nkre_dop = $v['zzcode4nkre_dop_m'];
+                        $zzotherarea = $v['zzotherarea_m'];
+                        $begru = $v['begru_m'];
+                        $zz_eic = $v['zz_eic_m'];
+                        $maininst = '';
+                        $instrole = '';
+                        $instgrtype = '0002';
+                        $highlevinst = '';
+
+                        $zsub[$i][0]=$oldkey;
+                        $zsub[$i][1]='DATA';
+                         $zsub[$i][2]=$vstelle;
+                         $zsub[$i][3]=$spebene;
+                         $zsub[$i][4]=$anlart;
+                         $zsub[$i][5]=$ablesartst;
+                         $zsub[$i][6]=$zz_nametu;
+                         $zsub[$i][7]=$zz_fider;
+                          $zsub[$i][8]=$ab;
+                          $zsub[$i][9]=$tariftyp;
+                          $zsub[$i][10]=$branche;
+                          $zsub[$i][11]=$aklasse;
+                          $zsub[$i][12]=$ableinh;
+                          $zsub[$i][13]=$maininst;
+                          $zsub[$i][14]=$instrole;
+                          $zsub[$i][15]=$instgrtype;
+                          $zsub[$i][16]=$highlevinst;
+                          $zsub[$i][17]=$zzcode4nkre;
+                          $zsub[$i][18]=$zzcode4nkre_dop;
+                          $zsub[$i][19]=$zzotherarea;
+                          $zsub[$i][20]=$begru;
+                          $zsub[$i][21]=$zz_eic;
+                          $i++;
+                    }
+                    // Запись информации по субпотребителю
+                    $oldkey = $v['oldkey'];
+                    $spebene = $v['spebene'];
+                    $anlart = $v['anlart'];
+                    $vstelle = $v['vstelle'];
+                    $ablesartst = $v['ablesartst'];
+                    $zz_nametu = $v['zz_nametu'];
+                    $zz_fider = $v['zz_fider'];
+                    $ab = $v['ab'];
+                    $tariftyp = $v['tariftyp'];
+                    $branche = $v['branche'];
+                    $aklasse = $v['aklasse'];
+                    $ableinh = $v['ableinh'];
+                    $zzcode4nkre = $v['zzcode4nkre'];
+                    $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+                    $zzotherarea = $v['zzotherarea'];
+                    $begru = $v['begru'];
+                    $zz_eic = $v['zz_eic'];
+                    $maininst = $v['oldkey_m'];
+                    $instrole = 'VL_N';
+                    $instgrtype = '';
+                    $highlevinst = $v['oldkey_m'];
+
+                    $zsub[$i][0]=$oldkey;
+                    $zsub[$i][1]='DATA';
+                    $zsub[$i][2]=$vstelle;
+                    $zsub[$i][3]=$spebene;
+                    $zsub[$i][4]=$anlart;
+                    $zsub[$i][5]=$ablesartst;
+                    $zsub[$i][6]=$zz_nametu;
+                    $zsub[$i][7]=$zz_fider;
+                    $zsub[$i][8]=$ab;
+                    $zsub[$i][9]=$tariftyp;
+                    $zsub[$i][10]=$branche;
+                    $zsub[$i][11]=$aklasse;
+                    $zsub[$i][12]=$ableinh;
+                    $zsub[$i][13]=$maininst;
+                    $zsub[$i][14]=$instrole;
+                    $zsub[$i][15]=$instgrtype;
+                    $zsub[$i][16]=$highlevinst;
+                    $zsub[$i][17]=$zzcode4nkre;
+                    $zsub[$i][18]=$zzcode4nkre_dop;
+                    $zsub[$i][19]=$zzotherarea;
+                    $zsub[$i][20]=$begru;
+                    $zsub[$i][21]=$zz_eic;
+                    $i++;
+                }
+                else {
+                    $ust = $ust1;
+                    $i_status=1;
+                    $j=1;
+
+                    // Запись информации по главной установке
+                    $oldkey = $v['oldkey_m'];
+                    $spebene = $v['spebene_m'];
+                    $anlart = $v['anlart_m'];
+                    $vstelle = $v['vstelle_m'];
+                    $ablesartst = $v['ablesartst_m'];
+                    $zz_nametu = $v['zz_nametu_m'];
+                    $zz_fider = $v['zz_fider_m'];
+                    $ab = $v['ab_m'];
+                    $tariftyp = $v['tariftyp_m'];
+                    $branche = $v['branche_m'];
+                    $aklasse = $v['aklasse_m'];
+                    $ableinh = $v['ableinh_m'];
+                    $zzcode4nkre = $v['zzcode4nkre_m'];
+                    $zzcode4nkre_dop = $v['zzcode4nkre_dop_m'];
+                    $zzotherarea = $v['zzotherarea_m'];
+                    $begru = $v['begru_m'];
+                    $zz_eic = $v['zz_eic_m'];
+                    $maininst = '';
+                    $instrole = '';
+                    $instgrtype = '0002';
+                    $highlevinst = '';
+
+                    $zsub[$i][0]=$oldkey;
+                    $zsub[$i][1]='DATA';
+                    $zsub[$i][2]=$vstelle;
+                    $zsub[$i][3]=$spebene;
+                    $zsub[$i][4]=$anlart;
+                    $zsub[$i][5]=$ablesartst;
+                    $zsub[$i][6]=$zz_nametu;
+                    $zsub[$i][7]=$zz_fider;
+                    $zsub[$i][8]=$ab;
+                    $zsub[$i][9]=$tariftyp;
+                    $zsub[$i][10]=$branche;
+                    $zsub[$i][11]=$aklasse;
+                    $zsub[$i][12]=$ableinh;
+                    $zsub[$i][13]=$maininst;
+                    $zsub[$i][14]=$instrole;
+                    $zsub[$i][15]=$instgrtype;
+                    $zsub[$i][16]=$highlevinst;
+                    $zsub[$i][17]=$zzcode4nkre;
+                    $zsub[$i][18]=$zzcode4nkre_dop;
+                    $zsub[$i][19]=$zzotherarea;
+                    $zsub[$i][20]=$begru;
+                    $zsub[$i][21]=$zz_eic;
+                    $i++;
+
+            // Запись информации по субпотребителю
+            $oldkey = $v['oldkey'];
+            $spebene = $v['spebene'];
+            $anlart = $v['anlart'];
+            $vstelle = $v['vstelle'];
+            $ablesartst = $v['ablesartst'];
+            $zz_nametu = $v['zz_nametu'];
+            $zz_fider = $v['zz_fider'];
+            $ab = $v['ab'];
+            $tariftyp = $v['tariftyp'];
+            $branche = $v['branche'];
+            $aklasse = $v['aklasse'];
+            $ableinh = $v['ableinh'];
+            $zzcode4nkre = $v['zzcode4nkre'];
+            $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+            $zzotherarea = $v['zzotherarea'];
+            $begru = $v['begru'];
+            $zz_eic = $v['zz_eic'];
+            $maininst = $v['oldkey_m'];
+            $instrole = 'VL_N';
+            $instgrtype = '';
+            $highlevinst = $v['oldkey_m'];
+
+            $zsub[$i][0]=$oldkey;
+            $zsub[$i][1]='DATA';
+            $zsub[$i][2]=$vstelle;
+            $zsub[$i][3]=$spebene;
+            $zsub[$i][4]=$anlart;
+            $zsub[$i][5]=$ablesartst;
+            $zsub[$i][6]=$zz_nametu;
+            $zsub[$i][7]=$zz_fider;
+            $zsub[$i][8]=$ab;
+            $zsub[$i][9]=$tariftyp;
+            $zsub[$i][10]=$branche;
+            $zsub[$i][11]=$aklasse;
+            $zsub[$i][12]=$ableinh;
+            $zsub[$i][13]=$maininst;
+            $zsub[$i][14]=$instrole;
+            $zsub[$i][15]=$instgrtype;
+            $zsub[$i][16]=$highlevinst;
+            $zsub[$i][17]=$zzcode4nkre;
+            $zsub[$i][18]=$zzcode4nkre_dop;
+            $zsub[$i][19]=$zzotherarea;
+            $zsub[$i][20]=$begru;
+            $zsub[$i][21]=$zz_eic;
+            $i++;
+              }
+        }
+
+//        debug($zsub);
+//        return;
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver='8';
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        $i=0;
+        foreach ($zsub as $d) {
+            $d1 = array_map('trim', $d);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $d1[0]."\t".'KEY'."\t".$d1[0]);
+            fputs($f, "\n");
+            fputs($f, $s);
+            fputs($f, "\n");
+            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, "\n");
+
+            $i++;
+        }
+
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл INSTLNCHA сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
+
+    }
+
     // Формирование файла линий(zlines) для САП для юридических потребителей
     public function actionSap_zlines($res)
     {
@@ -3977,7 +4345,7 @@ order by 7
           $data_f = data_from_server($sql_f, $res, $vid);
         // Главный запрос со всеми необходимыми данными
         $sql = "select * from (
-              select DISTINCT c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+              select DISTINCT p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -4025,7 +4393,7 @@ order by 7
                 left join eqm_tree_tbl tr on tr.id = ttr.id_tree
                 left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 inner join sap_const const on 1=1   
-                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  and  p.type_eqp<>2
+                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  -- and  p.type_eqp<>2
                 order by 1) r
                 where (code>999 or code=900) AND coalesce(idk_work,0)<>0
 	        and  code not in(20000556,20000565,20000753,
@@ -4303,7 +4671,8 @@ order by 7
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+        $sql = "select * from (
+            select p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -4337,10 +4706,24 @@ order by 7
                 left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
                 left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
                 left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
+                left join eqm_eqp_use_tbl as use on (use.code_eqp = p.id_point) 
+                 left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = p.id_point
+                left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+                left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                
                 left join sap_transf as v on (v.id::int=eqk.id and v.kod_res=$res)
+                
                 inner join sap_const const on 1=1   
-                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1 and  p.type_eqp=2
-                order by p.id_point, p.lvl desc";
+                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1 
+                
+               -- and  p.type_eqp=2
+               -- order by p.id_point, p.lvl desc
+                order by 1) r
+                where (code>999 or code=900) AND coalesce(idk_work,0)<>0
+	        and  code not in(20000556,20000565,20000753,
+	       20555555,20888888,20999999,30999999,40999999,41000000,42000000,43000000,
+	       10999999,11000000,19999369,50999999,1000000,1000001)
+                ";
 
         if($helper==1)
             $sql = $sql.' LIMIT 1';
@@ -4353,6 +4736,9 @@ order by 7
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
         $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+//        debug($data);
+//        return;
 
         // Включение режима помощника
         if($helper==1){
@@ -4554,21 +4940,22 @@ order by 7
                 }
             }
 //        }
-        // нет объекта высшего уровня }
+//         нет объекта высшего уровня
 
-        // пустая ссылка {
-        $msg = 'Пустая ссылка';
-        $err = empty_refer($fname, $data_u);
-        if (count($err)) {
-            foreach ($err as $v) {
+
+            // пустая ссылка {
+            $msg = 'Пустая ссылка';
+            $err = empty_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
 //                    debug($v);
-                $z="INSERT  INTO sap_err
+                    $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
-                exec_on_server($z, (int)$rem, $vid);
-            }
+                    exec_on_server($z, (int)$rem, $vid);
+                }
 
-        }
-        // пустая ссылка }
+            }
+            // пустая ссылка }
 
         //kol struckt{
         $col= count_str($fname);
@@ -5040,7 +5427,8 @@ uuu.id=p.id and uuu.vstelle is not null
 -- substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
 ";
 
-$sql = "select distinct uuu.zz_eic,p.neqp,eq2.num_eqp as ncnt,p.num_eqp,min(eerm.eerm) over(partition by uuu.zz_eic) as eerm,
+$sql = "select res.*,ust.tariftyp from (
+select distinct uuu.zz_eic,p.neqp,eq2.num_eqp as ncnt,p.num_eqp,min(eerm.eerm) over(partition by uuu.zz_eic) as eerm,
 p.code_eqp as id,p.name_eqp,
 p.avg_dem::varchar as avg_dem,power_allow,power_con,
 value_r as tg_fi,round(p.wtm::numeric/30.0,0) as FACTOR_hour,p.safe_category,
@@ -5319,7 +5707,9 @@ and
 --substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
 --where zz_eic like '%62Z4632451837557%'
 --where p.code_eqp='105997'
-order by 6
+) res
+left join sap_data ust on substr(ust.oldkey,12)::int=res.id
+order by 6 
 ";
 
         if($helper==1)
@@ -6343,7 +6733,7 @@ inner join sap_const const on 1=1) tt
 left join clm_statecl_tbl as stt on (stt.id_client = tt.id_cl) 
 left join clm_client_tbl as cc2 on (tt.id_cl = cc2.id) 
 left join eqm_eqp_use_tbl use1 on use1.code_eqp=tt.id 	
-left join (select * from clm_contractor_tbl where dt_contr_end is null limit 1) ct on ct.id_client=cc2.id
+left join (select distinct id_contractor,id_client from clm_contractor_tbl where dt_contr_end is null) ct on ct.id_client=cc2.id
 left join cli_contractor_tbl ci on ci.id=ct.id_contractor and ci.edrpou_contr is not null 
 inner join sap_const const on 1=1
 WHERE (cc2.code>999 or cc2.code=900) AND coalesce(cc2.idk_work,0)<>0 or (cc2.code=999 and use1.code_eqp is not null) 
@@ -8533,7 +8923,7 @@ order by tzap
         $baujj=mt_rand(1970, 1993);
 
         $sql = "select distinct w1.mmgg_current,(w1.mmgg_current- interval '4 month')::date as datab,a.id,'4001' as eqart,'$baujj' as baujj,
-                const.kostl as kostl,a.num_meter as sernr,'00000334' as zz_pernr,
+                const.kostl as kostl,a.num_meter as sernr,'00000347' as zz_pernr,
                 replace(a.dt_control::char(10),'-','') as cert_date,b.id as id_meter,
                 date_part('year', a.dt_control) as bgljahr,get_gen_cq(a.id_paccnt,a.carry) as zwgruppe,
                 const.swerk,const.stort,const.ver,const.begru_b as begru,sd.sap_meter_name as matnr
@@ -9150,6 +9540,84 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		town_sap,reg,street_sap,numobl,id,town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo
 	order by id     
    ";
+
+        $sql="select min(id) as id,town,post_index,
+street,house,stort,ver,begru,region,swerk,str_suppl1,
+str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
+ town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo 
+from  (
+    select min(id) as id,
+coalesce(town,'') as town,coalesce(post_index,'') as post_index,
+coalesce(street,'') as street,coalesce(house,'') as house,stort,ver,begru,region,swerk,
+case when coalesce(street,'')='' and coalesce(house,'')='' then name end as str_suppl1,
+' '::char(30) as str_suppl2,''::char(20) as house_num2,town_sap,reg,street_sap,numobl,
+ town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo from
+    (select a.id,'' as pltxt,c.name,s.name as town_cek,ks.shot_name||' '||trim(s.name) as street_cek,
+am.building as HOUSE_NUM1,
+am.office as HOUSE_NUM2,
+'UA' as COUNTRY,
+kt.shot_name||' '||t.name as town,b2.post_index,ks.shot_name||' '||s.name as street,am.building as house,am.office as flat,
+const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town as town_sap,
+ads.street as street_sap,ads.reg,ads.numobl,
+u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.reg as reg_wo,u.id_client as id_wo
+ from eqm_equipment_tbl a
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+ 
+        LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+        LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+        LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+        LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+        LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+       
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name)
+
+    and (trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name) or 
+        case when ks.shot_name='шосе' and trim(s.name)='Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)||' шосе'
+             when ks.shot_name='шосе' and trim(s.name)<>'Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)
+         end)
+       
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Високе' and $res='01' then trim(ads.reg)='VIN' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Миколаївка' and $res='01' then trim(ads.reg)='DNP' else 1=1 end
+    -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+        LEFT JOIN (select distinct numtown,min(post_index) as post_index from (
+        select distinct trim(numtown) as numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) 
+       b20 group by 1) b2
+         on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
+        LEFT JOIN  sap_wo_adr u on ((coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
+        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')) or (a.id=u.id_client))
+        and u.res=$rem
+        inner join sap_const const on
+    1=1
+        WHERE a.type_eqp=12 and
+    (c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0
+    and  c.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001')
+	    ) u
+    --where u.town_wo is not null
+	   	    group by coalesce(town,''),coalesce(post_index,''),
+		coalesce(street,''),coalesce(house,''),stort,ver,begru,region,swerk,
+		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,
+		town_sap,reg,street_sap,numobl,id,town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo
+		
+	order by id  
+	) u 
+	--where town=''
+		group by town,post_index,
+		street,house,stort,ver,begru,region,swerk,str_suppl1,
+		str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
+		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo";
+
+
         $sql_c = "select * from sap_export where objectsap='CONNOBJ' order by id_object";
         $zsql = 'delete from sap_co_eha';
         $zsql1 = 'delete from sap_co_adr';
@@ -12100,6 +12568,43 @@ WHERE
 
         echo "Інформацію записано";
     }
+
+    // ЗЗапись данных по единицам считывания САП
+    public function actionEd_sch()
+    {
+        $file = "ed_sch_kr.csv";
+        $f = fopen($file,'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode("~",$s);
+//            debug($data);
+//            return;
+
+            $lic_sch = $data[1];
+            $abonent = $data[2];
+            $n_sch = $data[11];
+            $type_sch = $data[12];
+            $code_tu =    $data[20];
+            $inspector = $data[49];
+            $ed_sch = $data[51];
+
+//            if (trim($note)!='Дніпропетровська' and trim($note)!='Вінницька') {
+            $sql = "INSERT INTO ed_sch (lic_sch,abonent,n_sch,type_sch,code_tu,inspector,ed_sch)
+                    VALUES(" .
+                 $lic_sch . ',' . '$$' . $abonent . '$$' . "," . "'" . $n_sch . "'" . "," . "$$" . $type_sch . "$$" . "," . '$$' . $code_tu . '$$' . "," .
+                "$$" . $inspector . "$$" . "," . "$$" . $ed_sch . "$$"  .
+                ')';
+            Yii::$app->db_pg_krg_energo->createCommand($sql)->execute();
+//            }
+
+            //debug($town);
+        }
+
+        echo "Інформацію записано";
+    }
+
 
     // Запись данных по измер. трансформаторам
     public function actionGet_data_tv()
