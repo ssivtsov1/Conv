@@ -9611,7 +9611,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		
 	order by id  
 	) u 
-	--where town=''
+	where street=''
 		group by town,post_index,
 		street,house,stort,ver,begru,region,swerk,str_suppl1,
 		str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
