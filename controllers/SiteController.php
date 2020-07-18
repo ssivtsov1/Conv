@@ -4068,10 +4068,14 @@ order by code_ust,lvl";
 
         // Заполняем структуры
         $i=0;
-        $ust=$data[0]['code_ust'];
+        $q=count($data);
+        if($q>0)
+            $ust=$data[0]['code_ust'];
+        else
+            $ust='';
         $zsub=[];
         $kol=0;
-        $q=count($data);
+
 //        debug($data);
 //        debug($q);
 //        debug($ust);
