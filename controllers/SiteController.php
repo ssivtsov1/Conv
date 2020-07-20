@@ -1174,8 +1174,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
        b20 group by 1) b2
          on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
        LEFT JOIN  sap_wo_adr u on ((coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
-        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')) or (a.id=u.id_client))
-         and u.res=$rem
+        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'') and u.connobj is null) or (a.id=u.id_client)
+         and u.res=$rem)
         WHERE 
         (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
 	     and  a.code not in('20000556','20000565','20000753',
