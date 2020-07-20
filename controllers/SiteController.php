@@ -10026,7 +10026,9 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                  and  cl1.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                  '10999999','11000000','19999369','50999999','1000000','1000001')
-            --and dd.oldkey is null     
+            --and dd.oldkey is null    
+            and exists(select * from eqm_compens_station_inst_tbl where code_eqp_inst=eq.id)
+            
             order by 7) e";
 
 
