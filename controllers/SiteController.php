@@ -2806,7 +2806,9 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
                 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join 
                 eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = mp.id_point)
-                left join sap_evbsd p on area.id_area=right(p.oldkey,length(trim(area.id_area::text)))::int and  p.haus='04_C'||$$$rem$$||'P_'||$id  
+                left join sap_evbsd p on area.id_area=right(p.oldkey,length(trim(area.id_area::text)))::int 
+                and  substr(p.haus,9)::integer in (select a.id_tu from 
+		        sap_premise_dop a where a.id_eq=right(p.oldkey,length(trim(area.id_area::text)))::int)
                 where m.code_eqp= $id_eq";
             $data_1 = data_from_server($sql_1, $res, $vid);
             // Запись в файл структуры DI_INT
@@ -9941,7 +9943,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
        -- ((trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and 
         --upper(trim(c1.house_num1))=upper(trim(dd.house_num1)) and trim(dd.city1)<>'') or (cl1.id::character varying=dd.str_suppl2 and dd.str_suppl2<>'~')) 
         --and 
-        substr(dd.oldkey,9)::integer in(select  a.id from 
+        substr(dd.oldkey,9)::integer in (select  a.id from 
 	eqm_equipment_tbl a
      left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
      left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
@@ -10027,7 +10029,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                  '10999999','11000000','19999369','50999999','1000000','1000001')
             --and dd.oldkey is null    
-            and exists(select * from eqm_compens_station_inst_tbl where code_eqp_inst=eq.id)
+            and (select count(*) from eqm_compens_station_inst_tbl where code_eqp_inst=eq.id)>0
             
             order by 7) e";
 
