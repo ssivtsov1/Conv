@@ -9552,8 +9552,8 @@ str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
  town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo 
 from  (
     select min(id) as id,
-coalesce(town,'') as town,coalesce(post_index,'') as post_index,
-coalesce(street,'') as street,coalesce(house,'') as house,stort,ver,begru,region,swerk,
+coalesce(town_sap,'') as town,coalesce(post_index,'') as post_index,
+coalesce(street_sap,'') as street,coalesce(house,'') as house,stort,ver,begru,region,swerk,
 case when coalesce(street,'')='' and coalesce(house,'')='' then name end as str_suppl1,
 ' '::char(30) as str_suppl2,''::char(20) as house_num2,town_sap,reg,street_sap,numobl,
  town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo from
@@ -9919,7 +9919,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         $rem = '0'.$res;  // Код РЭС
         $dt=date('Y-m-d');
 
-        $sql = "select distinct on (oldkey) * from (
+        $sql_old = "select distinct on (oldkey) * from (
 select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then 
@@ -9941,7 +9941,40 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
        -- ((trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and 
         --upper(trim(c1.house_num1))=upper(trim(dd.house_num1)) and trim(dd.city1)<>'') or (cl1.id::character varying=dd.str_suppl2 and dd.str_suppl2<>'~')) 
         --and 
-        substr(dd.oldkey,9)::integer in(select code_eqp from eqm_compens_station_inst_tbl where code_eqp_inst=eq.id) 
+        substr(dd.oldkey,9)::integer in(select  a.id from 
+	eqm_equipment_tbl a
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+ 
+        LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+        LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+        LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+        LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+        LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town 
+where  kt.shot_name||' '||t.name || ks.shot_name||' '||s.name ||
+coalesce(am.building,'') || coalesce(am.office,'') in
+(      
+select kt.shot_name||' '||t.name || ks.shot_name||' '||s.name ||
+coalesce(am.building,'') || coalesce(am.office,'') from 
+eqm_equipment_tbl a
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+ 
+        LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+        LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+        LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+        LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+        LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+
+        
+where a.id in (
+select id from eqm_equipment_tbl where id in
+(select code_eqp from eqm_compens_station_inst_tbl where code_eqp_inst=eq.id) 
+and type_eqp=12) 
        -- and substr(dd.oldkey,9)::integer=cl1.id
        -- and coalesce(trim(replace(c1.house_num2,'корп.','')),'~')=case when trim(dd.house_num2)='' then '~' ELSE coalesce(trim(dd.house_num2),'~') END
        -- and dd.str_suppl1='~') or (dd.str_suppl1<>'~' and trim(c1.str_suppl1)=trim(dd.str_suppl1) and trim(c1.str_suppl2)=trim(dd.str_suppl2))
@@ -9961,6 +9994,42 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             --and dd.oldkey is null     
             order by 7) e";
 
+        $sql_f = "select f_for_premise('$rem','$dt')";
+
+        $sql = "select distinct on (oldkey) * from (
+select distinct const.begru_all as pltxt,'PREMISE' as name,
+         cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
+            '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then 
+             (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
+             dd.oldkey as HAUS,dd.house_num2,const.ver
+             from eqm_area_tbl as eqa 
+            join  eqm_equipment_tbl AS eq  on (eqa.code_eqp=eq.id) 
+            join  eqm_equipment_h AS eqh  on (eqa.code_eqp=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id and dt_b < '$dt' order by dt_b desc limit 1 ) ) 
+            left join adv_address_tbl as a on (a.id=eq.id_addres) 
+            left join adm_address_tbl as am on a.id=am.id
+            join eqm_ground_tbl as g on (eq.id=g.code_eqp) 
+            left join ( select code_eqp_inst, count(*)::integer as eqp_cnt from eqm_compens_station_inst_tbl group by code_eqp_inst order by code_eqp_inst) as u on (eq.id=u.code_eqp_inst) 
+            left join clm_client_tbl as cl1 on (cl1.id=eqa.id_client) 
+            left join clm_statecl_tbl as st on cl1.id = st.id_client
+         left join sap_co_adr dd on
+        substr(dd.oldkey,9)::integer in(select a.id_tu from 
+	    sap_premise_dop a where a.id_eq=eq.id)
+            inner join sap_const const on
+            1=1
+            left join clm_statecl_h as sth on cl1.id = sth.id_client and 
+            sth.mmgg_e is null and sth.mmgg_b = (SELECT mmgg_b FROM clm_statecl_h WHERE id_client = sth.id_client and mmgg_b < '2020-07-01' order by mmgg_b desc limit 1 )      
+            where (eq.type_eqp = 11) and cl1.book = -1 and coalesce(cl1.id_state,0) not in(50,99,49) and coalesce(cl1.idk_work,0) not in (0) 
+             and sth.mmgg_b is not null and st.doc_dat is not null  and st.id_section not in (205,206,207,208,209,218)  and sth.mmgg_b is not null and st.doc_dat is not null 
+                 and cl1.id <> syi_resid_fun() 
+                 and cl1.id <>999999999 and 
+                  (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0 
+                 and  cl1.code not in('20000556','20000565','20000753',
+                 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+                 '10999999','11000000','19999369','50999999','1000000','1000001')
+            --and dd.oldkey is null     
+            order by 7) e";
+
+
         $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
         $zsql = 'delete from sap_evbsd';
 
@@ -9969,6 +10038,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
+                    $data1 = \Yii::$app->db_pg_dn_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
@@ -9976,42 +10046,49 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     break;
 
                 case 2:
+                    $data1 = \Yii::$app->db_pg_zv_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_zv_energo->createCommand($zsql)->execute();
                     break;
                 case 3:
+                    $data1 = \Yii::$app->db_pg_vg_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_vg_energo->createCommand($zsql)->execute();
                     break;
                 case 4:
+                    $data1 = \Yii::$app->db_pg_pv_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
                     break;
                 case 5:
+                    $data1 = \Yii::$app->db_pg_krg_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
                     break;
                 case 6:
+                    $data1 = \Yii::$app->db_pg_ap_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_ap_energo->createCommand($zsql)->execute();
                     break;
                 case 7:
+                    $data1 = \Yii::$app->db_pg_gv_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_gv_energo->createCommand($zsql)->execute();
                     break;
                 case 8:
+                    $data1 = \Yii::$app->db_pg_in_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
