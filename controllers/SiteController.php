@@ -5671,7 +5671,9 @@ and substr(trim(q1.num_eqp),1,16)=substr(trim(q.eic_code),1,16)
 --and q.code_eqp=q1.id
 left join eqm_eqp_use_tbl as use1 on (use1.code_eqp = q1.id)
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
-left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q1.id
+--left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q1.id
+left join (select distinct id_eq,id_tu from sap_premise_dop) aa on aa.id_tu=q1.id
+left join sap_evbsd x on substr(x.oldkey,11)::int in (aa.id_eq)
 left join clm_client_tbl as cc on cc.id = q.id_cl
 left join
     (select u.id_client,a.id from eqm_equipment_tbl a
