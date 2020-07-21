@@ -3484,12 +3484,12 @@ order by 7
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        //$data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+       $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
 
-        $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+//        $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
         
-debug($data);
-return;
+//debug($data);
+//return;
 
         $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
 
