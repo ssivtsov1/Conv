@@ -3299,12 +3299,13 @@ order by sort,ord";
         $date_ab=$data_d[0]['mmgg_current'];
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select r.*,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh from (
-        select distinct on(zz_eic||id_cl) case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
-        case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+        $sql = "select * from (
+select r.*,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh from (
+        select  distinct on(zz_eic||id_cl) case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
+        case when qqq.oldkey is null or qqq.oldkey='' then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru_all as begru,
 '10' as sparte,qqq.* from
-(select distinct on(q1.num_eqp||id_cl) q1.id,aa.id_tu,x.oldkey,cc.short_name,
+(select  distinct on(q1.num_eqp||q1.id) q1.id,aa.id_tu,x.oldkey,cc.short_name,
 case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
 q1.num_eqp as zz_eic,q.* from
 (select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
@@ -3322,7 +3323,7 @@ p.name_eqp as ZZ_NAMETU,
 p.eic_code,
 p.code_eqp,
 '' as ZZ_FIDER,
-'$date_ab' as AB,
+'$date_ab'::char(10) as AB,
 case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01???'  
      when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 14 then 'CN_4HN2_01???' 
      else 
@@ -3420,7 +3421,7 @@ left join eqm_eqp_use_tbl as use1 on (use1.code_eqp = q1.id)
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
 --left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q1.id
 left join (select distinct id_eq,id_tu from sap_premise_dop) aa on aa.id_tu=q1.id
-left join sap_evbsd x on substr(x.oldkey,11)::int in (aa.id_eq)
+left join sap_evbsd x on substr(x.oldkey,11)::int in (aa.id_eq) 
     
 left join clm_client_tbl as cc on cc.id = q.id_cl --and cc.idk_work=1
 left join 
@@ -3449,12 +3450,14 @@ and substr(trim(q1.num_eqp),1,16)||case when q.id_cl=2062 then use1.id_client el
 	left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
 	join (select distinct id,code,idk_work from clm_client_tbl) as c1 on (c1.id = t.id_client) 
     where c.idk_work<>0) 
+    --order by q1.id
    
-) qqq
+) qqq 
+--order by id
+
 left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
-left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
-case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
+left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=qqq.id_tu
 left join clm_client_tbl www on www.id=coalesce(qqq.id_potr,use.id_client)
 inner join sap_const const on 1=1
 where coalesce(qqq.id_potr,use.id_client) is not null and www.code<>999 or (www.code=999 and use.code_eqp is not null)
@@ -3468,6 +3471,8 @@ left join ed_sch eds on r.id=eds.code_tu::int
 left join ed_sch_dop eds1 on r.id=eds1.code_tu::int
 where vstelle is not null      
 order by 7	             		        
+) o
+--where oldkey is null
 ";
 
         if($helper==1)
@@ -3479,7 +3484,9 @@ order by 7
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        //$data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
         
 debug($data);
 return;
@@ -5705,8 +5712,9 @@ and substr(trim(q1.num_eqp),1,16)||case when q.id_cl=2062 then use1.id_client el
 ) qqq
 left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
-left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
-case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
+--left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
+--case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
+left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=qqq.id_tu
 left join clm_client_tbl www on www.id=coalesce(qqq.id_potr,use.id_client)
 inner join sap_const const on 1=1 
 where coalesce(qqq.id_potr,use.id_client) is not null and (www.code<>999 or (www.code=999 and use.code_eqp is not null))
