@@ -3467,7 +3467,7 @@ and
 left join ed_sch eds on r.id=eds.code_tu::int
 left join ed_sch_dop eds1 on r.id=eds1.code_tu::int
 where vstelle is not null      
-order by 7	             
+order by 7	             		        
 ";
 
         if($helper==1)
@@ -3481,8 +3481,8 @@ order by 7
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
         
-//debug($data);
-//return;
+debug($sql);
+return;
 
         $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
 
