@@ -3481,8 +3481,8 @@ order by 7
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
         
-debug($sql);
-return;
+//debug($sql);
+//return;
 
         $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
 
