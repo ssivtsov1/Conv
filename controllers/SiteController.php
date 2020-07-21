@@ -5567,7 +5567,7 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
         select distinct on(zz_eic) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru,
 '10' as sparte,qqq.* from
-    (select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,
+    (select distinct on(q1.num_eqp) q1.id,aa.id_tu,x.oldkey,cc.short_name,
 case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
 q1.num_eqp as zz_eic,q.* from
     (select  distinct 'DATA' as DATA,c.id as id_cl,
