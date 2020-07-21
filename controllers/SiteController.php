@@ -2806,7 +2806,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
                 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join 
                 eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = mp.id_point)
-                left join sap_evbsd p on area.id_area=right(p.oldkey,length(trim(area.id_area::text)))::int 
+                join sap_evbsd p on area.id_area=right(p.oldkey,length(trim(area.id_area::text)))::int 
                 and  substr(p.haus,9)::integer in (select a.id_tu from 
 		        sap_premise_dop a where a.id_eq=right(p.oldkey,length(trim(area.id_area::text)))::int)
                 where m.code_eqp= $id_eq";
@@ -6726,7 +6726,9 @@ left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_
 left join eqm_equipment_tbl q1 
 on q.zz_nametu::text=q1.name_eqp::text and substr(trim(q1.num_eqp)::text,1,3)='62Z' and trim(q1.num_eqp)=trim(q.eic_code) 
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
-left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q1.id
+--left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q1.id
+left join (select distinct id_eq,id_tu from sap_premise_dop) aa on aa.id_tu=q1.id
+left join sap_evbsd x on substr(x.oldkey,11)::int in (aa.id_eq)
 left join clm_client_tbl as cc on cc.id = q.id_cl
 left join 
 (select u.id_client,a.id from eqm_equipment_tbl a
@@ -10024,7 +10026,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             inner join sap_const const on
             1=1
             left join clm_statecl_h as sth on cl1.id = sth.id_client and 
-            sth.mmgg_e is null and sth.mmgg_b = (SELECT mmgg_b FROM clm_statecl_h WHERE id_client = sth.id_client and mmgg_b < '2020-07-01' order by mmgg_b desc limit 1 )      
+            sth.mmgg_e is null and sth.mmgg_b = (SELECT mmgg_b FROM clm_statecl_h WHERE id_client = sth.id_client and mmgg_b < '$dt' order by mmgg_b desc limit 1 )      
             where (eq.type_eqp = 11) and cl1.book = -1 and coalesce(cl1.id_state,0) not in(50,99,49) and coalesce(cl1.idk_work,0) not in (0) 
              and sth.mmgg_b is not null and st.doc_dat is not null  and st.id_section not in (205,206,207,208,209,218)  and sth.mmgg_b is not null and st.doc_dat is not null 
                  and cl1.id <> syi_resid_fun() 
