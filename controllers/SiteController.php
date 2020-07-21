@@ -2807,7 +2807,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join 
                 eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = mp.id_point)
                 join sap_evbsd p on area.id_area=right(p.oldkey,length(trim(area.id_area::text)))::int 
-                and  substr(p.haus,9)::integer in (select a.id_tu from 
+                and case when p.haus ='' then 0 else substr(p.haus,9)::integer end  in (select a.id_tu from 
 		        sap_premise_dop a where a.id_eq=right(p.oldkey,length(trim(area.id_area::text)))::int)
                 where m.code_eqp= $id_eq";
             $data_1 = data_from_server($sql_1, $res, $vid);
