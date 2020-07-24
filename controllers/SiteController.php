@@ -10012,7 +10012,7 @@ and type_eqp=12)
             order by 7) e";
 
         $sql_f = "select f_for_premise('$rem','$dt')";
-
+// Это старый запрос (правильный  - но медленный)
         $sql = "select distinct on (oldkey) * from (
 select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
@@ -10045,12 +10045,49 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                  '10999999','11000000','19999369','50999999','1000000','1000001')
             --and dd.oldkey is null    
             and (select count(*) from eqm_compens_station_inst_tbl where code_eqp_inst=eq.id)>0
-            
+              order by 7) e";
+
+        // Делаем выборку по новому для ускорения
+        $sql="select distinct on (oldkey) * from (
+        select distinct const.begru_all as pltxt,'PREMISE' as name,
+         cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
+            '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then
+    (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(eq.id::varchar)::int)),(7-(length(eq.id::varchar)::int)))||eq.id::varchar)::int else eq.id end  as OLDKEY,
+             ''::char(40) as HAUS,''::char(10) as house_num2,const.ver
+             from eqm_area_tbl as eqa 
+            join  eqm_equipment_tbl AS eq  on (eqa.code_eqp=eq.id) 
+            join  eqm_equipment_h AS eqh  on (eqa.code_eqp=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE eqm_equipment_h.id = eq.id and dt_b < '$dt' order by dt_b desc limit 1 ) ) 
+            left join adv_address_tbl as a on (a.id=eq.id_addres) 
+            left join adm_address_tbl as am on a.id=am.id
+            join eqm_ground_tbl as g on (eq.id=g.code_eqp) 
+            left join ( select code_eqp_inst, count(*)::integer as eqp_cnt from eqm_compens_station_inst_tbl group by code_eqp_inst order by code_eqp_inst) as u on (eq.id=u.code_eqp_inst) 
+            left join clm_client_tbl as cl1 on (cl1.id=eqa.id_client) 
+            left join clm_statecl_tbl as st on cl1.id = st.id_client
+        --left join sap_co_adr dd on
+    -- substr(dd.oldkey,9)::integer in(select a.id_tu from
+    --  sap_premise_dop a where a.id_eq=eq.id and a.code=cl1.code)
+            inner join sap_const const on
+    1=1
+            left join clm_statecl_h as sth on cl1.id = sth.id_client and
+    sth.mmgg_e is null and sth.mmgg_b = (SELECT mmgg_b FROM clm_statecl_h WHERE id_client = sth.id_client and mmgg_b < '$dt' order by mmgg_b desc limit 1 )      
+            where (eq.type_eqp = 11) and cl1.book = -1 and coalesce(cl1.id_state,0) not in(50,99,49) and coalesce(cl1.idk_work,0) not in (0)
+    and sth.mmgg_b is not null and st.doc_dat is not null  and st.id_section not in (205,206,207,208,209,218)  and sth.mmgg_b is not null and st.doc_dat is not null
+    and cl1.id <> syi_resid_fun()
+    and cl1.id <>999999999 and
+    (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0
+    and  cl1.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001')
+    --and dd.oldkey is null
+    and (select count(*) from eqm_compens_station_inst_tbl where code_eqp_inst=eq.id)>0 
             order by 7) e";
+
 
 
         $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
         $zsql = 'delete from sap_evbsd';
+        $sql_q="select * from  sap_premise_dop ";
+        $sql_dd="select * from  sap_co_adr";
 
 
         if(1==1) {
@@ -10060,6 +10097,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $data1 = \Yii::$app->db_pg_dn_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_dn_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_dn_energo->createCommand($sql_dd)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_dn_energo->createCommand($zsql)->execute();
                     break;
@@ -10068,6 +10107,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $data1 = \Yii::$app->db_pg_zv_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_zv_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_zv_energo->createCommand($sql_dd)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_zv_energo->createCommand($zsql)->execute();
                     break;
@@ -10075,6 +10116,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $data1 = \Yii::$app->db_pg_vg_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_vg_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_vg_energo->createCommand($sql_dd)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_vg_energo->createCommand($zsql)->execute();
                     break;
@@ -10082,6 +10125,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $data1 = \Yii::$app->db_pg_pv_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_pv_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_pv_energo->createCommand($sql_dd)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
                     break;
@@ -10089,6 +10134,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $data1 = \Yii::$app->db_pg_krg_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_krg_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_krg_dn_energo->createCommand($sql_dd)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
                     break;
@@ -10096,6 +10143,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $data1 = \Yii::$app->db_pg_ap_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_ap_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_ap_energo->createCommand($sql_dd)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_ap_energo->createCommand($zsql)->execute();
                     break;
@@ -10103,6 +10152,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $data1 = \Yii::$app->db_pg_gv_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_gv_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_gv_energo->createCommand($sql_dd)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_gv_energo->createCommand($zsql)->execute();
                     break;
@@ -10110,14 +10161,60 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $data1 = \Yii::$app->db_pg_in_energo->createCommand($sql_f)->queryAll();
                     $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_in_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_in_energo->createCommand($sql_dd)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_in_energo->createCommand($zsql)->execute();
                     break;
             }
+        }
             $i = 0;
 
 //debug($cnt);
 //            return;
+
+            // Заполнение ссылок в памяти
+            foreach ($data as $key=>$n1) {
+
+                $n1_code = $n1['code'];
+                $n1_id = $n1['id_eq'];
+                $mas = [];
+                $o = 0;
+                foreach ($nd2 as $n2) {
+                    if ($n2['id_eq'] == $n1_id && $n2['code'] == $n1_code) {
+                        $mas[$o] = $n2['id_tu'];
+                        $o++;
+                    }
+                }
+                $haus = '';
+                foreach ($nd_dd as $n3) {
+                    $n1_co = substr(trim($n3['oldkey']), 8);
+
+//                debug($n3);
+//                debug($n1_id);
+//                debug($mas);
+//                return;
+                    $flag = 0;
+                    for ($oo = 0; $oo < $o; $oo++) {
+                        if ($mas[$oo] == $n1_co) {
+                            $haus = $n3['oldkey'];
+                            $house_num2 = $n3['house_num2'];
+//                            debug($haus);
+//                            return;
+                            $flag = 1;
+                            break;
+                        }
+                    }
+                    if ($flag == 1) {
+                        $data[$key]['haus'] = $haus;
+                        $data[$key]['house_num2'] = $house_num2;
+                        break;
+                    }
+                }
+            }
+
+            debug($data);
+            return;
 
             // Заполняем структуры
             foreach ($data as $w) {
@@ -10128,7 +10225,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     f_premise($n_struct, $rem, $w);
                 }
             }
-        }
+
 //        return;
 
         // Формируем имя файла и создаем файл
