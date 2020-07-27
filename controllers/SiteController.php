@@ -9616,7 +9616,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
          on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
         LEFT JOIN  sap_wo_adr u on ((coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
         and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')) or (a.id=u.id_client))
-        and u.res=$rem
+        and u.res=$rem and u.connobj=1
         inner join sap_const const on
     1=1
         WHERE a.type_eqp=12 and
@@ -10213,8 +10213,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                 }
             }
 
-            //debug($data);
-            //return;
+//            debug($data);
+//            return;
 
             // Заполняем структуры
             foreach ($data as $w) {
@@ -11185,7 +11185,7 @@ case when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99  then '04'
      when coalesce(st.flag_budjet,0)=1 then '03' 
      else '02' 
      end as KOFIZ_SD,
-     coalesce(zpay.TYPE,'0') as KZABSVER,
+     coalesce(zpay." . '"TYPE"' . ",'0') as KZABSVER,
      const.opbuk as stdbk,
      case when coalesce(st.flag_budjet,0)=1 then
      case when st.id_budjet=1000510 or st.id_section =211 then '1'
@@ -11222,7 +11222,7 @@ case when st.id_section in(210,211) then '10'
              else '01' end as zz_distrib_type
 from clm_client_tbl as cl
 left join clm_statecl_tbl as st on cl.id = st.id_client
-left join sap_payment_scheme zpay on trim(cl.code)=trim(zpay.vkona)
+left join sap_payment_scheme zpay on cl.code=zpay.vkont::int
 left join (select distinct aa.id_client,bb.name from clm_contractor_tbl aa    
 		left join cli_contractor_tbl bb on aa.id_contractor=bb.id where aa.dt_contr_end is null) cntr on cntr.id_client=cl.id
 inner join sap_const const on 1=1
