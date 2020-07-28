@@ -9619,7 +9619,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         and u.res=$rem and u.connobj=1
         inner join sap_const const on
     1=1
-        WHERE a.type_eqp=12 and
+        WHERE a.type_eqp=12 and substr(trim(a.num_eqp)::text,1,3)='62Z'  and
     (c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0
     and  c.code not in('20000556','20000565','20000753',
         '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
