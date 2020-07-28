@@ -2098,32 +2098,32 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
 		         and cl.archive=0 
 		        -- and w.num_meter='10682627'
                 ) g
-                join
-                ( select min(a.id) as id,w.num_meter as sernr
-                from clm_plomb_tbl a
-                left join 
-                (select a.* from clm_meterpoint_tbl a
-		left join clm_meter_zone_h b on a.id=b.id_meter where b.dt_e is null) w
-                on w.id_paccnt=a.id_paccnt
-                left join eqi_meter_tbl f on w.id_type_meter=f.id
-                left join sap_plomb_place b on
-                a.id_place=b.idcek::integer
-                left join plomb_type c on
-                a.id_type=c.id
-                left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=w.id_type_meter
-                left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22 where sap_meter_id<>'') sd on s.sap_meter_id=sd.sap_meter_id
-                left join sap_equi d on
-                trim(w.num_meter)=trim(d.sernr) and upper(trim(d.matnr))=upper(trim(sd.sap_meter_name))
-                inner join sap_const const on 1=1
-                left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
-                left join clm_paccnt_tbl cl on cl.id=a.id_paccnt
-                where dt_off is null and length(a.plomb_num) <= 15 
-		         and cl.archive=0 
-		 group by w.num_meter  
-		 ) un on un.id=g.id      
-
                 ) gg
                 ";
+
+        //                join
+//                (select min(a.id) as id,w.num_meter as sernr
+//                from clm_plomb_tbl a
+//                left join
+//                (select a.* from clm_meterpoint_tbl a
+//		left join clm_meter_zone_h b on a.id=b.id_meter where b.dt_e is null) w
+//                on w.id_paccnt=a.id_paccnt
+//                left join eqi_meter_tbl f on w.id_type_meter=f.id
+//                left join sap_plomb_place b on
+//                a.id_place=b.idcek::integer
+//                left join plomb_type c on
+//                a.id_type=c.id
+//                left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=w.id_type_meter
+//                left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22 where sap_meter_id<>'') sd on s.sap_meter_id=sd.sap_meter_id
+//                left join sap_equi d on
+//                trim(w.num_meter)=trim(d.sernr) and upper(trim(d.matnr))=upper(trim(sd.sap_meter_name))
+//                inner join sap_const const on 1=1
+//                left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
+//                left join clm_paccnt_tbl cl on cl.id=a.id_paccnt
+//                where dt_off is null and length(a.plomb_num) <= 15
+//		         and cl.archive=0
+//		 group by w.num_meter
+//		 ) un on un.id=g.id
 
         if ($helper == 1)
             $sql = $sql . ' LIMIT 1';
@@ -3301,7 +3301,7 @@ order by sort,ord";
         // Главный запрос со всеми необходимыми данными
         $sql = "select * from (
 select r.*,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh from (
-        select  distinct on(zz_eic||id_cl) case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
+        select  distinct on(zz_eic||qqq.id) case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
         case when qqq.oldkey is null or qqq.oldkey='' then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru_all as begru,
 '10' as sparte,qqq.* from
@@ -3473,6 +3473,112 @@ where vstelle is not null
 order by 7	             		        
 ) o
 --where oldkey is null
+";
+
+        $sql1="select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
+case when p.voltage_max = 0.22 then '02'
+     when p.voltage_max = 0.4 then '03'
+     when p.voltage_max = 10.00 then '05' 
+     when p.voltage_max = 6.0 then '04'
+     when p.voltage_max = 27.5 then '06'
+     when p.voltage_max = 35.0 then '07'
+     when p.voltage_max = 150.0 then '16'
+     when p.voltage_max = 110.0 then '08' else '-' end as SPEBENE,
+'0001' as ANLART,
+'0002' as ABLESARTST,
+p.name_eqp as ZZ_NAMETU,
+p.eic_code,
+p.code_eqp,
+'' as ZZ_FIDER,
+'$date_ab'::char(10) as AB,
+case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01???'  
+     when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 14 then 'CN_4HN2_01???' 
+     else 
+	case when p.id_tarif in (27,28,150,900001,900002) then 'CN_2TH2_01???' 
+	else '???' --tar_sap.id_sap_tar 
+	end 
+end  as TARIFTYP,p.vid_trf,
+case when st.id_section = 201 then '02'
+     when st.id_section = 202 then '50'
+     when st.id_section = 203 then '60'
+     when st.id_section in(210,211,213,214,215) then '68'
+     when c2.idk_work = 99 then '72'
+     else '67' end  as BRANCHE,
+--case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
+case when c.code = '900' then '0004' else '0002' end as AKLASSE,
+    -- 'PC010131' as ABLEINH,
+    -- eds.ed_sch as ABLEINH,
+case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
+     when tgr.ident in('tgr2') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '012'
+     when tgr.ident in('tgr6') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '020'
+     when tgr.ident in('tgr3') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '028'
+     when tgr.ident in('tgr4') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '036'
+     when tgr.ident in('tgr5',' tgr8_62','tgr8_63') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '044'
+     when tgr.ident in('tgr1') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999)  then '054'
+     when tgr.ident in('tgr2') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '060'
+     when tgr.ident in('tgr6') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '066'
+     when tgr.ident in('tgr3') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '072'
+     when tgr.ident in('tgr4') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '078'
+     when tgr.ident in('tgr5',' tgr8_62','tgr8_63') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '084'
+     when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) in (1009,1017,1018,1019,1020,1021,1001)then '286'
+     when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) =1010 then '288'
+     when tgr.ident in('tgr8_10','tgr8_30') then '298'
+     when tgr.ident in('tgr8_12','tgr8_22','tgr8_32','tgr8_4') then '300'
+     when tgr.ident in('tgr7_1','tgr7_11','tgr7_21','tgr7_211','tgr7_21','tgr7_211') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218)then '352'
+     when ((tgr.ident ~ 'tgr7_12') or (tgr.ident~ 'tgr7_22') or (tgr.ident= 'tgr7_13') or (tgr.ident = 'tgr7_23') or (tgr.ident= 'tgr8_101') or (tgr.ident = 'tgr8_61') ) and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '354'
+when tgr.ident in ('tgr7_511','tgr7_514','tgr7_5141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '384'
+when (tgr.ident ~ 'tgr7_51') and tgr.ident not in ('tgr7_511','tgr7_514','tgr7_5141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '385'
+when coalesce(st.id_section,1007)  in (1007,1008) and (tgr.ident ~ 'tgr7_52') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218)  and tar.id not in (900001,999999) then '391'
+when tgr.ident~ 'tgr7_521'  and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '392'
+when tgr.ident ~ 'tgr7_522' and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '394'
+when tgr.ident in ('tgr7_611','tgr7_614','tgr7_6141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '402'
+when (tgr.ident ~ 'tgr7_61') and tgr.ident not in ('tgr7_611','tgr7_614','tgr7_6141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '403'
+when coalesce(st.id_section,1015) in (1015,1016,1007,1008) and (tgr.ident ~ 'tgr7_62') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218)then '409'
+when tgr.ident ~ 'tgr7_621' and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '410'
+when tgr.ident ~ 'tgr7_622' and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '412'
+when tgr.ident in ( 'tgr7_15','tgr7_25','tgr7_35','tgr7_53','tgr7_63','tgr7_7') then '414'
+when tcl.ident='tcl1' and st.id_section = 209 and  tar.id not in (900001,999999) then '574'
+when tcl.ident='tcl2' and st.id_section = 209 and  tar.id not in (900001,999999) then '582'
+when c.idk_work=99 and p.voltage_min>10  and tcl.ident='tcl1' then '604'
+when c.idk_work=99 and p.voltage_min<=10 and tcl.ident='tcl2' then '606'
+when tcl.ident='tcl1' and p.id_extra =1003 then '632'
+when tcl.ident='tcl2' and p.id_extra =1003 then '634'
+when tcl.ident='tcl1' and p.id_extra in (1001,1002,1012,1013) then '638'
+when tcl.ident='tcl2' and p.id_extra in (1001,1002,1012,1013) then '640'
+when tgr.ident in('tgr8_101') then '666'
+ else '' end as ZZCODE4NKRE,
+'' as ZZCODE4NKRE_DOP,
+'' as ZZOTHERAREA,
+'1' as sort 
+from (select eq.num_eqp as eic_code,tr.name as vid_trf,dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, 
+dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
+dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, tr.id_grouptarif --, ph.id_extra --, tr.id_classtarif
+	from eqm_equipment_tbl as eq 
+	
+	 join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id  order by dt_b desc limit 1 ) ) 
+	 join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
+	left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif) 
+	left join cla_param_tbl as p on (dt.industry=p.id) 
+	left join eqk_tg_tbl as tg on (dt.id_tg=tg.id) 
+	left join eqk_voltage_tbl AS v on (dt.id_voltage=v.id) 
+	left join eqk_voltage_tbl AS vun on (dt.id_un=vun.id) 
+	left join eqk_zone_tbl AS z on (dt.zone=z.id) 
+	left join cla_param_tbl AS cla on (dt.id_depart=cla.id) 
+	left join cla_param_tbl AS cla2 on (dt.id_extra=cla2.id) 
+	left join clm_position_tbl as cp on (cp.id = dt.id_position) ) as p 
+ join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp) 
+ join eqm_tree_tbl as t on (t.id = tt.id_tree) 
+ join (select distinct id,code,idk_work from clm_client_tbl) as c on (c.id = t.id_client) 
+left join eqm_eqp_use_tbl as use on (use.code_eqp = p.code_eqp) 
+left join clm_client_tbl as c2 on (c2.id = coalesce (use.id_client, t.id_client)) 
+left join clm_statecl_tbl as st on (st.id_client = c2.id) 
+left join aci_tarif_tbl as tar on (tar.id=p.id_tarif)
+--left join sap_energo_tarif as tar_sap on tar_sap.id_tar = p.id_tarif
+left join eqi_grouptarif_tbl as tgr on tgr.id= p.id_grouptarif
+left join eqi_classtarif_tbl as tcl on (p.id_classtarif=tcl.id) 
+--left join reading_controller as w on w.tabel_numb = p.num_tab
+left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = p.code_eqp) 
+left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
 ";
 
         if($helper==1)
@@ -5564,10 +5670,10 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
                
     join
     (
-        select distinct on(zz_eic) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+        select distinct on(zz_eic||qqq.id) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru,
 '10' as sparte,qqq.* from
-    (select distinct on(q1.num_eqp) q1.id,aa.id_tu,x.oldkey,cc.short_name,
+    (select distinct on(q1.num_eqp||q1.id) q1.id,aa.id_tu,x.oldkey,cc.short_name,
 case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
 q1.num_eqp as zz_eic,q.* from
     (select  distinct 'DATA' as DATA,c.id as id_cl,
