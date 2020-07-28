@@ -3298,14 +3298,15 @@ order by sort,ord";
         $data_d = data_from_server($sql_d,$res,$vid);
         $date_ab=$data_d[0]['mmgg_current'];
 
-        // Главный запрос со всеми необходимыми данными
+        // Главный запрос со всеми необходимыми данными - но старый (переделанный смотри ниже после этого)
+        // сейчас этот не используется
         $sql = "select * from (
 select r.*,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh from (
-        select  distinct on(zz_eic||qqq.id) case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
+        select  distinct on(zz_eic::char(16)||qqq.id::char(10)) case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
         case when qqq.oldkey is null or qqq.oldkey='' then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru_all as begru,
 '10' as sparte,qqq.* from
-(select  distinct on(q1.num_eqp||q1.id) q1.id,aa.id_tu,x.oldkey,cc.short_name,
+(select  distinct on(q1.num_eqp::char(16)||q1.id::char(10)) q1.id,aa.id_tu,x.oldkey,cc.short_name,
 case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
 q1.num_eqp as zz_eic,q.* from
 (select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
@@ -3472,10 +3473,12 @@ left join ed_sch_dop eds1 on r.id=eds1.code_tu::int
 where vstelle is not null      
 order by 7	             		        
 ) o
---where oldkey is null
 ";
-
-        $sql1="select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
+// Самый новый правильный запрос
+        $sql="SELECT q.code_eqp as id,ar.code_eqp_inst,yy.oldkey as vstelle,''::char(20) as vstelle1,'10' as sparte,
+const.ver,const.begru_all as begru,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh,
+q.* from (
+select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
 case when p.voltage_max = 0.22 then '02'
      when p.voltage_max = 0.4 then '03'
      when p.voltage_max = 10.00 then '05' 
@@ -3487,7 +3490,7 @@ case when p.voltage_max = 0.22 then '02'
 '0001' as ANLART,
 '0002' as ABLESARTST,
 p.name_eqp as ZZ_NAMETU,
-p.eic_code,
+p.eic_code as zz_eic,
 p.code_eqp,
 '' as ZZ_FIDER,
 '$date_ab'::char(10) as AB,
@@ -3565,7 +3568,9 @@ dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, 
 	left join eqk_zone_tbl AS z on (dt.zone=z.id) 
 	left join cla_param_tbl AS cla on (dt.id_depart=cla.id) 
 	left join cla_param_tbl AS cla2 on (dt.id_extra=cla2.id) 
-	left join clm_position_tbl as cp on (cp.id = dt.id_position) ) as p 
+	left join clm_position_tbl as cp on (cp.id = dt.id_position) 
+	where eq.type_eqp=12 and substr(trim(eq.num_eqp)::text,1,3)='62Z' 
+	) as p 
  join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp) 
  join eqm_tree_tbl as t on (t.id = tt.id_tree) 
  join (select distinct id,code,idk_work from clm_client_tbl) as c on (c.id = t.id_client) 
@@ -3579,6 +3584,14 @@ left join eqi_classtarif_tbl as tcl on (p.id_classtarif=tcl.id)
 --left join reading_controller as w on w.tabel_numb = p.num_tab
 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = p.code_eqp) 
 left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
+) q
+inner join sap_const const on 1=1
+left join ed_sch eds on q.code_eqp=eds.code_tu::int
+left join ed_sch_dop eds1 on q.code_eqp=eds1.code_tu::int
+left join eqm_compens_station_inst_tbl ar on ar.code_eqp=q.code_eqp
+left join sap_evbsd yy on coalesce(right(yy.oldkey,length(trim(ar.code_eqp_inst::text)))::int,0)=ar.code_eqp_inst
+where ar.code_eqp_inst is not null and yy.oldkey is not null
+order by q.code_eqp
 ";
 
         if($helper==1)
@@ -3594,8 +3607,8 @@ left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_
 
 //        $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
         
-//debug($data);
-//return;
+debug($data);
+return;
 
         $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
 
