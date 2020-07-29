@@ -1,1 +1,0 @@
-Yii::$app->db_pg_zv_energo->createCommand("delete from sap_err where upload='ZLINES' and res=2")->execute();
