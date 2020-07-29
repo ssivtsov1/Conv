@@ -5573,6 +5573,8 @@ uuu.id=p.id and uuu.vstelle is not null
 -- substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
 ";
 
+
+
 // Самый правильный запрос
 $sql = "select res.*,ust.tariftyp from (
 select distinct uuu.zz_eic,p.neqp,eq2.num_eqp as ncnt,p.num_eqp,min(eerm.eerm) over(partition by uuu.zz_eic) as eerm,
@@ -5694,27 +5696,26 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
                
     join
     (
-        select distinct on(zz_eic||qqq.id) u.tarif_sap,case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
-www.short_name as real_name,const.ver,const.begru,
-'10' as sparte,qqq.* from
-    (select distinct on(q1.num_eqp||q1.id) q1.id,aa.id_tu,x.oldkey,cc.short_name,
-case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
-q1.num_eqp as zz_eic,q.* from
-    (select  distinct 'DATA' as DATA,c.id as id_cl,
+        SELECT q.code_eqp as id,ar.code_eqp_inst,yy.oldkey as vstelle,''::char(20) as vstelle1,'10' as sparte,
+const.ver,const.begru_all as begru,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh,
+case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
+q.* from (
+select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
 case when p.voltage_max = 0.22 then '02'
      when p.voltage_max = 0.4 then '03'
      when p.voltage_max = 10.00 then '05' 
      when p.voltage_max = 6.0 then '04'
      when p.voltage_max = 27.5 then '06'
      when p.voltage_max = 35.0 then '07'
+     when p.voltage_max = 150.0 then '16'
      when p.voltage_max = 110.0 then '08' else '-' end as SPEBENE,
 '0001' as ANLART,
 '0002' as ABLESARTST,
 p.name_eqp as ZZ_NAMETU,
-p.eic_code,
+p.eic_code as zz_eic,
 p.code_eqp,
 '' as ZZ_FIDER,
-'$date_ab' as AB,
+'$date_ab'::char(10) as AB,
 case when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 13 then 'CN_4HN1_01???'  
      when coalesce(c2.idk_work,0)=99 and p.id_classtarif = 14 then 'CN_4HN2_01???' 
      else 
@@ -5730,7 +5731,8 @@ case when st.id_section = 201 then '02'
      else '67' end  as BRANCHE,
 --case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
 case when c.code = '900' then '0004' else '0002' end as AKLASSE,
-     'PC01311' as ABLEINH,
+    -- 'PC010131' as ABLEINH,
+    -- eds.ed_sch as ABLEINH,
 case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
      when tgr.ident in('tgr2') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '012'
      when tgr.ident in('tgr6') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '020'
@@ -5777,8 +5779,9 @@ from (select eq.num_eqp as eic_code,tr.name as vid_trf,dt.power,dt.connect_power
 dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
 dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, tr.id_grouptarif --, ph.id_extra --, tr.id_classtarif
 	from eqm_equipment_tbl as eq 
-	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id  order by dt_b desc limit 1 ) ) 
-	join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
+	
+	 join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id  order by dt_b desc limit 1 ) ) 
+	 join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
 	left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif) 
 	left join cla_param_tbl as p on (dt.industry=p.id) 
 	left join eqk_tg_tbl as tg on (dt.id_tg=tg.id) 
@@ -5787,72 +5790,33 @@ dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, 
 	left join eqk_zone_tbl AS z on (dt.zone=z.id) 
 	left join cla_param_tbl AS cla on (dt.id_depart=cla.id) 
 	left join cla_param_tbl AS cla2 on (dt.id_extra=cla2.id) 
-	left join clm_position_tbl as cp on (cp.id = dt.id_position) ) as p 
-join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp) 
-join eqm_tree_tbl as t on (t.id = tt.id_tree) 
-join (select distinct id,code,idk_work from clm_client_tbl) as c on (c.id = t.id_client) 
+	left join clm_position_tbl as cp on (cp.id = dt.id_position) 
+	where eq.type_eqp=12 and substr(trim(eq.num_eqp)::text,1,3)='62Z' 
+	) as p 
+ join eqm_eqp_tree_tbl as tt on (p.code_eqp = tt.code_eqp) 
+ join eqm_tree_tbl as t on (t.id = tt.id_tree) 
+ join (select distinct id,code,idk_work from clm_client_tbl) as c on (c.id = t.id_client) 
 left join eqm_eqp_use_tbl as use on (use.code_eqp = p.code_eqp) 
 left join clm_client_tbl as c2 on (c2.id = coalesce (use.id_client, t.id_client)) 
 left join clm_statecl_tbl as st on (st.id_client = c2.id) 
 left join aci_tarif_tbl as tar on (tar.id=p.id_tarif)
-    --left join sap_energo_tarif as tar_sap on tar_sap.id_tar = p.id_tarif
+--left join sap_energo_tarif as tar_sap on tar_sap.id_tar = p.id_tarif
 left join eqi_grouptarif_tbl as tgr on tgr.id= p.id_grouptarif
-left join eqi_classtarif_tbl as tcl on (p.id_classtarif=tcl.id)
-    --left join reading_controller as w on w.tabel_numb = p.num_tab
+left join eqi_classtarif_tbl as tcl on (p.id_classtarif=tcl.id) 
+--left join reading_controller as w on w.tabel_numb = p.num_tab
 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = p.code_eqp) 
 left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
-) q 
-left join eqm_equipment_tbl q1 
-on q.zz_nametu::text=q1.name_eqp::text  and substr(trim(q1.num_eqp)::text,1,3)='62Z' 
-and substr(trim(q1.num_eqp),1,16)=substr(trim(q.eic_code),1,16)
---and q.code_eqp=q1.id
-left join eqm_eqp_use_tbl as use1 on (use1.code_eqp = q1.id)
-left join eqm_area_tbl ar on ar.code_eqp=q1.id
---left join sap_evbsd x on case when trim(x.haus)='' then 0 else coalesce(substr(x.haus,9)::integer,0) end =q1.id
-left join (select distinct id_eq,id_tu from sap_premise_dop) aa on aa.id_tu=q1.id
-left join sap_evbsd x on substr(x.oldkey,11)::int in (aa.id_eq)
-left join clm_client_tbl as cc on cc.id = q.id_cl
-left join
-    (select u.id_client,a.id from eqm_equipment_tbl a
-   left join eqm_point_tbl tu1 on tu1.code_eqp=a.id 
-   left JOIN eqm_compens_station_inst_tbl AS area ON (a.id=area.code_eqp)
-   left JOIN eqm_equipment_tbl AS eq2 ON (area.code_eqp_inst=eq2.id)
-   left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
-   left join clm_client_tbl u1 on u1.id=u.id_client) rr 
-   on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
-where SPEBENE::text<>'' and q1.num_eqp is not null
-and q.code_eqp=q1.id 
-and substr(trim(q1.num_eqp),1,16)||case when q.id_cl=2062 then use1.id_client else id_cl end in
-
-(select substr(eq.num_eqp,1,16)||c.id from eqm_equipment_tbl eq
- left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
-     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
-     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
-     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
-	join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id  order by dt_b desc limit 1 ) ) 
-	join eqm_point_tbl AS dt on (dt.code_eqp= eq.id)
-	left JOIN eqm_compens_station_inst_tbl AS area ON (eq.id=area.code_eqp) 
-	left join cla_param_tbl as p on (dt.industry=p.id) 
-	join eqm_eqp_tree_tbl as tt on (dt.code_eqp = tt.code_eqp) 
-	join eqm_tree_tbl as t on (t.id = tt.id_tree) 
-	left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
-	join (select distinct id,code,idk_work from clm_client_tbl) as c1 on (c1.id = t.id_client) 
-   where c.idk_work<>0)
-
-) qqq
-left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
-left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id
---left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
---case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
-left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=qqq.id_tu
-left join clm_client_tbl www on www.id=coalesce(qqq.id_potr,use.id_client)
-inner join sap_const const on 1=1 
-where coalesce(qqq.id_potr,use.id_client) is not null and (www.code<>999 or (www.code=999 and use.code_eqp is not null))
-and
-(www.code>999 or  www.code=900) AND (coalesce(www.idk_work,0)<>0 or (coalesce(www.idk_work,0)=0 and use.code_eqp is not null))
-	     and  www.code not in('20000556','20000565','20000753',
-	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001')
+) q
+inner join sap_const const on 1=1
+left join ed_sch eds on q.code_eqp=eds.code_tu::int
+left join ed_sch_dop eds1 on q.code_eqp=eds1.code_tu::int
+left join eqm_compens_station_inst_tbl ar on ar.code_eqp=q.code_eqp
+left join sap_evbsd yy on coalesce(right(yy.oldkey,length(trim(ar.code_eqp_inst::text)))::int,0)=ar.code_eqp_inst
+left join eqm_eqp_use_tbl use on use.code_eqp=q.code_eqp
+left join clm_client_tbl www on www.id=coalesce(q.id_cl,use.id_client)
+left join tarif_sap_energo u on trim(u.name)=trim(q.vid_trf)
+where ar.code_eqp_inst is not null and yy.oldkey is not null
+order by q.code_eqp
 ) uuu on uuu.id=p.id and uuu.vstelle is not null
 --substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
 --where zz_eic like '%62Z4632451837557%'
