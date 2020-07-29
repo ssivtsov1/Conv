@@ -3302,7 +3302,8 @@ order by sort,ord";
         // сейчас этот не используется
         $sql = "select * from (
 select r.*,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh from (
-        select  distinct on(zz_eic::char(16)||qqq.id::char(10)) case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
+        select  distinct on(zz_eic::char(16)||qqq.id::char(10)) 
+        case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
         case when qqq.oldkey is null or qqq.oldkey='' then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru_all as begru,
 '10' as sparte,qqq.* from
@@ -3477,6 +3478,7 @@ order by 7
 // Самый новый правильный запрос
         $sql="SELECT q.code_eqp as id,ar.code_eqp_inst,yy.oldkey as vstelle,''::char(20) as vstelle1,'10' as sparte,
 const.ver,const.begru_all as begru,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh,
+case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
 q.* from (
 select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
 case when p.voltage_max = 0.22 then '02'
@@ -3590,6 +3592,9 @@ left join ed_sch eds on q.code_eqp=eds.code_tu::int
 left join ed_sch_dop eds1 on q.code_eqp=eds1.code_tu::int
 left join eqm_compens_station_inst_tbl ar on ar.code_eqp=q.code_eqp
 left join sap_evbsd yy on coalesce(right(yy.oldkey,length(trim(ar.code_eqp_inst::text)))::int,0)=ar.code_eqp_inst
+left join eqm_eqp_use_tbl use on use.code_eqp=q.code_eqp
+left join clm_client_tbl www on www.id=coalesce(q.id_cl,use.id_client)
+left join tarif_sap_energo u on trim(u.name)=trim(q.vid_trf)
 where ar.code_eqp_inst is not null and yy.oldkey is not null
 order by q.code_eqp
 ";
