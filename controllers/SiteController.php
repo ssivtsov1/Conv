@@ -4485,8 +4485,9 @@ order by code_ust,lvl";
           $sql_f = "select eqm_schema_point_fun()";
           $data_f = data_from_server($sql_f, $res, $vid);
         // Главный запрос со всеми необходимыми данными
-        $sql = "select * from (
-              select DISTINCT p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+        $sql = "
+select * from (
+              select DISTINCT on(p.code_eqp) p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -4525,8 +4526,8 @@ order by code_ust,lvl";
                 left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
                 left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
                 left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
-                left join sap_lines as v on v.id::int=cable.id  and v.kod_res='$res' --and (v.normative is null or trim(v.normative)='')
-                left join sap_lines as v1 on v1.id::int=corde.id  and v1.kod_res='$res' --and (v1.normative is not null and trim(v1.normative)<>'')
+                left join sap_lines as v on v.id::int=cable.id  and v.kod_res='2' --and (v.normative is null or trim(v.normative)='')
+                left join sap_lines as v1 on v1.id::int=corde.id  and v1.kod_res='2' --and (v1.normative is not null and trim(v1.normative)<>'')
                 left join voltage_line uu1 on u.voltage_min=uu1.u_our
                 left join voltage_line uu2 on u1.voltage_min=uu2.u_our
                 left join eqm_eqp_use_tbl as use on (use.code_eqp = p.id_point) 
@@ -4535,11 +4536,12 @@ order by code_ust,lvl";
                 left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  -- and  p.type_eqp<>2
-                order by 1) r
+                ) r
                 where (code>999 or code=900) AND coalesce(idk_work,0)<>0
 	        and  code not in(20000556,20000565,20000753,
 	       20555555,20888888,20999999,30999999,40999999,41000000,42000000,43000000,
 	       10999999,11000000,19999369,50999999,1000000,1000001)
+	       ORDER BY 6
                 ";
 
         if($helper==1)
@@ -4553,6 +4555,9 @@ order by code_ust,lvl";
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
         $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+
+//        debug($data);
+//        return;
 
         // Включение режима помощника
         if($helper==1){
@@ -5568,6 +5573,7 @@ uuu.id=p.id and uuu.vstelle is not null
 -- substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
 ";
 
+// Самый правильный запрос
 $sql = "select res.*,ust.tariftyp from (
 select distinct uuu.zz_eic,p.neqp,eq2.num_eqp as ncnt,p.num_eqp,min(eerm.eerm) over(partition by uuu.zz_eic) as eerm,
 p.code_eqp as id,p.name_eqp,

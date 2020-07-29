@@ -2455,6 +2455,7 @@ function f_zlines($n_struct,$rem,$v,$vid) {
         $line_voltage_nom = (int) $line_voltage_nom;
 
     $text =$v['text'];
+    $text = str_replace($text,'"',"");
     $oldkey = $oldkey_const . $r;
     $anlage = $oldkey_const . $v['id_point'];
     $text = str_replace("'",'`',$text);
@@ -2466,6 +2467,7 @@ function f_zlines($n_struct,$rem,$v,$vid) {
                     values('$oldkey','$n_struct','$anlage','$pnt','$datab','000000','$id_sap','$line_length',
                             '$line_voltage_nom','L','100','X','~','$text','$pnt')";
 
+//        echo($z);
         exec_on_server($z, (int)$rem, $vid);
     }
 }
