@@ -3607,8 +3607,8 @@ order by q.code_eqp
 
 //        $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
         
-//debug($data);
-//return;
+debug($data);
+return;
 
         $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
 
