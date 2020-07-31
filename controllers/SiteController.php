@@ -10657,7 +10657,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
                     $nd2 = \Yii::$app->db_pg_krg_energo->createCommand($sql_q)->queryAll();
-                    $nd_dd = \Yii::$app->db_krg_dn_energo->createCommand($sql_dd)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_krg_energo->createCommand($sql_dd)->queryAll();
                     // Удаляем данные в таблицах
                     Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
                     break;
