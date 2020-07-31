@@ -1,0 +1,1 @@
+Yii::$app->db_pg_krg_energo->createCommand("INSERT  INTO sap_err VALUES('PARTNER','04_C05P_10416','Отсутствие структуры',5)")->execute();
