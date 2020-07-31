@@ -3055,6 +3055,9 @@ function f_move_in($rem,$v) {
     $ever[23]=$v['zz_bp_distrib'];
     $ever[24]=$v['zz_distrib_type'];
 
+    if($v['zz_distrib_type']=='01' && (empty($v['zz_bp_provider']) || is_null($v['zz_bp_provider'])))
+        $ever[22]='42082379';
+
     return $ever;
 }
 
@@ -4397,5 +4400,18 @@ function r_len($n,$q) {
     }
     else
         return r_len($n,$q+1);
+}
+// Преобразование числа в формат САП (нужно для выгрузки по бухгалтерии)
+function n2sap($a) {
+    $e=0;
+    if ($a > 0) {
+        $e = str_replace(".", ",", "$a");
+    } elseif ($a < 0) {
+        $c = substr("$a", 1);
+        $e = str_replace(".", ",", "$c");
+        $e=$e.'-';
+    }
+    return $e;
+
 }
 ?>

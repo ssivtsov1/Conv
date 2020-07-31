@@ -895,6 +895,9 @@ WHERE year_p=0 and year_q>0';
                 case 33:
                     return $this->redirect(['sap_instlncha', 'res' => $model->rem]);
                     break;
+                case 34:
+                    return $this->redirect(['sap_document', 'res' => $model->rem]);
+                    break;
                 case 30:
                     return $this->redirect(['all_sapfile', 'res' => $model->rem]);
                     break;
@@ -3013,6 +3016,342 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         }
     }
 
+    // Формирование файла остатков по бухгалтерии DOCUMENT (юридические лица)
+    public function actionSap_document($res)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+//        Формируем данные по розподілу
+        $sql="select gpart||'_'||date1||'_'||num as oldkey,c2.* from (
+select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
+select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,split_part(a.dog,' ',1) as schet,a.*,const.ver,const.begru
+     from balances as a 
+       inner join sap_const const on 1=1
+      left join clm_client_tbl b on b.code=split_part(a.dog,' ',1)::int 
+     where dog like '%розподіл%' and saldo is not null and a.saldo<>''
+     and substr(dog,1,2)='$rem'
+) c1
+) c2
+      ";
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+
+//        Формируем имя файла выгрузки
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+
+        $j=0;
+        foreach($data as $v) {
+            $j++;
+            $oldkey = $v['oldkey'];
+            $date = date('Ymd', strtotime($v['date']));
+            if(!empty($v['date_s']))
+                $date = date('Ymd', strtotime($v['date_s']));
+            $nds=round($v['saldo']*0.2,2);
+            $wo_nds=round($v['saldo']-$nds,2);
+            $prepay=$v['prepay'];
+
+// KO block
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    'KO' . "\t" .
+                    'SL'  . "\t" .
+                    $date  . "\t" .
+                    '20200930' . "\t"));
+
+            fwrite($f,  "\n");
+
+// OP block
+            if($prepay<>1) {
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    'OP' . "\t" .
+                    $v['begru'] . "\t" .
+                    $v['gpart'] . "\t" .
+                    "\t" .
+                    $v['gpart'] . "\t" .
+                    '0068' . "\t" .
+                    '0010' . "\t" .
+                    '02' . "\t" .
+                    '3744000077' . "\t" .
+                    'VE' . "\t" .
+                    "\t" .
+                    "\t" .
+                    $date . "\t" .
+                    '20200930' . "\t" .
+                    'Energo-' . $v['begru'] . '-' . substr($date, 4, 2) . substr($date, 0, 4) . '-' . $v['schet'] . "\t" .
+                    $date . "\t" .
+                    n2sap($v['saldo']) . "\t" .
+                    n2sap($v['saldo']) . "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    'VE' . "\t" .
+                    "\t" .
+                    '2020' . "\t" .
+                    n2sap($nds) . "\t" .
+                    n2sap($nds) . "\t" .
+                    'D'
+                ));
+
+                fwrite($f, "\n");
+// OPK block
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    'OPK' . "\t" .
+                    '001' . "\t" .
+                    $v['begru'] . "\t" .
+                    'INITIAL4' . "\t" .
+                    n2sap($wo_nds) . "\t" .
+                    n2sap($wo_nds) . "\t" .
+                    'VE' . "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    'VE' . "\t" .
+                    '2020'
+                ));
+
+                fwrite($f, "\n");
+
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    'OPK' . "\t" .
+                    '002' . "\t" .
+                    $v['begru'] . "\t" .
+                    '6410303177' . "\t" .
+                    n2sap($nds) . "\t" .
+                    n2sap($nds) . "\t" .
+                    'VE' . "\t" .
+                    n2sap($wo_nds) . "\t" .
+                    n2sap($wo_nds) . "\t" .
+                    'MWS' . "\t" .
+                    '020000' . "\t" .
+                    'MWAS' . "\t" .
+                    'VE' . "\t" .
+                    '2020'
+                ));
+
+                fwrite($f, "\n");
+            }
+            else{
+                // предоплата розподіл
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    'OP' . "\t" .
+                    $v['begru'] . "\t" .
+                    $v['gpart'] . "\t" .
+                    "\t" .
+                    $v['gpart'] . "\t" .
+                    '0068' . "\t" .
+                    '0010' . "\t" .
+                    '02' . "\t" .
+                    '6811310077' . "\t" .
+                    'UC' . "\t" .
+                    'X' . "\t" .
+                    "\t" .
+                    $date . "\t" .
+                    '20200930' . "\t" .
+                    'Energo-' . $v['begru'] . '-' . substr($date, 4, 2) . substr($date, 0, 4) . '-' . $v['schet'] . "\t" .
+                    $date . "\t" .
+                    n2sap($v['saldo']) . "\t" .
+                    n2sap($v['saldo']) . "\t" .
+                    n2sap($nds) . "\t" .
+                    n2sap($nds) . "\t" .
+                    '6410302177' . "\t" .
+                    '6431000077' . "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    'UC' . "\t" .
+                    "\t" .
+                    '2020' . "\t" .
+                    "\t" .
+                   "\t" .
+                    'D'
+                ));
+
+                fwrite($f, "\n");
+// OPK block
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    'OPK' . "\t" .
+                    '001' . "\t" .
+                    $v['begru'] . "\t" .
+                    'INITIAL3' . "\t" .
+                    n2sap($v['saldo']) . "\t" .
+                    n2sap($v['saldo']) . "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    "\t" .
+                    '2020'
+                ));
+
+                fwrite($f, "\n");
+
+            }
+
+                $end = '&ENDE';
+
+                    fwrite($f, $oldkey . "\t" .
+                        $end . "\n");
+                }
+
+        //        Формируем данные по перетокам
+        $sql1="select gpart||'_'||date1||'_'||num as oldkey,c2.* from (
+select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
+select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,split_part(a.dog,' ',1) as schet,a.*,const.ver,const.begru
+     from balances as a 
+       inner join sap_const const on 1=1
+      left join clm_client_tbl b on b.code=split_part(a.dog,' ',1)::int 
+     where dog like '%перетоки%' and saldo is not null and a.saldo<>''
+     and substr(dog,1,2)='$rem'
+) c1
+) c2
+      ";
+        $data = data_from_server($sql1, $res, $vid);
+
+        $j=0;
+        foreach($data as $v) {
+            $j++;
+            $oldkey = $v['oldkey'];
+            $date = date('Ymd', strtotime($v['date']));
+            if(!empty($v['date_s']))
+                $date = date('Ymd', strtotime($v['date_s']));
+            $nds=round($v['saldo']*0.2,2);
+            $wo_nds=round($v['saldo']-$nds,2);
+
+// KO block
+            fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                'KO' . "\t" .
+                'SL'  . "\t" .
+                $date  . "\t" .
+                '20200930' . "\t"));
+
+            if(substr($date,0,4)==2020) {
+                $abr = 'VR';
+                $sch_nds = '6410203177';
+            }
+            else {
+                $abr = 'UR';
+                $sch_nds = '6410202177';
+            }
+
+
+            fwrite($f,  "\n");
+
+// OP block
+            fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                'OP' . "\t" .
+                $v['begru']  . "\t" .
+                $v['gpart']  . "\t" .
+                "\t" .
+                $v['gpart']  . "\t" .
+                '0062'  . "\t" .
+                '0010'  . "\t" .
+                '02'  . "\t" .
+                '3611210077'  . "\t" .
+                $abr . "\t" .
+                "\t" .
+                "\t" .
+                $date  . "\t" .
+                '20200930' . "\t" .
+                'Energo-'.$v['begru']  .'-'.substr($date,4,2).substr($date,0,4).'-'.$v['schet'] ."\t" .
+                $date  . "\t" .
+                n2sap($v['saldo'])  . "\t" .
+                n2sap($v['saldo'])  . "\t" .
+                "\t" .
+                "\t" .
+                "\t" .
+                "\t" .
+                "\t" .
+                $abr   . "\t" .
+                "\t" .
+                '2020' . "\t" .
+                n2sap($nds) . "\t" .
+                n2sap($nds) . "\t" .
+                'R'
+            ));
+
+            fwrite($f,  "\n");
+// OPK block
+            fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                'OPK' . "\t" .
+                '001'  . "\t" .
+                $v['begru']   . "\t" .
+                'INITIAL4' . "\t".
+                n2sap($wo_nds) . "\t".
+                n2sap($wo_nds) . "\t".
+                $abr  . "\t" .
+                "\t" .
+                "\t" .
+                "\t" .
+                "\t" .
+                "\t" .
+                $abr   . "\t" .
+                '2020'
+            ));
+
+            fwrite($f,  "\n");
+
+            fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                'OPK' . "\t" .
+                '002'  . "\t" .
+                $v['begru']   . "\t" .
+                $sch_nds. "\t".
+                n2sap($nds) . "\t".
+                n2sap($nds) . "\t".
+                $abr . "\t" .
+                n2sap($wo_nds) . "\t".
+                n2sap($wo_nds) . "\t".
+                'MWS'  . "\t" .
+                '020000'  . "\t" .
+                'MWAS'  . "\t" .
+                $abr . "\t" .
+                '2020'
+            ));
+
+            fwrite($f,  "\n");
+
+            $end = '&ENDE';
+
+            fwrite($f, $oldkey . "\t" .
+                $end . "\n");
+        }
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл DOCUMENT сформовано.";
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+            return $this->render('info', [
+                'model' => $model]);
+    }
+
+
     // Формирование файла группировки устройств DEVGRP (юридические лица)
     public function actionSap_devgrp($res)
     {
@@ -3585,7 +3924,11 @@ left join eqi_grouptarif_tbl as tgr on tgr.id= p.id_grouptarif
 left join eqi_classtarif_tbl as tcl on (p.id_classtarif=tcl.id) 
 --left join reading_controller as w on w.tabel_numb = p.num_tab
 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = p.code_eqp) 
-left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
+left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp)
+where (c2.code>999 or c2.code=900) AND coalesce(c2.idk_work,0)<>0 or (c2.code=999 and use.code_eqp is not null) 
+	     and  c2.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	    '10999999','11000000','19999369','50999999','1000000','1000001') 
 ) q
 inner join sap_const const on 1=1
 left join ed_sch eds on q.code_eqp=eds.code_tu::int
@@ -6700,7 +7043,8 @@ where a.archive='0'
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = str_replace('-','',$data_p[0]['mmgg']);  // Получаем текущий отчетный период
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select * from (
+        $sql = "
+select * from (
 select const.opbuk as bukrs,stt.doc_num as vrefer,
 tt.*,
 case when stt.flag_budjet = 1 then '03' else case when coalesce(cc2.idk_work,0)=99 then '04' else '02' end  end  as kofiz,
@@ -6718,7 +7062,7 @@ ci.edrpou_contr as zz_bp_provider,
 case when ci.id=2 then '03'
 when ci.id=1000000 then '02' else '01' end as zz_distrib_type
 from
-(select distinct on(zz_eic) case when qqq.oldkey is null then trim(yy.oldkey) else trim(qqq.oldkey) end as vstelle,
+(select distinct on(zz_eic) case when qqq.oldkey is null then trim(qqq.oldkey) else trim(qqq.oldkey) end as vstelle,
 www.short_name as real_name,const.ver,const.begru,
 '10'::text as sparte,qqq.* from
 (select distinct on(q1.num_eqp) q1.id,x.oldkey,cc.short_name,cc.code,
@@ -6840,7 +7184,9 @@ left join
    left join eqm_area_tbl u on u.code_eqp=area.code_eqp_inst
    left join clm_client_tbl u1 on u1.id=u.id_client) rr 
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
-where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
+where SPEBENE::text<>'' and q1.num_eqp is not null
+)
+ qqq
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id 	
 left join sap_evbsd yy on case when trim(yy.haus)='' then 0 else coalesce(substr(yy.haus,9)::integer,0) end=--qqq.id_potr
 case when qqq.id_potr=2062 then use.id_client else coalesce(qqq.id_potr,use.id_client) end
@@ -6858,10 +7204,13 @@ WHERE (cc2.code>999 or cc2.code=900) AND coalesce(cc2.idk_work,0)<>0 or (cc2.cod
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
 	   
 order by 8,zz_point_num,zz_plosch_num,zz_object_num  
-) r where  vstelle is not null
+) r 
+join
+sap_data ust on substr(ust.oldkey,12)::int=r.id
 ";
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
 
         // Заполняем массивы структур: $di_int и $di_zw
         $i=0;
@@ -9732,6 +10081,85 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		street,house,stort,ver,begru,region,swerk,str_suppl1,
 		str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
 		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo";
+
+        if($rem=='05')
+            $sql="select min(id) as id,town,post_index,street_cek,town_cek,
+street,house,stort,ver,begru,region,swerk,str_suppl1,
+str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
+ town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo 
+from  (
+    select min(id) as id,street_cek,town_cek,
+coalesce(town_sap,'') as town,coalesce(post_index,'') as post_index,
+coalesce(street_sap,'') as street,coalesce(house,'') as house,stort,ver,begru,region,swerk,
+case when coalesce(street,'')='' and coalesce(house,'')='' then name end as str_suppl1,
+' '::char(30) as str_suppl2,''::char(20) as house_num2,town_sap,reg,street_sap,numobl,
+ town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo from
+    (select a.id,'' as pltxt,c.name,s.name as town_cek,ks.shot_name||' '||trim(s.name) as street_cek,
+am.building as HOUSE_NUM1,
+am.office as HOUSE_NUM2,
+'UA' as COUNTRY,
+kt.shot_name||' '||t.name as town,b2.post_index,ks.shot_name||' '||s.name as street,am.building as house,am.office as flat,
+const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town as town_sap,
+ads.street as street_sap,ads.reg,ads.numobl,
+u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.reg as reg_wo,u.id_client as id_wo
+ from eqm_equipment_tbl a
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+ 
+        LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+        LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+        LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+        LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+        LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+       
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name)
+
+    and (trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name) or 
+        case when ks.shot_name='шосе' and trim(s.name)='Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)||' шосе'
+             when ks.shot_name='шосе' and trim(s.name)<>'Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)
+         end)
+       
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Високе' and $res='01' then trim(ads.reg)='VIN' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Миколаївка' and $res='01' then trim(ads.reg)='DNP' else 1=1 end
+    -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+        LEFT JOIN (select distinct numtown,min(post_index) as post_index from (
+        select distinct trim(numtown) as numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) 
+       b20 group by 1) b2
+         on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
+        LEFT JOIN  sap_wo_adr u on ((coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
+        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')) or (a.id=u.id_client))
+        and u.res=$rem and u.connobj=1
+        inner join sap_const const on
+    1=1
+        WHERE a.type_eqp=12 and substr(trim(a.num_eqp)::text,1,3)='62Z'  and
+    (c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0
+    and  c.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001')
+	    ) u
+    --where u.town_wo is not null
+	   	    group by coalesce(town,''),coalesce(post_index,''),
+		coalesce(street,''),coalesce(house,''),stort,ver,begru,region,swerk,
+		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,
+		town_sap,reg,street_sap,numobl,id,town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo,
+		street_cek,town_cek
+		
+	order by id  
+	) u 
+	-- where town<>'' and street<>''  -- Потом это надо убрать
+		group by town,post_index,
+		street,house,stort,ver,begru,region,swerk,str_suppl1,
+		str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
+		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo,street_cek,town_cek";
+
 
 
         $sql_c = "select * from sap_export where objectsap='CONNOBJ' order by id_object";
