@@ -4406,11 +4406,34 @@ function n2sap($a) {
     $e=0;
     if ($a > 0) {
         $e = str_replace(".", ",", "$a");
+        $n=strpos($e,',');
+        $y=strlen($e);
+        if ($n=='false')
+            $e=$e.',00';
+        else{
+                if($y-($n+1)==1)
+                    $e=$e.'0';
+        }
     } elseif ($a < 0) {
         $c = substr("$a", 1);
         $e = str_replace(".", ",", "$c");
+        $n=strpos($e,',');
+        $y=strlen($e);
+
+//        debug($a);
+//        debug($y);
+//        debug($n);
+
+        if ($n=='false')
+            $e=$e.',00';
+        else{
+            if($y-($n+1)==1)
+                $e=$e.'0';
+        }
         $e=$e.'-';
     }
+
+
     return $e;
 
 }

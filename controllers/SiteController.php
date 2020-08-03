@@ -3038,8 +3038,16 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         // Получаем название подпрограммы
         $routine = strtoupper(substr($method,10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        $sql_p=" select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $data_p = data_from_server($sql_p, $res, $vid);
+        $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
+        $date_p = str_replace('-','',$date_p);
+
 //        Формируем данные по розподілу
-        $sql="select gpart||'_'||date1||'_'||num as oldkey,c2.* from (
+        $sql="select gpart||'_'||date1||'_'||num as oldkey,c2.*
+ --(replace(c2.date,'.','-')::date+interval '1 day')::date as faedn
+ from (
 select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
 select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,split_part(a.dog,' ',1) as schet,a.*,const.ver,const.begru
      from balances as a 
@@ -3052,6 +3060,10 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
       ";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
+
+//        debug($data);
+//        return;
+
         $fd=date('Ymd');
         $ver=$data[0]['ver'];
 
@@ -3065,9 +3077,21 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
             $j++;
             $oldkey = $v['oldkey'];
             $date = date('Ymd', strtotime($v['date']));
+
+
+//            debug(n2sap($v['saldo']));
+//            debug($date);
+//            debug($date_);
+//            debug($faedn);
+//            return;
+
             if(!empty($v['date_s']))
-                $date = date('Ymd', strtotime($v['date_s']));
-            $nds=round($v['saldo']*0.2,2);
+               $date = date('Ymd', strtotime($v['date_s']));
+
+            $date_ = date('Y-m-d', strtotime($date));
+            $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
+
+            $nds=round($v['saldo']/6,2);
             $wo_nds=round($v['saldo']-$nds,2);
             $prepay=$v['prepay'];
 
@@ -3076,12 +3100,12 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                     'KO' . "\t" .
                     'SL'  . "\t" .
                     $date  . "\t" .
-                    '20200930' . "\t"));
+                    $date_p . "\t"));
 
             fwrite($f,  "\n");
 
 // OP block
-            if($prepay<>1) {
+            if(empty($prepay) || is_null($prepay)) {
                 fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                     'OP' . "\t" .
                     $v['begru'] . "\t" .
@@ -3096,11 +3120,13 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                     "\t" .
                     "\t" .
                     $date . "\t" .
-                    '20200930' . "\t" .
+                    $date_p . "\t" .
                     'Energo-' . $v['begru'] . '-' . substr($date, 4, 2) . substr($date, 0, 4) . '-' . $v['schet'] . "\t" .
-                    $date . "\t" .
+                    $faedn . "\t" .
                     n2sap($v['saldo']) . "\t" .
                     n2sap($v['saldo']) . "\t" .
+                    "\t" .
+                    "\t" .
                     "\t" .
                     "\t" .
                     "\t" .
@@ -3170,9 +3196,9 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                     'X' . "\t" .
                     "\t" .
                     $date . "\t" .
-                    '20200930' . "\t" .
+                    $date_p . "\t" .
                     'Energo-' . $v['begru'] . '-' . substr($date, 4, 2) . substr($date, 0, 4) . '-' . $v['schet'] . "\t" .
-                    $date . "\t" .
+                    $faedn . "\t" .
                     n2sap($v['saldo']) . "\t" .
                     n2sap($v['saldo']) . "\t" .
                     n2sap($nds) . "\t" .
@@ -3220,7 +3246,9 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                 }
 
         //        Формируем данные по перетокам
-        $sql1="select gpart||'_'||date1||'_'||num as oldkey,c2.* from (
+        $sql1="select gpart||'_'||date1||'_'||num as oldkey,c2.*
+ -- (replace(c2.date,'.','-')::date+interval '1 day')::date as faedn
+ from (
 select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
 select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,split_part(a.dog,' ',1) as schet,a.*,const.ver,const.begru
      from balances as a 
@@ -3238,9 +3266,14 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
             $j++;
             $oldkey = $v['oldkey'];
             $date = date('Ymd', strtotime($v['date']));
+
             if(!empty($v['date_s']))
                 $date = date('Ymd', strtotime($v['date_s']));
-            $nds=round($v['saldo']*0.2,2);
+
+            $date_ = date('Y-m-d', strtotime($date));
+            $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
+
+            $nds=round($v['saldo']/6,2);
             $wo_nds=round($v['saldo']-$nds,2);
 
 // KO block
@@ -3248,7 +3281,7 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                 'KO' . "\t" .
                 'SL'  . "\t" .
                 $date  . "\t" .
-                '20200930' . "\t"));
+                $date_p . "\t"));
 
             if(substr($date,0,4)==2020) {
                 $abr = 'VR';
@@ -3277,11 +3310,13 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                 "\t" .
                 "\t" .
                 $date  . "\t" .
-                '20200930' . "\t" .
+                $date_p . "\t" .
                 'Energo-'.$v['begru']  .'-'.substr($date,4,2).substr($date,0,4).'-'.$v['schet'] ."\t" .
-                $date  . "\t" .
+                $faedn  . "\t" .
                 n2sap($v['saldo'])  . "\t" .
                 n2sap($v['saldo'])  . "\t" .
+                "\t" .
+                "\t" .
                 "\t" .
                 "\t" .
                 "\t" .
