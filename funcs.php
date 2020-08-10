@@ -4404,11 +4404,13 @@ function r_len($n,$q) {
 // Преобразование числа в формат САП (нужно для выгрузки по бухгалтерии)
 function n2sap($a) {
     $e=0;
+    $a=trim($a);
+
     if ($a > 0) {
         $e = str_replace(".", ",", "$a");
         $n=strpos($e,',');
         $y=strlen($e);
-        if ($n=='false')
+        if ($n=='false' || empty($n))
             $e=$e.',00';
         else{
                 if($y-($n+1)==1)
@@ -4420,11 +4422,7 @@ function n2sap($a) {
         $n=strpos($e,',');
         $y=strlen($e);
 
-//        debug($a);
-//        debug($y);
-//        debug($n);
-
-        if ($n=='false')
+        if ($n=='false' || empty($n))
             $e=$e.',00';
         else{
             if($y-($n+1)==1)
@@ -4432,7 +4430,6 @@ function n2sap($a) {
         }
         $e=$e.'-';
     }
-
 
     return $e;
 

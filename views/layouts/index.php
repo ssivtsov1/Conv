@@ -296,7 +296,7 @@ AppAsset::register($this);
                                         'options' => ['id' => 'down_menu'],
                                         'items' =>
                                             [
-//                                                ['label' => 'Поиск на PostGreSQL', 'url' => ['/site/find']],
+                                                ['label' => 'Работа с XML', 'url' => ['/site/exml']],
                                             ]
                                     ],
                                 ]
