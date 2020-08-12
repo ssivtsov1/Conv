@@ -11934,7 +11934,7 @@ case when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99  then '04'
      when coalesce(st.flag_budjet,0)=1 then '03' 
      else '02' 
      end as KOFIZ_SD,
-     coalesce(zpay." . '"TYPE"' . ",'0') as KZABSVER,
+     case when trim(coalesce(zpay." . '"TYPE"' . ",'0'))='0' then '0' else '5' end as KZABSVER,
      const.opbuk as stdbk,
      case when coalesce(st.flag_budjet,0)=1 then
      case when st.id_budjet=1000510 or st.id_section =211 then '1'
@@ -12057,7 +12057,7 @@ WHERE
 	     
 	    ) s5 on s4.id=s5.id  
 	  -- where s1.id=162582
-         
+        order by kzabsver 
 ";
 
        $sql1 = " select * from (
@@ -12521,6 +12521,7 @@ WHERE
                     break;
             }
             $i = 0;
+
 //            debug($data);
 //            return;
 
