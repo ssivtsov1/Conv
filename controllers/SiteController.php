@@ -2785,6 +2785,8 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         foreach($data as $v) {
             $j++;
             $id_eq = $v['id_eq'];
+//            debug( $id_eq);
+//            return;
             $id = $v['id_tu'];
             $oldkey = $v['oldkey'];
             $code= $v['code'];
@@ -2800,7 +2802,8 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             $sql_1 = "select distinct
                 -- '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                  p.oldkey as oldkey,
-                '04_C04P_' || p.oldkey as devloc,
+                '04_C04P_' || p.oldkey as devloc_old,
+              devloc.oldkey as devloc,
                 'DI_INT' as struc,'$period' as eadat,
                  '04_C'||'$rem'||'P_01_'||get_tu(eq.id)::varchar as anlage,
                 '01' as ACTION
@@ -2812,7 +2815,9 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 join sap_evbsd p on area.id_area=right(p.oldkey,length(trim(area.id_area::text)))::int 
                 and case when p.haus ='' then 0 else substr(p.haus,9)::integer end  in (select a.id_tu from 
 		        sap_premise_dop a where a.id_eq=right(p.oldkey,length(trim(area.id_area::text)))::int)
-                where m.code_eqp= $id_eq";
+		        join sap_egpld devloc on trim(devloc.vstelle)=trim(p.oldkey) and trim(devloc.haus)=trim(p.haus)
+                where m.code_eqp= $id_eq
+                limit 1  ";
             $data_1 = data_from_server($sql_1, $res, $vid);
             // Запись в файл структуры DI_INT
 
