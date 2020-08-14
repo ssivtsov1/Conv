@@ -2783,8 +2783,9 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $ff = fopen($fname1, 'w+');
         $j=0;
         foreach($data as $v) {
-            $j++;
             $id_eq = $v['id_eq'];
+            if(($id_eq==120744 ||  $id_eq==120748) && $res=4) continue;
+            $j++;
 //            debug( $id_eq);
 //            return;
             $id = $v['id_tu'];
