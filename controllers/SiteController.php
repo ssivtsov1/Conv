@@ -2803,7 +2803,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 -- '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                  p.oldkey as oldkey,
                 '04_C04P_' || p.oldkey as devloc_old,
-              devloc.oldkey as devloc,
+                devloc.oldkey as devloc,
                 'DI_INT' as struc,'$period' as eadat,
                  '04_C'||'$rem'||'P_01_'||get_tu(eq.id)::varchar as anlage,
                 '01' as ACTION
