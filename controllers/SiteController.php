@@ -9068,7 +9068,7 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                   substr(cyrillic_transliterate(gr.code_t_new::text),8) as sernr,
                   case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
                  c.date_check::text as CERT_DATE,
-                  coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
+                  coalesce(type_tr.type_tr_sap,type_tr_u.type_tr_sap) as MATNR,
                   '' as zwgruppe,
                  coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
                   const.swerk,const.stort,const.ver,const.begru_b as begru,2 as tzap
@@ -11893,7 +11893,8 @@ select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_met
      left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client))) then '' else 'X' end as znodev,
      row_number() OVER() as id_str  
 from
-(select 'INIT' as struct,a.id,a.code as vkona,const.vktyp as vktyp,'04_C'||'$rem'||'P_'||a.id as gpart
+(select 'INIT' as struct,a.id,a.code as vkona,
+case when a.code<>900 then const.vktyp else '44' end as vktyp,'04_C'||'$rem'||'P_'||a.id as gpart
 from clm_client_tbl as a
 left join clm_statecl_tbl as b on a.id = b.id_client
 inner join sap_const const on 1=1
@@ -12846,6 +12847,26 @@ WHERE
                  '10999999','11000000','19999369','50999999','1000000','1000001')
                  and b.oldkey is not null";
 
+        $sql = "select distinct a.id,coalesce(b.haus,b1.haus) as haus,coalesce(b.oldkey,b1.oldkey) as vstelle,const.swerk,
+                  const.stort,const.begru_all as begru,const.ver
+                from eqm_equipment_tbl a
+		     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+		     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+		     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+		     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                left join sap_evbsd b on b.haus='04_C'||'06'||'P_'||a.id  
+                left join (select distinct id_tu,id_eq,code,row_number() OVER (partition BY id_tu,code) as kol from sap_premise_dop) d 
+                on d.id_tu=a.id and d.code=c.code and d.kol=1
+                left join sap_evbsd b1 on b1.oldkey = ('04_C'||'06'||'P_60'||d.id_eq)
+                inner join sap_const const on 1=1
+                WHERE a.type_eqp=12 and
+                (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
+                 and  c.code not in('20000556','20000565','20000753',
+                 '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+                 '10999999','11000000','19999369','50999999','1000000','1000001')
+                 --and b.oldkey is not null
+                 order by 1";
+        
 
         $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";
         $zsql = 'delete from sap_egpld';
