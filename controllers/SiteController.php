@@ -10314,7 +10314,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
 		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo";
 
-        if($rem=='05')
+        if($rem=='09')
             $sql="select min(id) as id,town,post_index,street_cek,town_cek,
 street,house,stort,ver,begru,region,swerk,str_suppl1,
 str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
