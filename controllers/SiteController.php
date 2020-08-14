@@ -12852,7 +12852,8 @@ WHERE
                  '10999999','11000000','19999369','50999999','1000000','1000001')
                  and b.oldkey is not null";
 
-        $sql = "select  distinct a.id*10+row_number() OVER (partition BY a.id) as id,
+        $sql = "select * from (
+            select  distinct a.id*10+row_number() OVER (partition BY a.id) as id,
                 coalesce(b.haus,b1.haus) as haus,coalesce(b.oldkey,b1.oldkey) as vstelle,const.swerk,
                   const.stort,const.begru_all as begru,const.ver
                 from eqm_equipment_tbl a
@@ -12871,8 +12872,12 @@ WHERE
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                  '10999999','11000000','19999369','50999999','1000000','1000001')
                  --and b.oldkey is not null
-                 order by 1";
+                 order by 1) r
+                 where haus is not null and vstelle is not null
+                 ";
 
+//        debug($sql);
+//        return;
 
         $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";
         $zsql = 'delete from sap_egpld';
