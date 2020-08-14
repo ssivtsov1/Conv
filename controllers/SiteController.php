@@ -12847,7 +12847,7 @@ WHERE
                  '10999999','11000000','19999369','50999999','1000000','1000001')
                  and b.oldkey is not null";
 
-        $sql = "select distinct a.id*10+row_number() OVER (partition BY a.id),
+        $sql = "select  distinct a.id*10+row_number() OVER (partition BY a.id) as id,
                 coalesce(b.haus,b1.haus) as haus,coalesce(b.oldkey,b1.oldkey) as vstelle,const.swerk,
                   const.stort,const.begru_all as begru,const.ver
                 from eqm_equipment_tbl a
