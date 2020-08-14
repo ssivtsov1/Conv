@@ -2275,8 +2275,9 @@ function f_devloc($n_struct,$rem,$v) {
     $begru = $v['begru'];
 //    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'].random_int(100,1000000)));
     //$oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'] ));
-    $oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'] . $vstelle));
-    $oldkey = '04_C04P_'. trim($vstelle);
+    //$oldkey = '04_C04P_'.strtoupper(hash('crc32',$v['id'] . $vstelle));
+    //$oldkey = '04_C04P_'. trim($vstelle);
+    $oldkey = '04_C04P_'. $v['id'];
 
     if($n_struct=='EGPLD')
         $z = "insert into sap_egpld(oldkey,dat_type,haus,vstelle,swerk,stort,begru,pltxt)
