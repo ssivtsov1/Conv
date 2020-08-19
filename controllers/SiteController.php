@@ -1707,7 +1707,6 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region where a.archive='0' 
         and case when $res='05' then (trim(b1.rnobl)='Криворізький район' or trim(b1.rnobl)='Широківський район' or b1.rnobl is null or trim(b1.rnobl)='') else 1=1 end ) x
-        --where id=200023152
         -- limit 10
      
         ";
@@ -3051,7 +3050,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $date_p = str_replace('-','',$date_p);
 
 //        Формируем данные по розподілу
-        $sql="select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
+        $sql_old="select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
  --(replace(c2.date,'.','-')::date+interval '1 day')::date as faedn
  from (
 select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
@@ -3061,6 +3060,24 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
       left join clm_client_tbl b on b.code=split_part(a.dog,' ',1)::int 
      where dog like '%розподіл%' and saldo is not null and a.saldo<>''
      and substr(dog,1,2)='$rem'
+) c1
+) c2
+left join sap_vkp c on c.oldkey=c2.gpart
+      ";
+
+        $sql="select c.kofiz_sd as kofiz, 
+gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_') as oldkey,c2.*,
+ case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
+case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
+ case when trim(kredit)<>'' then kredit else '' end as prepay
+ from (
+select c1.* from (
+select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,a.*,const.ver,const.begru
+     from ost_detal as a 
+       inner join sap_const const on 1=1
+      left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
+     where dogovor like '%розподіл%' 
+     and substr(dogovor,1,2)='$rem'
 ) c1
 ) c2
 left join sap_vkp c on c.oldkey=c2.gpart
@@ -3344,8 +3361,9 @@ left join sap_vkp c on c.oldkey=c2.gpart
                         $end . "\n");
                 }
 
-        //        Формируем данные по перетокам
-        $sql1="select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
+        if(1==2) {
+            //        Формируем данные по перетокам
+            $sql1 = "select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
  -- (replace(c2.date,'.','-')::date+interval '1 day')::date as faedn
  from (
 select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
@@ -3359,219 +3377,212 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
 ) c2
 left join sap_vkp c on c.oldkey=c2.gpart
       ";
-        $data = data_from_server($sql1, $res, $vid);
+            $data = data_from_server($sql1, $res, $vid);
 
 
+            $j = 0;
+            foreach ($data as $v) {
+                $j++;
+                $oldkey = $v['oldkey'];
+                $date = date('Ymd', strtotime($v['date']));
 
-        $j=0;
-        foreach($data as $v) {
-            $j++;
-            $oldkey = $v['oldkey'];
-            $date = date('Ymd', strtotime($v['date']));
+                if (!empty($v['date_s']))
+                    $date = date('Ymd', strtotime($v['date_s']));
 
-            if(!empty($v['date_s']))
-                $date = date('Ymd', strtotime($v['date_s']));
+                $date_ = date('Y-m-d', strtotime($date));
+                $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
 
-            $date_ = date('Y-m-d', strtotime($date));
-            $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
-
-            $nds=round($v['saldo']/6,2);
-            $wo_nds=round($v['saldo']-$nds,2);
-            if($date>$date_p) $date=$date_p;
+                $nds = round($v['saldo'] / 6, 2);
+                $wo_nds = round($v['saldo'] - $nds, 2);
+                if ($date > $date_p) $date = $date_p;
 
 //            echo n2sap(round(132.01/6,2));
 //            return;
 
 
 // KO block
-            fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
-                'KO' . "\t" .
-                'SL'  . "\t" .
-                $date  . "\t" .
-                $date_p . "\t"));
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                    'KO' . "\t" .
+                    'SL' . "\t" .
+                    $date . "\t" .
+                    $date_p . "\t"));
 
 
-            $sch_opk= '6410303177';
+                $sch_opk = '6410303177';
 
 
-            if($v['saldo']>0){
-                $priz='R';
-                if($v['kofiz']<>'03')
-                    $sch='3611210077';
-                else
-                    $sch='3611220077';
+                if ($v['saldo'] > 0) {
+                    $priz = 'R';
+                    if ($v['kofiz'] <> '03')
+                        $sch = '3611210077';
+                    else
+                        $sch = '3611220077';
 
-                $x='';
-                if(substr($date,0,4)==2020) {
-                    $abr = 'VR';
-                    $sch_nds = '6410203177';
+                    $x = '';
+                    if (substr($date, 0, 4) == 2020) {
+                        $abr = 'VR';
+                        $sch_nds = '6410203177';
 
+                    } else {
+                        $abr = 'UR';
+                        $sch_nds = '6410202177';
+
+                    }
+                } else {
+                    if ($v['kofiz'] <> '03')
+                        $sch = '6811210077';
+                    else
+                        $sch = '6811220077';
+
+                    $abr = 'UD';
+                    $faedn = $date;
+                    $priz = 'R';
+                    $x = 'X';
                 }
-                else {
-                    $abr = 'UR';
-                    $sch_nds = '6410202177';
 
-                }
-            }
-            else
-            {
-                if($v['kofiz']<>'03')
-                    $sch='6811210077';
-                else
-                    $sch='6811220077';
-
-                $abr='UD';
-                $faedn = $date;
-                $priz='R';
-                $x='X';
-            }
-
-            fwrite($f,  "\n");
+                fwrite($f, "\n");
 
 // OP block
-            if($v['saldo']>0) {
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
-                    'OP' . "\t" .
-                    $v['begru'] . "\t" .
-                    $v['gpart'] . "\t" .
-                    "\t" .
-                    $v['gpart'] . "\t" .
-                    '0102' . "\t" .
-                    '0010' . "\t" .
-                    $v['kofiz'] . "\t" .
-                    $sch . "\t" .
-                    $abr . "\t" .
-                    $x . "\t" .
-                    "\t" .
-                    $date . "\t" .
-                    $date_p . "\t" .
-                    'Energo-' . $v['begru'] . '-' . substr($date, 4, 2) . substr($date, 0, 4) . '-' . $v['schet'] . "\t" .
-                    $faedn . "\t" .
-                    n2sap($v['saldo']) . "\t" .
-                    n2sap($v['saldo']) . "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    $abr . "\t" .
-                    "\t" .
-                    '2020' . "\t" .
-                    n2sap($nds) . "\t" .
-                    n2sap($nds) . "\t" .
-                    $priz
-                ));
-            }
-            else {
+                if ($v['saldo'] > 0) {
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                        'OP' . "\t" .
+                        $v['begru'] . "\t" .
+                        $v['gpart'] . "\t" .
+                        "\t" .
+                        $v['gpart'] . "\t" .
+                        '0102' . "\t" .
+                        '0010' . "\t" .
+                        $v['kofiz'] . "\t" .
+                        $sch . "\t" .
+                        $abr . "\t" .
+                        $x . "\t" .
+                        "\t" .
+                        $date . "\t" .
+                        $date_p . "\t" .
+                        'Energo-' . $v['begru'] . '-' . substr($date, 4, 2) . substr($date, 0, 4) . '-' . $v['schet'] . "\t" .
+                        $faedn . "\t" .
+                        n2sap($v['saldo']) . "\t" .
+                        n2sap($v['saldo']) . "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        $abr . "\t" .
+                        "\t" .
+                        '2020' . "\t" .
+                        n2sap($nds) . "\t" .
+                        n2sap($nds) . "\t" .
+                        $priz
+                    ));
+                } else {
 
 
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
-                    'OP' . "\t" .
-                    $v['begru'] . "\t" .
-                    $v['gpart'] . "\t" .
-                    "\t" .
-                    $v['gpart'] . "\t" .
-                    '0062' . "\t" .
-                    '0010' . "\t" .
-                    $v['kofiz'] . "\t" .
-                    $sch . "\t" .
-                    $abr . "\t" .
-                    $x . "\t" .
-                    "\t" .
-                    $date . "\t" .
-                    $date_p . "\t" .
-                    'Energo-' . $v['begru'] . '-' . substr($date, 4, 2) . substr($date, 0, 4) . '-' . $v['schet'] . "\t" .
-                    $faedn . "\t" .
-                    n2sap($v['saldo']) . "\t" .
-                    n2sap($v['saldo']) . "\t" .
-                    n2sap($nds) . "\t" .
-                    n2sap($nds) . "\t" .
-                    '6410202177' . "\t" .
-                    '6430000077' . "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    $abr . "\t" .
-                    "\t" .
-                    '2020' . "\t" .
-                    "\t" .
-                    "\t" .
-                    $priz
-                ));
-            }
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                        'OP' . "\t" .
+                        $v['begru'] . "\t" .
+                        $v['gpart'] . "\t" .
+                        "\t" .
+                        $v['gpart'] . "\t" .
+                        '0062' . "\t" .
+                        '0010' . "\t" .
+                        $v['kofiz'] . "\t" .
+                        $sch . "\t" .
+                        $abr . "\t" .
+                        $x . "\t" .
+                        "\t" .
+                        $date . "\t" .
+                        $date_p . "\t" .
+                        'Energo-' . $v['begru'] . '-' . substr($date, 4, 2) . substr($date, 0, 4) . '-' . $v['schet'] . "\t" .
+                        $faedn . "\t" .
+                        n2sap($v['saldo']) . "\t" .
+                        n2sap($v['saldo']) . "\t" .
+                        n2sap($nds) . "\t" .
+                        n2sap($nds) . "\t" .
+                        '6410202177' . "\t" .
+                        '6430000077' . "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        $abr . "\t" .
+                        "\t" .
+                        '2020' . "\t" .
+                        "\t" .
+                        "\t" .
+                        $priz
+                    ));
+                }
 
 
+                fwrite($f, "\n");
 
-            fwrite($f, "\n");
-
-                if($v['saldo']>0) {
+                if ($v['saldo'] > 0) {
 // OPK block
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
-                    'OPK' . "\t" .
-                    '001' . "\t" .
-                    $v['begru'] . "\t" .
-                    'INITIAL4' . "\t" .
-                    n2sap($wo_nds * (-1)) . "\t" .
-                    n2sap($wo_nds * (-1)) . "\t" .
-                    $abr . "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    $abr . "\t" .
-                    '2020'
-                ));
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                        'OPK' . "\t" .
+                        '001' . "\t" .
+                        $v['begru'] . "\t" .
+                        'INITIAL4' . "\t" .
+                        n2sap($wo_nds * (-1)) . "\t" .
+                        n2sap($wo_nds * (-1)) . "\t" .
+                        $abr . "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        $abr . "\t" .
+                        '2020'
+                    ));
 
-                fwrite($f, "\n");
+                    fwrite($f, "\n");
 
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
-                    'OPK' . "\t" .
-                    '002' . "\t" .
-                    $v['begru'] . "\t" .
-                    $sch_nds . "\t" .
-                    n2sap($nds * (-1)) . "\t" .
-                    n2sap($nds * (-1)) . "\t" .
-                    $abr . "\t" .
-                    n2sap($wo_nds * (-1)) . "\t" .
-                    n2sap($wo_nds * (-1)) . "\t" .
-                    'MWS' . "\t" .
-                    '020000' . "\t" .
-                    'MWAS' . "\t" .
-                    $abr . "\t" .
-                    '2020'
-                ));
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                        'OPK' . "\t" .
+                        '002' . "\t" .
+                        $v['begru'] . "\t" .
+                        $sch_nds . "\t" .
+                        n2sap($nds * (-1)) . "\t" .
+                        n2sap($nds * (-1)) . "\t" .
+                        $abr . "\t" .
+                        n2sap($wo_nds * (-1)) . "\t" .
+                        n2sap($wo_nds * (-1)) . "\t" .
+                        'MWS' . "\t" .
+                        '020000' . "\t" .
+                        'MWAS' . "\t" .
+                        $abr . "\t" .
+                        '2020'
+                    ));
 
-                fwrite($f, "\n");
+                    fwrite($f, "\n");
+                } else {
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                        'OPK' . "\t" .
+                        '001' . "\t" .
+                        $v['begru'] . "\t" .
+                        'INITIAL3' . "\t" .
+                        n2sap($v['saldo'] * (-1)) . "\t" .
+                        n2sap($v['saldo'] * (-1)) . "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        "\t" .
+                        '2020'
+                    ));
+
+                    fwrite($f, "\n");
+                }
+
+                $end = '&ENDE';
+
+                fwrite($f, $oldkey . "\t" .
+                    $end . "\n");
             }
-            else
-            {
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
-                    'OPK' . "\t" .
-                    '001' . "\t" .
-                    $v['begru'] . "\t" .
-                    'INITIAL3' . "\t" .
-                    n2sap($v['saldo'] * (-1)) . "\t" .
-                    n2sap($v['saldo'] * (-1)) . "\t" .
-                    "\t" .
-                   "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                    "\t" .
-                   "\t" .
-                    '2020'
-                ));
-
-                fwrite($f, "\n");
-            }
-
-            $end = '&ENDE';
-
-            fwrite($f, $oldkey . "\t" .
-                $end . "\n");
         }
 
             $model = new info();
@@ -8428,6 +8439,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         left join (select kod_reg,trim(replace(region,'район','')) as region from reg) d on
         trim(c.district)=d.region
         where a.archive='0'  --and c.street like '%Східний%' -- and a.id=100033028 --and  b1.street is null
+         -- and a.id in (100050982,100050983) 
         group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18 
         order by 5,7) z 
         group by 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
@@ -9074,7 +9086,7 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                   substr(cyrillic_transliterate(gr.code_t_new::text),8) as sernr,
                   case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
                  c.date_check::text as CERT_DATE,
-                  coalesce(type_tr.type_tr_sap,type_tr_u.type_tr_sap) as MATNR,
+                  coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
                   '' as zwgruppe,
                  coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
                   const.swerk,const.stort,const.ver,const.begru_b as begru,2 as tzap
@@ -14496,7 +14508,28 @@ WHERE
         fclose($f);
     }
 
+    // Преобразование файла DEVICE
+    public function actionCnv_dev()
+    {
+        $f = fopen('DEVICE_04_CK08_20200814_08_L.txt', 'r');
+        $ff = fopen('DEVICE_04_CK08_20200814_08_L1.txt', 'w+');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode("\t", $s);
 
+           if($data[1]=='EQUI') {
+               if (strpos($data[11], "s)"))
+                   $data[11] = mb_strtoupper($data[11],  'CP-1251');
+           }
+           $ss=implode("\t",$data);
+           fputs($ff,$ss);
+        }
+
+        fclose($f);
+        fclose($ff);
+    }
         // Закачка таблицы соответствия для служб
     public function actionSootv()
     {

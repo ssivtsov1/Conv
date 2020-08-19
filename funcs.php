@@ -1121,7 +1121,8 @@ function f_partner_ind($n_struct,$rem,$v) {
             if (($rem=='03' && trim($street_cek)=="Металург" ) ||
               (mb_substr($street_cek,0,3,'UTF-8')=='с-т' ||
                 mb_substr($street_cek,0,5,'UTF-8')=='ОК-СТ'||
-                trim($street_cek)=='Садове товариство'))
+                trim($street_cek)=='Садове товариство') || ($rem=='05' && trim($street_cek)=="пос. Завода" )
+                || ($rem=='02' && trim($street_cek)=="Стара Станція" ))
                 // Если садовое товарищество
             {
                 // Определяем город для садовых товариществ
@@ -1667,6 +1668,8 @@ function f_connobj_ind($n_struct,$rem,$v) {
 
     $oldkey = $oldkey_const . strtoupper($r);
     if (!(($rem=='03' && trim($street_cek)=="Металург" ) ||
+        ($rem=='05' && trim($street_cek)=="пос. Завода" )
+        || ($rem=='02' && trim($street_cek)=="Стара Станція" ) ||
         (mb_substr(trim($street_cek),0,3,'UTF-8')=='с-т' ||
             mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
             trim($street_cek)=='Садове товариство')))
@@ -1751,6 +1754,8 @@ else
 
 // Определяем город для садовых товариществ
     if (($rem=='03' && trim($street_cek)=="Металург" ) ||
+        ($rem=='05' && trim($street_cek)=="пос. Завода" ) ||
+        ($rem=='02' && trim($street_cek)=="Стара Станція" ) ||
         (mb_substr(trim($street_cek),0,3,'UTF-8')=='с-т' ||
             mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
             trim($street_cek)=='Садове товариство'))
@@ -1794,6 +1799,8 @@ else
     if($n_struct=='CO_ADR')
 
         if (($rem=='03' && trim($street_cek)=="Металург" ) ||
+            ($rem=='05' && trim($street_cek)=="пос. Завода" ) ||
+             ($rem=='02' && trim($street_cek)=="Стара Станція" ) ||
             (mb_substr(trim($street_cek),0,3,'UTF-8')=='с-т' ||
                 mb_substr(trim($street_cek),0,5,'UTF-8')=='ОК-СТ'||
                 trim($street_cek)=='Садове товариство')) {
