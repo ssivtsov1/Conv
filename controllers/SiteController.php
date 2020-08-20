@@ -12866,7 +12866,7 @@ WHERE
                  and b.oldkey is not null";
 
         $sql = "select * from (
-            select  distinct a.id*10+row_number() OVER (partition BY a.id) as id,
+            select  distinct a.id*10+row_number() OVER (partition BY a.id,coalesce(b.oldkey,b1.oldkey)) as id,
                 coalesce(b.haus,b1.haus) as haus,coalesce(b.oldkey,b1.oldkey) as vstelle,const.swerk,
                   const.stort,const.begru_all as begru,const.ver
                 from eqm_equipment_tbl a
