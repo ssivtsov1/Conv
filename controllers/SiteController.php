@@ -4735,7 +4735,8 @@ order by q.code_eqp
 
 // Главный запрос со всеми необходимыми данными
 $sql = "select q.*,'*' as div,i.*,
-j.oldkey as oldkey_m,j.vstelle as vstelle_m,j.spebene as spebene_m,j.anlart as anlart_m,
+j.oldkey||'_'||row_number() OVER (partition BY j.oldkey,q.code_ust) as oldkey_m,
+j.vstelle as vstelle_m,j.spebene as spebene_m,j.anlart as anlart_m,
 j.ablesartst as ablesartst_m,j.zz_nametu as zz_nametu_m,j.zz_fider as zz_fider_m,
 j.ab as ab_m,j.tariftyp as tariftyp_m,j.branche as branche_m,j.aklasse as aklasse_m,
 j.ableinh as ableinh_m,j.zzcode4nkre as zzcode4nkre_m,j.zzcode4nkre_dop as zzcode4nkre_dop_m,
@@ -11948,7 +11949,7 @@ left join
 (select distinct 'VKP' as struct,cl.id,vktyp as vktyp,'04_C'||'$rem'||'P_'||cl.id as partner,const.opbuk,51 as ikey,13 as mahnv,
 const.begru_all as begru,b.adext_addr as adrnb_ext,
 '0005' as ZAHLKOND,'0002' as VERTYP,
-case when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99  then '04' 
+case when (coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99) or cl.code=900  then '04' 
      when coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)<>99  then '02'
      when coalesce(st.flag_budjet,0)=1 then '03' 
      else '02' 
