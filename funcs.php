@@ -1687,7 +1687,8 @@ function f_connobj_ind($n_struct,$rem,$v) {
          and case when trim(b1.town)='с. Грузьке' and $rem='05' then trim(b1.rnobl)='Криворізький район' else 1=1 end    
          and case when trim(b1.town)='с. Вільне' and $rem='07' then trim(b1.rnobl)='Новомосковський район' else 1=1 end  
          and case when trim(b1.town)='с. Широке' and $rem='05' then trim(b1.rnobl)='Криворізький район' else 1=1 end  
-         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2 on b1.numtown=b2.numtown -- and b2.post_index=c.indx --and c.indx is not null
+         left join (select distinct numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) b2
+          on trim(b1.numtown)=trim(b2.numtown) -- and b2.post_index=c.indx --and c.indx is not null
         where a.id=$id and b2.post_index is not null ";
 else
 //    $sql="select distinct b2.post_index
@@ -2434,6 +2435,24 @@ function f_seals($n_struct,$rem,$v,$vid) {
     $dinst=$v['dinst'];
 
     $oldkey = $oldkey_const . $r;
+
+    $excl[1]='04_C02P_01_8903';
+    $excl[2]='04_C02P_01_8879';
+    $excl[3]='04_C02P_01_8407';
+    $excl[4]='04_C02P_01_8413';
+    $excl[5]='04_C02P_01_9180';
+    $excl[6]='04_C02P_01_9297';
+    $excl[7]='04_C02P_01_8052';
+    $excl[8]='04_C05P_01_3088';
+    $excl[9]='04_C04P_01_4053';
+
+    // Химия с задвоениями пломб (add symbol 'C' to end)
+    for($j=1;$j<=count($excl);$j++){
+        if($oldkey==$excl[$j]) {
+            $scode = $scode . 'C';
+            break;
+        }
+    }
 
     if($n_struct=='AUTO')
         $z = "insert into sap_auto(oldkey,dat_type,scat,scode,status,color,utmas,dpurch,reper,dissue,
@@ -3238,6 +3257,47 @@ function f_discdoc2_ind($rem,$v) {
     return $di_inf;
 }
 
+function f_discdoc1($rem,$v) {
+    $oldkey_const='04_C'.$rem.'P_01_';
+    $oldkey_acc='04_C'.$rem.'P_';
+    $oldkey = $oldkey_const . $v['id'];
+    $account_link = $oldkey_acc . $v['id'];
+    $di_doc=[];
+    $di_doc[0]=$oldkey;     //oldkey
+    $di_doc[1]='HEADER';    //datatype
+    $di_doc[2]=$v['discreason'];        //DISCREASON
+    $di_doc[4]=$v['refobjtype'];     //REFOBJTYPE
+    $di_doc[5]='~';         //REFOBJKEY
+
+    if(!empty($v['anlage']))
+         $di_doc[6]=$oldkey_const . $v['anlage'];      //ANLAGE
+    else
+        $di_doc[6]='~';
+
+    $di_doc[7]='~';         //EQUNR
+    if(!empty($v['vkonto']))
+        $di_doc[8]=$account_link;
+    else
+        $di_doc[8]='~';         //VKONTO
+    return $di_doc;
+}
+function f_discdoc2($rem,$v) {
+    $oldkey_const='04_C'.$rem.'P_01_';
+    $oldkey = $oldkey_const . $v['id'];
+    $di_inf=[];
+    $di_inf[0]=$oldkey;         //oldkey
+    $di_inf[1]='INFO';          //datatype
+    if(!empty($v['zz_bp_provider']))
+        $di_inf[3]=$v['zz_bp_provider'];      //ZZ_BP_PROVIDER
+    else
+        $di_inf[3]='~';
+    if(!empty($v['zz_discreason']))
+        $di_inf[4]=$v['zz_discreason'];            //ZZ_DISCREASON
+    else
+        $di_inf[4]='~';
+    return $di_inf;
+}
+
 function f_discorder_ind($rem,$v) {
     $oldkey_const='04_C'.$rem.'B_01_';
     $oldkey = $oldkey_const . $v['id'];
@@ -3249,6 +3309,17 @@ function f_discorder_ind($rem,$v) {
     return $di_ord;
 }
 
+function f_discorder($rem,$v) {
+    $oldkey_const='04_C'.$rem.'P_01_';
+    $oldkey = $oldkey_const . $v['id'];
+    $di_ord=[];
+    $di_ord[0]=$oldkey;     //oldkey
+    $di_ord[1]='HEADER';    //datatype
+    $di_ord[2]=$oldkey;     //ANLAGE
+    $di_ord[3]=str_replace('-','',$v['date_sap']);         //EQUNR
+    return $di_ord;
+}
+
 function f_discenter_ind($rem,$v) {
     $oldkey_const='04_C'.$rem.'B_01_';
     $oldkey = $oldkey_const . $v['id'];
@@ -3257,6 +3328,28 @@ function f_discenter_ind($rem,$v) {
     $di_ent[1]='HEADER';    //datatype
     $di_ent[2]=$oldkey;     //ANLAGE
     $di_ent[3]=str_replace('-','',$v['dat']);         //EQUNR
+    return $di_ent;
+}
+
+function f_discenter($rem,$v) {
+    $oldkey_const='04_C'.$rem.'B_01_';
+    $oldkey = $oldkey_const . $v['id'];
+    $di_ent=[];
+    $di_ent[0]=$oldkey;     //oldkey
+    $di_ent[1]='HEADER';    //datatype
+    $di_ent[2]=$oldkey;     //ANLAGE
+//    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251','UTF-8');
+    $di_ent[3]=$v['disctype'];
+//    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251', mb_detect_encoding($v['disctype']));
+    $di_ent[4]=str_replace('-','',$v['date_sap']);
+    $y=$v['vid_l'];
+    if($y==25) $di_ent[3] = 4;
+    if($y==12) $di_ent[3] = 2;
+    if($y==13) $di_ent[3] = 3;
+    if($y==12 && strpos($v['disctype'],',')) $di_ent[3] = 6;
+    if($y<12) $di_ent[3] = 1;
+    if($y>25) $di_ent[3] = 5;
+//    debug(strlen($di_ent[3]));
     return $di_ent;
 }
 
