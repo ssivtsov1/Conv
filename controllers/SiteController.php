@@ -5442,7 +5442,7 @@ order by code_ust,lvl";
                           $i++;
                     }
                     // Запись информации по субпотребителю
-                    $oldkey = $v['oldkey'];
+                    $oldkey = $v['oldkey_r'];
                     $spebene = $v['spebene'];
                     $anlart = $v['anlart'];
                     $vstelle = $v['vstelle'];
