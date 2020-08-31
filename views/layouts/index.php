@@ -284,7 +284,12 @@ AppAsset::register($this);
                                         'options' => ['id' => 'down_menu'],
                                         'items' =>
                                             [
-//                                                ['label' => 'Поиск на PostGreSQL', 'url' => ['/site/find']],
+                                                ['label' => 'Перевернутая строка', 'url' => ['/site/stroka']],
+                                                ['label' => 'Birthday', 'url' => ['/site/birthday']],
+                                                ['label' => 'Таблица умножения', 'url' => ['/site/table']],
+                                                ['label' => 'Проверка на пустые поля. Юр', 'url' => ['/site/upload']],
+                                                ['label' => 'Проверка на пустые поля. Быт', 'url' => ['/site/uploadbyt']],
+                                                ['label' => 'Форма. Перебои в подаче электроэнергии', 'url' => ['/site/power_outages']],
                                             ]
                                     ],
                                     ['label' => 'Задачи Егора', 'url' => ['/sprav/sprav_pokaz'],
