@@ -2,7 +2,11 @@
 
 namespace app\controllers;
 
+use app\models\Off_site;
+use app\models\PoweroutagesForm;
 use app\models\Pract1;
+use app\models\UploadBytForm;
+use app\models\UploadForm;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -31,13 +35,16 @@ use app\models\all_tmc;
 use app\models\tmp_works;
 use app\models\tmp_works_1;
 use yii\web\UploadedFile;
-use app\models\sap_connect; 
+use app\models\sap_connect;
+use app\models\TableForm;
+use app\models\power_outages;
 
 class SiteController extends Controller
-{  /**
- * 
- * @return type
- */
+{
+    /**
+     *
+     * @return type
+     */
     public $layout = 'index';
     //public $layout = 'index_prod';
 //    public $layout = 'main';
@@ -81,124 +88,124 @@ class SiteController extends Controller
     public function actionIndex()
     {
 
-            return $this->render('base');
+        return $this->render('base');
 
     }
 
     // Импорт бюджета использрвался в 2019 году
     public function actionImport_budget()
     {
-        $f = fopen('budget_18.csv','r');
+        $f = fopen('budget_18.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode(";",$s);
-            if(!isset($data[1])) continue;
+            if ($i == 1) continue;
+            $data = explode(";", $s);
+            if (!isset($data[1])) continue;
             //if ($i==16832) {echo $i; echo "<br>";debug($data);return;}
 
-            $data[9] = trim(str_replace('"',"'",$data[9]));
-            $data[7] = trim(str_replace('"',"'",$data[7]));
-            $data[5] = trim(str_replace('"',"'",$data[5]));
+            $data[9] = trim(str_replace('"', "'", $data[9]));
+            $data[7] = trim(str_replace('"', "'", $data[7]));
+            $data[5] = trim(str_replace('"', "'", $data[5]));
 
 
-            if(is_null($data[8])  || $data[8]=='') $data[8]=0;
-            if(is_null($data[12])  || $data[12]=='') $data[12]=0;
-            if(is_null($data[13])  || $data[13]=='') $data[13]=0;
-            $data[12] = trim(str_replace(',','.',$data[12]));
-            if(is_null($data[14])  || $data[14]=='') $data[14]=0;
-            $data[14] = trim(str_replace(',','.',$data[14]));
-            if(is_null($data[15])  || $data[15]=='') $data[15]=0;
-            if(is_null($data[16])  || $data[16]=='') $data[16]=0;
-            $data[16] = trim(str_replace(',','.',$data[16]));
-            if(is_null($data[17])  || $data[17]=='') $data[17]=0;
-            if(is_null($data[18])  || $data[18]=='') $data[18]=0;
-            if(is_null($data[19])  || $data[19]=='') $data[19]=0;
-            if(is_null($data[20])  || $data[20]=='') $data[20]=0;
-            $data[20] = trim(str_replace(',','.',$data[20]));
-            if(is_null($data[21])  || $data[21]=='') $data[21]=0;
-            if(is_null($data[22])  || $data[22]=='') $data[22]=0;
-            $data[22] = trim(str_replace(',','.',$data[22]));
-            if(is_null($data[23])  || $data[23]=='') $data[23]=0;
-            if(is_null($data[24])  || $data[24]=='') $data[24]=0;
-            $data[24] = trim(str_replace(',','.',$data[24]));
-            if(is_null($data[25])  || $data[25]=='') $data[25]=0;
-            if(is_null($data[26])  || $data[26]=='') $data[26]=0;
-            if(is_null($data[27])  || $data[27]=='') $data[27]=0;
-            if(is_null($data[28])  || $data[28]=='') $data[28]=0;
-            $data[28] = trim(str_replace(',','.',$data[28]));
-            if(is_null($data[29])  || $data[29]=='') $data[29]=0;
-            if(is_null($data[30])  || $data[30]=='') $data[30]=0;
-            $data[30] = trim(str_replace(',','.',$data[30]));
-            if(is_null($data[31])  || $data[31]=='') $data[31]=0;
-            if(is_null($data[32])  || $data[32]=='') $data[32]=0;
-            $data[32] = trim(str_replace(',','.',$data[32]));
-            if(is_null($data[33])  || $data[33]=='') $data[33]=0;
-            if(is_null($data[34])  || $data[34]=='') $data[34]=0;
-            if(is_null($data[35])  || $data[35]=='') $data[35]=0;
-            if(is_null($data[36])  || $data[36]=='') $data[36]=0;
-            $data[36] = trim(str_replace(',','.',$data[36]));
-            if(is_null($data[37])  || $data[37]=='') $data[37]=0;
-            if(is_null($data[38])  || $data[38]=='') $data[38]=0;
-            $data[38] = trim(str_replace(',','.',$data[38]));
-            if(is_null($data[39])  || $data[39]=='') $data[39]=0;
-            if(is_null($data[40])  || $data[40]=='') $data[40]=0;
-            $data[40] = trim(str_replace(',','.',$data[40]));
-            if(is_null($data[41])  || $data[41]=='') $data[41]=0;
-            if(is_null($data[42])  || $data[42]=='') $data[42]=0;
-            if(is_null($data[43])  || $data[43]=='') $data[43]=0;
-            if(is_null($data[44])  || $data[44]=='') $data[44]=0;
-            if(is_null($data[45])  || $data[45]=='') $data[45]=0;
+            if (is_null($data[8]) || $data[8] == '') $data[8] = 0;
+            if (is_null($data[12]) || $data[12] == '') $data[12] = 0;
+            if (is_null($data[13]) || $data[13] == '') $data[13] = 0;
+            $data[12] = trim(str_replace(',', '.', $data[12]));
+            if (is_null($data[14]) || $data[14] == '') $data[14] = 0;
+            $data[14] = trim(str_replace(',', '.', $data[14]));
+            if (is_null($data[15]) || $data[15] == '') $data[15] = 0;
+            if (is_null($data[16]) || $data[16] == '') $data[16] = 0;
+            $data[16] = trim(str_replace(',', '.', $data[16]));
+            if (is_null($data[17]) || $data[17] == '') $data[17] = 0;
+            if (is_null($data[18]) || $data[18] == '') $data[18] = 0;
+            if (is_null($data[19]) || $data[19] == '') $data[19] = 0;
+            if (is_null($data[20]) || $data[20] == '') $data[20] = 0;
+            $data[20] = trim(str_replace(',', '.', $data[20]));
+            if (is_null($data[21]) || $data[21] == '') $data[21] = 0;
+            if (is_null($data[22]) || $data[22] == '') $data[22] = 0;
+            $data[22] = trim(str_replace(',', '.', $data[22]));
+            if (is_null($data[23]) || $data[23] == '') $data[23] = 0;
+            if (is_null($data[24]) || $data[24] == '') $data[24] = 0;
+            $data[24] = trim(str_replace(',', '.', $data[24]));
+            if (is_null($data[25]) || $data[25] == '') $data[25] = 0;
+            if (is_null($data[26]) || $data[26] == '') $data[26] = 0;
+            if (is_null($data[27]) || $data[27] == '') $data[27] = 0;
+            if (is_null($data[28]) || $data[28] == '') $data[28] = 0;
+            $data[28] = trim(str_replace(',', '.', $data[28]));
+            if (is_null($data[29]) || $data[29] == '') $data[29] = 0;
+            if (is_null($data[30]) || $data[30] == '') $data[30] = 0;
+            $data[30] = trim(str_replace(',', '.', $data[30]));
+            if (is_null($data[31]) || $data[31] == '') $data[31] = 0;
+            if (is_null($data[32]) || $data[32] == '') $data[32] = 0;
+            $data[32] = trim(str_replace(',', '.', $data[32]));
+            if (is_null($data[33]) || $data[33] == '') $data[33] = 0;
+            if (is_null($data[34]) || $data[34] == '') $data[34] = 0;
+            if (is_null($data[35]) || $data[35] == '') $data[35] = 0;
+            if (is_null($data[36]) || $data[36] == '') $data[36] = 0;
+            $data[36] = trim(str_replace(',', '.', $data[36]));
+            if (is_null($data[37]) || $data[37] == '') $data[37] = 0;
+            if (is_null($data[38]) || $data[38] == '') $data[38] = 0;
+            $data[38] = trim(str_replace(',', '.', $data[38]));
+            if (is_null($data[39]) || $data[39] == '') $data[39] = 0;
+            if (is_null($data[40]) || $data[40] == '') $data[40] = 0;
+            $data[40] = trim(str_replace(',', '.', $data[40]));
+            if (is_null($data[41]) || $data[41] == '') $data[41] = 0;
+            if (is_null($data[42]) || $data[42] == '') $data[42] = 0;
+            if (is_null($data[43]) || $data[43] == '') $data[43] = 0;
+            if (is_null($data[44]) || $data[44] == '') $data[44] = 0;
+            if (is_null($data[45]) || $data[45] == '') $data[45] = 0;
 
-            $data[11] = trim(str_replace(',','.',$data[11]));
+            $data[11] = trim(str_replace(',', '.', $data[11]));
             $data[11] = preg_replace("/[^x\d|*\.]/", "", $data[11]);
-            $data[13] = trim(str_replace(',','.',$data[13]));
+            $data[13] = trim(str_replace(',', '.', $data[13]));
             $data[13] = preg_replace("/[^x\d|*\.]/", "", $data[13]);
-            $data[15] = trim(str_replace(',','.',$data[15]));
+            $data[15] = trim(str_replace(',', '.', $data[15]));
             $data[15] = preg_replace("/[^x\d|*\.]/", "", $data[15]);
-            $data[17] = trim(str_replace(',','.',$data[17]));
+            $data[17] = trim(str_replace(',', '.', $data[17]));
             $data[17] = preg_replace("/[^x\d|*\.]/", "", $data[17]);
-            $data[18] = trim(str_replace(',','.',$data[18]));
+            $data[18] = trim(str_replace(',', '.', $data[18]));
             $data[18] = preg_replace("/[^x\d|*\.]/", "", $data[18]);
-            $data[19] = trim(str_replace(',','.',$data[19]));
+            $data[19] = trim(str_replace(',', '.', $data[19]));
             $data[19] = preg_replace("/[^x\d|*\.]/", "", $data[19]);
 
-            $data[21] = trim(str_replace(',','.',$data[21]));
+            $data[21] = trim(str_replace(',', '.', $data[21]));
             $data[21] = preg_replace("/[^x\d|*\.]/", "", $data[21]);
-            $data[23] = trim(str_replace(',','.',$data[23]));
+            $data[23] = trim(str_replace(',', '.', $data[23]));
             $data[23] = preg_replace("/[^x\d|*\.]/", "", $data[23]);
-            $data[25] = trim(str_replace(',','.',$data[25]));
+            $data[25] = trim(str_replace(',', '.', $data[25]));
             $data[25] = preg_replace("/[^x\d|*\.]/", "", $data[25]);
-            $data[26] = trim(str_replace(',','.',$data[26]));
+            $data[26] = trim(str_replace(',', '.', $data[26]));
             $data[26] = preg_replace("/[^x\d|*\.]/", "", $data[26]);
-            $data[27] = trim(str_replace(',','.',$data[27]));
+            $data[27] = trim(str_replace(',', '.', $data[27]));
             $data[27] = preg_replace("/[^x\d|*\.]/", "", $data[27]);
 
-            $data[29] = trim(str_replace(',','.',$data[29]));
+            $data[29] = trim(str_replace(',', '.', $data[29]));
             $data[29] = preg_replace("/[^x\d|*\.]/", "", $data[29]);
-            $data[31] = trim(str_replace(',','.',$data[31]));
+            $data[31] = trim(str_replace(',', '.', $data[31]));
             $data[31] = preg_replace("/[^x\d|*\.]/", "", $data[31]);
-            $data[33] = trim(str_replace(',','.',$data[33]));
+            $data[33] = trim(str_replace(',', '.', $data[33]));
             $data[33] = preg_replace("/[^x\d|*\.]/", "", $data[33]);
-            $data[34] = trim(str_replace(',','.',$data[34]));
+            $data[34] = trim(str_replace(',', '.', $data[34]));
             $data[34] = preg_replace("/[^x\d|*\.]/", "", $data[34]);
-            $data[35] = trim(str_replace(',','.',$data[35]));
+            $data[35] = trim(str_replace(',', '.', $data[35]));
             $data[35] = preg_replace("/[^x\d|*\.]/", "", $data[35]);
 
-            $data[37] = trim(str_replace(',','.',$data[37]));
+            $data[37] = trim(str_replace(',', '.', $data[37]));
             $data[37] = preg_replace("/[^x\d|*\.]/", "", $data[37]);
-            $data[39] = trim(str_replace(',','.',$data[39]));
+            $data[39] = trim(str_replace(',', '.', $data[39]));
             $data[39] = preg_replace("/[^x\d|*\.]/", "", $data[39]);
-            $data[41] = trim(str_replace(',','.',$data[41]));
+            $data[41] = trim(str_replace(',', '.', $data[41]));
             $data[41] = preg_replace("/[^x\d|*\.]/", "", $data[41]);
-            $data[42] = trim(str_replace(',','.',$data[42]));
+            $data[42] = trim(str_replace(',', '.', $data[42]));
             $data[42] = preg_replace("/[^x\d|*\.]/", "", $data[42]);
-            $data[43] = trim(str_replace(',','.',$data[43]));
+            $data[43] = trim(str_replace(',', '.', $data[43]));
             $data[43] = preg_replace("/[^x\d|*\.]/", "", $data[43]);
-            $data[44] = trim(str_replace(',','.',$data[44]));
+            $data[44] = trim(str_replace(',', '.', $data[44]));
             $data[44] = preg_replace("/[^x\d|*\.]/", "", $data[44]);
-            $data[45] = trim(str_replace(',','.',$data[45]));
+            $data[45] = trim(str_replace(',', '.', $data[45]));
             $data[45] = preg_replace("/[^x\d|*\.]/", "", $data[45]);
 
 
@@ -206,362 +213,22 @@ class SiteController extends Controller
                     name_spec,lot,name_tmc,ed_izm,price,
                     q_1,p_1,q_2,p_2,q_3,p_3,aq_1,ap_1,q_4,p_4,q_5,p_5,q_6,p_6,aq_2,ap_2,
                     q_7,p_7,q_8,p_8,q_9,p_9,aq_3,ap_3,q_10,p_10,q_11,p_11,q_12,p_12,aq_4,ap_4,
-                    year_q,year_p) VALUES(".
-                "'".$data[0]."'".",". "'".$data[1]. "'".",".'"'.$data[2]. '"'.",'".$data[3]. "'".",". "'".$data[4]."',".
-                '"'.$data[5]. '"'.",". "'".$data[6]. "'".",". '"'.$data[7]. '"'.",".$data[8].",". '"'
-                .$data[9]. '",'. "'".$data[10]. "'".",".$data[11].",".$data[12].","
-                .$data[13].",".$data[14].",".$data[15].",".$data[16].","
-                .$data[17].",".$data[18].",".$data[19].",".$data[20].",".
-                $data[21].",".$data[22].",".$data[23].",".$data[24].",".
-                $data[25].",".$data[26].",".$data[27].",".$data[28].",".
-                $data[29].",".$data[30].",".$data[31].",".$data[32].",".
-                $data[33].",".$data[34].",".$data[35].",".$data[36].",".
-                $data[37].",".$data[38].",".$data[39].",".$data[40].",".
-                $data[41].",".$data[42].",".$data[43].",".$data[44].",".
-                $data[45].
+                    year_q,year_p) VALUES(" .
+                "'" . $data[0] . "'" . "," . "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . ",'" . $data[3] . "'" . "," . "'" . $data[4] . "'," .
+                '"' . $data[5] . '"' . "," . "'" . $data[6] . "'" . "," . '"' . $data[7] . '"' . "," . $data[8] . "," . '"'
+                . $data[9] . '",' . "'" . $data[10] . "'" . "," . $data[11] . "," . $data[12] . ","
+                . $data[13] . "," . $data[14] . "," . $data[15] . "," . $data[16] . ","
+                . $data[17] . "," . $data[18] . "," . $data[19] . "," . $data[20] . "," .
+                $data[21] . "," . $data[22] . "," . $data[23] . "," . $data[24] . "," .
+                $data[25] . "," . $data[26] . "," . $data[27] . "," . $data[28] . "," .
+                $data[29] . "," . $data[30] . "," . $data[31] . "," . $data[32] . "," .
+                $data[33] . "," . $data[34] . "," . $data[35] . "," . $data[36] . "," .
+                $data[37] . "," . $data[38] . "," . $data[39] . "," . $data[40] . "," .
+                $data[41] . "," . $data[42] . "," . $data[43] . "," . $data[44] . "," .
+                $data[45] .
                 ')';
 
-            if ($i>19977)
-              Yii::$app->db_budget->createCommand($sql)->execute();
-//            if ($i>16825) {
-//                echo $sql;
-//                echo '<br>';
-//                echo '<br>';
-//                echo $i;
-////                echo  preg_replace("/[^x\d|*\.]/", "", $data[44]);
-////                exit;
-//            }
-        }
-
-        fclose($f);
-
-        echo "Інформацію записано";
-    }
-
-    public function actionCorr_budget(){
-
-        $sql='update budget
-        set p_1=q_1*price/1000
-        WHERE p_1=0 and q_1>0';
-
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-        set p_2=q_2*price/1000
-        WHERE p_2=0 and q_2>0';
-
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-        set ap_2=aq_2*price/1000
-        WHERE ap_2=0 and aq_2>0';
-
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-        set p_3=q_3*price/1000
-        WHERE p_3=0 and q_3>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-        set ap_3=aq_3*price/1000
-        WHERE ap_3=0 and aq_3>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set p_4=q_4*price/1000
-WHERE p_4=0 and q_4>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set ap_4=aq_4*price/1000
-WHERE ap_4=0 and aq_4>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set p_5=q_5*price/1000
-WHERE p_5=0 and q_5>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set p_6=q_6*price/1000
-WHERE p_6=0 and q_6>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set p_7=q_7*price/1000
-WHERE p_7=0 and q_7>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set p_8=q_8*price/1000
-WHERE p_8=0 and q_8>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set p_9=q_9*price/1000
-WHERE p_9=0 and q_9>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set p_10=q_10*price/1000
-WHERE p_10=0 and q_10>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set p_11=q_11*price/1000
-WHERE p_11=0 and q_11>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set p_12=q_12*price/1000
-WHERE p_12=0 and q_12>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget
-set year_p=year_q*price/1000
-WHERE year_p=0 and year_q>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-//-------------------------------------------------------------------------
-
-        $sql='update budget 
-        set q_1=p_1*1000/price
-        WHERE p_1<>0 and q_1=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_2=p_2*1000/price
-        WHERE p_2<>0 and q_2=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_3=p_3*1000/price
-        WHERE p_3<>0 and q_3=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_4=p_4*1000/price
-        WHERE p_4<>0 and q_4=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_5=p_5*1000/price
-        WHERE p_5<>0 and q_5=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_6=p_6*1000/price
-        WHERE p_6<>0 and q_6=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_7=p_7*1000/price
-        WHERE p_7<>0 and q_7=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_8=p_8*1000/price
-        WHERE p_8<>0 and q_8=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_9=p_9*1000/price
-        WHERE p_9<>0 and q_9=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_10=p_10*1000/price
-        WHERE p_10<>0 and q_10=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_11=p_11*1000/price
-        WHERE p_11<>0 and q_11=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set q_12=p_12*1000/price
-        WHERE p_12<>0 and q_12=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set aq_1=ap_1*1000/price
-        WHERE ap_1<>0 and aq_1=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set aq_2=ap_2*1000/price
-        WHERE ap_2<>0 and aq_2=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set aq_3=ap_3*1000/price
-        WHERE ap_3<>0 and aq_3=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set aq_4=ap_1*1000/price
-        WHERE ap_4<>0 and aq_4=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-        $sql='update budget 
-        set year_q=year_p*1000/price
-        WHERE year_p<>0 and year_q=0 and price<>0';
-        Yii::$app->db_budget->createCommand($sql)->execute();
-
-
-
-        echo "Інформацію записано";
-    }
-
-    // Импорт бюджета за 2019 год
-    public function actionImport_budget19()
-    {
-        $f = fopen('budget_19.csv','r');
-        $i = 0;
-        while (!feof($f)) {
-            $i++;
-            $s = fgets($f);
-            if($i==1) continue;
-            $data = explode(";",$s);
-            //if(!isset($data[1])) continue;
-            //if ($i==16832) {echo $i; echo "<br>";debug($data);return;}
-
-            $data[9] = trim(str_replace('"',"'",$data[9]));
-            $data[7] = trim(str_replace('"',"'",$data[7]));
-            $data[5] = trim(str_replace('"',"'",$data[5]));
-
-
-            if(is_null($data[8])  || $data[8]=='') $data[8]=0;
-            if(is_null($data[11])  || $data[11]=='' || trim($data[11])=='-') $data[11]=0;
-            if(is_null($data[12])  || $data[12]=='' || trim($data[12])=='-') $data[12]=0;
-
-            if(is_null($data[13])  || $data[13]=='' || trim($data[13])=='-') $data[13]=0;
-            $data[12] = trim(str_replace(',','.',$data[12]));
-            if(is_null($data[14])  || $data[14]=='' || trim($data[14])=='-') $data[14]=0;
-            $data[14] = trim(str_replace(',','.',$data[14]));
-
-            if(is_null($data[15])  || $data[15]=='' || trim($data[15])=='-') $data[15]=0;
-            if(is_null($data[16])  || $data[16]=='' || trim($data[16])=='-') $data[16]=0;
-            $data[16] = trim(str_replace(',','.',$data[16]));
-            if(is_null($data[17])  || $data[17]=='' || trim($data[17])=='-') $data[17]=0;
-            if(is_null($data[18])  || $data[18]=='' || trim($data[18])=='-') $data[18]=0;
-            if(is_null($data[19])  || $data[19]=='' || trim($data[19])=='-') $data[19]=0;
-            if(is_null($data[20])  || $data[20]=='' || trim($data[20])=='-') $data[20]=0;
-            $data[20] = trim(str_replace(',','.',$data[20]));
-            if(is_null($data[21])  || $data[21]=='' || trim($data[21])=='-') $data[21]=0;
-            if(is_null($data[22])  || $data[22]=='' || trim($data[22])=='-') $data[22]=0;
-            $data[22] = trim(str_replace(',','.',$data[22]));
-            if(is_null($data[23])  || $data[23]=='' || trim($data[23])=='-') $data[23]=0;
-            if(is_null($data[24])  || $data[24]=='' || trim($data[24])=='-') $data[24]=0;
-            $data[24] = trim(str_replace(',','.',$data[24]));
-            if(is_null($data[25])  || $data[25]=='' || trim($data[25])=='-') $data[25]=0;
-            if(is_null($data[26])  || $data[26]=='' || trim($data[26])=='-') $data[26]=0;
-            if(is_null($data[27])  || $data[27]=='' || trim($data[27])=='-') $data[27]=0;
-            if(is_null($data[28])  || $data[28]=='' || trim($data[28])=='-') $data[28]=0;
-            $data[28] = trim(str_replace(',','.',$data[28]));
-            if(is_null($data[29])  || $data[29]=='' || trim($data[29])=='-') $data[29]=0;
-            if(is_null($data[30])  || $data[30]=='' || trim($data[30])=='-') $data[30]=0;
-            $data[30] = trim(str_replace(',','.',$data[30]));
-            if(is_null($data[31])  || $data[31]=='' || trim($data[31])=='-') $data[31]=0;
-            if(is_null($data[32])  || $data[32]=='' || trim($data[32])=='-') $data[32]=0;
-            $data[32] = trim(str_replace(',','.',$data[32]));
-            if(is_null($data[33])  || $data[33]=='' || trim($data[33])=='-') $data[33]=0;
-            if(is_null($data[34])  || $data[34]=='' || trim($data[34])=='-') $data[34]=0;
-            if(is_null($data[35])  || $data[35]=='' || trim($data[35])=='-') $data[35]=0;
-            if(is_null($data[36])  || $data[36]=='' || trim($data[36])=='-') $data[36]=0;
-            $data[36] = trim(str_replace(',','.',$data[36]));
-            if(is_null($data[37])  || $data[37]=='' || trim($data[37])=='-') $data[37]=0;
-            if(is_null($data[38])  || $data[38]=='' || trim($data[38])=='-') $data[38]=0;
-            $data[38] = trim(str_replace(',','.',$data[38]));
-            if(is_null($data[39])  || $data[39]=='' || trim($data[39])=='-') $data[39]=0;
-            if(is_null($data[40])  || $data[40]=='' || trim($data[40])=='-') $data[40]=0;
-            $data[40] = trim(str_replace(',','.',$data[40]));
-            if(is_null($data[41])  || $data[41]=='' || trim($data[41])=='-') $data[41]=0;
-            if(is_null($data[42])  || $data[42]=='' || trim($data[42])=='-') $data[42]=0;
-            if(is_null($data[43])  || $data[43]=='' || trim($data[43])=='-') $data[43]=0;
-            if(is_null($data[44])  || $data[44]=='' || trim($data[44])=='-') $data[44]=0;
-//            if(is_null($data[45])  || $data[45]=='') $data[45]=0;
-
-            $data[10] = trim(str_replace(',','.',$data[10]));
-            //$data[10] = trim(str_replace(' ','',$data[10]));
-            $data[10] = preg_replace('/[^x\d|*\.]/', '', $data[10]);
-
-
-//            $data[11] = preg_replace("/[^x\d|*\.]/", "", $data[11]);
-            $data[11] = trim(str_replace(',','.',$data[11]));
-            $data[11] = preg_replace("/[^x\d|*\.]/", "", $data[11]);
-            $data[13] = trim(str_replace(',','.',$data[13]));
-            $data[13] = preg_replace("/[^x\d|*\.]/", "", $data[13]);
-            $data[15] = trim(str_replace(',','.',$data[15]));
-            $data[15] = preg_replace("/[^x\d|*\.]/", "", $data[15]);
-            $data[17] = trim(str_replace(',','.',$data[17]));
-            $data[17] = preg_replace("/[^x\d|*\.]/", "", $data[17]);
-            $data[18] = trim(str_replace(',','.',$data[18]));
-            $data[18] = preg_replace("/[^x\d|*\.]/", "", $data[18]);
-            $data[19] = trim(str_replace(',','.',$data[19]));
-            $data[19] = preg_replace("/[^x\d|*\.]/", "", $data[19]);
-
-            $data[21] = trim(str_replace(',','.',$data[21]));
-            $data[21] = preg_replace("/[^x\d|*\.]/", "", $data[21]);
-            $data[23] = trim(str_replace(',','.',$data[23]));
-            $data[23] = preg_replace("/[^x\d|*\.]/", "", $data[23]);
-            $data[25] = trim(str_replace(',','.',$data[25]));
-            $data[25] = preg_replace("/[^x\d|*\.]/", "", $data[25]);
-            $data[26] = trim(str_replace(',','.',$data[26]));
-            $data[26] = preg_replace("/[^x\d|*\.]/", "", $data[26]);
-            $data[27] = trim(str_replace(',','.',$data[27]));
-            $data[27] = preg_replace("/[^x\d|*\.]/", "", $data[27]);
-
-            $data[29] = trim(str_replace(',','.',$data[29]));
-            $data[29] = preg_replace("/[^x\d|*\.]/", "", $data[29]);
-            $data[31] = trim(str_replace(',','.',$data[31]));
-            $data[31] = preg_replace("/[^x\d|*\.]/", "", $data[31]);
-            $data[33] = trim(str_replace(',','.',$data[33]));
-            $data[33] = preg_replace("/[^x\d|*\.]/", "", $data[33]);
-            $data[34] = trim(str_replace(',','.',$data[34]));
-            $data[34] = preg_replace("/[^x\d|*\.]/", "", $data[34]);
-            $data[35] = trim(str_replace(',','.',$data[35]));
-            $data[35] = preg_replace("/[^x\d|*\.]/", "", $data[35]);
-
-            $data[37] = trim(str_replace(',','.',$data[37]));
-            $data[37] = preg_replace("/[^x\d|*\.]/", "", $data[37]);
-            $data[39] = trim(str_replace(',','.',$data[39]));
-            $data[39] = preg_replace("/[^x\d|*\.]/", "", $data[39]);
-            $data[41] = trim(str_replace(',','.',$data[41]));
-            $data[41] = preg_replace("/[^x\d|*\.]/", "", $data[41]);
-            $data[42] = trim(str_replace(',','.',$data[42]));
-            $data[42] = preg_replace("/[^x\d|*\.]/", "", $data[42]);
-            $data[43] = trim(str_replace(',','.',$data[43]));
-            $data[43] = preg_replace("/[^x\d|*\.]/", "", $data[43]);
-            $data[44] = trim(str_replace(',','.',$data[44]));
-            $data[44] = preg_replace("/[^x\d|*\.]/", "", $data[44]);
-//            $data[45] = trim(str_replace(',','.',$data[45]));
-//            $data[45] = preg_replace("/[^x\d|*\.]/", "", $data[45]);
-            if (empty($data[7]) || is_null($data[7])) $data[7]=0;
-
-           // debug($data);
-//            return;
-
-            $sql = "INSERT INTO budget (vid_tmc1,page1,service1,name_obj1,dname_obj,vid_repair1,
-                    name_spec1,lot,name_tmc,ed_izm1,price,
-                    q_1,p_1,q_2,p_2,q_3,p_3,aq_1,ap_1,q_4,p_4,q_5,p_5,q_6,p_6,aq_2,ap_2,
-                    q_7,p_7,q_8,p_8,q_9,p_9,aq_3,ap_3,q_10,p_10,q_11,p_11,q_12,p_12,aq_4,ap_4,
-                    year_q,year_p) VALUES(".
-                "'".$data[0]."'".",". '"'.$data[1]. '"'.",".'"'.$data[2]. '"'.",'".$data[3]. "'".",". '"'.$data[4].'",'.
-                '"'.$data[5]. '"'.",". '"'.$data[6]. '"'.",". '"'.$data[7]. '"'.",".'"'.$data[8].'"'.",". '"'
-                .$data[9]. '",'. $data[10]. ",".$data[11].",".$data[12].","
-                .$data[13].",".$data[14].",".$data[15].",".$data[16].","
-                .$data[17].",".$data[18].",".$data[19].",".$data[20].",".
-                $data[21].",".$data[22].",".$data[23].",".$data[24].",".
-                $data[25].",".$data[26].",".$data[27].",".$data[28].",".
-                $data[29].",".$data[30].",".$data[31].",".$data[32].",".
-                $data[33].",".$data[34].",".$data[35].",".$data[36].",".
-                $data[37].",".$data[38].",".$data[39].",".$data[40].",".
-                $data[41].",".$data[42].",".$data[43].",".$data[44].
-                ')';
-
-            //if ($i>16029)
+            if ($i > 19977)
                 Yii::$app->db_budget->createCommand($sql)->execute();
 //            if ($i>16825) {
 //                echo $sql;
@@ -578,25 +245,364 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+    public function actionCorr_budget()
+    {
+
+        $sql = 'update budget
+        set p_1=q_1*price/1000
+        WHERE p_1=0 and q_1>0';
+
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+        set p_2=q_2*price/1000
+        WHERE p_2=0 and q_2>0';
+
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+        set ap_2=aq_2*price/1000
+        WHERE ap_2=0 and aq_2>0';
+
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+        set p_3=q_3*price/1000
+        WHERE p_3=0 and q_3>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+        set ap_3=aq_3*price/1000
+        WHERE ap_3=0 and aq_3>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set p_4=q_4*price/1000
+WHERE p_4=0 and q_4>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set ap_4=aq_4*price/1000
+WHERE ap_4=0 and aq_4>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set p_5=q_5*price/1000
+WHERE p_5=0 and q_5>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set p_6=q_6*price/1000
+WHERE p_6=0 and q_6>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set p_7=q_7*price/1000
+WHERE p_7=0 and q_7>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set p_8=q_8*price/1000
+WHERE p_8=0 and q_8>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set p_9=q_9*price/1000
+WHERE p_9=0 and q_9>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set p_10=q_10*price/1000
+WHERE p_10=0 and q_10>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set p_11=q_11*price/1000
+WHERE p_11=0 and q_11>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set p_12=q_12*price/1000
+WHERE p_12=0 and q_12>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget
+set year_p=year_q*price/1000
+WHERE year_p=0 and year_q>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+//-------------------------------------------------------------------------
+
+        $sql = 'update budget 
+        set q_1=p_1*1000/price
+        WHERE p_1<>0 and q_1=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_2=p_2*1000/price
+        WHERE p_2<>0 and q_2=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_3=p_3*1000/price
+        WHERE p_3<>0 and q_3=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_4=p_4*1000/price
+        WHERE p_4<>0 and q_4=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_5=p_5*1000/price
+        WHERE p_5<>0 and q_5=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_6=p_6*1000/price
+        WHERE p_6<>0 and q_6=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_7=p_7*1000/price
+        WHERE p_7<>0 and q_7=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_8=p_8*1000/price
+        WHERE p_8<>0 and q_8=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_9=p_9*1000/price
+        WHERE p_9<>0 and q_9=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_10=p_10*1000/price
+        WHERE p_10<>0 and q_10=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_11=p_11*1000/price
+        WHERE p_11<>0 and q_11=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set q_12=p_12*1000/price
+        WHERE p_12<>0 and q_12=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set aq_1=ap_1*1000/price
+        WHERE ap_1<>0 and aq_1=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set aq_2=ap_2*1000/price
+        WHERE ap_2<>0 and aq_2=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set aq_3=ap_3*1000/price
+        WHERE ap_3<>0 and aq_3=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set aq_4=ap_1*1000/price
+        WHERE ap_4<>0 and aq_4=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+        $sql = 'update budget 
+        set year_q=year_p*1000/price
+        WHERE year_p<>0 and year_q=0 and price<>0';
+        Yii::$app->db_budget->createCommand($sql)->execute();
+
+
+        echo "Інформацію записано";
+    }
+
+    // Импорт бюджета за 2019 год
+    public function actionImport_budget19()
+    {
+        $f = fopen('budget_19.csv', 'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            if ($i == 1) continue;
+            $data = explode(";", $s);
+            //if(!isset($data[1])) continue;
+            //if ($i==16832) {echo $i; echo "<br>";debug($data);return;}
+
+            $data[9] = trim(str_replace('"', "'", $data[9]));
+            $data[7] = trim(str_replace('"', "'", $data[7]));
+            $data[5] = trim(str_replace('"', "'", $data[5]));
+
+
+            if (is_null($data[8]) || $data[8] == '') $data[8] = 0;
+            if (is_null($data[11]) || $data[11] == '' || trim($data[11]) == '-') $data[11] = 0;
+            if (is_null($data[12]) || $data[12] == '' || trim($data[12]) == '-') $data[12] = 0;
+
+            if (is_null($data[13]) || $data[13] == '' || trim($data[13]) == '-') $data[13] = 0;
+            $data[12] = trim(str_replace(',', '.', $data[12]));
+            if (is_null($data[14]) || $data[14] == '' || trim($data[14]) == '-') $data[14] = 0;
+            $data[14] = trim(str_replace(',', '.', $data[14]));
+
+            if (is_null($data[15]) || $data[15] == '' || trim($data[15]) == '-') $data[15] = 0;
+            if (is_null($data[16]) || $data[16] == '' || trim($data[16]) == '-') $data[16] = 0;
+            $data[16] = trim(str_replace(',', '.', $data[16]));
+            if (is_null($data[17]) || $data[17] == '' || trim($data[17]) == '-') $data[17] = 0;
+            if (is_null($data[18]) || $data[18] == '' || trim($data[18]) == '-') $data[18] = 0;
+            if (is_null($data[19]) || $data[19] == '' || trim($data[19]) == '-') $data[19] = 0;
+            if (is_null($data[20]) || $data[20] == '' || trim($data[20]) == '-') $data[20] = 0;
+            $data[20] = trim(str_replace(',', '.', $data[20]));
+            if (is_null($data[21]) || $data[21] == '' || trim($data[21]) == '-') $data[21] = 0;
+            if (is_null($data[22]) || $data[22] == '' || trim($data[22]) == '-') $data[22] = 0;
+            $data[22] = trim(str_replace(',', '.', $data[22]));
+            if (is_null($data[23]) || $data[23] == '' || trim($data[23]) == '-') $data[23] = 0;
+            if (is_null($data[24]) || $data[24] == '' || trim($data[24]) == '-') $data[24] = 0;
+            $data[24] = trim(str_replace(',', '.', $data[24]));
+            if (is_null($data[25]) || $data[25] == '' || trim($data[25]) == '-') $data[25] = 0;
+            if (is_null($data[26]) || $data[26] == '' || trim($data[26]) == '-') $data[26] = 0;
+            if (is_null($data[27]) || $data[27] == '' || trim($data[27]) == '-') $data[27] = 0;
+            if (is_null($data[28]) || $data[28] == '' || trim($data[28]) == '-') $data[28] = 0;
+            $data[28] = trim(str_replace(',', '.', $data[28]));
+            if (is_null($data[29]) || $data[29] == '' || trim($data[29]) == '-') $data[29] = 0;
+            if (is_null($data[30]) || $data[30] == '' || trim($data[30]) == '-') $data[30] = 0;
+            $data[30] = trim(str_replace(',', '.', $data[30]));
+            if (is_null($data[31]) || $data[31] == '' || trim($data[31]) == '-') $data[31] = 0;
+            if (is_null($data[32]) || $data[32] == '' || trim($data[32]) == '-') $data[32] = 0;
+            $data[32] = trim(str_replace(',', '.', $data[32]));
+            if (is_null($data[33]) || $data[33] == '' || trim($data[33]) == '-') $data[33] = 0;
+            if (is_null($data[34]) || $data[34] == '' || trim($data[34]) == '-') $data[34] = 0;
+            if (is_null($data[35]) || $data[35] == '' || trim($data[35]) == '-') $data[35] = 0;
+            if (is_null($data[36]) || $data[36] == '' || trim($data[36]) == '-') $data[36] = 0;
+            $data[36] = trim(str_replace(',', '.', $data[36]));
+            if (is_null($data[37]) || $data[37] == '' || trim($data[37]) == '-') $data[37] = 0;
+            if (is_null($data[38]) || $data[38] == '' || trim($data[38]) == '-') $data[38] = 0;
+            $data[38] = trim(str_replace(',', '.', $data[38]));
+            if (is_null($data[39]) || $data[39] == '' || trim($data[39]) == '-') $data[39] = 0;
+            if (is_null($data[40]) || $data[40] == '' || trim($data[40]) == '-') $data[40] = 0;
+            $data[40] = trim(str_replace(',', '.', $data[40]));
+            if (is_null($data[41]) || $data[41] == '' || trim($data[41]) == '-') $data[41] = 0;
+            if (is_null($data[42]) || $data[42] == '' || trim($data[42]) == '-') $data[42] = 0;
+            if (is_null($data[43]) || $data[43] == '' || trim($data[43]) == '-') $data[43] = 0;
+            if (is_null($data[44]) || $data[44] == '' || trim($data[44]) == '-') $data[44] = 0;
+//            if(is_null($data[45])  || $data[45]=='') $data[45]=0;
+
+            $data[10] = trim(str_replace(',', '.', $data[10]));
+            //$data[10] = trim(str_replace(' ','',$data[10]));
+            $data[10] = preg_replace('/[^x\d|*\.]/', '', $data[10]);
+
+
+//            $data[11] = preg_replace("/[^x\d|*\.]/", "", $data[11]);
+            $data[11] = trim(str_replace(',', '.', $data[11]));
+            $data[11] = preg_replace("/[^x\d|*\.]/", "", $data[11]);
+            $data[13] = trim(str_replace(',', '.', $data[13]));
+            $data[13] = preg_replace("/[^x\d|*\.]/", "", $data[13]);
+            $data[15] = trim(str_replace(',', '.', $data[15]));
+            $data[15] = preg_replace("/[^x\d|*\.]/", "", $data[15]);
+            $data[17] = trim(str_replace(',', '.', $data[17]));
+            $data[17] = preg_replace("/[^x\d|*\.]/", "", $data[17]);
+            $data[18] = trim(str_replace(',', '.', $data[18]));
+            $data[18] = preg_replace("/[^x\d|*\.]/", "", $data[18]);
+            $data[19] = trim(str_replace(',', '.', $data[19]));
+            $data[19] = preg_replace("/[^x\d|*\.]/", "", $data[19]);
+
+            $data[21] = trim(str_replace(',', '.', $data[21]));
+            $data[21] = preg_replace("/[^x\d|*\.]/", "", $data[21]);
+            $data[23] = trim(str_replace(',', '.', $data[23]));
+            $data[23] = preg_replace("/[^x\d|*\.]/", "", $data[23]);
+            $data[25] = trim(str_replace(',', '.', $data[25]));
+            $data[25] = preg_replace("/[^x\d|*\.]/", "", $data[25]);
+            $data[26] = trim(str_replace(',', '.', $data[26]));
+            $data[26] = preg_replace("/[^x\d|*\.]/", "", $data[26]);
+            $data[27] = trim(str_replace(',', '.', $data[27]));
+            $data[27] = preg_replace("/[^x\d|*\.]/", "", $data[27]);
+
+            $data[29] = trim(str_replace(',', '.', $data[29]));
+            $data[29] = preg_replace("/[^x\d|*\.]/", "", $data[29]);
+            $data[31] = trim(str_replace(',', '.', $data[31]));
+            $data[31] = preg_replace("/[^x\d|*\.]/", "", $data[31]);
+            $data[33] = trim(str_replace(',', '.', $data[33]));
+            $data[33] = preg_replace("/[^x\d|*\.]/", "", $data[33]);
+            $data[34] = trim(str_replace(',', '.', $data[34]));
+            $data[34] = preg_replace("/[^x\d|*\.]/", "", $data[34]);
+            $data[35] = trim(str_replace(',', '.', $data[35]));
+            $data[35] = preg_replace("/[^x\d|*\.]/", "", $data[35]);
+
+            $data[37] = trim(str_replace(',', '.', $data[37]));
+            $data[37] = preg_replace("/[^x\d|*\.]/", "", $data[37]);
+            $data[39] = trim(str_replace(',', '.', $data[39]));
+            $data[39] = preg_replace("/[^x\d|*\.]/", "", $data[39]);
+            $data[41] = trim(str_replace(',', '.', $data[41]));
+            $data[41] = preg_replace("/[^x\d|*\.]/", "", $data[41]);
+            $data[42] = trim(str_replace(',', '.', $data[42]));
+            $data[42] = preg_replace("/[^x\d|*\.]/", "", $data[42]);
+            $data[43] = trim(str_replace(',', '.', $data[43]));
+            $data[43] = preg_replace("/[^x\d|*\.]/", "", $data[43]);
+            $data[44] = trim(str_replace(',', '.', $data[44]));
+            $data[44] = preg_replace("/[^x\d|*\.]/", "", $data[44]);
+//            $data[45] = trim(str_replace(',','.',$data[45]));
+//            $data[45] = preg_replace("/[^x\d|*\.]/", "", $data[45]);
+            if (empty($data[7]) || is_null($data[7])) $data[7] = 0;
+
+            // debug($data);
+//            return;
+
+            $sql = "INSERT INTO budget (vid_tmc1,page1,service1,name_obj1,dname_obj,vid_repair1,
+                    name_spec1,lot,name_tmc,ed_izm1,price,
+                    q_1,p_1,q_2,p_2,q_3,p_3,aq_1,ap_1,q_4,p_4,q_5,p_5,q_6,p_6,aq_2,ap_2,
+                    q_7,p_7,q_8,p_8,q_9,p_9,aq_3,ap_3,q_10,p_10,q_11,p_11,q_12,p_12,aq_4,ap_4,
+                    year_q,year_p) VALUES(" .
+                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' . $data[2] . '"' . ",'" . $data[3] . "'" . "," . '"' . $data[4] . '",' .
+                '"' . $data[5] . '"' . "," . '"' . $data[6] . '"' . "," . '"' . $data[7] . '"' . "," . '"' . $data[8] . '"' . "," . '"'
+                . $data[9] . '",' . $data[10] . "," . $data[11] . "," . $data[12] . ","
+                . $data[13] . "," . $data[14] . "," . $data[15] . "," . $data[16] . ","
+                . $data[17] . "," . $data[18] . "," . $data[19] . "," . $data[20] . "," .
+                $data[21] . "," . $data[22] . "," . $data[23] . "," . $data[24] . "," .
+                $data[25] . "," . $data[26] . "," . $data[27] . "," . $data[28] . "," .
+                $data[29] . "," . $data[30] . "," . $data[31] . "," . $data[32] . "," .
+                $data[33] . "," . $data[34] . "," . $data[35] . "," . $data[36] . "," .
+                $data[37] . "," . $data[38] . "," . $data[39] . "," . $data[40] . "," .
+                $data[41] . "," . $data[42] . "," . $data[43] . "," . $data[44] .
+                ')';
+
+            //if ($i>16029)
+            Yii::$app->db_budget->createCommand($sql)->execute();
+//            if ($i>16825) {
+//                echo $sql;
+//                echo '<br>';
+//                echo '<br>';
+//                echo $i;
+////                echo  preg_replace("/[^x\d|*\.]/", "", $data[44]);
+////                exit;
+//            }
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
 
 
     // Импорт областей
     public function actionImp_obl()
     {
-        $f = fopen('obl.csv','r');
+        $f = fopen('obl.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
 
-            $data = explode(";",$s);
-            if(!isset($data[1])) continue;
+            $data = explode(";", $s);
+            if (!isset($data[1])) continue;
 
-            $sql = "INSERT INTO _obl (smb,name) VALUES(".
-                '$$'.$data[0].'$$'.",". '$$'.$data[1].'$$'.
+            $sql = "INSERT INTO _obl (smb,name) VALUES(" .
+                '$$' . $data[0] . '$$' . "," . '$$' . $data[1] . '$$' .
                 ')';
 
-                Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
+            Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
 
         }
 
@@ -608,14 +614,14 @@ WHERE year_p=0 and year_q>0';
     // Добавление счетчиков (соотв с САП)
     public function actionAdd_cnt()
     {
-        $f = fopen('add_cnt.csv','r');
+        $f = fopen('add_cnt.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("~",$s);
-            $sql = "INSERT INTO add_cnt (id_type,cek_name,sap_name) VALUES(".
-                $data[1] . ",". '$$'.$data[2].'$$'.",".'$$'.$data[3].'$$'.
+            $data = explode("~", $s);
+            $sql = "INSERT INTO add_cnt (id_type,cek_name,sap_name) VALUES(" .
+                $data[1] . "," . '$$' . $data[2] . '$$' . "," . '$$' . $data[3] . '$$' .
                 ')';
 
             Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
@@ -630,14 +636,14 @@ WHERE year_p=0 and year_q>0';
     // Добавление типов пломб (соотв с САП)
     public function actionAdd_type_plomb()
     {
-        $f = fopen('sap_type_plombs.csv','r');
+        $f = fopen('sap_type_plombs.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("~",$s);
-            $sql = "INSERT INTO sap_type_plombs (sap_name,sap_desc,cek_name) VALUES(".
-                '$$'. $data[0] .'$$'. ",". '$$'.$data[1].'$$'.",".'$$'.$data[2].'$$'.
+            $data = explode("~", $s);
+            $sql = "INSERT INTO sap_type_plombs (sap_name,sap_desc,cek_name) VALUES(" .
+                '$$' . $data[0] . '$$' . "," . '$$' . $data[1] . '$$' . "," . '$$' . $data[2] . '$$' .
                 ')';
 
             Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
@@ -652,16 +658,16 @@ WHERE year_p=0 and year_q>0';
     // Импорт районов
     public function actionImp_region()
     {
-        $f = fopen('region.csv','r');
+        $f = fopen('region.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
 
-            $data = explode(";",$s);
+            $data = explode(";", $s);
 
-            $sql = "INSERT INTO _region (smb,name_obl,id,name) VALUES(".
-                '$$'.$data[0].'$$'.",". '$$'.$data[1].'$$'.",". $data[2].",".'$$'.$data[3].'$$'.
+            $sql = "INSERT INTO _region (smb,name_obl,id,name) VALUES(" .
+                '$$' . $data[0] . '$$' . "," . '$$' . $data[1] . '$$' . "," . $data[2] . "," . '$$' . $data[3] . '$$' .
                 ')';
 
             Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
@@ -680,12 +686,12 @@ WHERE year_p=0 and year_q>0';
     {
 
 
-            $sql = "select * from tmp_street_e";
-            //echo $sql;
-            $data_in = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
-            $data_ap = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
-            //debug($data);
-            $sql="CREATE TABLE tmp_street_e_in
+        $sql = "select * from tmp_street_e";
+        //echo $sql;
+        $data_in = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+        $data_ap = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+        //debug($data);
+        $sql = "CREATE TABLE tmp_street_e_in
                     (
                       town character varying(200),
                       id_city character varying(200),
@@ -695,7 +701,7 @@ WHERE year_p=0 and year_q>0';
                       citycoid character varying(200)
                     )";
         //Yii::$app->db_pg_im_db->createCommand($sql)->execute();
-        $sql="CREATE TABLE tmp_street_e_ap
+        $sql = "CREATE TABLE tmp_street_e_ap
                     (
                       town character varying(200),
                       id_city character varying(200),
@@ -705,30 +711,30 @@ WHERE year_p=0 and year_q>0';
                       citycoid character varying(200)
                     )";
         //Yii::$app->db_pg_im_db->createCommand($sql)->execute();
-        foreach($data_in as $in){
+        foreach ($data_in as $in) {
             $town = $in['town'];
             $id_city = $in['id_city'];
             $type_street = $in['type_street'];
             $streettypecode = $in['streettypecode'];
             $name_street = $in['name_street'];
             $citycoid = $in['citycoid'];
-            $sql = "INSERT INTO tmp_street_e_in (town,id_city,type_street,streettypecode,name_street,citycoid) VALUES(".
-                '$$'.$town.'$$'.","."'".$id_city."'".","."'".$type_street."'".",".$streettypecode.
-                ",".'$$'.$name_street.'$$'.","."'".$citycoid."'".')';
+            $sql = "INSERT INTO tmp_street_e_in (town,id_city,type_street,streettypecode,name_street,citycoid) VALUES(" .
+                '$$' . $town . '$$' . "," . "'" . $id_city . "'" . "," . "'" . $type_street . "'" . "," . $streettypecode .
+                "," . '$$' . $name_street . '$$' . "," . "'" . $citycoid . "'" . ')';
             Yii::$app->db_pg_im_db->createCommand($sql)->execute();
 
             //debug($town);
         }
-        foreach($data_ap as $ap){
+        foreach ($data_ap as $ap) {
             $town = $ap['town'];
             $id_city = $ap['id_city'];
             $type_street = $ap['type_street'];
             $streettypecode = $ap['streettypecode'];
             $name_street = $ap['name_street'];
             $citycoid = $ap['citycoid'];
-            $sql = "INSERT INTO tmp_street_e_ap (town,id_city,type_street,streettypecode,name_street,citycoid) VALUES(".
-                '$$'.$town.'$$'.","."'".$id_city."'".","."'".$type_street."'".",".$streettypecode.
-                ",".'$$'.$name_street.'$$'.","."'".$citycoid."'".')';
+            $sql = "INSERT INTO tmp_street_e_ap (town,id_city,type_street,streettypecode,name_street,citycoid) VALUES(" .
+                '$$' . $town . '$$' . "," . "'" . $id_city . "'" . "," . "'" . $type_street . "'" . "," . $streettypecode .
+                "," . '$$' . $name_street . '$$' . "," . "'" . $citycoid . "'" . ')';
             Yii::$app->db_pg_im_db->createCommand($sql)->execute();
 
             //debug($town);
@@ -744,15 +750,15 @@ WHERE year_p=0 and year_q>0';
         $sql = "select * from tmp_address_e_ap";
         $data_ap = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
         //debug($data);
-        $sql="CREATE TABLE tmp_address_e_in
+        $sql = "CREATE TABLE tmp_address_e_in
                     (
                       zip text,
                       streetcode integer,
                       locationhouse character varying(20),
                       locationapp character varying(20)
                     )";
-       // Yii::$app->db_pg_im_db->createCommand($sql)->execute();
-        $sql="CREATE TABLE tmp_address_e_ap
+        // Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+        $sql = "CREATE TABLE tmp_address_e_ap
                     (
                       zip text,
                       streetcode integer,
@@ -760,30 +766,30 @@ WHERE year_p=0 and year_q>0';
                       locationapp character varying(20)
                     )";
         //Yii::$app->db_pg_im_db->createCommand($sql)->execute();
-        foreach($data_in as $in){
+        foreach ($data_in as $in) {
             $zip = $in['zip'];
             $streetcode = $in['streetcode'];
-            if (is_null($streetcode)) $streetcode=0;
+            if (is_null($streetcode)) $streetcode = 0;
             $locationhouse = $in['locationhouse'];
             $locationapp = $in['locationapp'];
 
-            $sql = "INSERT INTO tmp_address_e_in (zip,streetcode,locationhouse,locationapp) VALUES(".
-                '$$'.$zip.'$$'.",".$streetcode.
-                ",".'$$'.$locationhouse.'$$'.","."'".$locationapp."'".')';
-           // Yii::$app->db_pg_im_db->createCommand($sql)->execute();
+            $sql = "INSERT INTO tmp_address_e_in (zip,streetcode,locationhouse,locationapp) VALUES(" .
+                '$$' . $zip . '$$' . "," . $streetcode .
+                "," . '$$' . $locationhouse . '$$' . "," . "'" . $locationapp . "'" . ')';
+            // Yii::$app->db_pg_im_db->createCommand($sql)->execute();
 
             //debug($town);
         }
-        foreach($data_ap as $ap){
+        foreach ($data_ap as $ap) {
             $zip = $ap['zip'];
             $streetcode = $ap['streetcode'];
-            if (is_null($streetcode)) $streetcode=0;
+            if (is_null($streetcode)) $streetcode = 0;
             $locationhouse = $ap['locationhouse'];
             $locationapp = $ap['locationapp'];
 
-            $sql = "INSERT INTO tmp_address_e_ap (zip,streetcode,locationhouse,locationapp) VALUES(".
-                '$$'.$zip.'$$'.",".$streetcode.
-                ",".'$$'.$locationhouse.'$$'.","."'".$locationapp."'".')';
+            $sql = "INSERT INTO tmp_address_e_ap (zip,streetcode,locationhouse,locationapp) VALUES(" .
+                '$$' . $zip . '$$' . "," . $streetcode .
+                "," . '$$' . $locationhouse . '$$' . "," . "'" . $locationapp . "'" . ')';
             Yii::$app->db_pg_im_db->createCommand($sql)->execute();
 
             //debug($town);
@@ -796,8 +802,7 @@ WHERE year_p=0 and year_q>0';
     {
         $model = new export_sap();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
             switch ($model->id_oper) {
                 case 1:
                     return $this->redirect(['sap_partner_ind', 'res' => $model->rem]);
@@ -902,22 +907,21 @@ WHERE year_p=0 and year_q>0';
                     return $this->redirect(['all_sapfile', 'res' => $model->rem]);
                     break;
             }
-        }
-        else {
+        } else {
 
             return $this->render('export_sap', [
                 'model' => $model,
             ]);
         }
     }
+
     //формирование файлов индентификации данных ЦЕК в системе САП
-public function actionIdfile()
-        
+    public function actionIdfile()
+
     {
         $model = new export_sap();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
             switch ($model->id_oper) {
                 case 1:
                     return $this->redirect(['idfile_partner_ind', 'res' => $model->rem]);
@@ -939,7 +943,7 @@ public function actionIdfile()
                     break;
                 case 7:
                     return $this->redirect(['idfile_devloc_ind', 'res' => $model->rem]);
-                    break;                
+                    break;
                 case 8:
                     return $this->redirect(['idfile_devloc', 'res' => $model->rem]);
                     break;
@@ -980,15 +984,14 @@ public function actionIdfile()
                     return $this->redirect(['idfile_facts', 'res' => $model->rem]);
                     break;
             }
-        }
-        else {
+        } else {
 
             return $this->render('idfile', [
                 'model' => $model,
             ]);
         }
     }
-    
+
     // Форматирование файла partner для САП для юридических партнеров
     public function actionSap_partner($res)
     {
@@ -996,7 +999,7 @@ public function actionIdfile()
         ini_set('max_execution_time', 900);
         ini_set('upload_max_filesize', '0');
         ini_set('post_max_size', '1000M');
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         $sql = "select distinct a.id,a.name,a.code_okpo,b.okpo_num,b.tax_num,'2' AS BU_TYPE,b.FLAG_JUR,
 case when substr(trim(a.name),1,4)='ФОП ' or substr(trim(a.name),1,3)='ФО ' or position('Фізична особа' in a.name)>0
@@ -1195,7 +1198,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         $zsql4 = 'delete from sap_but0id';
         $zsql5 = 'delete from sap_but021';
 
-        if(1==1) {
+        if (1 == 1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
@@ -1304,11 +1307,11 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
 //        return;
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $fname='PARTNER_04'.'_CK'.$rem.'_'.$fd.'_08'.'_L'.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $fname = 'PARTNER_04' . '_CK' . $rem . '_' . $fd . '_08' . '_L' . '.txt';
+        $f = fopen($fname, 'w+');
         // Считываем данные в файл с каждой таблицы
-        $i=0;
+        $i = 0;
 //        foreach ($cnt as $v) {
 //            $table_struct = 'sap_' . trim($v['dattype']);
 //            $i++;
@@ -1372,21 +1375,20 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         }
 
 
-
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>6) continue;
-                if($i>1) {
+                if ($i > 6) continue;
+                if ($i > 1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
 
                     switch ($res) {
@@ -1417,8 +1419,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
                     }
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -1435,7 +1437,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
 //        fputs($f, "\n");
 
 // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -1445,24 +1447,24 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
         // проверка адреса  на соответствие его с названием в САП {
-        $err = check_adres_partner($fname,1);
+        $err = check_adres_partner($fname, 1);
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
         // проверка индекса  на соответствие его с названием в САП {
-        $err = check_adres_partner($fname,2);
+        $err = check_adres_partner($fname, 2);
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -1473,7 +1475,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -1482,7 +1484,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -1491,51 +1493,51 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=7;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 7;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
-        // 
+        //
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
-        //формирование файла идентификации
-        // Формирование файла partner для САП для юридических лиц
+    //формирование файла идентификации
+    // Формирование файла partner для САП для юридических лиц
     public function actionIdfile_partner($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -1543,7 +1545,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
         $sql = "select 'PARTNER' as OM,oldkey,code,short_name,const.ver from sap_init as i 
         left join clm_client_tbl as c
@@ -1561,19 +1563,17 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
 
 
-
-                    
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -1583,7 +1583,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         $model->style_title = "d9";
 
         return $this->render('info', [
-            'model' => $model]);     
+            'model' => $model]);
     }
 
     //формирование файла идентификации
@@ -1592,10 +1592,10 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -1604,7 +1604,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
         $sql = "select 'CONNOBJ' as OM,oldkey,code,short_name,const.ver from sap_co_eha as i 
         left join clm_client_tbl as c
@@ -1623,7 +1623,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         $f = fopen($fname, 'w+');
 
         foreach ($data as $d1) {
-            $d1=array_slice($d1, 0, 4);
+            $d1 = array_slice($d1, 0, 4);
             $d1 = array_map('trim', $d1);
             $s1 = implode("\t", $d1);
             $s1 = str_replace("~", "", $s1);
@@ -1645,7 +1645,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
     }
 
 
-    public function actionCheck(){
+    public function actionCheck()
+    {
 
         $r = hash('crc32', '111111111111111111111111111111111111111111111111111111111111111111111111111111111122');
         debug($r);
@@ -1655,22 +1656,22 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
     }
 
     // Формирование файла partner для САП для бытовых
-    public function actionSap_partner_ind($res,$par=0)
+    public function actionSap_partner_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', '0');
         ini_set('upload_max_filesize', '0');
         ini_set('post_max_size', '1000M');
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind')
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind')
             $vid = 1;
         else
             $vid = 2;
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
 
         $sql = "select * from (
         select a.id,a.activ,case when i.inn is null then 
@@ -1715,44 +1716,44 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
         //$cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
 //        if(3==4) {
-            // Получаем необходимые данные
-            $data = data_from_server($sql, $res, $vid);
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);
 //debug($sql);
 //debug($data);
 //return;
-            $cnt = data_from_server($sql_c, $res, $vid);
+        $cnt = data_from_server($sql_c, $res, $vid);
 
-            // Удаляем данные в таблицах
-            $zsql = 'delete from sap_init';
-            exec_on_server($zsql, $res, $vid);
+        // Удаляем данные в таблицах
+        $zsql = 'delete from sap_init';
+        exec_on_server($zsql, $res, $vid);
 
-            $zsql = 'delete from sap_but000';
-            exec_on_server($zsql, $res, $vid);
+        $zsql = 'delete from sap_but000';
+        exec_on_server($zsql, $res, $vid);
 
-            $zsql = 'delete from sap_ekun';
-            exec_on_server($zsql, $res, $vid);
+        $zsql = 'delete from sap_ekun';
+        exec_on_server($zsql, $res, $vid);
 
-            $zsql = 'delete from sap_but020';
-            exec_on_server($zsql, $res, $vid);
+        $zsql = 'delete from sap_but020';
+        exec_on_server($zsql, $res, $vid);
 
-            $zsql = 'delete from sap_but0id';
-            exec_on_server($zsql, $res, $vid);
+        $zsql = 'delete from sap_but0id';
+        exec_on_server($zsql, $res, $vid);
+        $i = 0;
+        // Заполняем структуры
+        foreach ($data as $w) {
             $i = 0;
-            // Заполняем структуры
-            foreach ($data as $w) {
-                $i = 0;
-                foreach ($cnt as $v) {
-                    $n_struct = trim($v['dattype']);
-                    $i++;
-                    f_partner_ind($n_struct, $rem, $w);
-                }
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $i++;
+                f_partner_ind($n_struct, $rem, $w);
             }
+        }
 //        return;
 //        } // endif 3==4
         // Формируем имя файла и создаем файл
-        $fname = date2file_Partner_ind($res,$vid);  // Быстрая функция для записи в файл
+        $fname = date2file_Partner_ind($res, $vid);  // Быстрая функция для записи в файл
 
-        if(1==2) {  // Так работала программа раньше - было существенно медленее
+        if (1 == 2) {  // Так работала программа раньше - было существенно медленее
             $fd = date('Ymd');
             $fname = 'PARTNER_04' . '_CK' . $rem . '_' . $fd . '_08' . '_R' . '.txt';
             $f = fopen($fname, 'w+');
@@ -1795,7 +1796,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -1805,24 +1806,24 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
         // проверка адреса  на соответствие его с названием в САП {
-        $err = check_adres_partner($fname,1);
+        $err = check_adres_partner($fname, 1);
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
         // проверка индекса  на соответствие его с названием в САП {
-        $err = check_adres_partner($fname,2);
+        $err = check_adres_partner($fname, 2);
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -1833,7 +1834,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -1841,7 +1842,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 
         // задвоения структур {
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -1858,7 +1859,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         // отсутствие структуры }
         //
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
         //fclose($f);
 
@@ -1868,11 +1869,11 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -1880,9 +1881,8 @@ b.tax_number else null end else null end as tax_number,b.last_name,
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
-
 
 
 //        $model = new info();
@@ -1903,15 +1903,18 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 //        return $this->render('info', [
 //            'model' => $model]);
     }
+
 // Test
-    public function actionTest_task(){
+    public function actionTest_task()
+    {
 //       for($i=1;$i<40;$i++)
 //       {
-             $s=r_len('erty0',0);
-            echo $s-1;
-            echo '<br>';
+        $s = r_len('erty0', 0);
+        echo $s - 1;
+        echo '<br>';
 //       }
     }
+
 // Тестовая функция для записи в файл
     public function actionTest_recfile()
     {
@@ -1920,8 +1923,8 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         $fname = 'PARTNER_04_test.txt';
         $f = fopen($fname, 'w+');
         $i = 0;
-        $vid=1;
-        $res=4;
+        $vid = 1;
+        $res = 4;
         $sql = "select a.*,b.*,c.*,d.*,e.* from sap_init a  
                     left join sap_ekun b on a.old_key=b.old_key
                     left join sap_but000 c on a.old_key=c.old_key
@@ -1932,21 +1935,21 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
 //        debug($struct_data);
         $sql_c = "select * from sap_export where objectsap='PARTNER_IND' order by id_object";
-        $cnt = data_from_server($sql_c,$res,$vid);
+        $cnt = data_from_server($sql_c, $res, $vid);
 // Тест
 //        Получаем массивы полей всех структур
-        $i=0;
+        $i = 0;
         foreach ($cnt as $v) {
             $i++;
-            $k=$i-1;
+            $k = $i - 1;
             $table_struct = 'sap_' . trim($v['dattype']);
-            $z="select * from $table_struct limit 1";
-            $mas = data_from_server($z,$res,$vid);
-            $r='$struct'.$i.'=$mas[0];';
+            $z = "select * from $table_struct limit 1";
+            $mas = data_from_server($z, $res, $vid);
+            $r = '$struct' . $i . '=$mas[0];';
             eval($r);
         }
 
-        $j=0;
+        $j = 0;
 //        debug($struct1);
 //         debug($struct2);
 //        debug($struct3);
@@ -1955,14 +1958,14 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 //        return;
 
         foreach ($struct_data as $d) {
-            $j=0;
-            $old_key=$d['old_key'];
+            $j = 0;
+            $old_key = $d['old_key'];
             foreach ($cnt as $v) {
                 $j++;
                 // Извлекаем список полей в структуре
-                $data_p = extract_fields(${"struct".$j});
+                $data_p = extract_fields(${"struct" . $j});
 //                $d1 = array_map('trim', $data_p);
-                $d1 = array_part($d,$data_p);
+                $d1 = array_part($d, $data_p);
                 $s1 = implode("\t", $d1);
                 $s1 = str_replace("~", "", $s1);
                 $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
@@ -1987,15 +1990,15 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         // Формирование файла partner для САП для бытовых
     }
 
-    public function actionIdfile_partner_ind($res,$par=0)
+    public function actionIdfile_partner_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -2003,7 +2006,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'PARTNER' as OM,old_key,b.code,(b.last_name||' '||substr(b.name, 1, 1)||'.'||substr(b.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_init as sap
@@ -2019,19 +2022,19 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-        deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -2040,16 +2043,16 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        if($par==0)
+        if ($par == 0)
             return $this->render('info', [
                 'model' => $model]);
         else
             return 1;
-        
+
     }
-    
+
     // Формирование файла пломб(seal) для САП для бытовых потребителей
-    public function actionSap_seal_ind($res,$par=0)
+    public function actionSap_seal_ind($res, $par = 0)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -2212,7 +2215,7 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
-        deleterOM($fname,$rem);
+        deleterOM($fname, $rem);
         $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
@@ -2250,7 +2253,7 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
 
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -2260,8 +2263,8 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -2269,7 +2272,7 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -2278,7 +2281,7 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -2287,15 +2290,15 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 2;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
         fclose($f);
 
@@ -2305,11 +2308,11 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -2317,7 +2320,7 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
 
 
@@ -2344,16 +2347,16 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
 //                'model' => $model]);
 //        }
     }
-    
-     public function actionIdfile_seals_ind($res)
+
+    public function actionIdfile_seals_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -2361,7 +2364,7 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'SEALS' as OM,oldkey,v.code,(v.last_name||' '||substr(v.name, 1, 1)||'.'||substr(v.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_AUTO as a
@@ -2382,19 +2385,19 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-         deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -2405,46 +2408,45 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
 
         return $this->render('info', [
             'model' => $model]);
-        
+
     }
 
-        // Формирование файла instln для САП для бытовых потребителей
-        public function actionSap_instln_ind($res,$par=0)
+    // Формирование файла instln для САП для бытовых потребителей
+    public function actionSap_instln_ind($res, $par = 0)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
-        $asd = [ "01" => 'BC010131',
-                 "02" => 'BC010231',
-                 "03" => 'BC010331',
-                 "04" => 'BC010431',
-                 "05" => 'BC010531',
-                 "06" => 'BC010631',
-                 "07" => 'BC010731',
-                 "08" => 'BC010831', 
+        $asd = ["01" => 'BC010131',
+            "02" => 'BC010231',
+            "03" => 'BC010331',
+            "04" => 'BC010431',
+            "05" => 'BC010531',
+            "06" => 'BC010631',
+            "07" => 'BC010731',
+            "08" => 'BC010831',
         ];
         // Получаем дату ab
-        $sql_d="select (fun_mmgg() - interval '4 month')::date as mmgg_current";
-        $data_d = data_from_server($sql_d,$res,$vid);
-        $date_ab=$data_d[0]['mmgg_current'];
+        $sql_d = "select (fun_mmgg() - interval '4 month')::date as mmgg_current";
+        $data_d = data_from_server($sql_d, $res, $vid);
+        $date_ab = $data_d[0]['mmgg_current'];
         // Главный запрос со всеми необходимыми данными
-          $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
+        $sql = "select a.id,'10' as sparte,'02' as spebene,'0002' as anlart,'0001' as ablesartst,
 case when length(adr.last_name||' '||adr.name||' '||adr.patron_name)>0 then
 adr.last_name||' '||adr.name||' '||adr.patron_name else
 adr.code end as zz_nametu,'' as zz_fider,'$date_ab' as ab,'CK_1AL2_01' as tariftyp,
@@ -2470,8 +2472,8 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
 -- limit 10
                 ";
 
-        if($helper==1)
-            $sql = $sql.' LIMIT 1';
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -2479,36 +2481,36 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
-        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
         // Включение режима помощника
-        if($helper==1){
-            $fhelper=$routine.'_HELPER'.'.txt';
-            $ff = fopen($fhelper,'w+');
+        if ($helper == 1) {
+            $fhelper = $routine . '_HELPER' . '.txt';
+            $ff = fopen($fhelper, 'w+');
             // Создание переменных
             foreach ($data as $v) {
                 foreach ($v as $k => $v1) {
-                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    $var = '$' . $k . '=$v' . '[' . "'" . $k . "']";
                     fputs($ff, $var);
                     fputs($ff, "\n");
 
                 }
             }
-            $i=0;
+            $i = 0;
 
             foreach ($cnt as $v) {
                 $i++;
                 $n_struct = trim($v['dattype']);
                 fputs($ff, "\n");
-                $var='if ($n_struct=='."'$n_struct') {";
+                $var = 'if ($n_struct==' . "'$n_struct') {";
                 fputs($ff, $var);
                 fputs($ff, "\n");
                 //Создание строки INSERT
                 $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
                 $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
 //                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
-                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                $z = '     $z = "' . " insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values . ")" . '";';
                 fputs($ff, $z);
                 fputs($ff, "\n");
                 $z = ' exec_on_server($z,(int) $rem,$vid);';
@@ -2532,56 +2534,56 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         }
 
         // Удаляем данные в таблицах структур
-        $i=0;
+        $i = 0;
 
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
-            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct);
-            exec_on_server($zsql,$res,$vid);
+            if ($i == 1) $first_struct = trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_" . strtolower($n_struct);
+            exec_on_server($zsql, $res, $vid);
         }
 
         // Заполняем структуры
         foreach ($data as $w) {
             foreach ($cnt as $v) {
                 $n_struct = trim($v['dattype']);
-                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                $func_fill = 'f_' . strtolower($routine) . '($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
                 eval($func_fill);
             }
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_$first_struct";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -2594,7 +2596,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
 
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -2604,26 +2606,26 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
-        if(1==2) {  // отключено
-        // задвоения по oldkey  {
-        $err = double_oldkey($fname);
-        // Запись в таблицу ошибок
-        if (count($err)) {
-            foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
-                exec_on_server($z, (int)$rem, $vid);
+        if (1 == 2) {  // отключено
+            // задвоения по oldkey  {
+            $err = double_oldkey($fname);
+            // Запись в таблицу ошибок
+            if (count($err)) {
+                foreach ($err as $v) {
+                    $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
             }
-        }
-        // задвоения по oldkey  }
+            // задвоения по oldkey  }
 
-        // задвоения структур {
+            // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
             $err = double_struct($fname);
-            if($err<>'') {
+            if ($err <> '') {
 
                 $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
                 exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -2631,71 +2633,71 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             // задвоения структур }
 
 
-                // отсутствие структуры {
+            // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-                $cnt = 2;
-                $err = no_struct($fname, $cnt);
-                if ($err <> '') {
-                    $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
-                    exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
-                }
-                // отсутствие структуры }
-                // нет объекта высшего уровня {
-                $sql = "SELECT * from sap_refer where upload='$filename'";
-                $data_u = data_from_server($sql, $res, $vid);
-                $refer = $data_u[0]['refer'];
-                $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
-                if (!empty($data_u[0]['upload'])) {
-                    $err = no_refer($fname, $data_u);
-                    if (count($err)) {
-                        foreach ($err as $v) {
-                            $z = "INSERT  INTO sap_err
-                        VALUES('$filename','$v','$refer',$res)";
-                            exec_on_server($z, (int)$rem, $vid);
-                        }
-                    }
-                }
-                // нет объекта высшего уровня }
-
-                // пустая ссылка {
-                $msg = 'Пустая ссылка';
-                $err = empty_refer($fname, $data_u);
+            $cnt = 2;
+            $err = no_struct($fname, $cnt);
+            if ($err <> '') {
+                $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+                exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+            }
+            // отсутствие структуры }
+            // нет объекта высшего уровня {
+            $sql = "SELECT * from sap_refer where upload='$filename'";
+            $data_u = data_from_server($sql, $res, $vid);
+            $refer = $data_u[0]['refer'];
+            $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+            if (!empty($data_u[0]['upload'])) {
+                $err = no_refer($fname, $data_u);
                 if (count($err)) {
                     foreach ($err as $v) {
-//                    debug($v);
                         $z = "INSERT  INTO sap_err
-                        VALUES('$filename','$v','$msg',$res)";
+                        VALUES('$filename','$v','$refer',$res)";
                         exec_on_server($z, (int)$rem, $vid);
                     }
-
                 }
-                // пустая ссылка }
             }
-            //kol struckt{
-            $col= count_str($fname);
-            //kol struckt}
-            fclose($f);
+            // нет объекта высшего уровня }
 
+            // пустая ссылка {
+            $msg = 'Пустая ссылка';
+            $err = empty_refer($fname, $data_u);
+            if (count($err)) {
+                foreach ($err as $v) {
+//                    debug($v);
+                    $z = "INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
 
-            $sql_err = "select * from sap_err where upload = '$filename'";
-
-
-            $sql_ab = data_from_server($sql_err, $res, $vid);
-
-            if(empty($sql_ab)){
-
-                $model = new info();
-                $model->title = 'УВАГА!';
-                $model->info1 = "Файл сформовано.".$col;
-                $model->style1 = "d15";
-                $model->style2 = "info-text";
-                $model->style_title = "d9";
-
-                return $this->render('info', [
-                    'model' => $model]);
-            } else {
-                return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
             }
+            // пустая ссылка }
+        }
+        //kol struckt{
+        $col = count_str($fname);
+        //kol struckt}
+        fclose($f);
+
+
+        $sql_err = "select * from sap_err where upload = '$filename'";
+
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
+        } else {
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
+        }
 
 
 //        fclose($f);
@@ -2722,32 +2724,31 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     // Формирование файла монтажей INST_MGMT (юридические лица)
     public function actionSap_inst_mgmt($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 //   Дальше идет плагиат - взято из выгрузки Чернигова - НО с нашими особенностями
-        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
         $period = str_replace('-', '', $period);
 
-        $sql="select distinct 'INST_MGMT' as name, c.id,c.code, eq.name_eqp,m.code_eqp as id_eq,
+        $sql = "select distinct 'INST_MGMT' as name, c.id,c.code, eq.name_eqp,m.code_eqp as id_eq,
      get_tu(m.code_eqp) as id_tu,
     '04_C'||'$rem'||'P_'||m.code_eqp as oldkey,const.ver,c.short_name
      from eqm_tree_tbl as tr 
@@ -2773,22 +2774,22 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
 //        Формируем имя файла выгрузки
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
         $fname1 = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $ff = fopen($fname1, 'w+');
-        $j=0;
-        foreach($data as $v) {
+        $j = 0;
+        foreach ($data as $v) {
             $j++;
             $id_eq = $v['id_eq'];
             $id = $v['id_tu'];
             $oldkey = $v['oldkey'];
-            $code= $v['code'];
-            $short_name=$v['short_name'];
+            $code = $v['code'];
+            $short_name = $v['short_name'];
             $sql_f = "select di_zw($id_eq , '$period')";
             $data_f = data_from_server($sql_f, $res, $vid);
             $sql_f = "select a.*,b.zwgruppe,f_exact(a.pokaz,b.zwgruppe,a.tarifart) as pokaz_true from di_zw_struc a 
@@ -2816,10 +2817,10 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             $data_1 = data_from_server($sql_1, $res, $vid);
             // Запись в файл структуры DI_INT
 
-           $i=0;
+            $i = 0;
             foreach ($data_1 as $v1) {
                 $i++;
-                $oldkey = '04_C'.$rem.'P_01_'.$id_eq. '_'.$i;
+                $oldkey = '04_C' . $rem . 'P_01_' . $id_eq . '_' . $i;
                 fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                     $v1['struc'] . "\t" .
                     $v1['devloc'] . "\t" .
@@ -2933,7 +2934,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         }
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -2943,8 +2944,8 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -2952,23 +2953,23 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
         // задвоения по oldkey  }
 
         // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
+        $sql = "SELECT * from sap_refer where upload='$filename'";
         $data_u = data_from_server($sql, $res, $vid);
         $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
+        $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+        if (!empty($data_u[0]['upload'])) {
             $err = no_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
+                    $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$refer',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
@@ -2982,7 +2983,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         if (count($err)) {
             foreach ($err as $v) {
 //                    debug($v);
-                $z="INSERT  INTO sap_err
+                $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
@@ -2990,7 +2991,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         }
         // пустая ссылка }
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
         fclose($f);
 
@@ -3000,11 +3001,11 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -3012,40 +3013,39 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
 
     // Формирование файла остатков по бухгалтерии DOCUMENT (юридические лица)
     public function actionSap_document($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p=" select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
-        $date_p = str_replace('-','',$date_p);
+        $date_p = str_replace('-', '', $date_p);
 
 //        Формируем данные по розподілу
-        $sql="select gpart||'_'||date1||'_'||num as oldkey,c2.*
+        $sql = "select gpart||'_'||date1||'_'||num as oldkey,c2.*
  --(replace(c2.date,'.','-')::date+interval '1 day')::date as faedn
  from (
 select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
@@ -3064,16 +3064,16 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
 //        debug($data);
 //        return;
 
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
 
 //        Формируем имя файла выгрузки
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
-        $j=0;
-        foreach($data as $v) {
+        $j = 0;
+        foreach ($data as $v) {
             $j++;
             $oldkey = $v['oldkey'];
             $date = date('Ymd', strtotime($v['date']));
@@ -3085,27 +3085,27 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
 //            debug($faedn);
 //            return;
 
-            if(!empty($v['date_s']))
-               $date = date('Ymd', strtotime($v['date_s']));
+            if (!empty($v['date_s']))
+                $date = date('Ymd', strtotime($v['date_s']));
 
             $date_ = date('Y-m-d', strtotime($date));
             $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
 
-            $nds=round($v['saldo']/6,2);
-            $wo_nds=round($v['saldo']-$nds,2);
-            $prepay=$v['prepay'];
+            $nds = round($v['saldo'] / 6, 2);
+            $wo_nds = round($v['saldo'] - $nds, 2);
+            $prepay = $v['prepay'];
 
 // KO block
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
-                    'KO' . "\t" .
-                    'SL'  . "\t" .
-                    $date  . "\t" .
-                    $date_p . "\t"));
+            fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
+                'KO' . "\t" .
+                'SL' . "\t" .
+                $date . "\t" .
+                $date_p . "\t"));
 
-            fwrite($f,  "\n");
+            fwrite($f, "\n");
 
 // OP block
-            if(empty($prepay) || is_null($prepay)) {
+            if (empty($prepay) || is_null($prepay)) {
                 fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                     'OP' . "\t" .
                     $v['begru'] . "\t" .
@@ -3179,8 +3179,7 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                 ));
 
                 fwrite($f, "\n");
-            }
-            else{
+            } else {
                 // предоплата розподіл
                 fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                     'OP' . "\t" .
@@ -3212,7 +3211,7 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                     "\t" .
                     '2020' . "\t" .
                     "\t" .
-                   "\t" .
+                    "\t" .
                     'D'
                 ));
 
@@ -3239,14 +3238,14 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
 
             }
 
-                $end = '&ENDE';
+            $end = '&ENDE';
 
-                    fwrite($f, $oldkey . "\t" .
-                        $end . "\n");
-                }
+            fwrite($f, $oldkey . "\t" .
+                $end . "\n");
+        }
 
         //        Формируем данные по перетокам
-        $sql1="select gpart||'_'||date1||'_'||num as oldkey,c2.*
+        $sql1 = "select gpart||'_'||date1||'_'||num as oldkey,c2.*
  -- (replace(c2.date,'.','-')::date+interval '1 day')::date as faedn
  from (
 select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
@@ -3261,60 +3260,59 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
       ";
         $data = data_from_server($sql1, $res, $vid);
 
-        $j=0;
-        foreach($data as $v) {
+        $j = 0;
+        foreach ($data as $v) {
             $j++;
             $oldkey = $v['oldkey'];
             $date = date('Ymd', strtotime($v['date']));
 
-            if(!empty($v['date_s']))
+            if (!empty($v['date_s']))
                 $date = date('Ymd', strtotime($v['date_s']));
 
             $date_ = date('Y-m-d', strtotime($date));
             $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
 
-            $nds=round($v['saldo']/6,2);
-            $wo_nds=round($v['saldo']-$nds,2);
+            $nds = round($v['saldo'] / 6, 2);
+            $wo_nds = round($v['saldo'] - $nds, 2);
 
 // KO block
             fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                 'KO' . "\t" .
-                'SL'  . "\t" .
-                $date  . "\t" .
+                'SL' . "\t" .
+                $date . "\t" .
                 $date_p . "\t"));
 
-            if(substr($date,0,4)==2020) {
+            if (substr($date, 0, 4) == 2020) {
                 $abr = 'VR';
                 $sch_nds = '6410203177';
-            }
-            else {
+            } else {
                 $abr = 'UR';
                 $sch_nds = '6410202177';
             }
 
 
-            fwrite($f,  "\n");
+            fwrite($f, "\n");
 
 // OP block
             fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                 'OP' . "\t" .
-                $v['begru']  . "\t" .
-                $v['gpart']  . "\t" .
+                $v['begru'] . "\t" .
+                $v['gpart'] . "\t" .
                 "\t" .
-                $v['gpart']  . "\t" .
-                '0062'  . "\t" .
-                '0010'  . "\t" .
-                '02'  . "\t" .
-                '3611210077'  . "\t" .
+                $v['gpart'] . "\t" .
+                '0062' . "\t" .
+                '0010' . "\t" .
+                '02' . "\t" .
+                '3611210077' . "\t" .
                 $abr . "\t" .
                 "\t" .
                 "\t" .
-                $date  . "\t" .
+                $date . "\t" .
                 $date_p . "\t" .
-                'Energo-'.$v['begru']  .'-'.substr($date,4,2).substr($date,0,4).'-'.$v['schet'] ."\t" .
-                $faedn  . "\t" .
-                n2sap($v['saldo'])  . "\t" .
-                n2sap($v['saldo'])  . "\t" .
+                'Energo-' . $v['begru'] . '-' . substr($date, 4, 2) . substr($date, 0, 4) . '-' . $v['schet'] . "\t" .
+                $faedn . "\t" .
+                n2sap($v['saldo']) . "\t" .
+                n2sap($v['saldo']) . "\t" .
                 "\t" .
                 "\t" .
                 "\t" .
@@ -3322,7 +3320,7 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                 "\t" .
                 "\t" .
                 "\t" .
-                $abr   . "\t" .
+                $abr . "\t" .
                 "\t" .
                 '2020' . "\t" .
                 n2sap($nds) . "\t" .
@@ -3330,45 +3328,45 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                 'R'
             ));
 
-            fwrite($f,  "\n");
+            fwrite($f, "\n");
 // OPK block
             fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                 'OPK' . "\t" .
-                '001'  . "\t" .
-                $v['begru']   . "\t" .
-                'INITIAL4' . "\t".
-                n2sap($wo_nds) . "\t".
-                n2sap($wo_nds) . "\t".
-                $abr  . "\t" .
+                '001' . "\t" .
+                $v['begru'] . "\t" .
+                'INITIAL4' . "\t" .
+                n2sap($wo_nds) . "\t" .
+                n2sap($wo_nds) . "\t" .
+                $abr . "\t" .
                 "\t" .
                 "\t" .
                 "\t" .
                 "\t" .
                 "\t" .
-                $abr   . "\t" .
+                $abr . "\t" .
                 '2020'
             ));
 
-            fwrite($f,  "\n");
+            fwrite($f, "\n");
 
             fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                 'OPK' . "\t" .
-                '002'  . "\t" .
-                $v['begru']   . "\t" .
-                $sch_nds. "\t".
-                n2sap($nds) . "\t".
-                n2sap($nds) . "\t".
+                '002' . "\t" .
+                $v['begru'] . "\t" .
+                $sch_nds . "\t" .
+                n2sap($nds) . "\t" .
+                n2sap($nds) . "\t" .
                 $abr . "\t" .
-                n2sap($wo_nds) . "\t".
-                n2sap($wo_nds) . "\t".
-                'MWS'  . "\t" .
-                '020000'  . "\t" .
-                'MWAS'  . "\t" .
+                n2sap($wo_nds) . "\t" .
+                n2sap($wo_nds) . "\t" .
+                'MWS' . "\t" .
+                '020000' . "\t" .
+                'MWAS' . "\t" .
                 $abr . "\t" .
                 '2020'
             ));
 
-            fwrite($f,  "\n");
+            fwrite($f, "\n");
 
             $end = '&ENDE';
 
@@ -3376,46 +3374,45 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
                 $end . "\n");
         }
 
-            $model = new info();
-            $model->title = 'УВАГА!';
-            $model->info1 = "Файл DOCUMENT сформовано.";
-            $model->style1 = "d15";
-            $model->style2 = "info-text";
-            $model->style_title = "d9";
-            return $this->render('info', [
-                'model' => $model]);
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл DOCUMENT сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+        return $this->render('info', [
+            'model' => $model]);
     }
 
 
     // Формирование файла группировки устройств DEVGRP (юридические лица)
     public function actionSap_devgrp($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
         $end = '&ENDE';
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 //   Дальше идет плагиат - взято из выгрузки Чернигова
-        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
-        $period = str_replace('-','',$period);
+        $period = str_replace('-', '', $period);
 
-        $sql="select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
+        $sql = "select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
         from group_trans1 as eq
          join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, eq.name_eqp,
 		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
@@ -3444,25 +3441,25 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
             order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
 //        Формируем имя файла выгрузки
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
-        $oldkey_const='04_C'.$rem.'B_';
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
+        $oldkey_const = '04_C' . $rem . 'B_';
 
         $fname1 = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $ff = fopen($fname1, 'w+');
 
-        foreach($data as $v) {
+        foreach ($data as $v) {
             $id_eq = $v['id_eq'];
             $id = $v['id'];
-            $short_name=$v['short_name'];
-            $code=$v['code'];
+            $short_name = $v['short_name'];
+            $code = $v['code'];
             $oldkey = $oldkey_const . $id;
-            $oldkey1= '04_C'.$rem.'P_';
-            $sql_1="select  distinct  1 as ord,eq.id_point ,
+            $oldkey1 = '04_C' . $rem . 'P_';
+            $sql_1 = "select  distinct  1 as ord,eq.id_point ,
 'EDEVGR' as n_struct,
 case when substr(zz.clas,1,1)='J'  then '0002'  else '0003' end as devgrptyp,
 '$period'  as keydate, 
@@ -3539,28 +3536,29 @@ order by sort,ord";
 //            return;
 
             // Запись в файл структуры DI_INT
-            $oldkey2='';
+            $oldkey2 = '';
             foreach ($data_1 as $v1) {
-                   $link_tr = str_replace(chr(13),'',$v1['devgrptyp']);
-                   $link_tr = str_replace(chr(10),'',$v1['devgrptyp']);
-                   $oldkey2 = $oldkey1 . $v1['id_point'];
-                    fwrite($f, iconv("utf-8","windows-1251",$oldkey2."\t".
-                    $v1['n_struct']."\t".
-                    $link_tr."\t".
-                    $v1['keydate']."\n") );
+                $link_tr = str_replace(chr(13), '', $v1['devgrptyp']);
+                $link_tr = str_replace(chr(10), '', $v1['devgrptyp']);
+                $oldkey2 = $oldkey1 . $v1['id_point'];
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey2 . "\t" .
+                    $v1['n_struct'] . "\t" .
+                    $link_tr . "\t" .
+                    $v1['keydate'] . "\n"));
 
             }
-            if (trim($oldkey2)<>'')
-            { fwrite($f, $oldkey2."\t".
-                $end."\n");
+            if (trim($oldkey2) <> '') {
+                fwrite($f, $oldkey2 . "\t" .
+                    $end . "\n");
 
-            // Запись в _ext файл
-            fwrite($ff, iconv("utf-8","windows-1251", 'DEVGRP'."\t".
-                $oldkey2."\t".
-                $code."\t".
-                $short_name."\n"
-                ) );}
+                // Запись в _ext файл
+                fwrite($ff, iconv("utf-8", "windows-1251", 'DEVGRP' . "\t" .
+                    $oldkey2 . "\t" .
+                    $code . "\t" .
+                    $short_name . "\n"
+                ));
             }
+        }
 
 
         // Выдаем предупреждение на экран об окончании формирования файла
@@ -3576,15 +3574,15 @@ order by sort,ord";
     }
 
     //выгрузка ид фалов сап инстлн , для бытовых потребителей
-        public function actionIdfile_instln_ind($res)
+    public function actionIdfile_instln_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -3592,7 +3590,7 @@ order by sort,ord";
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'INSTLN' as OM,oldkey,v.code,trim((v.last_name||' '||substr(v.name, 1, 1)||'.'||substr(v.patron_name, 1, 1)||'.')) as name_tu,const.ver from sap_data as a
@@ -3613,19 +3611,19 @@ order by sort,ord";
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-            deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -3636,41 +3634,40 @@ order by sort,ord";
 
         return $this->render('info', [
             'model' => $model]);
-        
-    } 
-    
-    
+
+    }
+
+
     // Формирование файла instln для САП для юридических потребителей
     public function actionSap_instln($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
 
         // Получаем дату ab
-        $sql_d=" select (max(mmgg) - interval '3 month')::date as mmgg_current from sys_month_tbl";
-        $data_d = data_from_server($sql_d,$res,$vid);
-        $date_ab=$data_d[0]['mmgg_current'];
+        $sql_d = " select (max(mmgg) - interval '3 month')::date as mmgg_current from sys_month_tbl";
+        $data_d = data_from_server($sql_d, $res, $vid);
+        $date_ab = $data_d[0]['mmgg_current'];
 
         // Главный запрос со всеми необходимыми данными - но старый (переделанный смотри ниже после этого)
         // сейчас этот не используется
@@ -3850,7 +3847,7 @@ order by 7
 ) o
 ";
 // Самый новый правильный запрос
-        $sql="SELECT distinct q.code_eqp as id,ar.code_eqp_inst,yy.oldkey as vstelle,''::char(20) as vstelle1,'10' as sparte,
+        $sql = "SELECT distinct q.code_eqp as id,ar.code_eqp_inst,yy.oldkey as vstelle,''::char(20) as vstelle1,'10' as sparte,
 const.ver,const.begru_all as begru,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh,
 case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
 q.* from (
@@ -3977,8 +3974,8 @@ where ar.code_eqp_inst is not null and yy.oldkey is not null
 order by q.code_eqp
 ";
 
-        if($helper==1)
-            $sql = $sql.' LIMIT 1';
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -3986,42 +3983,42 @@ order by q.code_eqp
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-       $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
 //        $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
-        
+
 //debug($data);
 //return;
 
-        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
         // Включение режима помощника
-        if($helper==1){
-            $fhelper=$routine.'_HELPER'.'.txt';
-            $ff = fopen($fhelper,'w+');
+        if ($helper == 1) {
+            $fhelper = $routine . '_HELPER' . '.txt';
+            $ff = fopen($fhelper, 'w+');
             // Создание переменных
             foreach ($data as $v) {
                 foreach ($v as $k => $v1) {
-                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    $var = '$' . $k . '=$v' . '[' . "'" . $k . "']";
                     fputs($ff, $var);
                     fputs($ff, "\n");
 
                 }
             }
-            $i=0;
+            $i = 0;
 
             foreach ($cnt as $v) {
                 $i++;
                 $n_struct = trim($v['dattype']);
                 fputs($ff, "\n");
-                $var='if ($n_struct=='."'$n_struct') {";
+                $var = 'if ($n_struct==' . "'$n_struct') {";
                 fputs($ff, $var);
                 fputs($ff, "\n");
                 //Создание строки INSERT
                 $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
                 $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
 //                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
-                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                $z = '     $z = "' . " insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values . ")" . '";';
                 fputs($ff, $z);
                 fputs($ff, "\n");
                 $z = ' exec_on_server($z,(int) $rem,$vid);';
@@ -4046,55 +4043,55 @@ order by q.code_eqp
 
         // Удаляем данные в таблицах структур
 
-        $i=0;
+        $i = 0;
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
-            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct);
-            exec_on_server($zsql,$res,$vid);
+            if ($i == 1) $first_struct = trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_" . strtolower($n_struct);
+            exec_on_server($zsql, $res, $vid);
         }
 
         // Заполняем структуры
 
-       foreach ($data as $w) {
-           foreach ($cnt as $v) {
-               $n_struct = trim($v['dattype']);
-               $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
-               eval($func_fill);
-           }
-       }
+        foreach ($data as $w) {
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $func_fill = 'f_' . strtolower($routine) . '($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                eval($func_fill);
+            }
+        }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_$first_struct";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -4106,7 +4103,7 @@ order by q.code_eqp
         }
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -4116,8 +4113,8 @@ order by q.code_eqp
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -4125,7 +4122,7 @@ order by q.code_eqp
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -4134,7 +4131,7 @@ order by q.code_eqp
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -4143,30 +4140,29 @@ order by q.code_eqp
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 2;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
         // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
+        $sql = "SELECT * from sap_refer where upload='$filename'";
         $data_u = data_from_server($sql, $res, $vid);
         $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
+        $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+        if (!empty($data_u[0]['upload'])) {
             $err = no_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
-                    $z="INSERT  INTO sap_err
+                    $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$refer',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
             }
         }
-         // нет объекта высшего уровня }
-
+        // нет объекта высшего уровня }
 
 
         // пустая ссылка {
@@ -4175,7 +4171,7 @@ order by q.code_eqp
         if (count($err)) {
             foreach ($err as $v) {
 //                    debug($v);
-                $z="INSERT  INTO sap_err
+                $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
@@ -4183,29 +4179,29 @@ order by q.code_eqp
         }
         // пустая ссылка }
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
 
@@ -4214,24 +4210,23 @@ order by q.code_eqp
     public function actionSap_zsign_ca($res)
     {
 
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
@@ -4241,8 +4236,8 @@ order by q.code_eqp
     where last_name2<>'' and last_name2 is not null
     order by 2   ";
 
-        if($helper==1)
-            $sql = $sql.' LIMIT 1';
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -4250,40 +4245,40 @@ order by q.code_eqp
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
 //        debug($data);
 //        return;
 
-        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
         // Включение режима помощника
-        if($helper==1){
-            $fhelper=$routine.'_HELPER'.'.txt';
-            $ff = fopen($fhelper,'w+');
+        if ($helper == 1) {
+            $fhelper = $routine . '_HELPER' . '.txt';
+            $ff = fopen($fhelper, 'w+');
             // Создание переменных
             foreach ($data as $v) {
                 foreach ($v as $k => $v1) {
-                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    $var = '$' . $k . '=$v' . '[' . "'" . $k . "']";
                     fputs($ff, $var);
                     fputs($ff, "\n");
 
                 }
             }
-            $i=0;
+            $i = 0;
 
             foreach ($cnt as $v) {
                 $i++;
                 $n_struct = trim($v['dattype']);
                 fputs($ff, "\n");
-                $var='if ($n_struct=='."'$n_struct') {";
+                $var = 'if ($n_struct==' . "'$n_struct') {";
                 fputs($ff, $var);
                 fputs($ff, "\n");
                 //Создание строки INSERT
                 $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
                 $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
 //                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
-                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                $z = '     $z = "' . " insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values . ")" . '";';
                 fputs($ff, $z);
                 fputs($ff, "\n");
                 $z = ' exec_on_server($z,(int) $rem,$vid);';
@@ -4308,31 +4303,31 @@ order by q.code_eqp
 
         // Удаляем данные в таблицах структур
 
-        $i=0;
+        $i = 0;
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
-            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct);
-            exec_on_server($zsql,$res,$vid);
+            if ($i == 1) $first_struct = trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_" . strtolower($n_struct);
+            exec_on_server($zsql, $res, $vid);
         }
 
         // Заполняем структуры
-        $i=0;
+        $i = 0;
         foreach ($data as $w) {
-            $zsign[$i]=f_zsign_ca($rem,$w);
+            $zsign[$i] = f_zsign_ca($rem, $w);
             $i++;
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver='8';
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = '8';
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с массивов $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($zsign as $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
@@ -4340,53 +4335,52 @@ order by q.code_eqp
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, $d1[0] . "\t" . '&ENDE');
             fputs($f, "\n");
 
             $i++;
         }
 
-            $model = new info();
-            $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.";
-            $model->style1 = "d15";
-            $model->style2 = "info-text";
-            $model->style_title = "d9";
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
 
-            return $this->render('info', [
-                'model' => $model]);
+        return $this->render('info', [
+            'model' => $model]);
 
     }
 
     // Формирование файла zpay_ca(схема платежей)  для САП для юридических потребителей
     public function actionSap_zpay_ca($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select b.oldkey as oldkey_acc,a.*,b.oldkey||'_PAY' as oldkey_pay from sap_payment_scheme a 
                  right join sap_init_acc b on trim(a.vkont)=trim(b.vkona) ";
 
-        if($helper==1)
-            $sql = $sql.' LIMIT 1';
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -4394,40 +4388,40 @@ order by q.code_eqp
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
 //        debug($data);
 //        return;
 
-        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
         // Включение режима помощника
-        if($helper==1){
-            $fhelper=$routine.'_HELPER'.'.txt';
-            $ff = fopen($fhelper,'w+');
+        if ($helper == 1) {
+            $fhelper = $routine . '_HELPER' . '.txt';
+            $ff = fopen($fhelper, 'w+');
             // Создание переменных
             foreach ($data as $v) {
                 foreach ($v as $k => $v1) {
-                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    $var = '$' . $k . '=$v' . '[' . "'" . $k . "']";
                     fputs($ff, $var);
                     fputs($ff, "\n");
 
                 }
             }
-            $i=0;
+            $i = 0;
 
             foreach ($cnt as $v) {
                 $i++;
                 $n_struct = trim($v['dattype']);
                 fputs($ff, "\n");
-                $var='if ($n_struct=='."'$n_struct') {";
+                $var = 'if ($n_struct==' . "'$n_struct') {";
                 fputs($ff, $var);
                 fputs($ff, "\n");
                 //Создание строки INSERT
                 $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
                 $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
 //                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
-                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                $z = '     $z = "' . " insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values . ")" . '";';
                 fputs($ff, $z);
                 fputs($ff, "\n");
                 $z = ' exec_on_server($z,(int) $rem,$vid);';
@@ -4452,30 +4446,30 @@ order by q.code_eqp
 
         // Удаляем данные в таблицах структур
 
-        $i=0;
+        $i = 0;
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
-            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct);
-            exec_on_server($zsql,$res,$vid);
+            if ($i == 1) $first_struct = trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_" . strtolower($n_struct);
+            exec_on_server($zsql, $res, $vid);
         }
 
         // Заполняем структуры
-        $i=0;
+        $i = 0;
         foreach ($data as $w) {
-            $zsign[$i]=f_zpay_ca($rem,$w);
+            $zsign[$i] = f_zpay_ca($rem, $w);
             $i++;
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver='8';
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = '8';
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
-        $i=0;
+        $i = 0;
         foreach ($zsign as $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
@@ -4483,7 +4477,7 @@ order by q.code_eqp
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, $d1[0] . "\t" . '&ENDE');
             fputs($f, "\n");
 
             $i++;
@@ -4504,28 +4498,27 @@ order by q.code_eqp
     // Формирование файла instlncha (субпотребители) - САП для юридических потребителей
     public function actionSap_instlncha($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
 // Главный запрос со всеми необходимыми данными
-$sql = "select q.*,'*' as div,i.*,
+        $sql = "select q.*,'*' as div,i.*,
 j.oldkey as oldkey_m,j.vstelle as vstelle_m,j.spebene as spebene_m,j.anlart as anlart_m,
 j.ablesartst as ablesartst_m,j.zz_nametu as zz_nametu_m,j.zz_fider as zz_fider_m,
 j.ab as ab_m,j.tariftyp as tariftyp_m,j.branche as branche_m,j.aklasse as aklasse_m,
@@ -4550,8 +4543,8 @@ where code_sub is not null and id_client<>2062
 and case when $res=1 then id_client not in(10408,10312,11843,162582,12527) else 1=1 end
 order by code_ust,lvl";
 
-        if($helper==1)
-            $sql = $sql.' LIMIT 1';
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -4559,12 +4552,12 @@ order by code_ust,lvl";
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
 //        debug($data);
 //        return;
 
-        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
         // Удаляем данные в таблицах структур
 
@@ -4581,128 +4574,29 @@ order by code_ust,lvl";
 //        return;
 
         // Заполняем структуры
-        $i=0;
-        $q=count($data);
-        if($q>0)
-            $ust=$data[0]['code_ust'];
+        $i = 0;
+        $q = count($data);
+        if ($q > 0)
+            $ust = $data[0]['code_ust'];
         else
-            $ust='';
-        $zsub=[];
-        $kol=0;
+            $ust = '';
+        $zsub = [];
+        $kol = 0;
 
 //        debug($data);
 //        debug($q);
 //        debug($ust);
         //return;
-        $j=0;
+        $j = 0;
         foreach ($data as $v) {
-            $ust1=$v['code_ust'];
+            $ust1 = $v['code_ust'];
             $kol++;
-            $i_status=0;
-            if($kol>=$q) $i_status=1;
+            $i_status = 0;
+            if ($kol >= $q) $i_status = 1;
 //            while($i_status==0) {
-                if ($ust1 == $ust) {
-                    $j++;
-                    if ($j == 1) {
-                        // Запись информации по главной установке
-                        $oldkey = $v['oldkey_m'];
-                        $spebene = $v['spebene_m'];
-                        $anlart = $v['anlart_m'];
-                        $vstelle = $v['vstelle_m'];
-                        $ablesartst = $v['ablesartst_m'];
-                        $zz_nametu = $v['zz_nametu_m'];
-                        $zz_fider = $v['zz_fider_m'];
-                        $ab = $v['ab_m'];
-                        $tariftyp = $v['tariftyp_m'];
-                        $branche = $v['branche_m'];
-                        $aklasse = $v['aklasse_m'];
-                        $ableinh = $v['ableinh_m'];
-                        $zzcode4nkre = $v['zzcode4nkre_m'];
-                        $zzcode4nkre_dop = $v['zzcode4nkre_dop_m'];
-                        $zzotherarea = $v['zzotherarea_m'];
-                        $begru = $v['begru_m'];
-                        $zz_eic = $v['zz_eic_m'];
-                        $maininst = '';
-                        $instrole = '';
-                        $instgrtype = '0002';
-                        $highlevinst = '';
-
-                        $zsub[$i][0]=$oldkey;
-                        $zsub[$i][1]='DATA';
-                         $zsub[$i][2]=$vstelle;
-                         $zsub[$i][3]=$spebene;
-                         $zsub[$i][4]=$anlart;
-                         $zsub[$i][5]=$ablesartst;
-                         $zsub[$i][6]=$zz_nametu;
-                         $zsub[$i][7]=$zz_fider;
-                          $zsub[$i][8]=$ab;
-                          $zsub[$i][9]=$tariftyp;
-                          $zsub[$i][10]=$branche;
-                          $zsub[$i][11]=$aklasse;
-                          $zsub[$i][12]=$ableinh;
-                          $zsub[$i][13]=$maininst;
-                          $zsub[$i][14]=$instrole;
-                          $zsub[$i][15]=$instgrtype;
-                          $zsub[$i][16]=$highlevinst;
-                          $zsub[$i][17]=$zzcode4nkre;
-                          $zsub[$i][18]=$zzcode4nkre_dop;
-                          $zsub[$i][19]=$zzotherarea;
-                          $zsub[$i][20]=$begru;
-                          $zsub[$i][21]=$zz_eic;
-                          $i++;
-                    }
-                    // Запись информации по субпотребителю
-                    $oldkey = $v['oldkey'];
-                    $spebene = $v['spebene'];
-                    $anlart = $v['anlart'];
-                    $vstelle = $v['vstelle'];
-                    $ablesartst = $v['ablesartst'];
-                    $zz_nametu = $v['zz_nametu'];
-                    $zz_fider = $v['zz_fider'];
-                    $ab = $v['ab'];
-                    $tariftyp = $v['tariftyp'];
-                    $branche = $v['branche'];
-                    $aklasse = $v['aklasse'];
-                    $ableinh = $v['ableinh'];
-                    $zzcode4nkre = $v['zzcode4nkre'];
-                    $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
-                    $zzotherarea = $v['zzotherarea'];
-                    $begru = $v['begru'];
-                    $zz_eic = $v['zz_eic'];
-                    $maininst = $v['oldkey_m'];
-                    $instrole = 'VL_N';
-                    $instgrtype = '';
-                    $highlevinst = $v['oldkey_m'];
-
-                    $zsub[$i][0]=$oldkey;
-                    $zsub[$i][1]='DATA';
-                    $zsub[$i][2]=$vstelle;
-                    $zsub[$i][3]=$spebene;
-                    $zsub[$i][4]=$anlart;
-                    $zsub[$i][5]=$ablesartst;
-                    $zsub[$i][6]=$zz_nametu;
-                    $zsub[$i][7]=$zz_fider;
-                    $zsub[$i][8]=$ab;
-                    $zsub[$i][9]=$tariftyp;
-                    $zsub[$i][10]=$branche;
-                    $zsub[$i][11]=$aklasse;
-                    $zsub[$i][12]=$ableinh;
-                    $zsub[$i][13]=$maininst;
-                    $zsub[$i][14]=$instrole;
-                    $zsub[$i][15]=$instgrtype;
-                    $zsub[$i][16]=$highlevinst;
-                    $zsub[$i][17]=$zzcode4nkre;
-                    $zsub[$i][18]=$zzcode4nkre_dop;
-                    $zsub[$i][19]=$zzotherarea;
-                    $zsub[$i][20]=$begru;
-                    $zsub[$i][21]=$zz_eic;
-                    $i++;
-                }
-                else {
-                    $ust = $ust1;
-                    $i_status=1;
-                    $j=1;
-
+            if ($ust1 == $ust) {
+                $j++;
+                if ($j == 1) {
                     // Запись информации по главной установке
                     $oldkey = $v['oldkey_m'];
                     $spebene = $v['spebene_m'];
@@ -4726,100 +4620,198 @@ order by code_ust,lvl";
                     $instgrtype = '0002';
                     $highlevinst = '';
 
-                    $zsub[$i][0]=$oldkey;
-                    $zsub[$i][1]='DATA';
-                    $zsub[$i][2]=$vstelle;
-                    $zsub[$i][3]=$spebene;
-                    $zsub[$i][4]=$anlart;
-                    $zsub[$i][5]=$ablesartst;
-                    $zsub[$i][6]=$zz_nametu;
-                    $zsub[$i][7]=$zz_fider;
-                    $zsub[$i][8]=$ab;
-                    $zsub[$i][9]=$tariftyp;
-                    $zsub[$i][10]=$branche;
-                    $zsub[$i][11]=$aklasse;
-                    $zsub[$i][12]=$ableinh;
-                    $zsub[$i][13]=$maininst;
-                    $zsub[$i][14]=$instrole;
-                    $zsub[$i][15]=$instgrtype;
-                    $zsub[$i][16]=$highlevinst;
-                    $zsub[$i][17]=$zzcode4nkre;
-                    $zsub[$i][18]=$zzcode4nkre_dop;
-                    $zsub[$i][19]=$zzotherarea;
-                    $zsub[$i][20]=$begru;
-                    $zsub[$i][21]=$zz_eic;
+                    $zsub[$i][0] = $oldkey;
+                    $zsub[$i][1] = 'DATA';
+                    $zsub[$i][2] = $vstelle;
+                    $zsub[$i][3] = $spebene;
+                    $zsub[$i][4] = $anlart;
+                    $zsub[$i][5] = $ablesartst;
+                    $zsub[$i][6] = $zz_nametu;
+                    $zsub[$i][7] = $zz_fider;
+                    $zsub[$i][8] = $ab;
+                    $zsub[$i][9] = $tariftyp;
+                    $zsub[$i][10] = $branche;
+                    $zsub[$i][11] = $aklasse;
+                    $zsub[$i][12] = $ableinh;
+                    $zsub[$i][13] = $maininst;
+                    $zsub[$i][14] = $instrole;
+                    $zsub[$i][15] = $instgrtype;
+                    $zsub[$i][16] = $highlevinst;
+                    $zsub[$i][17] = $zzcode4nkre;
+                    $zsub[$i][18] = $zzcode4nkre_dop;
+                    $zsub[$i][19] = $zzotherarea;
+                    $zsub[$i][20] = $begru;
+                    $zsub[$i][21] = $zz_eic;
                     $i++;
+                }
+                // Запись информации по субпотребителю
+                $oldkey = $v['oldkey'];
+                $spebene = $v['spebene'];
+                $anlart = $v['anlart'];
+                $vstelle = $v['vstelle'];
+                $ablesartst = $v['ablesartst'];
+                $zz_nametu = $v['zz_nametu'];
+                $zz_fider = $v['zz_fider'];
+                $ab = $v['ab'];
+                $tariftyp = $v['tariftyp'];
+                $branche = $v['branche'];
+                $aklasse = $v['aklasse'];
+                $ableinh = $v['ableinh'];
+                $zzcode4nkre = $v['zzcode4nkre'];
+                $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+                $zzotherarea = $v['zzotherarea'];
+                $begru = $v['begru'];
+                $zz_eic = $v['zz_eic'];
+                $maininst = $v['oldkey_m'];
+                $instrole = 'VL_N';
+                $instgrtype = '';
+                $highlevinst = $v['oldkey_m'];
 
-            // Запись информации по субпотребителю
-            $oldkey = $v['oldkey'];
-            $spebene = $v['spebene'];
-            $anlart = $v['anlart'];
-            $vstelle = $v['vstelle'];
-            $ablesartst = $v['ablesartst'];
-            $zz_nametu = $v['zz_nametu'];
-            $zz_fider = $v['zz_fider'];
-            $ab = $v['ab'];
-            $tariftyp = $v['tariftyp'];
-            $branche = $v['branche'];
-            $aklasse = $v['aklasse'];
-            $ableinh = $v['ableinh'];
-            $zzcode4nkre = $v['zzcode4nkre'];
-            $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
-            $zzotherarea = $v['zzotherarea'];
-            $begru = $v['begru'];
-            $zz_eic = $v['zz_eic'];
-            $maininst = $v['oldkey_m'];
-            $instrole = 'VL_N';
-            $instgrtype = '';
-            $highlevinst = $v['oldkey_m'];
+                $zsub[$i][0] = $oldkey;
+                $zsub[$i][1] = 'DATA';
+                $zsub[$i][2] = $vstelle;
+                $zsub[$i][3] = $spebene;
+                $zsub[$i][4] = $anlart;
+                $zsub[$i][5] = $ablesartst;
+                $zsub[$i][6] = $zz_nametu;
+                $zsub[$i][7] = $zz_fider;
+                $zsub[$i][8] = $ab;
+                $zsub[$i][9] = $tariftyp;
+                $zsub[$i][10] = $branche;
+                $zsub[$i][11] = $aklasse;
+                $zsub[$i][12] = $ableinh;
+                $zsub[$i][13] = $maininst;
+                $zsub[$i][14] = $instrole;
+                $zsub[$i][15] = $instgrtype;
+                $zsub[$i][16] = $highlevinst;
+                $zsub[$i][17] = $zzcode4nkre;
+                $zsub[$i][18] = $zzcode4nkre_dop;
+                $zsub[$i][19] = $zzotherarea;
+                $zsub[$i][20] = $begru;
+                $zsub[$i][21] = $zz_eic;
+                $i++;
+            } else {
+                $ust = $ust1;
+                $i_status = 1;
+                $j = 1;
 
-            $zsub[$i][0]=$oldkey;
-            $zsub[$i][1]='DATA';
-            $zsub[$i][2]=$vstelle;
-            $zsub[$i][3]=$spebene;
-            $zsub[$i][4]=$anlart;
-            $zsub[$i][5]=$ablesartst;
-            $zsub[$i][6]=$zz_nametu;
-            $zsub[$i][7]=$zz_fider;
-            $zsub[$i][8]=$ab;
-            $zsub[$i][9]=$tariftyp;
-            $zsub[$i][10]=$branche;
-            $zsub[$i][11]=$aklasse;
-            $zsub[$i][12]=$ableinh;
-            $zsub[$i][13]=$maininst;
-            $zsub[$i][14]=$instrole;
-            $zsub[$i][15]=$instgrtype;
-            $zsub[$i][16]=$highlevinst;
-            $zsub[$i][17]=$zzcode4nkre;
-            $zsub[$i][18]=$zzcode4nkre_dop;
-            $zsub[$i][19]=$zzotherarea;
-            $zsub[$i][20]=$begru;
-            $zsub[$i][21]=$zz_eic;
-            $i++;
-              }
+                // Запись информации по главной установке
+                $oldkey = $v['oldkey_m'];
+                $spebene = $v['spebene_m'];
+                $anlart = $v['anlart_m'];
+                $vstelle = $v['vstelle_m'];
+                $ablesartst = $v['ablesartst_m'];
+                $zz_nametu = $v['zz_nametu_m'];
+                $zz_fider = $v['zz_fider_m'];
+                $ab = $v['ab_m'];
+                $tariftyp = $v['tariftyp_m'];
+                $branche = $v['branche_m'];
+                $aklasse = $v['aklasse_m'];
+                $ableinh = $v['ableinh_m'];
+                $zzcode4nkre = $v['zzcode4nkre_m'];
+                $zzcode4nkre_dop = $v['zzcode4nkre_dop_m'];
+                $zzotherarea = $v['zzotherarea_m'];
+                $begru = $v['begru_m'];
+                $zz_eic = $v['zz_eic_m'];
+                $maininst = '';
+                $instrole = '';
+                $instgrtype = '0002';
+                $highlevinst = '';
+
+                $zsub[$i][0] = $oldkey;
+                $zsub[$i][1] = 'DATA';
+                $zsub[$i][2] = $vstelle;
+                $zsub[$i][3] = $spebene;
+                $zsub[$i][4] = $anlart;
+                $zsub[$i][5] = $ablesartst;
+                $zsub[$i][6] = $zz_nametu;
+                $zsub[$i][7] = $zz_fider;
+                $zsub[$i][8] = $ab;
+                $zsub[$i][9] = $tariftyp;
+                $zsub[$i][10] = $branche;
+                $zsub[$i][11] = $aklasse;
+                $zsub[$i][12] = $ableinh;
+                $zsub[$i][13] = $maininst;
+                $zsub[$i][14] = $instrole;
+                $zsub[$i][15] = $instgrtype;
+                $zsub[$i][16] = $highlevinst;
+                $zsub[$i][17] = $zzcode4nkre;
+                $zsub[$i][18] = $zzcode4nkre_dop;
+                $zsub[$i][19] = $zzotherarea;
+                $zsub[$i][20] = $begru;
+                $zsub[$i][21] = $zz_eic;
+                $i++;
+
+                // Запись информации по субпотребителю
+                $oldkey = $v['oldkey'];
+                $spebene = $v['spebene'];
+                $anlart = $v['anlart'];
+                $vstelle = $v['vstelle'];
+                $ablesartst = $v['ablesartst'];
+                $zz_nametu = $v['zz_nametu'];
+                $zz_fider = $v['zz_fider'];
+                $ab = $v['ab'];
+                $tariftyp = $v['tariftyp'];
+                $branche = $v['branche'];
+                $aklasse = $v['aklasse'];
+                $ableinh = $v['ableinh'];
+                $zzcode4nkre = $v['zzcode4nkre'];
+                $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+                $zzotherarea = $v['zzotherarea'];
+                $begru = $v['begru'];
+                $zz_eic = $v['zz_eic'];
+                $maininst = $v['oldkey_m'];
+                $instrole = 'VL_N';
+                $instgrtype = '';
+                $highlevinst = $v['oldkey_m'];
+
+                $zsub[$i][0] = $oldkey;
+                $zsub[$i][1] = 'DATA';
+                $zsub[$i][2] = $vstelle;
+                $zsub[$i][3] = $spebene;
+                $zsub[$i][4] = $anlart;
+                $zsub[$i][5] = $ablesartst;
+                $zsub[$i][6] = $zz_nametu;
+                $zsub[$i][7] = $zz_fider;
+                $zsub[$i][8] = $ab;
+                $zsub[$i][9] = $tariftyp;
+                $zsub[$i][10] = $branche;
+                $zsub[$i][11] = $aklasse;
+                $zsub[$i][12] = $ableinh;
+                $zsub[$i][13] = $maininst;
+                $zsub[$i][14] = $instrole;
+                $zsub[$i][15] = $instgrtype;
+                $zsub[$i][16] = $highlevinst;
+                $zsub[$i][17] = $zzcode4nkre;
+                $zsub[$i][18] = $zzcode4nkre_dop;
+                $zsub[$i][19] = $zzotherarea;
+                $zsub[$i][20] = $begru;
+                $zsub[$i][21] = $zz_eic;
+                $i++;
+            }
         }
 
 //        debug($zsub);
 //        return;
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver='8';
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = '8';
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
-        $i=0;
+        $i = 0;
         foreach ($zsub as $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
             $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
-            fputs($f, $d1[0]."\t".'KEY'."\t".$d1[0]);
+            fputs($f, $d1[0] . "\t" . 'KEY' . "\t" . $d1[0]);
             fputs($f, "\n");
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, $d1[0] . "\t" . '&ENDE');
             fputs($f, "\n");
 
             $i++;
@@ -4840,28 +4832,27 @@ order by code_ust,lvl";
     // Формирование файла линий(zlines) для САП для юридических потребителей
     public function actionSap_zlines($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-          $sql_f = "select eqm_schema_point_fun()";
-          $data_f = data_from_server($sql_f, $res, $vid);
+        $sql_f = "select eqm_schema_point_fun()";
+        $data_f = data_from_server($sql_f, $res, $vid);
         // Главный запрос со всеми необходимыми данными
         $sql = "
 select * from (
@@ -4922,8 +4913,8 @@ select * from (
 	       ORDER BY 6
                 ";
 
-        if($helper==1)
-            $sql = $sql.' LIMIT 1';
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -4931,39 +4922,39 @@ select * from (
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
-        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
 //        debug($data);
 //        return;
 
         // Включение режима помощника
-        if($helper==1){
-            $fhelper=$routine.'_HELPER'.'.txt';
-            $ff = fopen($fhelper,'w+');
+        if ($helper == 1) {
+            $fhelper = $routine . '_HELPER' . '.txt';
+            $ff = fopen($fhelper, 'w+');
             // Создание переменных
             foreach ($data as $v) {
                 foreach ($v as $k => $v1) {
-                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    $var = '$' . $k . '=$v' . '[' . "'" . $k . "']";
                     fputs($ff, $var);
                     fputs($ff, "\n");
 
                 }
             }
-            $i=0;
+            $i = 0;
 
             foreach ($cnt as $v) {
                 $i++;
                 $n_struct = trim($v['dattype']);
                 fputs($ff, "\n");
-                $var='if ($n_struct=='."'$n_struct') {";
+                $var = 'if ($n_struct==' . "'$n_struct') {";
                 fputs($ff, $var);
                 fputs($ff, "\n");
                 //Создание строки INSERT
                 $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
                 $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
 //                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
-                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                $z = '     $z = "' . " insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values . ")" . '";';
                 fputs($ff, $z);
                 fputs($ff, "\n");
                 $z = ' exec_on_server($z,(int) $rem,$vid);';
@@ -4987,14 +4978,14 @@ select * from (
         }
 
         // Удаляем данные в таблицах структур
-        $i=0;
+        $i = 0;
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
-            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct).'_zlines';
+            if ($i == 1) $first_struct = trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_" . strtolower($n_struct) . '_zlines';
 
-            exec_on_server($zsql,$res,$vid);
+            exec_on_server($zsql, $res, $vid);
         }
 
         // Заполняем структуры
@@ -5004,12 +4995,12 @@ select * from (
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-        $oldkey_const='04_C'.$rem.'P_01_';
+        $oldkey_const = '04_C' . $rem . 'P_01_';
 
         foreach ($data as $w) {
             foreach ($cnt as $v) {
                 $n_struct = trim($v['dattype']);
-                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                $func_fill = 'f_' . strtolower($routine) . '($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
                 eval($func_fill);
 
                 // Запись в _ext файл
@@ -5029,35 +5020,35 @@ select * from (
         fclose($f);
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
-        $sql = "select * from sap_$first_struct"."_zlines";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $sql = "select * from sap_$first_struct" . "_zlines";
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
-                $table_struct = 'sap_' . trim($v['dattype']).'_zlines';
+                $table_struct = 'sap_' . trim($v['dattype']) . '_zlines';
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -5069,7 +5060,7 @@ select * from (
         }
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -5079,8 +5070,8 @@ select * from (
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -5088,7 +5079,7 @@ select * from (
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -5097,7 +5088,7 @@ select * from (
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -5106,24 +5097,24 @@ select * from (
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 2;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
         // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
+        $sql = "SELECT * from sap_refer where upload='$filename'";
         $data_u = data_from_server($sql, $res, $vid);
         $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
+        $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+        if (!empty($data_u[0]['upload'])) {
             $err = no_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
+                    $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$refer',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
@@ -5137,7 +5128,7 @@ select * from (
         if (count($err)) {
             foreach ($err as $v) {
 //                    debug($v);
-                $z="INSERT  INTO sap_err
+                $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
@@ -5145,53 +5136,52 @@ select * from (
         }
         // пустая ссылка }
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
 
     // Формирование файла трансформаторов (ztransf) для САП для юридических потребителей
     public function actionSap_ztransf($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
@@ -5249,8 +5239,8 @@ select * from (
 	       10999999,11000000,19999369,50999999,1000000,1000001)
                 ";
 
-        if($helper==1)
-            $sql = $sql.' LIMIT 1';
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -5258,39 +5248,39 @@ select * from (
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
-        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
 //        debug($data);
 //        return;
 
         // Включение режима помощника
-        if($helper==1){
-            $fhelper=$routine.'_HELPER'.'.txt';
-            $ff = fopen($fhelper,'w+');
+        if ($helper == 1) {
+            $fhelper = $routine . '_HELPER' . '.txt';
+            $ff = fopen($fhelper, 'w+');
             // Создание переменных
             foreach ($data as $v) {
                 foreach ($v as $k => $v1) {
-                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    $var = '$' . $k . '=$v' . '[' . "'" . $k . "']";
                     fputs($ff, $var);
                     fputs($ff, "\n");
 
                 }
             }
-            $i=0;
+            $i = 0;
 
             foreach ($cnt as $v) {
                 $i++;
                 $n_struct = trim($v['dattype']);
                 fputs($ff, "\n");
-                $var='if ($n_struct=='."'$n_struct') {";
+                $var = 'if ($n_struct==' . "'$n_struct') {";
                 fputs($ff, $var);
                 fputs($ff, "\n");
                 //Создание строки INSERT
                 $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
                 $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
 //                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
-                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                $z = '     $z = "' . " insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values . ")" . '";';
                 fputs($ff, $z);
                 fputs($ff, "\n");
                 $z = ' exec_on_server($z,(int) $rem,$vid);';
@@ -5314,34 +5304,34 @@ select * from (
         }
 
         // Удаляем данные в таблицах структур
-        $i=0;
-         foreach ($cnt as $v) {
+        $i = 0;
+        foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
-            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct).'_ztransf';
-            exec_on_server($zsql,$res,$vid);
+            if ($i == 1) $first_struct = trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_" . strtolower($n_struct) . '_ztransf';
+            exec_on_server($zsql, $res, $vid);
         }
 
         // Заполняем структуры
         $fd = date('Ymd');
-         if(isset($data[0]['ver']))
+        if (isset($data[0]['ver']))
             $ver = $data[0]['ver'];
         else
-            $ver=$res;
+            $ver = $res;
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-        $oldkey_const='04_C'.$rem.'P_01_';
+        $oldkey_const = '04_C' . $rem . 'P_01_';
 
         foreach ($data as $w) {
             foreach ($cnt as $v) {
                 $n_struct = trim($v['dattype']);
-                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                $func_fill = 'f_' . strtolower($routine) . '($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
                 eval($func_fill);
 
-              // Запись в _ext файл
+                // Запись в _ext файл
                 $_ext[0] = 'ZTRANSF';
                 $_ext[1] = $oldkey_const . $w['code_eqp'];
                 $_ext[2] = '';
@@ -5357,40 +5347,40 @@ select * from (
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        if(isset($data[0]['ver']))
+        $fd = date('Ymd');
+        if (isset($data[0]['ver']))
             $ver = $data[0]['ver'];
         else
-            $ver=$res;
+            $ver = $res;
 
-        $ver='8';
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $ver = '8';
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
-        $sql = "select * from sap_$first_struct".'_ztransf';
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $sql = "select * from sap_$first_struct" . '_ztransf';
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
-                $table_struct = 'sap_' . trim($v['dattype']).'_ztransf';
+                $table_struct = 'sap_' . trim($v['dattype']) . '_ztransf';
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -5402,7 +5392,7 @@ select * from (
         }
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -5412,8 +5402,8 @@ select * from (
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -5421,7 +5411,7 @@ select * from (
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -5430,7 +5420,7 @@ select * from (
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -5439,100 +5429,99 @@ select * from (
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 2;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
         // нет объекта высшего уровня {
 //        if(1==2) {
-            $sql = "SELECT * from sap_refer where upload='$filename'";
-            $data_u = data_from_server($sql, $res, $vid);
-            $refer = $data_u[0]['refer'];
-            $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
-            if (!empty($data_u[0]['upload'])) {
-                $err = no_refer($fname, $data_u);
-                if (count($err)) {
-                    foreach ($err as $v) {
-//                    debug($v);
-                        $z = "INSERT  INTO sap_err
-                        VALUES('$filename','$v','$refer',$res)";
-                        exec_on_server($z, (int)$rem, $vid);
-                    }
-                }
-            }
-//        }
-//         нет объекта высшего уровня
-
-
-            // пустая ссылка {
-            $msg = 'Пустая ссылка';
-            $err = empty_refer($fname, $data_u);
+        $sql = "SELECT * from sap_refer where upload='$filename'";
+        $data_u = data_from_server($sql, $res, $vid);
+        $refer = $data_u[0]['refer'];
+        $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+        if (!empty($data_u[0]['upload'])) {
+            $err = no_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
                     $z = "INSERT  INTO sap_err
-                        VALUES('$filename','$v','$msg',$res)";
+                        VALUES('$filename','$v','$refer',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
-
             }
-            // пустая ссылка }
+        }
+//        }
+//         нет объекта высшего уровня
+
+
+        // пустая ссылка {
+        $msg = 'Пустая ссылка';
+        $err = empty_refer($fname, $data_u);
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z = "INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+
+        }
+        // пустая ссылка }
 
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
 
     // Формирование файла facts для САП для юридических потребителей
     public function actionSap_facts($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        if(1==2) {
+        if (1 == 2) {
             $sql = "select distinct eq2.num_eqp as ncnt,p.num_eqp,eerm.eerm,p.code_eqp as id,p.name_eqp,
 p.avg_dem::varchar as avg_dem,power_allow,power_con,
 value_r as tg_fi,round(p.wtm::numeric/30.0,0) as FACTOR_hour,p.safe_category,
@@ -5688,11 +5677,11 @@ eq3.name_eqp as name_tp,e.power,h.type_eqp as type_eqp1,h.name_eqp as h_eqp,area
 		order by code_area";
 
 // Получаем дату ab
-        $sql_d=" select (max(mmgg) - interval '3 month')::date as mmgg_current from sys_month_tbl";
-        $data_d = data_from_server($sql_d,$res,$vid);
-        $date_ab=$data_d[0]['mmgg_current'];
+        $sql_d = " select (max(mmgg) - interval '3 month')::date as mmgg_current from sys_month_tbl";
+        $data_d = data_from_server($sql_d, $res, $vid);
+        $date_ab = $data_d[0]['mmgg_current'];
 
-        $sql="select distinct uuu.zz_eic,p.neqp,eq2.num_eqp as ncnt,p.num_eqp,min(eerm.eerm) over(partition by uuu.zz_eic) as eerm,p.code_eqp as id,p.name_eqp,
+        $sql = "select distinct uuu.zz_eic,p.neqp,eq2.num_eqp as ncnt,p.num_eqp,min(eerm.eerm) over(partition by uuu.zz_eic) as eerm,p.code_eqp as id,p.name_eqp,
 p.avg_dem::varchar as avg_dem,power_allow,power_con,
 value_r as tg_fi,round(p.wtm::numeric/30.0,0) as FACTOR_hour,p.safe_category,
 case when coalesce(p.count_lost,0)=1 then 'X' else '' end as count_lost,
@@ -5952,9 +5941,8 @@ uuu.id=p.id and uuu.vstelle is not null
 ";
 
 
-
 // Самый правильный запрос
-$sql = "select res.*,ust.tariftyp from (
+        $sql = "select res.*,ust.tariftyp from (
 select distinct uuu.zz_eic,p.neqp,eq2.num_eqp as ncnt,p.num_eqp,min(eerm.eerm) over(partition by uuu.zz_eic) as eerm,
 p.code_eqp as id,p.name_eqp,
 p.avg_dem::varchar as avg_dem,power_allow,power_con,
@@ -6204,8 +6192,8 @@ left join sap_data ust on substr(ust.oldkey,12)::int=res.id
 order by 6 
 ";
 
-        if($helper==1)
-            $sql = $sql.' LIMIT 1';
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -6213,42 +6201,42 @@ order by 6
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
         // Заполняем массив $facts
-        $i=0;
+        $i = 0;
         $fd = date('Ymd');
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-        $oldkey_const='04_C'.$rem.'P_01_';
-        $id_h  = '';
+        $oldkey_const = '04_C' . $rem . 'P_01_';
+        $id_h = '';
         foreach ($data as $w) {
-                $facts[$i]=f_facts($rem,$w);
-                $i++;
-                    // Запись в _ext файл
-                    $_ext[0] = 'FACTS';
-                    $_ext[1] = $oldkey_const . $w['id'];
-                    $_ext[2] = $w['code'];
-                    $_ext[3] = $w['name'];
-                    $id_h = $w['id'];
-                    $d1 = array_map('trim', $_ext);
-                    $s1 = implode("\t", $d1);
-                    $s1 = str_replace("~", "", $s1);
-                    $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                    fputs($f, $s1);
-                    fputs($f, "\n");
-         }
+            $facts[$i] = f_facts($rem, $w);
+            $i++;
+            // Запись в _ext файл
+            $_ext[0] = 'FACTS';
+            $_ext[1] = $oldkey_const . $w['id'];
+            $_ext[2] = $w['code'];
+            $_ext[3] = $w['name'];
+            $id_h = $w['id'];
+            $d1 = array_map('trim', $_ext);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
         fclose($f);
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с массива $facts
         foreach ($facts as $d) {
@@ -6266,75 +6254,74 @@ order by 6
 
         // нет объекта высшего уровня {
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         $refer = 'INSTLN';
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
+        $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
 
-            $err = no_refer_facts($fname);
+        $err = no_refer_facts($fname);
 
-             if (count($err)>0) {
-                foreach ($err as $v) {
+        if (count($err) > 0) {
+            foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
+                $z = "INSERT  INTO sap_err
                         VALUES('FACTS','$v','$refer',$res)";
-                    exec_on_server($z, (int)$rem, $vid);
-                }
+                exec_on_server($z, (int)$rem, $vid);
             }
+        }
 
         // нет объекта высшего уровня }
-                fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
 
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
 
     // Формирование файла facts для САП для бытовых потребителей
-    public function actionSap_facts_ind($res,$par=0)
+    public function actionSap_facts_ind($res, $par = 0)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
-        $asd = [ "01" => 'BC010131',
+        $asd = ["01" => 'BC010131',
             "02" => 'BC010231',
             "03" => 'BC010331',
             "04" => 'BC010431',
@@ -6344,9 +6331,9 @@ order by 6
             "08" => 'BC010831',
         ];
         // Получаем дату ab
-        $sql_d="select (fun_mmgg() - interval '4 month')::date as mmgg_current";
-        $data_d = data_from_server($sql_d,$res,$vid);
-        $date_ab=$data_d[0]['mmgg_current'];
+        $sql_d = "select (fun_mmgg() - interval '4 month')::date as mmgg_current";
+        $data_d = data_from_server($sql_d, $res, $vid);
+        $date_ab = $data_d[0]['mmgg_current'];
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
         $sql = "select distinct fun_mmgg() as datab,facts.id,facts.power,max(facts.plita) as plita,max(facts.opal) as opal,max(facts.mmgg) as mmgg,
@@ -6415,22 +6402,22 @@ inner join
 ";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
         // Заполняем массив $facts
-        $i=0;
+        $i = 0;
         foreach ($data as $w) {
-            $facts[$i]=f_facts_ind($rem,$w);
+            $facts[$i] = f_facts_ind($rem, $w);
             $i++;
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с массива $facts
         foreach ($facts as $d) {
@@ -6447,7 +6434,7 @@ inner join
         }
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -6457,11 +6444,11 @@ inner join
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
-        if(1==2) {  // отключено
+        if (1 == 2) {  // отключено
             // нет объекта высшего уровня {
             $refer = 'INSTLN';
             $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
@@ -6483,20 +6470,20 @@ inner join
             fclose($f);
         }
 
-            $sql_err = "select * from sap_err where upload = '$filename'";
+        $sql_err = "select * from sap_err where upload = '$filename'";
 
-            $sql_ab = data_from_server($sql_err, $res, $vid);
+        $sql_ab = data_from_server($sql_err, $res, $vid);
 
-            //kol struckt{
+        //kol struckt{
 
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -6504,7 +6491,7 @@ inner join
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
 
 
@@ -6531,17 +6518,17 @@ inner join
 //        return $this->render('info', [
 //            'model' => $model]);
     }
-    
-        //выгрузка ид фалов сап факты , для бытовых потребителей
-        public function actionIdfile_facts_ind($res)
+
+    //выгрузка ид фалов сап факты , для бытовых потребителей
+    public function actionIdfile_facts_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -6549,7 +6536,7 @@ inner join
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'FACTS' as OM,'04_C'||ext.id_res||'B_01_'||ext.id as oldkey,kk.code,trim((v.last_name||' '||substr(v.name, 1, 1)||'.'||substr(v.patron_name, 1, 1)||'.')) as name_tu,ext.ver from (
@@ -6597,19 +6584,19 @@ group by id,power,plita,opal,mmgg,mmgg_end,ver,id_res,ver) as ext
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-            deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -6620,30 +6607,29 @@ group by id,power,plita,opal,mmgg,mmgg_end,ver,id_res,ver) as ext
 
         return $this->render('info', [
             'model' => $model]);
-        
-    } 
+
+    }
 
     // Формирование файла inst_mgmt для САП для бытовых потребителей
-    public function actionSap_inst_mgmt_ind($res,$par=0)
+    public function actionSap_inst_mgmt_ind($res, $par = 0)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
@@ -6707,26 +6693,26 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
 -- limit 10
 ";
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
         // Заполняем массивы структур: $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($data as $w) {
-            $di_int[$i]=f_inst_mgmt1_ind($rem,$w);
-            $di_zw[$i]=f_inst_mgmt2_ind($rem,$w);
+            $di_int[$i] = f_inst_mgmt1_ind($rem, $w);
+            $di_zw[$i] = f_inst_mgmt2_ind($rem, $w);
             $i++;
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с массивов $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($di_int as $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
@@ -6746,7 +6732,7 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
         }
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -6756,21 +6742,21 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
-        if(1==2) {  // отключено
-        // задвоения по oldkey  {
-        $err = double_oldkey($fname);
-        // Запись в таблицу ошибок
-        if (count($err)) {
-            foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
-                exec_on_server($z, (int)$rem, $vid);
+        if (1 == 2) {  // отключено
+            // задвоения по oldkey  {
+            $err = double_oldkey($fname);
+            // Запись в таблицу ошибок
+            if (count($err)) {
+                foreach ($err as $v) {
+                    $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
             }
-        }
-        // задвоения по oldkey  }
+            // задвоения по oldkey  }
 
             // нет объекта высшего уровня {
             $sql = "SELECT * from sap_refer where upload='$filename'";
@@ -6805,7 +6791,7 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
             // пустая ссылка }
         }
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
         fclose($f);
 
@@ -6815,11 +6801,11 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -6827,7 +6813,7 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
 
 
@@ -6856,26 +6842,25 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
     }
 
     // Формирование файла imove_in для САП для бытовых потребителей
-    public function actionSap_move_in_ind($res,$par=0)
+    public function actionSap_move_in_ind($res, $par = 0)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
@@ -6898,12 +6883,12 @@ where a.archive='0'
 -- limit 10	       
 ";
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
         // Заполняем массивы структур: $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($data as $w) {
-            $ever[$i]=f_move_in_ind($rem,$w);
+            $ever[$i] = f_move_in_ind($rem, $w);
 //            $ever1[$i]=f_move_in_ind1($rem,$w);
             $i++;
         }
@@ -6912,15 +6897,15 @@ where a.archive='0'
 //        return;
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с массивов $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($ever as $d) {
             $d1 = array_map('trim', $d);
 //            debug($d1);
@@ -6930,13 +6915,13 @@ where a.archive='0'
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, $d1[0] . "\t" . '&ENDE');
             fputs($f, "\n");
         }
 
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -6946,21 +6931,21 @@ where a.archive='0'
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
-        if(1==2) {  // отключено
-        // задвоения по oldkey  {
-        $err = double_oldkey($fname);
-        // Запись в таблицу ошибок
-        if (count($err)) {
-            foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
-                exec_on_server($z, (int)$rem, $vid);
+        if (1 == 2) {  // отключено
+            // задвоения по oldkey  {
+            $err = double_oldkey($fname);
+            // Запись в таблицу ошибок
+            if (count($err)) {
+                foreach ($err as $v) {
+                    $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
             }
-        }
-        // задвоения по oldkey  }
+            // задвоения по oldkey  }
 
 
             // нет объекта высшего уровня {
@@ -7000,7 +6985,7 @@ where a.archive='0'
         }
 
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
         fclose($f);
 
@@ -7010,11 +6995,11 @@ where a.archive='0'
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -7022,7 +7007,7 @@ where a.archive='0'
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
 
 
@@ -7054,29 +7039,28 @@ where a.archive='0'
 // Формирование файла move_in для САП для юрид. потребителей
     public function actionSap_move_in($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
-        $period = str_replace('-','',$data_p[0]['mmgg']);  // Получаем текущий отчетный период
+        $period = str_replace('-', '', $data_p[0]['mmgg']);  // Получаем текущий отчетный период
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
         $sql = "
 select * from (
@@ -7244,11 +7228,11 @@ join
 sap_data ust on substr(ust.oldkey,12)::int=r.id
 ";
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
 
         // Заполняем массивы структур: $di_int и $di_zw
-        $i=0;
+        $i = 0;
 
         $fd = date('Ymd');
         $ver = $data[0]['ver'];
@@ -7256,12 +7240,12 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-        $oldkey_const='04_C'.$rem.'P_01_';
+        $oldkey_const = '04_C' . $rem . 'P_01_';
         foreach ($data as $w) {
-            $ever[$i]=f_move_in($rem,$w);
+            $ever[$i] = f_move_in($rem, $w);
 //            $ever1[$i]=f_move_in_ind1($rem,$w);
             $i++;
-           // Делаем _ext файл
+            // Делаем _ext файл
             $_ext[0] = 'MOVE_IN';
             $_ext[1] = $oldkey_const . $w['id'];
             $_ext[2] = $w['code'];
@@ -7276,14 +7260,14 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с массивов $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($ever as $d) {
             $d1 = array_map('trim', $d);
 //            debug($d1);
@@ -7293,13 +7277,13 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, $d1[0] . "\t" . '&ENDE');
             fputs($f, "\n");
         }
 
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -7309,8 +7293,8 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -7318,17 +7302,17 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
         // задвоения по oldkey  }
 
         // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
+        $sql = "SELECT * from sap_refer where upload='$filename'";
         $data_u = data_from_server($sql, $res, $vid);
         $refer = $data_u[0]['refer'];
-/*
+        /*
         $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
         if(!empty($data_u[0]['upload'])) {
             $err = no_refer($fname, $data_u);
@@ -7349,7 +7333,7 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
         if (count($err)) {
             foreach ($err as $v) {
 //                    debug($v);
-                $z="INSERT  INTO sap_err
+                $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
@@ -7357,42 +7341,42 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
         }
         // пустая ссылка }
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
 
     //выгрузка ид фалов сап imove_in , для бытовых потребителей
-        public function actionIdfile_move_in_ind($res)
+    public function actionIdfile_move_in_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -7400,7 +7384,7 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'MOVE_IN_IND' as OM,'04_C'||ext.id_res||'B_01_'||ext.id as oldkey,kk.code,trim((v.last_name||' '||substr(v.name, 1, 1)||'.'||substr(v.patron_name, 1, 1)||'.')) as name_tu,ext.ver from (
@@ -7436,19 +7420,19 @@ where a.archive='0'
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-            deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -7459,7 +7443,7 @@ where a.archive='0'
 
         return $this->render('info', [
             'model' => $model]);
-        
+
     }
 
     // Выгрузка всех ID файлов (САП)  для бытовых потребителей
@@ -7467,19 +7451,19 @@ where a.archive='0'
     public function beforeAction($action)
     {
 //       debug($action);
-        if($action->id=='idfile_launch') {
+        if ($action->id == 'idfile_launch') {
 //            debug($action->request);
-           // $e=$action->controller->module->request;
+            // $e=$action->controller->module->request;
             $log = 'aaalog_ext.txt';
             $f = fopen($log, "a+");
 
-            $e=Yii::$app->request->get('nom');
-            fputs($f, $e );
+            $e = Yii::$app->request->get('nom');
+            fputs($f, $e);
             fputs($f, "\n");
-            $res=Yii::$app->request->get('res');
-            $r=Yii::$app->response->redirect([$e,  'res' => $res,'par' => 1])->send();
+            $res = Yii::$app->request->get('res');
+            $r = Yii::$app->response->redirect([$e, 'res' => $res, 'par' => 1])->send();
             Yii::app()->runController('site/index');
-            $r1=Yii::$app->response->redirect(['idfile_premise_ind',  'res' => $res,'par' => 1])->send();
+            $r1 = Yii::$app->response->redirect(['idfile_premise_ind', 'res' => $res, 'par' => 1])->send();
             return false;
             //debug($e);
 
@@ -7491,10 +7475,10 @@ where a.archive='0'
         return parent::beforeAction($action);
     }
 
-    public function actionIdfile_launch($nom,$res,$i)
+    public function actionIdfile_launch($nom, $res, $i)
     {
         //$r=Yii::$app->response->redirect(['All_idfile',  'res' => $res,'par' => 1])->send();
-        return $i ;
+        return $i;
     }
 
     public function actionAll_idfile($res)
@@ -7513,10 +7497,10 @@ where a.archive='0'
         $log = 'log_ext.txt';
         $f = fopen($log, "w+");
         for ($i = 0; $i < 9; $i++) {
-              $e='$this->action'.ucfirst($actions[$i]).'($res,$par=0);'  ;
-              eval($e);
-            fputs($f,'Сформирован файл ' . $actions[$i] . '_ext');
-            fputs($f,"\n");
+            $e = '$this->action' . ucfirst($actions[$i]) . '($res,$par=0);';
+            eval($e);
+            fputs($f, 'Сформирован файл ' . $actions[$i] . '_ext');
+            fputs($f, "\n");
         }
         fclose($f);
         $model = new info();
@@ -7552,10 +7536,10 @@ where a.archive='0'
         $log = 'log_sap.txt';
         $f = fopen($log, "w+");
         for ($i = 0; $i < 14; $i++) {
-            $e='$this->action'.ucfirst($actions[$i]).'($res,1);'  ;
+            $e = '$this->action' . ucfirst($actions[$i]) . '($res,1);';
             eval($e);
-            fputs($f,'Сформирован файл ' . $actions[$i] );
-            fputs($f,"\n");
+            fputs($f, 'Сформирован файл ' . $actions[$i]);
+            fputs($f, "\n");
         }
         fclose($f);
         $model = new info();
@@ -7735,54 +7719,54 @@ select distinct
                 'model' => $model]);
         }
         // Удаляем данные в таблицах структур
-        $i=0;
+        $i = 0;
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
-            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct);
-            exec_on_server($zsql,$res,$vid);
+            if ($i == 1) $first_struct = trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_" . strtolower($n_struct);
+            exec_on_server($zsql, $res, $vid);
         }
 
         // Заполняем структуры
         foreach ($data as $w) {
             foreach ($cnt as $v) {
                 $n_struct = trim($v['dattype']);
-                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                $func_fill = 'f_' . strtolower($routine) . '($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
                 eval($func_fill);
             }
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_$first_struct";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -7794,7 +7778,7 @@ select distinct
         }
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -7804,8 +7788,8 @@ select distinct
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -7813,7 +7797,7 @@ select distinct
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -7822,7 +7806,7 @@ select distinct
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -7831,50 +7815,50 @@ select distinct
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 2;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
-    
-    
-public function actionIdfile_seals($res)
+
+
+    public function actionIdfile_seals($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -7882,7 +7866,7 @@ public function actionIdfile_seals($res)
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'SEALS' as OM,oldkey,p.code,p.short_name as name_tu,const.ver from sap_AUTO as a
@@ -7903,19 +7887,19 @@ public function actionIdfile_seals($res)
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-        deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -7926,32 +7910,30 @@ public function actionIdfile_seals($res)
 
         return $this->render('info', [
             'model' => $model]);
-        
-    }    
-    
-    
 
-        // Формирование файла заводских пломб (seals) для САП для юр. потребителей
-        public function actionSap_seals2($res)
+    }
+
+
+    // Формирование файла заводских пломб (seals) для САП для юр. потребителей
+    public function actionSap_seals2($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Главный запрос со всеми необходимыми данными
         $sql = "select * from
@@ -7980,8 +7962,8 @@ public function actionIdfile_seals($res)
         where employee='PLANT'
          ";
 
-        if($helper==1)
-            $sql = $sql.' LIMIT 1';
+        if ($helper == 1)
+            $sql = $sql . ' LIMIT 1';
 
         // Запрос для получения списка необходимых
         // для экспорта структур
@@ -7989,35 +7971,35 @@ public function actionIdfile_seals($res)
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
-        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
         // Включение режима помощника
-        if($helper==1){
-            $fhelper=$routine.'_HELPER'.'.txt';
-            $ff = fopen($fhelper,'w+');
+        if ($helper == 1) {
+            $fhelper = $routine . '_HELPER' . '.txt';
+            $ff = fopen($fhelper, 'w+');
             // Создание переменных
             foreach ($data as $v) {
                 foreach ($v as $k => $v1) {
-                    $var='$' . $k . '=$v'.'['."'".$k."']" ;
+                    $var = '$' . $k . '=$v' . '[' . "'" . $k . "']";
                     fputs($ff, $var);
                     fputs($ff, "\n");
 
                 }
             }
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $i++;
                 $n_struct = trim($v['dattype']);
                 fputs($ff, "\n");
-                $var='if ($n_struct=='."'$n_struct') {";
+                $var = 'if ($n_struct==' . "'$n_struct') {";
                 fputs($ff, $var);
                 fputs($ff, "\n");
                 //Создание строки INSERT
                 $columns = gen_column_insert('sap_' . strtolower($n_struct), (int)$rem, 1);
                 $values = gen_column_values('sap_' . strtolower($n_struct), (int)$rem, 1);
 //                $z = "        insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . " values(" . $values . ")";
-                $z = '     $z = "'." insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values .")".'";' ;
+                $z = '     $z = "' . " insert into sap_" . strtolower($n_struct) . "(" . $columns . ")" . "  values(" . $values . ")" . '";';
                 fputs($ff, $z);
                 fputs($ff, "\n");
                 $z = ' exec_on_server($z,(int) $rem,$vid);';
@@ -8041,58 +8023,58 @@ public function actionIdfile_seals($res)
         }
 
         // Удаляем данные в таблицах структур
-        $i=0;
+        $i = 0;
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
-            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct);
-            exec_on_server($zsql,$res,$vid);
+            if ($i == 1) $first_struct = trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_" . strtolower($n_struct);
+            exec_on_server($zsql, $res, $vid);
         }
 
         // Заполняем структуры
         foreach ($data as $w) {
             foreach ($cnt as $v) {
                 $n_struct = trim($v['dattype']);
-                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                $func_fill = 'f_' . strtolower($routine) . '($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
                 eval($func_fill);
             }
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        if(isset($data[0]['ver']))
+        $fd = date('Ymd');
+        if (isset($data[0]['ver']))
             $ver = $data[0]['ver'];
         else
-            $ver=$res;
+            $ver = $res;
 
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_$first_struct";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -8115,16 +8097,16 @@ public function actionIdfile_seals($res)
         return $this->render('info', [
             'model' => $model]);
     }
-    
+
     public function actionIdfile_seals2($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -8132,7 +8114,7 @@ public function actionIdfile_seals($res)
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'SEALS2' as OM,oldkey,p.code,p.short_name as name_tu,const.ver from sap_auto1 as a
@@ -8155,16 +8137,16 @@ public function actionIdfile_seals($res)
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -8175,26 +8157,26 @@ public function actionIdfile_seals($res)
 
         return $this->render('info', [
             'model' => $model]);
-        
-    } 
-    
+
+    }
+
 
     // Формирование файла connobj для САП для бытовых
-    public function actionSap_connobj_ind($res,$par=0)
+    public function actionSap_connobj_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind')
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind')
             $vid = 1;
         else
             $vid = 2;
 
         // Главный запрос со всеми необходимыми данными
-        $c='"';
+        $c = '"';
         $sql = "select min(id) as id,trim(town) as town,trim(town_sap) as town_sap,trim(street) as street,trim(street_sap) as street_sap,
 trim(type_street) as type_street,trim(house) as house,id_res,swerk,
 stort,ver,begru,trim(region) as region,trim(type_street) as type_street,trim(kod_reg) as kod_reg,coalesce(str_supl2,'') as str_supl1,
@@ -8202,7 +8184,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 (select min(a.id) as id,
                 c.town,trim(b1.town) as town_sap,trim(c.street) as street,
                 case when b1.street is null then 'Неопределено' else b1.street end as street_sap,c.type_street,
-                case when c.korp is null or trim(c.korp) like "."'%".'"'."%'" ."  then upper(trim(c.house)) else 
+                case when c.korp is null or trim(c.korp) like " . "'%" . '"' . "%'" . "  then upper(trim(c.house)) else 
                 case when NOT(c.korp ~ '[0-9]+$')  then upper(trim(c.house))||upper(trim(c.korp)) 
                else upper(trim(c.house))||'/'||upper(trim(c.korp))  end end as house
                -- else c.house end end as house
@@ -8212,7 +8194,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
                 case when b1.street is null then c.street else '' end as str_supl1,
                 case when b1.street is null then c.house else '' end as str_supl2,
                 case when NOT(c.korp ~ '[0-9]+$') then '' else c.korp end as korp,
-                case when trim(c.korp) not like ". "'%".'"'."%'". " then upper(trim(c.korp)) else '' end as korp1
+                case when trim(c.korp) not like " . "'%" . '"' . "%'" . " then upper(trim(c.korp)) else '' end as korp1
                  from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id_abon=b.id
@@ -8242,7 +8224,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 
         $sql_c = "select * from sap_export where objectsap='CONNOBJ_IND' order by id_object";
 
-        if(1==1) {
+        if (1 == 1) {
             // Получаем необходимые данные
 //            $data = data_from_server($sql,$res,$vid);
 //            $cnt = data_from_server($sql_c,$res,$vid);
@@ -8287,8 +8269,8 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
             // Удаляем данные в таблицах
             $zsql = 'delete from sap_co_eha';
             $zsql1 = 'delete from sap_co_adr';
-            exec_on_server($zsql,$res,$vid);
-            exec_on_server($zsql1,$res,$vid);
+            exec_on_server($zsql, $res, $vid);
+            exec_on_server($zsql1, $res, $vid);
 
             $i = 0;
             // Заполняем структуры
@@ -8305,39 +8287,39 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
             }
         }
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname='CONNOBJ_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = 'CONNOBJ_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . '_R' . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_co_eha";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                      $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
 
                     foreach ($cur_data as $d1) {
-                        if(strtolower($table_struct)=='sap_co_adr')
-                            $d1=array_slice($d1, 0, 10);
+                        if (strtolower($table_struct) == 'sap_co_adr')
+                            $d1 = array_slice($d1, 0, 10);
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -8352,7 +8334,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -8364,24 +8346,24 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         // Получаем название подпрограммы
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
         // проверка адреса  на соответствие его с названием в САП {
-        $err = check_adres($fname,1);
+        $err = check_adres($fname, 1);
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
         // проверка индекса  на соответствие его с названием в САП {
-        $err = check_adres($fname,2);
+        $err = check_adres($fname, 2);
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -8392,7 +8374,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -8401,7 +8383,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -8409,16 +8391,16 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         // задвоения структур }
 
         // отсутствие структуры {
-        $cnt=3;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 3;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
         //
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
         fclose($f);
 
@@ -8428,11 +8410,11 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -8440,9 +8422,8 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
-
 
 
         // Выдаем предупреждение на экран об окончании формирования файла
@@ -8466,25 +8447,24 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
     }
 
     // Формирование файла account для САП для бытовых
-    public function actionSap_account_ind($res,$par=0)
+    public function actionSap_account_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 4000);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
@@ -8531,64 +8511,64 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
                 
 ";
 
-            // Запрос для получения списка необходимых
-            // для экспорта структур
-            $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
-            $sql_err="delete from sap_err where upload='ACCOUNT' and res=$res";
+        // Запрос для получения списка необходимых
+        // для экспорта структур
+        $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
+        $sql_err = "delete from sap_err where upload='ACCOUNT' and res=$res";
 
-            // Получаем необходимые данные
-            $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
-            $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        // Получаем необходимые данные
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
-            // Удаляем данные в таблицах
-            $zsql = 'delete from sap_init_acc';
-            $zsql1 = 'delete from sap_vkp';
-            $zsql2 = 'delete from sap_vk';
-            exec_on_server($zsql,$res,$vid);
-            exec_on_server($zsql1,$res,$vid);
-            exec_on_server($zsql2,$res,$vid);
-            exec_on_server($sql_err,$res,$vid);
+        // Удаляем данные в таблицах
+        $zsql = 'delete from sap_init_acc';
+        $zsql1 = 'delete from sap_vkp';
+        $zsql2 = 'delete from sap_vk';
+        exec_on_server($zsql, $res, $vid);
+        exec_on_server($zsql1, $res, $vid);
+        exec_on_server($zsql2, $res, $vid);
+        exec_on_server($sql_err, $res, $vid);
 
-            // Заполняем структуры
-            foreach ($data as $w) {
-                foreach ($cnt as $v) {
-                    $n_struct = trim($v['dattype']);
-                    f_account_ind($n_struct, $rem, $w, $vid);  // Функция заполнения структур
-                }
+        // Заполняем структуры
+        foreach ($data as $w) {
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                f_account_ind($n_struct, $rem, $w, $vid);  // Функция заполнения структур
             }
+        }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_init_acc";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
 
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -8610,37 +8590,37 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         }
         // Получаем название подпрограммы
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
-        $res=(int)$rem;
+        $res = (int)$rem;
 
-        if(1==2) {  // отключено
-        // задвоения по oldkey  {
-        $err = double_oldkey($fname);
-        // Запись в таблицу ошибок
-        if (count($err)) {
-            foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
-                exec_on_server($z, (int)$rem, $vid);
+        if (1 == 2) {  // отключено
+            // задвоения по oldkey  {
+            $err = double_oldkey($fname);
+            // Запись в таблицу ошибок
+            if (count($err)) {
+                foreach ($err as $v) {
+                    $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
             }
-        }
-        // задвоения по oldkey  }
+            // задвоения по oldkey  }
 
-        // задвоения структур {
-        $err = double_struct($fname);
-        if($err<>'') {
+            // задвоения структур {
+            $err = double_struct($fname);
+            if ($err <> '') {
 
-            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
-            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
-        }
-        // задвоения структур }
+                $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+                exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+            }
+            // задвоения структур }
 
-        // отсутствие структуры {
-        $cnt=4;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
-            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
-            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
-        }
-        // отсутствие структуры }
+            // отсутствие структуры {
+            $cnt = 4;
+            $err = no_struct($fname, $cnt);
+            if ($err <> '') {
+                $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
+                exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+            }
+            // отсутствие структуры }
 
             // нет объекта высшего уровня {
             $sql = "SELECT * from sap_refer where upload='$filename'";
@@ -8675,7 +8655,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         }
         //
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
 //        fclose($f);
 
@@ -8685,11 +8665,11 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -8697,7 +8677,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
 
 
@@ -8722,18 +8702,18 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 //        return $this->render('info', [
 //            'model' => $model]);
     }
-    
+
     //формирование файла идентификации
-        // Формирование файла account для САП для бытовых абонентов
+    // Формирование файла account для САП для бытовых абонентов
     public function actionIdfile_account_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -8741,7 +8721,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'ACCOUNT' as OM,a.oldkey,b.code,(ad.last_name||' '||substr(ad.name, 1, 1)||'.'||substr(ad.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_init_acc as a
@@ -8760,19 +8740,19 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-        deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -8783,37 +8763,36 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 
         return $this->render('info', [
             'model' => $model]);
-        
-    }    
+
+    }
 
     // Формирование файла device для САП для юридических потребителей
     public function actionSap_device($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
-        $day=((int) date('d'))-1;  // УЧЕСТЬ!!!! ДАЛЬШЕ
+        $day = ((int)date('d')) - 1;  // УЧЕСТЬ!!!! ДАЛЬШЕ
         $datab = date('Ymd', strtotime("-$day day")); // УЧЕСТЬ!!!! ДАЛЬШЕ
 
-     // Получаем дату datab
-        $sql_d=" select (max(mmgg) - interval '3 month')::date as mmgg_current from sys_month_tbl";
-        $data_d = data_from_server($sql_d,$res,$vid);
-        $date_ab=$data_d[0]['mmgg_current'];
+        // Получаем дату datab
+        $sql_d = " select (max(mmgg) - interval '3 month')::date as mmgg_current from sys_month_tbl";
+        $data_d = data_from_server($sql_d, $res, $vid);
+        $date_ab = $data_d[0]['mmgg_current'];
         // Главный запрос со всеми необходимыми данными
         $sql = "select * from 
 (select distinct m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
@@ -8906,61 +8885,61 @@ order by tzap
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
-        $cnt = data_from_server($sql_c,$res,$vid);  // Список структур
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
+        $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
 //debug($data);
 //return;
 
         // Удаляем данные в таблицах структур
-        $i=0;
+        $i = 0;
         foreach ($cnt as $v) {
             $i++;
             $n_struct = trim($v['dattype']);
-            if($i==1) $first_struct=trim($n_struct);   // Узнаем имя таблицы первой структуры
-            $zsql = "delete from sap_".strtolower($n_struct);
-            exec_on_server($zsql,$res,$vid);
+            if ($i == 1) $first_struct = trim($n_struct);   // Узнаем имя таблицы первой структуры
+            $zsql = "delete from sap_" . strtolower($n_struct);
+            exec_on_server($zsql, $res, $vid);
         }
 
         // Заполняем структуры
         foreach ($data as $w) {
             foreach ($cnt as $v) {
                 $n_struct = trim($v['dattype']);
-                $func_fill='f_'.strtolower($routine).'($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
+                $func_fill = 'f_' . strtolower($routine) . '($n_struct, $rem, $w, $vid);'; // Функция заполнения структур
                 eval($func_fill);
             }
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_$first_struct";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -8973,7 +8952,7 @@ order by tzap
 
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -8983,8 +8962,8 @@ order by tzap
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -8992,7 +8971,7 @@ order by tzap
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -9000,16 +8979,16 @@ order by tzap
 
         // задвоения структур {
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // задвоения структур }
 
         // отсутствие структуры {
-        $cnt=4;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 4;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
@@ -9017,56 +8996,56 @@ order by tzap
 
 //         Проверка на пустые поля {
         $sql = 'SELECT * FROM sap_check_fields';
-        $f_data = data_from_server($sql,$res,$vid);
+        $f_data = data_from_server($sql, $res, $vid);
         $err = empty_fields($fname, $f_data);
 //        debug($err);
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Пустое поле',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Пустое поле',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
 //         Проверка на пустые поля }
 
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
 
     //формирование файла идентификации
-        // Формирование файла device для САП для ЮР.лиц
+    // Формирование файла device для САП для ЮР.лиц
     public function actionIdfile_device($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -9074,7 +9053,7 @@ order by tzap
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select om,oldkey,sernr,qui.code,const.ver from (
@@ -9103,16 +9082,16 @@ order by tzap
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -9123,24 +9102,24 @@ order by tzap
 
         return $this->render('info', [
             'model' => $model]);
-        
-    }    
+
+    }
 
     // Формирование файла devloc для САП для бытовых
-    public function actionSap_devloc_ind($res,$par=0)
+    public function actionSap_devloc_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind')
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind')
             $vid = 1;
         else
             $vid = 2;
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
 
         // Главный запрос со всеми необходимыми данными
         $sql = "select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
@@ -9155,12 +9134,12 @@ order by tzap
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);
-        $cnt = data_from_server($sql_c,$res,$vid);
+        $data = data_from_server($sql, $res, $vid);
+        $cnt = data_from_server($sql_c, $res, $vid);
 
         // Удаляем данные в таблицах
         $zsql = 'delete from sap_egpld';
-        exec_on_server($zsql,$res,$vid);
+        exec_on_server($zsql, $res, $vid);
 
         // Заполняем структуры
         foreach ($data as $w) {
@@ -9173,36 +9152,36 @@ order by tzap
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname='DEVLOC_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = 'DEVLOC_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . '_R' . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_egpld";
-        $struct_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+        $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
-                    $all=gen_column($table_struct,$res,$vid); // Получаем все колонки таблицы
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
                     $sql = "select $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql,$res,$vid); // Выполняем запрос
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
 
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -9215,7 +9194,7 @@ order by tzap
 
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -9225,8 +9204,8 @@ order by tzap
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -9234,7 +9213,7 @@ order by tzap
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -9243,7 +9222,7 @@ order by tzap
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -9252,9 +9231,9 @@ order by tzap
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 2;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
@@ -9291,7 +9270,7 @@ order by tzap
 //        }
         // пустая ссылка }
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
         fclose($f);
 
@@ -9301,11 +9280,11 @@ order by tzap
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -9313,9 +9292,8 @@ order by tzap
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
-
 
 
 //        fclose($f);
@@ -9343,18 +9321,18 @@ order by tzap
 //                'model' => $model]);
 //        }
     }
-    
+
     //формирование файла идентификации
-        // Формирование файла devloc для САП для бытовых абонентов
+    // Формирование файла devloc для САП для бытовых абонентов
     public function actionIdfile_devloc_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -9362,7 +9340,7 @@ order by tzap
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'DEVLOC' as OM,a.oldkey,b.code,(ad.last_name||' '||substr(ad.name, 1, 1)||'.'||substr(ad.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_egpld as a
@@ -9381,19 +9359,19 @@ order by tzap
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-        deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -9404,23 +9382,21 @@ order by tzap
 
         return $this->render('info', [
             'model' => $model]);
-        
+
     }
 
 
-
-
     // Формирование файла device для САП для бытовых
-    public function actionSap_device_ind($res,$par=0)
+    public function actionSap_device_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', -1);
-        $rem = '0'.$res;  // Код РЭС
-        $day=((int) date('d'))-1;
+        $rem = '0' . $res;  // Код РЭС
+        $day = ((int)date('d')) - 1;
         $datab = date('Ymd', strtotime("-$day day"));
         //phpversion()
 //        $baujj=random_int(1979, 2006);
-        $baujj=mt_rand(1970, 1993);
+        $baujj = mt_rand(1970, 1993);
 
         $sql = "select distinct w1.mmgg_current,(w1.mmgg_current- interval '4 month')::date as datab,a.id,'4001' as eqart,'$baujj' as baujj,
                 const.kostl as kostl,a.num_meter as sernr,'00000347' as zz_pernr,
@@ -9446,7 +9422,7 @@ order by tzap
         $sql_c = "select * from sap_export where objectsap='DEVICE_IND' order by id_object";
 //        $cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
 
-        if(1==1) {
+        if (1 == 1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
@@ -9537,7 +9513,6 @@ order by tzap
             }
 
 
-
             $i = 0;
             // Заполняем структуры
             foreach ($data as $w) {
@@ -9550,15 +9525,15 @@ order by tzap
             }
         }
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
+        $fd = date('Ymd');
         // $fname='PARTNER_04'.'_CK'.$rem.'_B'.$fd.'.txt';
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname='DEVICE_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = 'DEVICE_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . '_R' . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
         // Считываем данные в файл с каждой таблицы
-        $i=0;
+        $i = 0;
         $sql = "select * from sap_equi";
 
         switch ($res) {
@@ -9590,18 +9565,18 @@ order by tzap
 
 
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
+                if ($i > 1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
                     //$cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
 
@@ -9633,12 +9608,12 @@ order by tzap
                     }
 
                     foreach ($cur_data as $d1) {
-                        if(strtolower($table_struct)=='sap_co_adr')
-                            $d1=array_slice($d1, 0, 9);
+                        if (strtolower($table_struct) == 'sap_co_adr')
+                            $d1 = array_slice($d1, 0, 9);
                         $d1 = array_map('trim', $d1);
 //                        $d1['oldkey']=substr($d1['oldkey'],0,10);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -9651,7 +9626,7 @@ order by tzap
         }
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -9661,31 +9636,31 @@ order by tzap
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
-        if(1==2) {  // отключено
-        // задвоения по oldkey  {
-        $err = double_oldkey($fname);
-        // Запись в таблицу ошибок
-        if (count($err)) {
-            foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
-                exec_on_server($z, (int)$rem, $vid);
+        if (1 == 2) {  // отключено
+            // задвоения по oldkey  {
+            $err = double_oldkey($fname);
+            // Запись в таблицу ошибок
+            if (count($err)) {
+                foreach ($err as $v) {
+                    $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                    exec_on_server($z, (int)$rem, $vid);
+                }
             }
-        }
-        // задвоения по oldkey  }
+            // задвоения по oldkey  }
 
-        // задвоения структур {
-        $err = double_struct($fname);
-        if($err<>'') {
-            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
-            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
-        }
-        // задвоения структур }
+            // задвоения структур {
+            $err = double_struct($fname);
+            if ($err <> '') {
+                $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+                exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+            }
+            // задвоения структур }
 
-                 // отсутствие структуры {
+            // отсутствие структуры {
             $cnt = 4;
             $err = no_struct($fname, $cnt);
             if ($err <> '') {
@@ -9712,7 +9687,7 @@ order by tzap
         }
 
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
         fclose($f);
 
@@ -9722,11 +9697,11 @@ order by tzap
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -9734,9 +9709,8 @@ order by tzap
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
-
 
 
 //        fputs($f, "\t&ENDE");
@@ -9782,17 +9756,17 @@ order by tzap
 //            'model' => $model]);
     }
 
-        //формирование файла идентификации
-        // Формирование файла devloc для САП для бытовых абонентов
+    //формирование файла идентификации
+    // Формирование файла devloc для САП для бытовых абонентов
     public function actionIdfile_device_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -9800,7 +9774,7 @@ order by tzap
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'DEVICE' as OM,a.oldkey,b.code,(ad.last_name||' '||substr(ad.name, 1, 1)||'.'||substr(ad.patron_name, 1, 1)||'.') as name_tu,const.ver from sap_equi as a
@@ -9819,19 +9793,19 @@ order by tzap
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-        deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -9842,16 +9816,16 @@ order by tzap
 
         return $this->render('info', [
             'model' => $model]);
-        
-    } 
-    
+
+    }
+
 
     // Формирование файла connobj для САП для Юридических потребителей
     public function actionSap_connobj($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         $sql = "select min(id) as id,coalesce(town,'') as town,coalesce(post_index,'') as post_index,
 coalesce(street,'') as street,coalesce(house,'') as house,stort,ver,begru,region,swerk,
@@ -10041,7 +10015,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 	order by id     
    ";
 
-        $sql="select min(id) as id,town,post_index,
+        $sql = "select min(id) as id,town,post_index,
 street,house,stort,ver,begru,region,swerk,str_suppl1,
 str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
  town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo 
@@ -10117,8 +10091,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
 		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo";
 
-        if($rem=='05')
-            $sql="select min(id) as id,town,post_index,street_cek,town_cek,
+        if ($rem == '05')
+            $sql = "select min(id) as id,town,post_index,street_cek,town_cek,
 street,house,stort,ver,begru,region,swerk,str_suppl1,
 str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
  town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo 
@@ -10196,12 +10170,11 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo,street_cek,town_cek";
 
 
-
         $sql_c = "select * from sap_export where objectsap='CONNOBJ' order by id_object";
         $zsql = 'delete from sap_co_eha';
         $zsql1 = 'delete from sap_co_adr';
 
-        if(1==1) {
+        if (1 == 1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
@@ -10287,13 +10260,13 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 //        return;
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname='CONNOBJ_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_L'.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = 'CONNOBJ_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . '_L' . '.txt';
+        $f = fopen($fname, 'w+');
         // Считываем данные в файл с каждой таблицы
-        $i=0;
+        $i = 0;
         $sql = "select * from sap_co_eha";
         switch ($res) {
             case 1:
@@ -10332,18 +10305,18 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 
 
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
+                if ($i > 1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
 
                     switch ($res) {
@@ -10374,12 +10347,12 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
                     }
 
                     foreach ($cur_data as $d1) {
-                        $d1=array_slice($d1, 0, 10);
+                        $d1 = array_slice($d1, 0, 10);
 //                        debug($d1);
 //                        return;
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -10392,7 +10365,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         }
 
 // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -10404,24 +10377,24 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         // Получаем название подпрограммы
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
         // проверка адреса  на соответствие его с названием в САП {
-        $err = check_adres($fname,1);
+        $err = check_adres($fname, 1);
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Нет адреса',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
         // проверка индекса  на соответствие его с названием в САП {
-        $err = check_adres($fname,2);
+        $err = check_adres($fname, 2);
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Нет индекса',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -10432,7 +10405,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -10441,7 +10414,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -10450,48 +10423,48 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=3;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 3;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
-        // 
+        //
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
-     }
+    }
 
     // Формирование файла premise для САП для Юридических потребителей
     public function actionSap_premise($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
-        $dt=date('Y-m-d');
+        $rem = '0' . $res;  // Код РЭС
+        $dt = date('Y-m-d');
 
         $sql_old = "select distinct on (oldkey) * from (
 select distinct const.begru_all as pltxt,'PREMISE' as name,
@@ -10605,7 +10578,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
               order by 7) e";
 
         // Делаем выборку по новому для ускорения
-        $sql="select distinct on (oldkey) * from (
+        $sql = "select distinct on (oldkey) * from (
         select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then
@@ -10640,14 +10613,13 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             order by 7) e";
 
 
-
         $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
         $zsql = 'delete from sap_evbsd';
-        $sql_q="select * from  sap_premise_dop ";
-        $sql_dd="select * from  sap_co_adr";
+        $sql_q = "select * from  sap_premise_dop ";
+        $sql_dd = "select * from  sap_co_adr";
 
 
-        if(1==1) {
+        if (1 == 1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
@@ -10725,74 +10697,74 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     break;
             }
         }
-            $i = 0;
+        $i = 0;
 
 //debug($cnt);
 //            return;
 
-            // Заполнение ссылок в памяти
-            foreach ($data as $key=>$n1) {
+        // Заполнение ссылок в памяти
+        foreach ($data as $key => $n1) {
 
-                $n1_code = $n1['code'];
-                $n1_id = $n1['id_eq'];
-                $mas = [];
-                $o = 0;
-                foreach ($nd2 as $n2) {
-                    if ($n2['id_eq'] == $n1_id && $n2['code'] == $n1_code) {
-                        $mas[$o] = $n2['id_tu'];
-                        $o++;
-                    }
+            $n1_code = $n1['code'];
+            $n1_id = $n1['id_eq'];
+            $mas = [];
+            $o = 0;
+            foreach ($nd2 as $n2) {
+                if ($n2['id_eq'] == $n1_id && $n2['code'] == $n1_code) {
+                    $mas[$o] = $n2['id_tu'];
+                    $o++;
                 }
-                $haus = '';
-                foreach ($nd_dd as $n3) {
-                    $n1_co = substr(trim($n3['oldkey']), 8);
+            }
+            $haus = '';
+            foreach ($nd_dd as $n3) {
+                $n1_co = substr(trim($n3['oldkey']), 8);
 
 //                debug($n3);
 //                debug($n1_id);
 //                debug($mas);
 //                return;
-                    $flag = 0;
-                    for ($oo = 0; $oo < $o; $oo++) {
-                        if ($mas[$oo] == $n1_co) {
-                            $haus = $n3['oldkey'];
-                            $house_num2 = $n3['house_num2'];
+                $flag = 0;
+                for ($oo = 0; $oo < $o; $oo++) {
+                    if ($mas[$oo] == $n1_co) {
+                        $haus = $n3['oldkey'];
+                        $house_num2 = $n3['house_num2'];
 //                            debug($haus);
 //                            return;
-                            $flag = 1;
-                            break;
-                        }
-                    }
-                    if ($flag == 1) {
-                        $data[$key]['haus'] = $haus;
-                        $data[$key]['house_num2'] = $house_num2;
+                        $flag = 1;
                         break;
                     }
                 }
+                if ($flag == 1) {
+                    $data[$key]['haus'] = $haus;
+                    $data[$key]['house_num2'] = $house_num2;
+                    break;
+                }
             }
+        }
 
 //            debug($data);
 //            return;
 
-            // Заполняем структуры
-            foreach ($data as $w) {
-                $i = 0;
-                foreach ($cnt as $v) {
-                    $n_struct = trim($v['dattype']);
-                    $i++;
-                    f_premise($n_struct, $rem, $w);
-                }
+        // Заполняем структуры
+        foreach ($data as $w) {
+            $i = 0;
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $i++;
+                f_premise($n_struct, $rem, $w);
             }
+        }
 
 //        return;
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname='PREMISE_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_L'.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = 'PREMISE_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . '_L' . '.txt';
+        $f = fopen($fname, 'w+');
         // Считываем данные в файл с каждой таблицы
-        $i=0;
+        $i = 0;
         $sql = "select * from sap_evbsd";
         switch ($res) {
             case 1:
@@ -10830,20 +10802,19 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
         }
 
 
-
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
+                if ($i > 1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
 
                     switch ($res) {
@@ -10874,8 +10845,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     }
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -10892,7 +10863,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 //        fputs($f, "\n");
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -10902,8 +10873,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -10911,7 +10882,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -10920,7 +10891,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -10929,24 +10900,24 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 2;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
         // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
+        $sql = "SELECT * from sap_refer where upload='$filename'";
         $data_u = data_from_server($sql, $res, $vid);
         $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
+        $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+        if (!empty($data_u[0]['upload'])) {
             $err = no_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
+                    $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$refer',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
@@ -10956,57 +10927,58 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 
         // пустая ссылка {
         $msg = 'Пустая ссылка';
-            $err = empty_refer($fname, $data_u);
-            if (count($err)) {
-                foreach ($err as $v) {
+        $err = empty_refer($fname, $data_u);
+        if (count($err)) {
+            foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
+                $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
-                    exec_on_server($z, (int)$rem, $vid);
-                }
+                exec_on_server($z, (int)$rem, $vid);
+            }
 
         }
         // пустая ссылка }
-        // 
+        //
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
-    
-    
+
+
     //формирование файлов идентификации в САП абонентов ЕНЕРГО структруры "премайс"
     //юридические лица
-    public function actionIdfile_premise ($res){
-        
+    public function actionIdfile_premise($res)
+    {
+
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -11014,7 +10986,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'PREMISE' as OM,a.oldkey,b.code,trim(a.zz_nameplvm),const.ver from sap_EVBSD as a 
@@ -11035,16 +11007,16 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -11055,19 +11027,20 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 
         return $this->render('info', [
             'model' => $model]);
-        
+
     }
 
     //формирование файлов идентификации в САП абонентов ЕНЕРГО структруры "instln"
     //юридические лица
-    public function actionIdfile_instln ($res){
+    public function actionIdfile_instln($res)
+    {
 
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -11076,7 +11049,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'INSTLN' as OM,a.oldkey,b.code,b.short_name,const.ver  as ver from 
@@ -11224,7 +11197,7 @@ inner join sap_const const on 1=1
         $f = fopen($fname, 'w+');
 
         foreach ($data as $d1) {
-            $d1=array_slice($d1, 0, 4);
+            $d1 = array_slice($d1, 0, 4);
             $d1 = array_map('trim', $d1);
             $s1 = implode("\t", $d1);
             $s1 = str_replace("~", "", $s1);
@@ -11247,11 +11220,11 @@ inner join sap_const const on 1=1
     }
 
     // Формирование файла connobj для САП для бытовых
-    public function actionSap_premise_ind($res,$par=0)
+    public function actionSap_premise_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
 //        $sql = "select a.id,a.activ,'' as pltxt,b.tax_number,b.last_name,
 //                b.name,b.patron_name,c.town,c.indx,c.street,
@@ -11305,7 +11278,7 @@ inner join sap_const const on 1=1
         $zsql = 'delete from sap_evbsd';
         //$cnt = \Yii::$app->db_pg_pv_abn_test->createCommand($sql_c)->queryAll();
 
-        if(1==1) {
+        if (1 == 1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
@@ -11358,7 +11331,7 @@ inner join sap_const const on 1=1
             $i = 0;
             // Заполняем структуры
             $t_v = '';
-            $y=count($data);
+            $y = count($data);
             $j = 0;
 //            $fff=fopen('aaa_res.txt','w+');
             foreach ($data as $w) {
@@ -11368,7 +11341,7 @@ inner join sap_const const on 1=1
                     $n_struct = trim($v['dattype']);
                     $i++;
 //                    f_premise_ind($n_struct, $rem, $w);
-                    if($j<$y)
+                    if ($j < $y)
                         $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w) . ',';
                     else
                         $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w);
@@ -11376,22 +11349,22 @@ inner join sap_const const on 1=1
 //                    fputs($fff,"\n");
                 }
             }
-            $zapros="insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru) values ". $t_v ;
+            $zapros = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru) values " . $t_v;
 //            debug($zapros);
 //            return;
-            $data1 = data_to_server($zapros,$res,1);   // Запись данных на сервер
+            $data1 = data_to_server($zapros, $res, 1);   // Запись данных на сервер
 
         }
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
+        $fd = date('Ymd');
         // $fname='PARTNER_04'.'_CK'.$rem.'_B'.$fd.'.txt';
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname='PREMISE_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_R'.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = 'PREMISE_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . '_R' . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
         // Считываем данные в файл с каждой таблицы
-        $i=0;
+        $i = 0;
         $sql = "select * from sap_evbsd";
         //$struct_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
 
@@ -11421,24 +11394,24 @@ inner join sap_const const on 1=1
                 $struct_data = \Yii::$app->db_pg_in_abn->createCommand($sql)->queryAll();
                 break;
         }
-       $yy=count($cnt);
+        $yy = count($cnt);
 //        debug($yy);
 //        return;
 
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
 
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
+                if ($i > 1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
 //                    $cur_data = \Yii::$app->db_pg_pv_abn_test->createCommand($sql)->queryAll();
 
@@ -11472,8 +11445,8 @@ inner join sap_const const on 1=1
                     foreach ($cur_data as $d1) {
 
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -11488,7 +11461,7 @@ inner join sap_const const on 1=1
 
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -11498,8 +11471,8 @@ inner join sap_const const on 1=1
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -11507,7 +11480,7 @@ inner join sap_const const on 1=1
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -11516,7 +11489,7 @@ inner join sap_const const on 1=1
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -11525,24 +11498,24 @@ inner join sap_const const on 1=1
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 2;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
         // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
+        $sql = "SELECT * from sap_refer where upload='$filename'";
         $data_u = data_from_server($sql, $res, $vid);
         $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
+        $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+        if (!empty($data_u[0]['upload'])) {
             $err = no_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
+                    $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$refer',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
@@ -11556,7 +11529,7 @@ inner join sap_const const on 1=1
         if (count($err)) {
             foreach ($err as $v) {
 //                    debug($v);
-                $z="INSERT  INTO sap_err
+                $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
@@ -11565,7 +11538,7 @@ inner join sap_const const on 1=1
         // пустая ссылка }
         //
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
         fclose($f);
 
@@ -11575,11 +11548,11 @@ inner join sap_const const on 1=1
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
-        if(empty($sql_ab)){
+        if (empty($sql_ab)) {
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано.".$col;
+            $model->info1 = "Файл сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -11587,7 +11560,7 @@ inner join sap_const const on 1=1
             return $this->render('info', [
                 'model' => $model]);
         } else {
-            return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
 
 
@@ -11615,18 +11588,19 @@ inner join sap_const const on 1=1
 //        return $this->render('info', [
 //            'model' => $model]);
     }
-    
+
     //формирование файлов идентификации в САП абонентов АБН структруры "премайс"
     //бытовые абоненты
-    public function actionIdfile_premise_ind ($res,$par=0){
-        
+    public function actionIdfile_premise_ind($res, $par = 0)
+    {
+
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -11634,7 +11608,7 @@ inner join sap_const const on 1=1
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'PREMISE' as OM,a.oldkey,b.code,a.haus_num2,const.ver from sap_EVBSD as a
@@ -11652,19 +11626,19 @@ inner join sap_const const on 1=1
         $ver = $data[0]['ver'];
         if ($ver < 10) $ver = '0' . $ver;
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-        deleterOM_ext($fname,$rem);
+        deleterOM_ext($fname, $rem);
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -11673,22 +11647,21 @@ inner join sap_const const on 1=1
         $model->style2 = "info-text";
         $model->style_title = "d9";
 
-        if($par==0)
-                return $this->render('info', [
-                 'model' => $model]);
+        if ($par == 0)
+            return $this->render('info', [
+                'model' => $model]);
         else
             return 1;
-        
+
     }
 
-    
 
     // Форматирование файла partner для САП для юридических партнеров
     public function actionSap_account($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         $sql = "-- INIT
 select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_meter_tbl m
@@ -11868,7 +11841,7 @@ WHERE
          
 ";
 
-       $sql1 = " select * from (
+        $sql1 = " select * from (
             select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_meter_tbl m
  join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
   left join (select code as id,min(sap_cnt) as sap_meter_id from sap_meter_cnt where sap_cnt<>'' group by code) s on s.id::integer=m.id_type_eqp
@@ -12204,9 +12177,8 @@ WHERE
 	        ) w";
 
 
-
         $sql_c = "select * from sap_export where objectsap='ACCOUNT' order by id_object";
-        $sql_err="delete from sap_err where upload='ACCOUNT' and res=$res";
+        $sql_err = "delete from sap_err where upload='ACCOUNT' and res=$res";
 
 //        $zsql =  'delete from sap_vk';
 //        $zsql1 = 'delete from sap_but000';
@@ -12216,18 +12188,18 @@ WHERE
 //        $zsql5 = 'delete from sap_but021';
 
 
-        if(1==1) {
+        if (1 == 1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
                     $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    foreach ($cnt as $v){
-                        if(trim($v['dattype'])=='INIT')
-                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                    foreach ($cnt as $v) {
+                        if (trim($v['dattype']) == 'INIT')
+                            $z = 'delete from sap_' . trim($v['dattype']) . '_acc';
                         else
-                            $z='delete from sap_'.trim($v['dattype']);
+                            $z = 'delete from sap_' . trim($v['dattype']);
 
                         Yii::$app->db_pg_dn_energo->createCommand($z)->execute();
                     }
@@ -12238,11 +12210,11 @@ WHERE
                     $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    foreach ($cnt as $v){
-                        if(trim($v['dattype'])=='INIT')
-                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                    foreach ($cnt as $v) {
+                        if (trim($v['dattype']) == 'INIT')
+                            $z = 'delete from sap_' . trim($v['dattype']) . '_acc';
                         else
-                            $z='delete from sap_'.trim($v['dattype']);
+                            $z = 'delete from sap_' . trim($v['dattype']);
 
                         Yii::$app->db_pg_zv_energo->createCommand($z)->execute();
                     }
@@ -12252,11 +12224,11 @@ WHERE
                     $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    foreach ($cnt as $v){
-                        if(trim($v['dattype'])=='INIT')
-                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                    foreach ($cnt as $v) {
+                        if (trim($v['dattype']) == 'INIT')
+                            $z = 'delete from sap_' . trim($v['dattype']) . '_acc';
                         else
-                            $z='delete from sap_'.trim($v['dattype']);
+                            $z = 'delete from sap_' . trim($v['dattype']);
                         Yii::$app->db_pg_vg_energo->createCommand($z)->execute();
                     }
                     Yii::$app->db_pg_vg_energo->createCommand($sql_err)->execute();
@@ -12265,11 +12237,11 @@ WHERE
                     $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    foreach ($cnt as $v){
-                        if(trim($v['dattype'])=='INIT')
-                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                    foreach ($cnt as $v) {
+                        if (trim($v['dattype']) == 'INIT')
+                            $z = 'delete from sap_' . trim($v['dattype']) . '_acc';
                         else
-                            $z='delete from sap_'.trim($v['dattype']);
+                            $z = 'delete from sap_' . trim($v['dattype']);
 
                         Yii::$app->db_pg_pv_energo->createCommand($z)->execute();
                     }
@@ -12279,11 +12251,11 @@ WHERE
                     $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    foreach ($cnt as $v){
-                        if(trim($v['dattype'])=='INIT')
-                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                    foreach ($cnt as $v) {
+                        if (trim($v['dattype']) == 'INIT')
+                            $z = 'delete from sap_' . trim($v['dattype']) . '_acc';
                         else
-                            $z='delete from sap_'.trim($v['dattype']);
+                            $z = 'delete from sap_' . trim($v['dattype']);
                         Yii::$app->db_pg_krg_energo->createCommand($z)->execute();
                     }
                     Yii::$app->db_pg_krg_energo->createCommand($sql_err)->execute();
@@ -12292,11 +12264,11 @@ WHERE
                     $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    foreach ($cnt as $v){
-                        if(trim($v['dattype'])=='INIT')
-                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                    foreach ($cnt as $v) {
+                        if (trim($v['dattype']) == 'INIT')
+                            $z = 'delete from sap_' . trim($v['dattype']) . '_acc';
                         else
-                            $z='delete from sap_'.trim($v['dattype']);
+                            $z = 'delete from sap_' . trim($v['dattype']);
                         Yii::$app->db_pg_ap_energo->createCommand($z)->execute();
                     }
                     Yii::$app->db_pg_ap_energo->createCommand($sql_err)->execute();
@@ -12305,11 +12277,11 @@ WHERE
                     $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    foreach ($cnt as $v){
-                        if(trim($v['dattype'])=='INIT')
-                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                    foreach ($cnt as $v) {
+                        if (trim($v['dattype']) == 'INIT')
+                            $z = 'delete from sap_' . trim($v['dattype']) . '_acc';
                         else
-                            $z='delete from sap_'.trim($v['dattype']);
+                            $z = 'delete from sap_' . trim($v['dattype']);
                         Yii::$app->db_pg_gv_energo->createCommand($z)->execute();
                     }
                     Yii::$app->db_pg_gv_energo->createCommand($sql_err)->execute();
@@ -12318,11 +12290,11 @@ WHERE
                     $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
                     $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
                     // Удаляем данные в таблицах
-                    foreach ($cnt as $v){
-                        if(trim($v['dattype'])=='INIT')
-                            $z='delete from sap_'.trim($v['dattype']).'_acc';
+                    foreach ($cnt as $v) {
+                        if (trim($v['dattype']) == 'INIT')
+                            $z = 'delete from sap_' . trim($v['dattype']) . '_acc';
                         else
-                            $z='delete from sap_'.trim($v['dattype']);
+                            $z = 'delete from sap_' . trim($v['dattype']);
                         Yii::$app->db_pg_in_energo->createCommand($z)->execute();
                     }
                     Yii::$app->db_pg_in_energo->createCommand($sql_err)->execute();
@@ -12345,11 +12317,11 @@ WHERE
 //        return;
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $fname='ACCOUNT_04'.'_CK'.$rem.'_'.$fd.'_08'.'_L'.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $fname = 'ACCOUNT_04' . '_CK' . $rem . '_' . $fd . '_08' . '_L' . '.txt';
+        $f = fopen($fname, 'w+');
         // Считываем данные в файл с каждой таблицы
-        $i=0;
+        $i = 0;
 
         $sql = "select * from sap_init_acc";
         switch ($res) {
@@ -12389,18 +12361,18 @@ WHERE
 
 
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
+                if ($i > 1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
 
                     switch ($res) {
@@ -12431,8 +12403,8 @@ WHERE
                     }
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -12451,10 +12423,10 @@ WHERE
 
         // Проверка файла выгрузки
         echo '<br>';
-        echo'<br>';;
+        echo '<br>';;
         echo '<br>';
         echo '<br>';
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -12464,49 +12436,49 @@ WHERE
         }
         // Получаем название подпрограммы
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
-        $res=(int)$rem;
-       // задвоения по oldkey  {
-       $err = double_oldkey($fname);
-      // Запись в таблицу ошибок
-       if (count($err)) {
-           foreach ($err as $v) {
-               $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
-               exec_on_server($z, (int)$rem, $vid);
-           }
-       }
+        $res = (int)$rem;
+        // задвоения по oldkey  {
+        $err = double_oldkey($fname);
+        // Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v) {
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+        }
         // задвоения по oldkey  }
 
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-       if($err<>'') {
+        if ($err <> '') {
 
-           $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
-           exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
-       }
+            $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
+            exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
+        }
         // задвоения структур }
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-         $cnt=5;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 5;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
 
         // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
+        $sql = "SELECT * from sap_refer where upload='$filename'";
         $data_u = data_from_server($sql, $res, $vid);
         $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
+        $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+        if (!empty($data_u[0]['upload'])) {
             $err = no_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
+                    $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$refer',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
@@ -12520,53 +12492,53 @@ WHERE
         if (count($err)) {
             foreach ($err as $v) {
 //                    debug($v);
-                $z="INSERT  INTO sap_err
+                $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
         // пустая ссылка }
 
-        // 
+        //
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
 //        fclose($f);
-        
-        
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
-    
+
 
     //формирование файла идентификации
-        // Формирование файла account для САП для Юр.лиц
+    // Формирование файла account для САП для Юр.лиц
     public function actionIdfile_account($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -12574,7 +12546,7 @@ WHERE
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'ACCOUNT' as OM,a.oldkey,b.code,b.short_name,const.ver from sap_init_acc as a
@@ -12594,16 +12566,16 @@ WHERE
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -12614,15 +12586,15 @@ WHERE
 
         return $this->render('info', [
             'model' => $model]);
-        
-    }    
+
+    }
 
     // Формирование файла devloc для САП для Юридических потребителей
     public function actionSap_devloc($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         $sql_old = "select cl.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
                   const.stort,const.begru_all as begru,const.ver
@@ -12658,7 +12630,7 @@ WHERE
         $zsql = 'delete from sap_egpld';
 
 
-        if(1==1) {
+        if (1 == 1) {
             // Получаем необходимые данные
             switch ($res) {
                 case 1:
@@ -12726,13 +12698,13 @@ WHERE
 //        return;
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname='DEVLOC_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.'_L'.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = 'DEVLOC_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . '_L' . '.txt';
+        $f = fopen($fname, 'w+');
         // Считываем данные в файл с каждой таблицы
-        $i=0;
+        $i = 0;
         $sql = "select * from sap_egpld";
         switch ($res) {
             case 1:
@@ -12764,18 +12736,18 @@ WHERE
 //        $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
 
         foreach ($struct_data as $d) {
-            $old_key=trim($d['oldkey']);
+            $old_key = trim($d['oldkey']);
             $d = array_map('trim', $d);
-            $s=implode("\t", $d);
-            $s=str_replace("~","",$s);
+            $s = implode("\t", $d);
+            $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $i=0;
+            $i = 0;
             foreach ($cnt as $v) {
                 $table_struct = 'sap_' . trim($v['dattype']);
                 $i++;
-                if($i>1) {
+                if ($i > 1) {
                     $sql = "select * from $table_struct where oldkey='$old_key'";
 
                     switch ($res) {
@@ -12807,8 +12779,8 @@ WHERE
 
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);
-                        $s1=implode("\t", $d1);
-                        $s1=str_replace("~","",$s1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
                         $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
                         fputs($f, $s1);
                         fputs($f, "\n");
@@ -12824,7 +12796,7 @@ WHERE
 //        fputs($f, "\n");
 
         // Проверка файла выгрузки
-        $method=__FUNCTION__;
+        $method = __FUNCTION__;
         if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
@@ -12834,8 +12806,8 @@ WHERE
         }
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
         // Удаляем предыдущую информацию
-        $res=(int) $rem;
-        $sql_err="delete from sap_err where upload='$filename' and res=$res";
+        $res = (int)$rem;
+        $sql_err = "delete from sap_err where upload='$filename' and res=$res";
         exec_on_server($sql_err, (int)$rem, $vid);
 
         // задвоения по oldkey  {
@@ -12843,7 +12815,7 @@ WHERE
         // Запись в таблицу ошибок
         if (count($err)) {
             foreach ($err as $v) {
-                $z="INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
+                $z = "INSERT  INTO sap_err VALUES('$filename','$v','Задвоения по oldkey',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
         }
@@ -12852,7 +12824,7 @@ WHERE
         // задвоения структур {
 //        $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
         $err = double_struct($fname);
-        if($err<>'') {
+        if ($err <> '') {
 
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Задвоения структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
@@ -12861,24 +12833,24 @@ WHERE
 
         // отсутствие структуры {
 //         $fname='ACCOUNT_04_CK01_20200505_08_L.txt';
-        $cnt=2;
-        $err = no_struct($fname,$cnt);
-        if($err<>'') {
+        $cnt = 2;
+        $err = no_struct($fname, $cnt);
+        if ($err <> '') {
             $z = "INSERT  INTO sap_err VALUES('$filename','$err','Отсутствие структуры',$res)";
             exec_on_server($z, (int)$rem, $vid);  // Запись в таблицу ошибок
         }
         // отсутствие структуры }
         // нет объекта высшего уровня {
-        $sql="SELECT * from sap_refer where upload='$filename'";
+        $sql = "SELECT * from sap_refer where upload='$filename'";
         $data_u = data_from_server($sql, $res, $vid);
         $refer = $data_u[0]['refer'];
-        $refer = 'Нет объекта высшего уровня в выгрузке '.$refer;
-        if(!empty($data_u[0]['upload'])) {
+        $refer = 'Нет объекта высшего уровня в выгрузке ' . $refer;
+        if (!empty($data_u[0]['upload'])) {
             $err = no_refer($fname, $data_u);
             if (count($err)) {
                 foreach ($err as $v) {
 //                    debug($v);
-                    $z="INSERT  INTO sap_err
+                    $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$refer',$res)";
                     exec_on_server($z, (int)$rem, $vid);
                 }
@@ -12892,7 +12864,7 @@ WHERE
         if (count($err)) {
             foreach ($err as $v) {
 //                    debug($v);
-                $z="INSERT  INTO sap_err
+                $z = "INSERT  INTO sap_err
                         VALUES('$filename','$v','$msg',$res)";
                 exec_on_server($z, (int)$rem, $vid);
             }
@@ -12900,43 +12872,43 @@ WHERE
         }
         // пустая ссылка }
         //kol struckt{
-        $col= count_str($fname);
+        $col = count_str($fname);
         //kol struckt}
-        fclose($f);  
-        
-        
+        fclose($f);
+
+
         $sql_err = "select * from sap_err where upload = '$filename'";
 
-        
-        $sql_ab = data_from_server($sql_err, $res, $vid);  
-        
-        if(empty($sql_ab)){
-        
-        $model = new info();
-        $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.".$col;
-        $model->style1 = "d15";
-        $model->style2 = "info-text";
-        $model->style_title = "d9";
-            
-        return $this->render('info', [
-            'model' => $model]);
+
+        $sql_ab = data_from_server($sql_err, $res, $vid);
+
+        if (empty($sql_ab)) {
+
+            $model = new info();
+            $model->title = 'УВАГА!';
+            $model->info1 = "Файл сформовано." . $col;
+            $model->style1 = "d15";
+            $model->style2 = "info-text";
+            $model->style_title = "d9";
+
+            return $this->render('info', [
+                'model' => $model]);
         } else {
-        return $this->render('partner',['sql_ab' => $sql_ab,'col' => $col]);
+            return $this->render('partner', ['sql_ab' => $sql_ab, 'col' => $col]);
         }
     }
 
-        //формирование файла идентификации
-        // Формирование файла devloc для САП для Юр.лиц
+    //формирование файла идентификации
+    // Формирование файла devloc для САП для Юр.лиц
     public function actionIdfile_devloc($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
-        $method=__FUNCTION__;
-      if (substr($method, -4) == '_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
         } else {
@@ -12944,7 +12916,7 @@ WHERE
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,13));
+        $routine = strtoupper(substr($method, 13));
         $filename = get_routine1($method);
 
         $sql = "select 'DEVLOC' as OM,a.oldkey,b.code,b.short_name,const.ver from sap_egpld as a
@@ -12964,16 +12936,16 @@ WHERE
         $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $f = fopen($fname, 'w+');
 
-                    foreach ($data as $d1) {
-                        $d1=array_slice($d1, 0, 4);                        
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }   
-                    
+        foreach ($data as $d1) {
+            $d1 = array_slice($d1, 0, 4);
+            $d1 = array_map('trim', $d1);
+            $s1 = implode("\t", $d1);
+            $s1 = str_replace("~", "", $s1);
+            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+            fputs($f, $s1);
+            fputs($f, "\n");
+        }
+
         fclose($f);
         $model = new info();
         $model->title = 'УВАГА!';
@@ -12984,29 +12956,28 @@ WHERE
 
         return $this->render('info', [
             'model' => $model]);
-        
+
     }
 
-    public function actionSap_discdoc_ind($res,$par=0)
+    public function actionSap_discdoc_ind($res, $par = 0)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
@@ -13016,61 +12987,59 @@ WHERE
                 where a.archive ='0' and (a.activ = 'f' or a.activ is null)
                 group by a.id,a.code,const.ver";
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
         // Заполняем массивы структур: $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($data as $w) {
-            $di_doc[$i]=f_discdoc1_ind($rem,$w);
-            $di_inf[$i]=f_discdoc2_ind($rem,$w);
+            $di_doc[$i] = f_discdoc1_ind($rem, $w);
+            $di_inf[$i] = f_discdoc2_ind($rem, $w);
             $i++;
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
 //        debug($di_inf);
 //        return;
         // Считываем данные в файл с массивов $di_int и $di_zw
-        $i=0;
-        $j=0;
-        foreach ($di_doc as $key=>$d) {
+        $i = 0;
+        $j = 0;
+        foreach ($di_doc as $key => $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
             $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $v=$di_inf[$key];
-            
-            
-            
+            $v = $di_inf[$key];
+
+
 //            foreach ($di_inf as $v) {
-                $d1 = array_map('trim', $v);
-                $s = implode("\t", $d1);
-                $s = str_replace("~", "", $s);
-                $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
-                fputs($f, $s);
-                fputs($f, "\n");
-                fputs($f, $d1[0]."\t".'&ENDE');
-                fputs($f, "\n");
-//               
+            $d1 = array_map('trim', $v);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            fputs($f, $d1[0] . "\t" . '&ENDE');
+            fputs($f, "\n");
+//
 //                 break;
 //            }
             $i++;
         }
         fclose($f);
 
-    if($par==0)
-        if (file_exists($fname)) {
-            return \Yii::$app->response->sendFile($fname);
-        }
-    else
-            return 1;
+        if ($par == 0)
+            if (file_exists($fname)) {
+                return \Yii::$app->response->sendFile($fname);
+            } else
+                return 1;
 
 //        if (file_exists($fname)) {
 //            return \Yii::$app->response->sendFile($fname);
@@ -13086,27 +13055,26 @@ WHERE
 //        return $this->render('info', [
 //            'model' => $model]);
     }
-    
-    public function actionSap_discorder_ind($res,$par=0)
+
+    public function actionSap_discorder_ind($res, $par = 0)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
@@ -13116,26 +13084,26 @@ WHERE
                 where a.archive ='0' and (a.activ = 'f' or a.activ is null)
                 group by a.id,a.code,const.ver";
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
         // Заполняем массивы структур: $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($data as $w) {
-            $di_ord[$i]=f_discorder_ind($rem,$w);
+            $di_ord[$i] = f_discorder_ind($rem, $w);
             $i++;
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
 //        debug($di_inf);
 //        return;
         // Считываем данные в файл с массивов $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($di_ord as $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
@@ -13143,17 +13111,16 @@ WHERE
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0]."\t".'&ENDE');
-            fputs($f, "\n");            
-            
+            fputs($f, $d1[0] . "\t" . '&ENDE');
+            fputs($f, "\n");
+
             $i++;
         }
         fclose($f);
-        if($par==0)
+        if ($par == 0)
             if (file_exists($fname)) {
                 return \Yii::$app->response->sendFile($fname);
-            }
-        else
+            } else
                 return 1;
 
 //        if (file_exists($fname)) {
@@ -13170,27 +13137,26 @@ WHERE
 //        return $this->render('info', [
 //            'model' => $model]);
     }
-    
-    public function actionSap_discenter_ind($res,$par=0)
+
+    public function actionSap_discenter_ind($res, $par = 0)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
@@ -13200,26 +13166,26 @@ WHERE
                 where a.archive ='0' and (a.activ = 'f' or a.activ is null)
                 group by a.id,a.code,const.ver";
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
         // Заполняем массивы структур: $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($data as $w) {
-            $di_ent[$i]=f_discenter_ind($rem,$w);
+            $di_ent[$i] = f_discenter_ind($rem, $w);
             $i++;
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        deleterOM($fname, $rem);
+        $f = fopen($fname, 'w+');
 //        debug($di_inf);
 //        return;
         // Считываем данные в файл с массивов $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($di_ent as $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
@@ -13227,18 +13193,17 @@ WHERE
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0]."\t".'&ENDE');
-            fputs($f, "\n");            
-            
+            fputs($f, $d1[0] . "\t" . '&ENDE');
+            fputs($f, "\n");
+
             $i++;
         }
         fclose($f);
 
-        if($par==0)
+        if ($par == 0)
             if (file_exists($fname)) {
                 return \Yii::$app->response->sendFile($fname);
-            }
-        else
+            } else
                 return 1;
 
 //        if (file_exists($fname)) {
@@ -13255,8 +13220,8 @@ WHERE
 //        return $this->render('info', [
 //            'model' => $model]);
     }
-    
-    
+
+
     // Импорт готовой таблицы street в базы РЭСов
     public function actionImp_street_in_bd()
     {
@@ -13266,7 +13231,7 @@ WHERE
         $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
 
         //debug($data);
-        $sql="CREATE TABLE public.street
+        $sql = "CREATE TABLE public.street
             (
               name text,
               citycode character varying,
@@ -13281,7 +13246,7 @@ WHERE
             )";
         Yii::$app->db_pg_krg_energo->createCommand($sql)->execute();
 
-        foreach($data as $in){
+        foreach ($data as $in) {
             $code = $in['code'];
             $name = $in['name'];
             $name_town = $in['name_town'];
@@ -13295,9 +13260,9 @@ WHERE
 
             $sql = "INSERT INTO street (code,name,citycode,thedistrictcode,streettypecode,
                     modify_time,citykoid,resid,xstreetcode,name_town)
-            VALUES(".
-                $code.','.'$$'.$name.'$$'.","."'".$citycode."'".","."'".$thedistrictcode."'".",".$streettypecode.",".
-                "'".$modify_time."'".","."'".$citykoid."'".","."'".$resid."'".","."'".$xstreetcode."'".","."$$".$name_town."$$".')';
+            VALUES(" .
+                $code . ',' . '$$' . $name . '$$' . "," . "'" . $citycode . "'" . "," . "'" . $thedistrictcode . "'" . "," . $streettypecode . "," .
+                "'" . $modify_time . "'" . "," . "'" . $citykoid . "'" . "," . "'" . $resid . "'" . "," . "'" . $xstreetcode . "'" . "," . "$$" . $name_town . "$$" . ')';
             Yii::$app->db_pg_krg_energo->createCommand($sql)->execute();
 
             //debug($town);
@@ -13310,17 +13275,17 @@ WHERE
     public function actionAddr_from_sap()
     {
         $file = "street_sap.csv";
-        $f = fopen($file,'r');
+        $f = fopen($file, 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("~",$s);
+            $data = explode("~", $s);
             $contry = $data[0];
             $numstreet = $data[1];
             $numtown = $data[2];
             $town = $data[3];
-            $pr =    $data[4];
+            $pr = $data[4];
             $note = $data[5];
             $numobl = $data[6];
             $rnobl = $data[7];
@@ -13329,14 +13294,14 @@ WHERE
             $street2 = $data[10];
             $short_street = $data[11];
 //            if (trim($note)!='Дніпропетровська' and trim($note)!='Вінницька') {
-                $sql = "INSERT INTO addr_sap (contry,numstreet,numtown,town,reg,note,numobl,rnobl,type_street,
+            $sql = "INSERT INTO addr_sap (contry,numstreet,numtown,town,reg,note,numobl,rnobl,type_street,
                     street,street2,short_street)
                     VALUES(" .
-                    '$$' . $contry . '$$' . ',' . '$$' . $numstreet . '$$' . "," . "'" . $numtown . "'" . "," . "$$" . $town . "$$" . "," . '$$' . $pr . '$$' . "," .
-                    "$$" . $note . "$$" . "," . "$$" . $numobl . "$$" . "," . "$$" . $rnobl . "$$" . "," . "'" . $type_street . "'" . "," . "$$" . $street . "$$" .
-                    "," . "$$" . $street2 . "$$" . "," . "$$" . $short_street . "$$" .
-                    ')';
-                Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
+                '$$' . $contry . '$$' . ',' . '$$' . $numstreet . '$$' . "," . "'" . $numtown . "'" . "," . "$$" . $town . "$$" . "," . '$$' . $pr . '$$' . "," .
+                "$$" . $note . "$$" . "," . "$$" . $numobl . "$$" . "," . "$$" . $rnobl . "$$" . "," . "'" . $type_street . "'" . "," . "$$" . $street . "$$" .
+                "," . "$$" . $street2 . "$$" . "," . "$$" . $short_street . "$$" .
+                ')';
+            Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
 //            }
 
             //debug($town);
@@ -13349,12 +13314,12 @@ WHERE
     public function actionEd_sch()
     {
         $file = "ed_sch_kr.csv";
-        $f = fopen($file,'r');
+        $f = fopen($file, 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("~",$s);
+            $data = explode("~", $s);
 //            debug($data);
 //            return;
 
@@ -13362,15 +13327,15 @@ WHERE
             $abonent = $data[2];
             $n_sch = $data[11];
             $type_sch = $data[12];
-            $code_tu =    $data[20];
+            $code_tu = $data[20];
             $inspector = $data[49];
             $ed_sch = $data[51];
 
 //            if (trim($note)!='Дніпропетровська' and trim($note)!='Вінницька') {
             $sql = "INSERT INTO ed_sch (lic_sch,abonent,n_sch,type_sch,code_tu,inspector,ed_sch)
                     VALUES(" .
-                 $lic_sch . ',' . '$$' . $abonent . '$$' . "," . "'" . $n_sch . "'" . "," . "$$" . $type_sch . "$$" . "," . '$$' . $code_tu . '$$' . "," .
-                "$$" . $inspector . "$$" . "," . "$$" . $ed_sch . "$$"  .
+                $lic_sch . ',' . '$$' . $abonent . '$$' . "," . "'" . $n_sch . "'" . "," . "$$" . $type_sch . "$$" . "," . '$$' . $code_tu . '$$' . "," .
+                "$$" . $inspector . "$$" . "," . "$$" . $ed_sch . "$$" .
                 ')';
             Yii::$app->db_pg_krg_energo->createCommand($sql)->execute();
 //            }
@@ -13386,26 +13351,26 @@ WHERE
     public function actionGet_data_tv()
     {
         $file = "izm_dn.csv";
-        $f = fopen($file,'r');
+        $f = fopen($file, 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("~",$s);
+            $data = explode("~", $s);
             $id = $data[1];
             if (!isset($data[25])) continue;
             $type_tr = $data[25];
             $code_i = $data[27];
-            $numbers_i = str_replace(';',',',$data[28]);
-            $code_u =    $data[35];
+            $numbers_i = str_replace(';', ',', $data[28]);
+            $code_u = $data[35];
             $type_tr_u = $data[33];
-            $numbers_u = str_replace(';',',',$data[37]);
+            $numbers_u = str_replace(';', ',', $data[37]);
             $lic = $data[2];
-            $name = str_replace('"','',$data[3]);
+            $name = str_replace('"', '', $data[3]);
             $n_cnt = $data[12];
             $type_cnt = $data[13];
             $power = $data[22];
-            if(empty($power)) $power=0;
+            if (empty($power)) $power = 0;
             $level_u = $data[24];
             $ktp = $data[6];
             $carry = $data[17];
@@ -13413,15 +13378,15 @@ WHERE
 //            debug($data);
 //            return;
 
-                $sql = "INSERT INTO spr_izm_tv (id,lic,name,ktp,carry,n_cnt,type_cnt,power,level_u,
+            $sql = "INSERT INTO spr_izm_tv (id,lic,name,ktp,carry,n_cnt,type_cnt,power,level_u,
                     type_tr,code_i,numbers_i,type_tr_u,code_u,numbers_u)
                     VALUES(" .
-                     $id .  ',' . '$$' . $lic . '$$' . "," . "$$" . $name . "$$" . "," . "$$" . $ktp . "$$" . "," .  $carry .  "," .
-                    "$$" . $n_cnt . "$$" . "," . "$$" . $type_cnt . "$$" . "," .  $power .  "," . "'" . $level_u . "'" . "," . "$$" . $type_tr . "$$" .
-                    "," . "$$" . $code_i . "$$" . "," . "$$" . $numbers_i . "$$" . "," . "$$" . $type_tr_u . "$$" . "," .
-                    "$$" . $code_u . "$$" . "," . "$$" . $numbers_u . "$$" .
-                    ')';
-                Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
+                $id . ',' . '$$' . $lic . '$$' . "," . "$$" . $name . "$$" . "," . "$$" . $ktp . "$$" . "," . $carry . "," .
+                "$$" . $n_cnt . "$$" . "," . "$$" . $type_cnt . "$$" . "," . $power . "," . "'" . $level_u . "'" . "," . "$$" . $type_tr . "$$" .
+                "," . "$$" . $code_i . "$$" . "," . "$$" . $numbers_i . "$$" . "," . "$$" . $type_tr_u . "$$" . "," .
+                "$$" . $code_u . "$$" . "," . "$$" . $numbers_u . "$$" .
+                ')';
+            Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
 
 
             //debug($town);
@@ -13434,24 +13399,24 @@ WHERE
     public function actionSpr_data_tv()
     {
         $file = "sap_tv_u.csv";
-        $f = fopen($file,'r');
+        $f = fopen($file, 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("~",$s);
+            $data = explode("~", $s);
             $id = $data[0];
             $nazv = $data[1];
             $gr = $data[2];
 
-            if (empty($id)) $id=0;
+            if (empty($id)) $id = 0;
 //            debug($data);
 //            return;
 
             $sql = "INSERT INTO sap_tv_u (id,nazv,gr)
                     VALUES(" .
-                $id .  ',' . '$$' . $nazv . '$$' . "," . "$$" . $gr . "$$" .
-                  ')';
+                $id . ',' . '$$' . $nazv . '$$' . "," . "$$" . $gr . "$$" .
+                ')';
             Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
 
 
@@ -13466,13 +13431,13 @@ WHERE
     public function actionPrepare_csv()
     {
         $file = "person.csv";
-        $f = fopen($file,'r');
-        $ff=fopen('copy_'.$file,'w+');
+        $f = fopen($file, 'r');
+        $ff = fopen('copy_' . $file, 'w+');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode(";",$s);
+            $data = explode(";", $s);
 //            $s = str_replace('"','',$s);
 //            $p = strpos($s, ';');
             $d1 = '';
@@ -13496,67 +13461,67 @@ WHERE
             $d19 = '';
             $d20 = '';
             $d21 = '';
-            if($i>1) {
-                if(isset($data[0]))
-                    $d1 = trim(str_replace('"','',$data[0]));
-                if(isset($data[1]))
-                    $d2 = trim(str_replace('"','',$data[1]));
-                if(isset($data[2]))
-                    $d3 = trim(str_replace('"','',$data[2]));
-                if(isset($data[3]))
-                    $d4 = trim(str_replace('"','',$data[3]));
-                if(isset($data[4]))
-                    $d5 = trim(str_replace('"','',$data[4]));
-                if(isset($data[5]))
-                    $d6 = trim(str_replace(' ','',$data[5]));
-                if(isset($data[6]))
-                    $d7 = trim(str_replace('"','',$data[6]));
-                if(isset($data[7]))
-                    $d8 = trim(str_replace('"','',$data[7]));
-                if(isset($data[8]))
-                    $d9 = trim(str_replace('"','',$data[8]));
-                if(isset($data[9]))
-                    $d10 = trim(str_replace('"','',$data[9]));
-                if(isset($data[10]))
-                    $d11 = trim(str_replace('"','',$data[10]));
-                if(isset($data[11]))
-                    $d12 = trim(str_replace('"','',$data[11]));
-                if(isset($data[12]))
-                    $d13 = trim(str_replace('"','',$data[12]));
+            if ($i > 1) {
+                if (isset($data[0]))
+                    $d1 = trim(str_replace('"', '', $data[0]));
+                if (isset($data[1]))
+                    $d2 = trim(str_replace('"', '', $data[1]));
+                if (isset($data[2]))
+                    $d3 = trim(str_replace('"', '', $data[2]));
+                if (isset($data[3]))
+                    $d4 = trim(str_replace('"', '', $data[3]));
+                if (isset($data[4]))
+                    $d5 = trim(str_replace('"', '', $data[4]));
+                if (isset($data[5]))
+                    $d6 = trim(str_replace(' ', '', $data[5]));
+                if (isset($data[6]))
+                    $d7 = trim(str_replace('"', '', $data[6]));
+                if (isset($data[7]))
+                    $d8 = trim(str_replace('"', '', $data[7]));
+                if (isset($data[8]))
+                    $d9 = trim(str_replace('"', '', $data[8]));
+                if (isset($data[9]))
+                    $d10 = trim(str_replace('"', '', $data[9]));
+                if (isset($data[10]))
+                    $d11 = trim(str_replace('"', '', $data[10]));
+                if (isset($data[11]))
+                    $d12 = trim(str_replace('"', '', $data[11]));
+                if (isset($data[12]))
+                    $d13 = trim(str_replace('"', '', $data[12]));
 
-                if(isset($data[13]))
-                    $d14 = trim(str_replace('"','',$data[13]));
-                if(isset($data[14]))
-                    $d15 = trim(str_replace('"','',$data[14]));
-                if(isset($data[15]))
-                    $d16 = trim(str_replace('"','',$data[15]));
-                if(isset($data[16]))
-                    $d17 = trim(str_replace('"','',$data[16]));
-                if(isset($data[17]))
-                    $d18 = trim(str_replace('"','',$data[17]));
-                if(isset($data[18]))
-                    $d19 = trim(str_replace('"','',$data[18]));
-                if(isset($data[19]))
-                    $d20 = trim(str_replace('"','',$data[19]));
-                if(isset($data[20]))
-                    $d21 = trim(str_replace('"','',$data[20]));
+                if (isset($data[13]))
+                    $d14 = trim(str_replace('"', '', $data[13]));
+                if (isset($data[14]))
+                    $d15 = trim(str_replace('"', '', $data[14]));
+                if (isset($data[15]))
+                    $d16 = trim(str_replace('"', '', $data[15]));
+                if (isset($data[16]))
+                    $d17 = trim(str_replace('"', '', $data[16]));
+                if (isset($data[17]))
+                    $d18 = trim(str_replace('"', '', $data[17]));
+                if (isset($data[18]))
+                    $d19 = trim(str_replace('"', '', $data[18]));
+                if (isset($data[19]))
+                    $d20 = trim(str_replace('"', '', $data[19]));
+                if (isset($data[20]))
+                    $d21 = trim(str_replace('"', '', $data[20]));
 
-                $s = $d1.';'.$d2.';'.$d3.';'.$d4.';'.$d5.';'.
-                     $d6.';'.$d7.';'.$d8.';'.$d9.';'.$d10.';'.
-                     $d11.';'.$d12.';'.$d13.';'.$d14.';'.$d15.';'.
-                     $d16.';'.$d17.';'.$d18.';'.$d19.';'.$d20.';'.$d21.';'.
+                $s = $d1 . ';' . $d2 . ';' . $d3 . ';' . $d4 . ';' . $d5 . ';' .
+                    $d6 . ';' . $d7 . ';' . $d8 . ';' . $d9 . ';' . $d10 . ';' .
+                    $d11 . ';' . $d12 . ';' . $d13 . ';' . $d14 . ';' . $d15 . ';' .
+                    $d16 . ';' . $d17 . ';' . $d18 . ';' . $d19 . ';' . $d20 . ';' . $d21 . ';' .
                     "\n";
 
             }
-            echo $s.'<br>';
+            echo $s . '<br>';
             fputs($ff, $s);
         }
         fclose($f);
         fclose($ff);
-        echo "Файл ".$file.' отформатирован.';
+        echo "Файл " . $file . ' отформатирован.';
     }
     // --------------------------------------------------------------------------------------------------------
-    
+
     // Импорт отчета по КиевСтар за ноябрь 2019 года для выявления штрафников
     public function actionImport_ks_0220()
     {
@@ -13584,23 +13549,23 @@ WHERE
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('Rep0220.csv','r');
+        $f = fopen('Rep0220.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
 //            if($i==1) continue;
-            $data = explode(";",$s);
-            
-            if(empty($data[0])) break;
-            $data[0] = str_replace('"','',$data[0]);
-            $data[0] = str_replace('+380','',$data[0]);
-            $data[3] = str_replace('"','',$data[3]);
-            $data[9] = str_replace('"','',$data[9]);
-            $e=1;
-             
-                    $sql = "INSERT INTO tmp_ks0220 (tel,cost_plan,cost_all) VALUES(".
-                        "'".$data[0]."'".","."'".$data[3]."'".","."'".$data[9]."'".')';
+            $data = explode(";", $s);
+
+            if (empty($data[0])) break;
+            $data[0] = str_replace('"', '', $data[0]);
+            $data[0] = str_replace('+380', '', $data[0]);
+            $data[3] = str_replace('"', '', $data[3]);
+            $data[9] = str_replace('"', '', $data[9]);
+            $e = 1;
+
+            $sql = "INSERT INTO tmp_ks0220 (tel,cost_plan,cost_all) VALUES(" .
+                "'" . $data[0] . "'" . "," . "'" . $data[3] . "'" . "," . "'" . $data[9] . "'" . ')';
 
             Yii::$app->db_phone->createCommand($sql)->execute();
         }
@@ -13681,7 +13646,7 @@ WHERE
             }
         }
 
-            fclose($f);
+        fclose($f);
 
     }
 
@@ -13690,78 +13655,78 @@ WHERE
     public function actionImport_names()
     {
 
-        $f = fopen('m_name.csv','r');
+        $f = fopen('m_name.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
             //if($i==1) continue;
-            $data = explode(";",$s);
+            $data = explode(";", $s);
 
-            if(empty($data[0])) break;
+            if (empty($data[0])) break;
 
-            $sql = "INSERT INTO man_name (name) VALUES(".
-                "'".$data[0]."'".')';
+            $sql = "INSERT INTO man_name (name) VALUES(" .
+                "'" . $data[0] . "'" . ')';
 
             Yii::$app->db_phone->createCommand($sql)->execute();
         }
 
         fclose($f);
     }
+
     // Импорт дневника в Info
     public function actionImport_diary()
     {
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('diary.txt','r');
+        $f = fopen('diary.txt', 'r');
         $i = 0;
-        $flag=-1;
-        $data='';
-        $cf=0;
+        $flag = -1;
+        $data = '';
+        $cf = 0;
         while (!feof($f)) {
             $s = fgets($f);
-            if(trim($s)=='') continue;
-            $y=mb_strlen($s,'UTF-8');
+            if (trim($s) == '') continue;
+            $y = mb_strlen($s, 'UTF-8');
             $i++;
-            $k=10;
+            $k = 10;
 
-            if(mb_substr($s,2,1,'UTF-8')=='.') {
-                $flag=0;
-                $cf=$flag;
-                $date = mb_substr($s,0,$k,'UTF-8');
-                $data='';
+            if (mb_substr($s, 2, 1, 'UTF-8') == '.') {
+                $flag = 0;
+                $cf = $flag;
+                $date = mb_substr($s, 0, $k, 'UTF-8');
+                $data = '';
+            } else {
+                $flag = 1;
+                $cf = $flag;
             }
-            else {
-                $flag=1;
-                $cf=$flag;
-            }
-           // echo $flag;
-            if($flag>=1 && $i>1) {
-                $c=mb_substr(trim($s),0,1,'UTF-8');
-                if(mb_substr($s,1,1,'UTF-8')=='.' && ctype_digit($c))
-                {$flag=3; $data='';}
-                else{
-                    $flag=2;
+            // echo $flag;
+            if ($flag >= 1 && $i > 1) {
+                $c = mb_substr(trim($s), 0, 1, 'UTF-8');
+                if (mb_substr($s, 1, 1, 'UTF-8') == '.' && ctype_digit($c)) {
+                    $flag = 3;
+                    $data = '';
+                } else {
+                    $flag = 2;
                 }
-                if($flag==3 && $cf==3) $flag=4;
-                if($flag==3 || $flag==4)
-                    $data = mb_substr($s,2,$y-2,'UTF-8');
-                else
-                {
-                    $data = $data.' '.trim($s);
+                if ($flag == 3 && $cf == 3) $flag = 4;
+                if ($flag == 3 || $flag == 4)
+                    $data = mb_substr($s, 2, $y - 2, 'UTF-8');
+                else {
+                    $data = $data . ' ' . trim($s);
                 }
-                $date=date("Y-m-d", strtotime($date));
+                $date = date("Y-m-d", strtotime($date));
 
-                if($flag==2 || $flag==4) {
-                    $cf=$flag;
+                if ($flag == 2 || $flag == 4) {
+                    $cf = $flag;
                     $sql = "INSERT INTO diary (date,txt) VALUES(" .
                         "'" . $date . "'" . "," . "'" . $data . "'" . ')';
                     Yii::$app->db_info->createCommand($sql)->execute();
                 }
                 echo $i;
                 echo '<br>';
-           }
+            }
         }
         echo "Импорт завершен";
         fclose($f);
@@ -13770,33 +13735,33 @@ WHERE
     // Импорт списка новых работников во врем. таблицу
     public function actionImport_new()
     {
-       
+
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('new_list1.csv','r');
+        $f = fopen('new_list1.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode(";",$s);
-             $data[1] = str_replace("'",'`',$data[1]);
-             $date=date("Y-m-d", strtotime($data[2]));
-            
-            if(empty($data[0])) break;
-                     
-             
-                    $sql = "INSERT INTO newlist (fio,date,spec,p1,p2,p3) VALUES(".
-                        "'".$data[1]."'".","."'".$date."'".","."'".$data[3]."'".",".
-                            "'".$data[4]."'".","."'".$data[5]."'".",". "'".$data[6]."'".')';
+            if ($i == 1) continue;
+            $data = explode(";", $s);
+            $data[1] = str_replace("'", '`', $data[1]);
+            $date = date("Y-m-d", strtotime($data[2]));
+
+            if (empty($data[0])) break;
+
+
+            $sql = "INSERT INTO newlist (fio,date,spec,p1,p2,p3) VALUES(" .
+                "'" . $data[1] . "'" . "," . "'" . $date . "'" . "," . "'" . $data[3] . "'" . "," .
+                "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . ')';
 
             Yii::$app->db_phone->createCommand($sql)->execute();
         }
 
         fclose($f);
-    }   
+    }
 
-   // Импорт списка рабочих в справочник телефонов
+    // Импорт списка рабочих в справочник телефонов
     public function actionImport_list_works()
     {
         $sql = "CREATE TABLE tmp_works (
@@ -13814,42 +13779,40 @@ WHERE
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('list_works.csv','r');
+        $f = fopen('list_works.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode(",",$s);
-            if(empty($data[0])) break;
-            $data[3] = str_replace('"',' ',$data[3]);
-            $e=1;
-            while($e==1)
-            {
+            if ($i == 1) continue;
+            $data = explode(",", $s);
+            if (empty($data[0])) break;
+            $data[3] = str_replace('"', ' ', $data[3]);
+            $e = 1;
+            while ($e == 1) {
                 $pos = strpos($data[1], "'");
-                if(!$pos)
-                    {$sql = "INSERT INTO tmp_works (fio,unit,in_unit,post,id_podr,id_name) VALUES(".
-                        "'".$data[1]."'".","."'".$data[3]."'".","."'".$data[4]."'".","."'".$data[5]."'".
-                        ",".'null'.",".'null'.')';
+                if (!$pos) {
+                    $sql = "INSERT INTO tmp_works (fio,unit,in_unit,post,id_podr,id_name) VALUES(" .
+                        "'" . $data[1] . "'" . "," . "'" . $data[3] . "'" . "," . "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" .
+                        "," . 'null' . "," . 'null' . ')';
 
-                    }
-                else
-                    {$sql = "INSERT INTO tmp_works (fio,unit,in_unit,post,id_podr,id_name) VALUES(".
-                        '"'.$data[1].'"'.","."'".$data[3]."'".","."'".$data[4]."'".","."'".$data[5]."'".
-                        ",".'null'.",".'null'.')';
-                     break;
-                    }
+                } else {
+                    $sql = "INSERT INTO tmp_works (fio,unit,in_unit,post,id_podr,id_name) VALUES(" .
+                        '"' . $data[1] . '"' . "," . "'" . $data[3] . "'" . "," . "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" .
+                        "," . 'null' . "," . 'null' . ')';
+                    break;
+                }
 
                 $pos = strpos($data[5], "'");
-                if(!$pos)
-                    $sql = "INSERT INTO tmp_works (fio,unit,in_unit,post,id_podr,id_name) VALUES(".
-                           "'".$data[1]."'".","."'".$data[3]."'".","."'".$data[4]."'".","."'".$data[5]."'".
-                    ",".'null'.",".'null'.')';
+                if (!$pos)
+                    $sql = "INSERT INTO tmp_works (fio,unit,in_unit,post,id_podr,id_name) VALUES(" .
+                        "'" . $data[1] . "'" . "," . "'" . $data[3] . "'" . "," . "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" .
+                        "," . 'null' . "," . 'null' . ')';
                 else
-                    $sql = "INSERT INTO tmp_works (fio,unit,in_unit,post,id_podr,id_name) VALUES(".
-                        "'".$data[1]."'".","."'".$data[3]."'".","."'".$data[4]."'".",".'"'.$data[5].'"'.
-                        ",".'null'.",".'null'.')';
-                $e=0;
+                    $sql = "INSERT INTO tmp_works (fio,unit,in_unit,post,id_podr,id_name) VALUES(" .
+                        "'" . $data[1] . "'" . "," . "'" . $data[3] . "'" . "," . "'" . $data[4] . "'" . "," . '"' . $data[5] . '"' .
+                        "," . 'null' . "," . 'null' . ')';
+                $e = 0;
             }
 
             Yii::$app->db_phone->createCommand($sql)->execute();
@@ -13860,10 +13823,10 @@ WHERE
         $sql = 'UPDATE tmp_works a,1c b SET a.id_podr=b.id_podr,a.id_name=b.id_name
                 WHERE a.fio = b.Працівник ';
         Yii::$app->db_phone->createCommand($sql)->execute();
-        $data=tmp_works::find()->where('id_name is not null')->orderby('id_name')->all();
+        $data = tmp_works::find()->where('id_name is not null')->orderby('id_name')->all();
         $i = 0;
         // Делаем чтобы все номера работников шли по порядку
-        foreach ($data as $d){
+        foreach ($data as $d) {
             $i++;
 //            $d->id_sort = $i;
             $d->id_name = $i;
@@ -13871,9 +13834,9 @@ WHERE
         }
 
         $max = $i;  // Сдесь макс. последний номер работника
-        $data=tmp_works::find()->where('id_name is null')->all();
+        $data = tmp_works::find()->where('id_name is null')->all();
         // Делаем чтобы все номера работников шли по порядку - тем которые null присваивается максимальный номер + 1
-        foreach ($data as $d){
+        foreach ($data as $d) {
             $max++;
 //            $d->id_sort = $max;
             $d->id_name = $max;
@@ -13937,63 +13900,64 @@ WHERE
 
     }
 
-    public function actionStrtest(){
-        $data8='Павлоградські РЕМ';
-        $rrem = mb_substr($data8,mb_strlen($data8,'UTF-8')-3,3,'UTF-8');
+    public function actionStrtest()
+    {
+        $data8 = 'Павлоградські РЕМ';
+        $rrem = mb_substr($data8, mb_strlen($data8, 'UTF-8') - 3, 3, 'UTF-8');
         echo $rrem;
     }
 
 // Генерация 32-битного случайного числа
-    public function actionGen32(){
-           echo gen16(32);
+    public function actionGen32()
+    {
+        echo gen16(32);
     }
 
     // Создание поля CHARG (SAP)
-    public function actionCharg(){
+    public function actionCharg()
+    {
         $all_tmc = all_tmc::findbysql('Select a.*,b.kol_gr from a_c_sklad_exp3 a 
         join q_gr1 b on a.zmaktx=b.zmaktx and a.charg1=b.charg order by a.zmaktx,a.charg1')->asArray()
             ->all();
-        $y=count($all_tmc);
-        $a='';
-        $b='';
-        $j=1;
-        for($i=1;$i<=$y;$i++){
-            $id=$all_tmc[$i]['ID'];
-            if($all_tmc[$i]['kol_gr']==1)
-            { $a='';
-              $b='';
-              $charg=$all_tmc[$i]['charg'].'000'.'1';
-              $j=1;
-            }
-            else
-            {
-              if($all_tmc[$i]['zmaktx']==$a && $all_tmc[$i]['charg1']==$b){
-                  $j++;
-              }
-              else{
-                  $j=1;
-              }
-              $a=$all_tmc[$i]['zmaktx'];
-              $b=$all_tmc[$i]['charg1'];
+        $y = count($all_tmc);
+        $a = '';
+        $b = '';
+        $j = 1;
+        for ($i = 1; $i <= $y; $i++) {
+            $id = $all_tmc[$i]['ID'];
+            if ($all_tmc[$i]['kol_gr'] == 1) {
+                $a = '';
+                $b = '';
+                $charg = $all_tmc[$i]['charg'] . '000' . '1';
+                $j = 1;
+            } else {
+                if ($all_tmc[$i]['zmaktx'] == $a && $all_tmc[$i]['charg1'] == $b) {
+                    $j++;
+                } else {
+                    $j = 1;
+                }
+                $a = $all_tmc[$i]['zmaktx'];
+                $b = $all_tmc[$i]['charg1'];
 
             }
-            $z="update a_c_sklad_exp3 set kol_gr=$j where ID=$id";
+            $z = "update a_c_sklad_exp3 set kol_gr=$j where ID=$id";
             Yii::$app->db_sap->createCommand($z)->execute();
         }
 
-       // debug($all_tmc);
+        // debug($all_tmc);
         echo "OK";
     }
 
     // Создание отв. лиц (SAP)
-    public function actionLgort(){
+    public function actionLgort()
+    {
         $otv = all_tmc::findbysql('Select a.lgort,a.ID from a_all_tmc a')->asArray()
             ->all();
-        $y=count($otv);
+        $y = count($otv);
 
-        for($i=1;$i<=$y;$i++){
-            $id=$otv[$i]['ID'];
-            $h=$otv[$i]['lgort'];
+        for ($i = 1; $i <= $y; $i++) {
+            $id = $otv[$i]['ID'];
+            $h = $otv[$i]['lgort'];
             switch ($h) {
                 case 'ВгРЕМ АЗ-2':
                     $j = 'Горовой';
@@ -14020,16 +13984,16 @@ WHERE
                     $j = 'Мамай';
                     break;
                 default:
-                    $w=mb_strlen($h,'UTF-8');
+                    $w = mb_strlen($h, 'UTF-8');
                     $pos = strpos($h, ' ');
 
                     if (!$pos === false) {
-                        $h=substr($h,0,$pos);
+                        $h = substr($h, 0, $pos);
                     }
 
-                    $j=$h;
+                    $j = $h;
             }
-            $z="update a_all_tmc set lgort1='$j' where ID=$id";
+            $z = "update a_all_tmc set lgort1='$j' where ID=$id";
             Yii::$app->db_sap->createCommand($z)->execute();
         }
 
@@ -14038,32 +14002,32 @@ WHERE
     }
 
     // Преобразование таблицы инструмента
-    public function actionDo_mshp(){
+    public function actionDo_mshp()
+    {
         $msp = all_tmc::findbysql('Select * from mshp')->asArray()
             ->all();
-        $y=count($msp);
-        $otv='';
-        for($i=1;$i<=$y;$i++){
-            $id=$msp[$i]['ID'];
-            $h=$msp[$i]['tmc'];
-            if(strpos($h,'"')) ;
+        $y = count($msp);
+        $otv = '';
+        for ($i = 1; $i <= $y; $i++) {
+            $id = $msp[$i]['ID'];
+            $h = $msp[$i]['tmc'];
+            if (strpos($h, '"')) ;
             else {
                 $fio = all_tmc::findbysql("Select * from kyivstar where fio=" . '"' . $h . '"')->asArray()
                     ->all();
 
                 $yy = count($fio);
                 if ($yy > 0) $otv = $h;
-                else
-                {
+                else {
                     $fio = all_tmc::findbysql("Select * from 1c where fio=" . '"' . $h . '"')->asArray()
-                    ->all();
+                        ->all();
 
                     $yy = count($fio);
                     if ($yy > 0) $otv = $h;
 
                 }
             }
-            $z="update mshp set otv='$otv' where ID=$id";
+            $z = "update mshp set otv='$otv' where ID=$id";
             Yii::$app->db_sap->createCommand($z)->execute();
         }
 
@@ -14072,35 +14036,33 @@ WHERE
     }
 
     // Создание поля CHARG эксплуатация (SAP)
-    public function actionCharg_e(){
+    public function actionCharg_e()
+    {
         $all_tmc = all_tmc::findbysql('Select a.*,b.kol_gr from all_tmce a 
         join q_gr2 b on a.maktx_c=b.maktx_c and a.charg=b.charg order by a.maktx_c,a.charg')->asArray()
             ->all();
-        $y=count($all_tmc);
-        $a='';
-        $b='';
-        $j=1;
-        for($i=1;$i<=$y;$i++){
-            $id=$all_tmc[$i]['ID'];
-            if($all_tmc[$i]['kol_gr']==1)
-            { $a='';
-                $b='';
-                $charg=$all_tmc[$i]['CHARG'].'000'.'1';
-                $j=1;
-            }
-            else
-            {
-                if($all_tmc[$i]['maktx_c']==$a && $all_tmc[$i]['CHARG']==$b){
+        $y = count($all_tmc);
+        $a = '';
+        $b = '';
+        $j = 1;
+        for ($i = 1; $i <= $y; $i++) {
+            $id = $all_tmc[$i]['ID'];
+            if ($all_tmc[$i]['kol_gr'] == 1) {
+                $a = '';
+                $b = '';
+                $charg = $all_tmc[$i]['CHARG'] . '000' . '1';
+                $j = 1;
+            } else {
+                if ($all_tmc[$i]['maktx_c'] == $a && $all_tmc[$i]['CHARG'] == $b) {
                     $j++;
+                } else {
+                    $j = 1;
                 }
-                else{
-                    $j=1;
-                }
-                $a=$all_tmc[$i]['maktx_c'];
-                $b=$all_tmc[$i]['CHARG'];
+                $a = $all_tmc[$i]['maktx_c'];
+                $b = $all_tmc[$i]['CHARG'];
 
             }
-            $z="update all_tmce set kol_gr=$j where ID=$id";
+            $z = "update all_tmce set kol_gr=$j where ID=$id";
             Yii::$app->db_sap->createCommand($z)->execute();
         }
 
@@ -14119,24 +14081,23 @@ WHERE
         $j = 1;
 //        debug($tmc);
 //        return;
-        for($i=0;$i<$y;$i++) {
-            $id=$tmc[$i]['ID'];
-            $e=$tmc[$i]['EXBWR'];
+        for ($i = 0; $i < $y; $i++) {
+            $id = $tmc[$i]['ID'];
+            $e = $tmc[$i]['EXBWR'];
             $pos = strpos($e, ',');
-            $y1=strlen($e);
-            $r=0;
+            $y1 = strlen($e);
+            $r = 0;
             if (!$pos === false) {
                 $r = $y1 - $pos - 1;
-                if($r==1)
+                if ($r == 1)
                     $j = $e . str_repeat("0", $r);
                 else
                     $j = $e;
-            }
-            else
-                $j=$e.',00';
+            } else
+                $j = $e . ',00';
 
 
-            $z="update a_c_sklad_exp3 set exbwr1='$j' where ID=$id";
+            $z = "update a_c_sklad_exp3 set exbwr1='$j' where ID=$id";
             Yii::$app->db_sap->createCommand($z)->execute();
         }
         return;
@@ -14149,17 +14110,16 @@ WHERE
             ->all();
         $y = count($tmc);
         $j = 0;
-        $i=10;
+        $i = 10;
 //        debug($tmc);
 //        return;
-        while (1==1)
-        {
-            $id=$tmc[$j]['ID'];
-            $d=date('d.m.Y', strtotime("-$i days"));
-            if($j<$y && $i==679) $i=10;
-            if($j>=$y) break;
+        while (1 == 1) {
+            $id = $tmc[$j]['ID'];
+            $d = date('d.m.Y', strtotime("-$i days"));
+            if ($j < $y && $i == 679) $i = 10;
+            if ($j >= $y) break;
 
-            $z="update a_res_skl_mshp set ch_gr_date='$d' where ID=$id";
+            $z = "update a_res_skl_mshp set ch_gr_date='$d' where ID=$id";
             Yii::$app->db_sap->createCommand($z)->execute();
             $j++;
             $i++;
@@ -14171,30 +14131,29 @@ WHERE
     public function actionSpr_mat()
     {
         // Добавляем записи в таблицу other_tel с csv файла
-        $f = fopen('spr_mat.csv','r');
+        $f = fopen('spr_mat.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("$",$s);
-            $pos = strpos($data[2],'"');
-            $data[2]=str_replace("'",'$',$data[2]);
-            $data[3]=str_replace("'",'$',$data[3]);
+            $data = explode("$", $s);
+            $pos = strpos($data[2], '"');
+            $data[2] = str_replace("'", '$', $data[2]);
+            $data[3] = str_replace("'", '$', $data[3]);
 
-            $data[2]=str_replace('"','|',$data[2]);
-            $data[3]=str_replace('"','|',$data[3]);
+            $data[2] = str_replace('"', '|', $data[2]);
+            $data[3] = str_replace('"', '|', $data[3]);
 
-            $data[2]=str_replace('\\','@',$data[2]);
-            $data[3]=str_replace('\\','@',$data[3]);
-
+            $data[2] = str_replace('\\', '@', $data[2]);
+            $data[3] = str_replace('\\', '@', $data[3]);
 
 
 //            if (!$pos === false)
 
-                $sql = "INSERT INTO mater_prod1 (kod_sap,mater_s,mater_l,ed_izm,type_mat,descr_type,grup_mat,desc_gr)
+            $sql = "INSERT INTO mater_prod1 (kod_sap,mater_s,mater_l,ed_izm,type_mat,descr_type,grup_mat,desc_gr)
                 VALUES(" .
-                "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" .$data[3]."'"."," . "'".$data[4] . "'"
-                   ."," . "'".$data[5] . "'" . "," . "'".$data[6] . "'"."," . "'".$data[7] . "'".","  . "'".$data[8] . "'".')';
+                "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[3] . "'" . "," . "'" . $data[4] . "'"
+                . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[7] . "'" . "," . "'" . $data[8] . "'" . ')';
 //            else
 //                 $sql = "INSERT INTO mater_prod1 (kod_sap,mater_s,mater_l,ed_izm,type_mat,descr_type,grup_mat,desc_gr)
 //                 VALUES(" .
@@ -14271,37 +14230,37 @@ WHERE
     }
 
 
-        // Закачка таблицы соответствия для служб
+    // Закачка таблицы соответствия для служб
     public function actionSootv()
     {
         $sql = "delete from a_s1_sklad";
         Yii::$app->db_sap->createCommand($sql)->execute();
-        $f = fopen('./base/a_s1_sklad.csv','r');
+        $f = fopen('./base/a_s1_sklad.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("$",$s);
-            if(!isset($data[2])) break;
-            $pos = strpos($data[2],"'");
-            $data[2]=str_replace("'",'$',$data[2]);
+            $data = explode("$", $s);
+            if (!isset($data[2])) break;
+            $pos = strpos($data[2], "'");
+            $data[2] = str_replace("'", '$', $data[2]);
 
-            $data[2]=str_replace('"','~',$data[2]);
+            $data[2] = str_replace('"', '~', $data[2]);
 
-            $data[5]=str_replace("'",'$',$data[5]);
-            $data[6]=str_replace("'",'$',$data[6]);
+            $data[5] = str_replace("'", '$', $data[5]);
+            $data[6] = str_replace("'", '$', $data[6]);
 
-            $data[2]=str_replace('\\','@',$data[2]);
+            $data[2] = str_replace('\\', '@', $data[2]);
 
-            $data[5]=str_replace('\\','@',$data[5]);
-            $data[6]=str_replace('\\','@',$data[6]);
+            $data[5] = str_replace('\\', '@', $data[5]);
+            $data[6] = str_replace('\\', '@', $data[6]);
 
             $sql = "INSERT INTO a_s1_sklad(kod_cek,mtart,t_cek,edizm_cek,kod_sap,mater_s,mater_l,edizm_sap,
                     mtart_sap,oei,add_sap)
                     VALUES(" .
-                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' .$data[2].'"'."," . "'".$data[3] . "'"
-                ."," . "'".$data[4] . "'" . "," . "'".$data[5] . "'"."," . "'".$data[6] . "'".","  . "'".$data[7] . "'".
-                ','."'".$data[8]."'".','."'".$data[9]."'".','."'".$data[10]."'".')';
+                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' . $data[2] . '"' . "," . "'" . $data[3] . "'"
+                . "," . "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[7] . "'" .
+                ',' . "'" . $data[8] . "'" . ',' . "'" . $data[9] . "'" . ',' . "'" . $data[10] . "'" . ')';
 
             Yii::$app->db_sap->createCommand($sql)->execute();
         }
@@ -14310,32 +14269,32 @@ WHERE
 
         $sql = "delete from a_s2_sklad";
         Yii::$app->db_sap->createCommand($sql)->execute();
-        $f = fopen('./base/a_s2_sklad.csv','r');
+        $f = fopen('./base/a_s2_sklad.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("$",$s);
-            if(!isset($data[2])) break;
-            $pos = strpos($data[2],"'");
-            $data[2]=str_replace("'",'$',$data[2]);
+            $data = explode("$", $s);
+            if (!isset($data[2])) break;
+            $pos = strpos($data[2], "'");
+            $data[2] = str_replace("'", '$', $data[2]);
 
-            $data[2]=str_replace('"','~',$data[2]);
+            $data[2] = str_replace('"', '~', $data[2]);
 
-            $data[5]=str_replace("'",'$',$data[5]);
-            $data[6]=str_replace("'",'$',$data[6]);
+            $data[5] = str_replace("'", '$', $data[5]);
+            $data[6] = str_replace("'", '$', $data[6]);
 
-            $data[2]=str_replace('\\','@',$data[2]);
+            $data[2] = str_replace('\\', '@', $data[2]);
 
-            $data[5]=str_replace('\\','@',$data[5]);
-            $data[6]=str_replace('\\','@',$data[6]);
+            $data[5] = str_replace('\\', '@', $data[5]);
+            $data[6] = str_replace('\\', '@', $data[6]);
 
             $sql = "INSERT INTO a_s2_sklad(kod_cek,mtart,t_cek,edizm_cek,kod_sap,mater_s,mater_l,edizm_sap,
                     mtart_sap,oei,add_sap)
                     VALUES(" .
-                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' .$data[2].'"'."," . "'".$data[3] . "'"
-                ."," . "'".$data[4] . "'" . "," . "'".$data[5] . "'"."," . "'".$data[6] . "'".","  . "'".$data[7] . "'".
-                ','."'".$data[8]."'".','."'".$data[9]."'".','."'".$data[10]."'".')';
+                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' . $data[2] . '"' . "," . "'" . $data[3] . "'"
+                . "," . "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[7] . "'" .
+                ',' . "'" . $data[8] . "'" . ',' . "'" . $data[9] . "'" . ',' . "'" . $data[10] . "'" . ')';
 
             Yii::$app->db_sap->createCommand($sql)->execute();
         }
@@ -14344,32 +14303,32 @@ WHERE
 
         $sql = "delete from a_s3_sklad";
         Yii::$app->db_sap->createCommand($sql)->execute();
-        $f = fopen('./base/a_s3_sklad.csv','r');
+        $f = fopen('./base/a_s3_sklad.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("$",$s);
-            if(!isset($data[2])) break;
-            $pos = strpos($data[2],"'");
-            $data[2]=str_replace("'",'$',$data[2]);
+            $data = explode("$", $s);
+            if (!isset($data[2])) break;
+            $pos = strpos($data[2], "'");
+            $data[2] = str_replace("'", '$', $data[2]);
 
-            $data[2]=str_replace('"','~',$data[2]);
+            $data[2] = str_replace('"', '~', $data[2]);
 
-            $data[5]=str_replace("'",'$',$data[5]);
-            $data[6]=str_replace("'",'$',$data[6]);
+            $data[5] = str_replace("'", '$', $data[5]);
+            $data[6] = str_replace("'", '$', $data[6]);
 
-            $data[2]=str_replace('\\','@',$data[2]);
+            $data[2] = str_replace('\\', '@', $data[2]);
 
-            $data[5]=str_replace('\\','@',$data[5]);
-            $data[6]=str_replace('\\','@',$data[6]);
+            $data[5] = str_replace('\\', '@', $data[5]);
+            $data[6] = str_replace('\\', '@', $data[6]);
 
             $sql = "INSERT INTO a_s3_sklad(kod_cek,mtart,t_cek,edizm_cek,kod_sap,mater_s,mater_l,edizm_sap,
                     mtart_sap,oei,add_sap)
                     VALUES(" .
-                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' .$data[2].'"'."," . "'".$data[3] . "'"
-                ."," . "'".$data[4] . "'" . "," . "'".$data[5] . "'"."," . "'".$data[6] . "'".","  . "'".$data[7] . "'".
-                ','."'".$data[8]."'".','."'".$data[9]."'".','."'".$data[10]."'".')';
+                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' . $data[2] . '"' . "," . "'" . $data[3] . "'"
+                . "," . "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[7] . "'" .
+                ',' . "'" . $data[8] . "'" . ',' . "'" . $data[9] . "'" . ',' . "'" . $data[10] . "'" . ')';
 
             Yii::$app->db_sap->createCommand($sql)->execute();
         }
@@ -14378,32 +14337,32 @@ WHERE
 
         $sql = "delete from a_s4_sklad";
         Yii::$app->db_sap->createCommand($sql)->execute();
-        $f = fopen('./base/a_s4_sklad.csv','r');
+        $f = fopen('./base/a_s4_sklad.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("$",$s);
-            if(!isset($data[2])) break;
-            $pos = strpos($data[2],"'");
-            $data[2]=str_replace("'",'$',$data[2]);
+            $data = explode("$", $s);
+            if (!isset($data[2])) break;
+            $pos = strpos($data[2], "'");
+            $data[2] = str_replace("'", '$', $data[2]);
 
-            $data[2]=str_replace('"','~',$data[2]);
+            $data[2] = str_replace('"', '~', $data[2]);
 
-            $data[5]=str_replace("'",'$',$data[5]);
-            $data[6]=str_replace("'",'$',$data[6]);
+            $data[5] = str_replace("'", '$', $data[5]);
+            $data[6] = str_replace("'", '$', $data[6]);
 
-            $data[2]=str_replace('\\','@',$data[2]);
+            $data[2] = str_replace('\\', '@', $data[2]);
 
-            $data[5]=str_replace('\\','@',$data[5]);
-            $data[6]=str_replace('\\','@',$data[6]);
+            $data[5] = str_replace('\\', '@', $data[5]);
+            $data[6] = str_replace('\\', '@', $data[6]);
 
             $sql = "INSERT INTO a_s4_sklad(kod_cek,mtart,t_cek,edizm_cek,kod_sap,mater_s,mater_l,edizm_sap,
                     mtart_sap,oei,add_sap)
                     VALUES(" .
-                    "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' .$data[2].'"'."," . "'".$data[3] . "'"
-                    ."," . "'".$data[4] . "'" . "," . "'".$data[5] . "'"."," . "'".$data[6] . "'".","  . "'".$data[7] . "'".
-                    ','."'".$data[8]."'".','."'".$data[9]."'".','."'".$data[10]."'".')';
+                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' . $data[2] . '"' . "," . "'" . $data[3] . "'"
+                . "," . "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[7] . "'" .
+                ',' . "'" . $data[8] . "'" . ',' . "'" . $data[9] . "'" . ',' . "'" . $data[10] . "'" . ')';
 
             Yii::$app->db_sap->createCommand($sql)->execute();
         }
@@ -14412,32 +14371,32 @@ WHERE
 
         $sql = "delete from a_s5_sklad";
         Yii::$app->db_sap->createCommand($sql)->execute();
-        $f = fopen('./base/a_s5_sklad.csv','r');
+        $f = fopen('./base/a_s5_sklad.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("$",$s);
-            if(!isset($data[2])) break;
-            $pos = strpos($data[2],"'");
-            $data[2]=str_replace("'",'$',$data[2]);
+            $data = explode("$", $s);
+            if (!isset($data[2])) break;
+            $pos = strpos($data[2], "'");
+            $data[2] = str_replace("'", '$', $data[2]);
 
-            $data[2]=str_replace('"','~',$data[2]);
+            $data[2] = str_replace('"', '~', $data[2]);
 
-            $data[5]=str_replace("'",'$',$data[5]);
-            $data[6]=str_replace("'",'$',$data[6]);
+            $data[5] = str_replace("'", '$', $data[5]);
+            $data[6] = str_replace("'", '$', $data[6]);
 
-            $data[2]=str_replace('\\','@',$data[2]);
+            $data[2] = str_replace('\\', '@', $data[2]);
 
-            $data[5]=str_replace('\\','@',$data[5]);
-            $data[6]=str_replace('\\','@',$data[6]);
+            $data[5] = str_replace('\\', '@', $data[5]);
+            $data[6] = str_replace('\\', '@', $data[6]);
 
             $sql = "INSERT INTO a_s5_sklad(kod_cek,mtart,t_cek,edizm_cek,kod_sap,mater_s,mater_l,edizm_sap,
                     mtart_sap,oei,add_sap)
                     VALUES(" .
-                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' .$data[2].'"'."," . "'".$data[3] . "'"
-                ."," . "'".$data[4] . "'" . "," . "'".$data[5] . "'"."," . "'".$data[6] . "'".","  . "'".$data[7] . "'".
-                ','."'".$data[8]."'".','."'".$data[9]."'".','."'".$data[10]."'".')';
+                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' . $data[2] . '"' . "," . "'" . $data[3] . "'"
+                . "," . "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[7] . "'" .
+                ',' . "'" . $data[8] . "'" . ',' . "'" . $data[9] . "'" . ',' . "'" . $data[10] . "'" . ')';
 
             Yii::$app->db_sap->createCommand($sql)->execute();
         }
@@ -14446,32 +14405,32 @@ WHERE
 
         $sql = "delete from a_s6_sklad";
         Yii::$app->db_sap->createCommand($sql)->execute();
-        $f = fopen('./base/a_s6_sklad.csv','r');
+        $f = fopen('./base/a_s6_sklad.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode("$",$s);
-            if(!isset($data[2])) break;
-            $pos = strpos($data[2],"'");
-            $data[2]=str_replace("'",'$',$data[2]);
+            $data = explode("$", $s);
+            if (!isset($data[2])) break;
+            $pos = strpos($data[2], "'");
+            $data[2] = str_replace("'", '$', $data[2]);
 
-            $data[2]=str_replace('"','~',$data[2]);
+            $data[2] = str_replace('"', '~', $data[2]);
 
-            $data[5]=str_replace("'",'$',$data[5]);
-            $data[6]=str_replace("'",'$',$data[6]);
+            $data[5] = str_replace("'", '$', $data[5]);
+            $data[6] = str_replace("'", '$', $data[6]);
 
-            $data[2]=str_replace('\\','@',$data[2]);
+            $data[2] = str_replace('\\', '@', $data[2]);
 
-            $data[5]=str_replace('\\','@',$data[5]);
-            $data[6]=str_replace('\\','@',$data[6]);
+            $data[5] = str_replace('\\', '@', $data[5]);
+            $data[6] = str_replace('\\', '@', $data[6]);
 
             $sql = "INSERT INTO a_s6_sklad(kod_cek,mtart,t_cek,edizm_cek,kod_sap,mater_s,mater_l,edizm_sap,
                     mtart_sap,oei,add_sap)
                     VALUES(" .
-                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' .$data[2].'"'."," . "'".$data[3] . "'"
-                ."," . "'".$data[4] . "'" . "," . "'".$data[5] . "'"."," . "'".$data[6] . "'".","  . "'".$data[7] . "'".
-                ','."'".$data[8]."'".','."'".$data[9]."'".','."'".$data[10]."'".')';
+                "'" . $data[0] . "'" . "," . '"' . $data[1] . '"' . "," . '"' . $data[2] . '"' . "," . "'" . $data[3] . "'"
+                . "," . "'" . $data[4] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" . "," . "'" . $data[7] . "'" .
+                ',' . "'" . $data[8] . "'" . ',' . "'" . $data[9] . "'" . ',' . "'" . $data[10] . "'" . ')';
 
             Yii::$app->db_sap->createCommand($sql)->execute();
         }
@@ -14500,63 +14459,61 @@ WHERE
     }
 
     // Экспорт данных по складу в САП (сборка разных программ)
-    public function actionSklad2sap(){
-        $z='drop table if exists q_gr1';
+    public function actionSklad2sap()
+    {
+        $z = 'drop table if exists q_gr1';
         Yii::$app->db_sap->createCommand($z)->execute();
 
-        $z="create table q_gr1 as
+        $z = "create table q_gr1 as
         SELECT maktx,concat(substr(ch_gr_date,9),substr(ch_gr_date,4,2),substr(ch_gr_date,1,2)) as charg,count(*) as kol_gr 
         FROM a_all_tmc1 where maktx<>'' group by 1,2";
         Yii::$app->db_sap->createCommand($z)->execute();
 
-         // Создание поля charg в правильном формате
+        // Создание поля charg в правильном формате
         $all_tmc = all_tmc::findbysql('Select a.*,b.kol_gr from a_all_tmc1 a 
         join q_gr1 b on a.maktx=b.maktx and a.charg1=b.charg order by a.maktx,a.charg1')->asArray()
             ->all();
-        $y=count($all_tmc);
-        $a='';
-        $b='';
-        $j=1;
-        for($i=1;$i<$y;$i++){
-            $id=$all_tmc[$i]['ID'];
-            if($all_tmc[$i]['kol_gr']==1)
-            { $a='';
-                $b='';
-                $charg=$all_tmc[$i]['charg'].'000'.'1';
-                $j=1;
-            }
-            else
-            {
-                if($all_tmc[$i]['maktx']==$a && $all_tmc[$i]['charg1']==$b){
+        $y = count($all_tmc);
+        $a = '';
+        $b = '';
+        $j = 1;
+        for ($i = 1; $i < $y; $i++) {
+            $id = $all_tmc[$i]['ID'];
+            if ($all_tmc[$i]['kol_gr'] == 1) {
+                $a = '';
+                $b = '';
+                $charg = $all_tmc[$i]['charg'] . '000' . '1';
+                $j = 1;
+            } else {
+                if ($all_tmc[$i]['maktx'] == $a && $all_tmc[$i]['charg1'] == $b) {
                     $j++;
+                } else {
+                    $j = 1;
                 }
-                else{
-                    $j=1;
-                }
-                $a=$all_tmc[$i]['maktx'];
-                $b=$all_tmc[$i]['charg1'];
+                $a = $all_tmc[$i]['maktx'];
+                $b = $all_tmc[$i]['charg1'];
 
             }
-            $z="update a_all_tmc1 set kol_gr=$j where ID=$id";
+            $z = "update a_all_tmc1 set kol_gr=$j where ID=$id";
             Yii::$app->db_sap->createCommand($z)->execute();
         }
 
-        $z="update a_all_tmc1
+        $z = "update a_all_tmc1
         set cgr=concat('000',kol_gr)";
         Yii::$app->db_sap->createCommand($z)->execute();
 
-        $z="update a_all_tmc1
+        $z = "update a_all_tmc1
         set cgr=right(cgr,4)";
         Yii::$app->db_sap->createCommand($z)->execute();
 
-        $z="update a_all_tmc1
+        $z = "update a_all_tmc1
         set charg=concat(charg,cgr)
         WHERE maktx is not null";
 
         Yii::$app->db_sap->createCommand($z)->execute();
 
         // Корректируем время
-        $z="update a_all_tmc1
+        $z = "update a_all_tmc1
         set time_c=cast(time_c as time)+INTERVAL cast(cgr as unsigned)SECOND 
         where cast(cgr as unsigned)>1";
 
@@ -14566,78 +14523,71 @@ WHERE
         $tmc = all_tmc::findbysql('Select a.*,b.razr from a_all_tmc1 a 
         join edizm b on a.meins=b.nazv order by a.ID')->asArray()
             ->all();
-        $y=count($tmc);
-        $a='';
-        $b='';
-        $j=1;
+        $y = count($tmc);
+        $a = '';
+        $b = '';
+        $j = 1;
 
-        for($i=0;$i<$y;$i++){
-            $j='';
-            $id=$tmc[$i]['ID'];
-            $razr=$tmc[$i]['razr'];
-            $k=trim($tmc[$i]['erfmg']);
-            $p=strpos($k,',');
-            if(is_null($p) || empty($p) || $p==false) $p=-1;
-            if($p>0){
-                $kol=strlen($k)-$p-1;
-                if($razr>0)
-                {
-                    if($kol>$razr){
-                        $e=substr($k,$p+1,$razr);
-                        $j=substr($k,0,$p).','.$e;
+        for ($i = 0; $i < $y; $i++) {
+            $j = '';
+            $id = $tmc[$i]['ID'];
+            $razr = $tmc[$i]['razr'];
+            $k = trim($tmc[$i]['erfmg']);
+            $p = strpos($k, ',');
+            if (is_null($p) || empty($p) || $p == false) $p = -1;
+            if ($p > 0) {
+                $kol = strlen($k) - $p - 1;
+                if ($razr > 0) {
+                    if ($kol > $razr) {
+                        $e = substr($k, $p + 1, $razr);
+                        $j = substr($k, 0, $p) . ',' . $e;
                     }
-                    if($kol<$razr){
-                        $e=$razr-$kol;
-                        $j=$k.str_repeat("0", $e);
+                    if ($kol < $razr) {
+                        $e = $razr - $kol;
+                        $j = $k . str_repeat("0", $e);
                     }
-                    if($kol==$razr) $j=$k;
+                    if ($kol == $razr) $j = $k;
+                } else {
+                    $j = intval($k);
                 }
-                else
-                {
-                    $j=intval($k);
-                }
-            }
-            else
-            {
-                if($razr>0){
-                    $j=$k.','.str_repeat("0", $razr);
+            } else {
+                if ($razr > 0) {
+                    $j = $k . ',' . str_repeat("0", $razr);
                 }
             }
 
 
-            $z="update a_all_tmc1 set ZKZ='$j' where ID=$id";
+            $z = "update a_all_tmc1 set ZKZ='$j' where ID=$id";
             Yii::$app->db_sap->createCommand($z)->execute();
         }
 
-           // Установка разрядности денег (SAP)
-           $tmc = all_tmc::findbysql('Select a.* from a_all_tmc1 a ')->asArray()
-                ->all();
-            $y = count($tmc);
-            $a = '';
-            $b = '';
-            $j = 1;
+        // Установка разрядности денег (SAP)
+        $tmc = all_tmc::findbysql('Select a.* from a_all_tmc1 a ')->asArray()
+            ->all();
+        $y = count($tmc);
+        $a = '';
+        $b = '';
+        $j = 1;
 
-            for($i=0;$i<$y;$i++) {
-                $id=$tmc[$i]['ID'];
-                $e=$tmc[$i]['exbwr'];
-                $pos = strpos($e, ',');
-                $y1=strlen($e);
-                $r=0;
-                if (!$pos === false) {
-                    $r = $y1 - $pos - 1;
-                    if($r==1)
-                        $j = $e . str_repeat("0", $r);
-                    else
-                        $j = $e;
-                }
+        for ($i = 0; $i < $y; $i++) {
+            $id = $tmc[$i]['ID'];
+            $e = $tmc[$i]['exbwr'];
+            $pos = strpos($e, ',');
+            $y1 = strlen($e);
+            $r = 0;
+            if (!$pos === false) {
+                $r = $y1 - $pos - 1;
+                if ($r == 1)
+                    $j = $e . str_repeat("0", $r);
                 else
-                    $j=$e.',00';
+                    $j = $e;
+            } else
+                $j = $e . ',00';
 
 
-                $z="update a_all_tmc1 set exbwr1='$j' where ID=$id";
-                Yii::$app->db_sap->createCommand($z)->execute();
-            }
-
+            $z = "update a_all_tmc1 set exbwr1='$j' where ID=$id";
+            Yii::$app->db_sap->createCommand($z)->execute();
+        }
 
 
         echo "OK";
@@ -14645,51 +14595,47 @@ WHERE
 
 
     // Установка разрядности единиц измерений (SAP)
-    public function actionEdizm(){
+    public function actionEdizm()
+    {
         $tmc = all_tmc::findbysql('Select a.*,b.razr from a_c_skladzz a 
         join edizm b on a.meins=b.nazv order by a.ID')->asArray()
             ->all();
-        $y=count($tmc);
-        $a='';
-        $b='';
-        $j=1;
+        $y = count($tmc);
+        $a = '';
+        $b = '';
+        $j = 1;
 
-        for($i=0;$i<$y;$i++){
-            $j='';
+        for ($i = 0; $i < $y; $i++) {
+            $j = '';
 //            if ($i>400) break;
-            $id=$tmc[$i]['ID'];
-            $razr=$tmc[$i]['razr'];
-            $k=trim($tmc[$i]['ERFMG']);
-            $p=strpos($k,',');
-            if(is_null($p) || empty($p) || $p==false) $p=-1;
-            if($p>0){
-                $kol=strlen($k)-$p-1;
-                if($razr>0)
-                {
-                if($kol>$razr){
-                    $e=substr($k,$p+1,$razr);
-                    $j=substr($k,0,$p).','.$e;
+            $id = $tmc[$i]['ID'];
+            $razr = $tmc[$i]['razr'];
+            $k = trim($tmc[$i]['ERFMG']);
+            $p = strpos($k, ',');
+            if (is_null($p) || empty($p) || $p == false) $p = -1;
+            if ($p > 0) {
+                $kol = strlen($k) - $p - 1;
+                if ($razr > 0) {
+                    if ($kol > $razr) {
+                        $e = substr($k, $p + 1, $razr);
+                        $j = substr($k, 0, $p) . ',' . $e;
+                    }
+                    if ($kol < $razr) {
+                        $e = $razr - $kol;
+                        $j = $k . str_repeat("0", $e);
+                    }
+                    if ($kol == $razr) $j = $k;
+                } else {
+                    $j = intval($k);
                 }
-                if($kol<$razr){
-                    $e=$razr-$kol;
-                    $j=$k.str_repeat("0", $e);
-                }
-                if($kol==$razr) $j=$k;
-                }
-                else
-                {
-                    $j=intval($k);
-                }
-            }
-            else
-            {
-                if($razr>0){
-                    $j=$k.','.str_repeat("0", $razr);
+            } else {
+                if ($razr > 0) {
+                    $j = $k . ',' . str_repeat("0", $razr);
                 }
             }
 
 
-            $z="update a_c_skladzz set ZKZ='$j' where ID=$id";
+            $z = "update a_c_skladzz set ZKZ='$j' where ID=$id";
             Yii::$app->db_sap->createCommand($z)->execute();
         }
 
@@ -14697,27 +14643,28 @@ WHERE
     }
 
     // Установка id_lgort (инструмент) (SAP)
-    public function actionId_lgort(){
+    public function actionId_lgort()
+    {
         $fio = all_tmc::findbysql('Select a.fio from sklad_i a')->asArray()->all();
         $tmc = all_tmc::findbysql('Select a.* from tovar_i a')->asArray()->all();
-        $y=count($tmc);
-        $i=0;
-        foreach($fio as $v) {
+        $y = count($tmc);
+        $i = 0;
+        foreach ($fio as $v) {
             $mas[$i] = $v['fio'];
             $i++;
         }
 
-        if(in_array('Сивоконь Владислав Станіславович',$mas))
+        if (in_array('Сивоконь Владислав Станіславович', $mas))
             echo 'Yes';
         else
             echo 'No';
 
-        for($i=0;$i<$y;$i++){
-            $tf=$tmc[$i]['nazv'];
+        for ($i = 0; $i < $y; $i++) {
+            $tf = $tmc[$i]['nazv'];
 
-            $id_r=$tmc[$i]['ID'];
-            if(in_array($tf, $mas)) {
-                $id_f=$id_r;
+            $id_r = $tmc[$i]['ID'];
+            if (in_array($tf, $mas)) {
+                $id_f = $id_r;
 
             }
             $z = "update tovar_i set id_lgort=$id_f where ID=$id_r";
@@ -14728,35 +14675,34 @@ WHERE
     }
 
     // Установка товара САП (SAP)
-    public function actionSet_t_sap(){
+    public function actionSet_t_sap()
+    {
         $tmc = all_tmc::findbysql('Select a.* from table_20 a where t_sap is null')->asArray()->all();
         $ost = all_tmc::findbysql('Select a.* from ost_104 a')->asArray()->all();
-        $y=count($tmc);
+        $y = count($tmc);
 
-        $pos = strpos('Разрядник РВС 35кВ РВТ-32 Ф"А" б/у,$t_cek','Разрядник РВС 35кВ');
+        $pos = strpos('Разрядник РВС 35кВ РВТ-32 Ф"А" б/у,$t_cek', 'Разрядник РВС 35кВ');
         echo $pos;
 
         if ($pos === false) {
             echo 'НЕ Найдено';
-        }
-        else{
+        } else {
             echo 'Найдено';
         }
 
-        for($i=0;$i<$y;$i++){
-            $t=$tmc[$i]['t_cek'];
+        for ($i = 0; $i < $y; $i++) {
+            $t = $tmc[$i]['t_cek'];
 
-            $id=$tmc[$i]['code'];
-            $j=0;
-            foreach($ost as $v) {
+            $id = $tmc[$i]['code'];
+            $j = 0;
+            foreach ($ost as $v) {
                 $t_cek = $v['t_cek'];
                 $t_sap = $v['t_sap'];
-                $pos = strpos($t,$t_cek);
+                $pos = strpos($t, $t_cek);
 
                 if ($pos === false) ;
-                else
-                {
-                    $z = "update table_20 set t_sap=concat('ZZZ ',".'"'.$t_sap.'"'.") where code='$id'";
+                else {
+                    $z = "update table_20 set t_sap=concat('ZZZ '," . '"' . $t_sap . '"' . ") where code='$id'";
                     Yii::$app->db_sap->createCommand($z)->execute();
                     break;
                 }
@@ -14769,40 +14715,39 @@ WHERE
     }
 
     // Установка товара САП (SAP) эксплуатация
-    public function actionSet_t_sap_e(){
+    public function actionSet_t_sap_e()
+    {
         $tmc = all_tmc::findbysql('Select a.* from a_sootv_exp a where t_sap<>""')->asArray()->all();
         $ost = all_tmc::findbysql('Select a.* from ost_104 a')->asArray()->all();
-        $y=count($tmc);
+        $y = count($tmc);
 
-        $pos = strpos('Разрядник РВС 35кВ РВТ-32 Ф"А" б/у,$t_cek','Разрядник РВС 35кВ');
+        $pos = strpos('Разрядник РВС 35кВ РВТ-32 Ф"А" б/у,$t_cek', 'Разрядник РВС 35кВ');
         echo $pos;
 
         if ($pos === false) {
             echo 'НЕ Найдено';
-        }
-        else{
+        } else {
             echo 'Найдено';
         }
 
-        for($i=0;$i<$y;$i++){
-            $t=$tmc[$i]['t_cek'];
+        for ($i = 0; $i < $y; $i++) {
+            $t = $tmc[$i]['t_cek'];
 
-            $id=$tmc[$i]['id'];
-            $j=0;
-            foreach($ost as $v) {
+            $id = $tmc[$i]['id'];
+            $j = 0;
+            foreach ($ost as $v) {
                 $t_cek = $v['t_cek'];
                 $t_sap = $v['t_sap'];
-                $flag=0;
-                if(strpos('"',$t_sap)>0) $flag=1;
-                $pos = strpos($t,$t_cek);
+                $flag = 0;
+                if (strpos('"', $t_sap) > 0) $flag = 1;
+                $pos = strpos($t, $t_cek);
 
                 if ($pos === false) ;
-                else
-                {
-                    if($flag==0)
-                        $z = "update a_sootv_exp set t_sap=concat('ZZZ ',".'"'.$t_sap.'"'.") where id='$id'";
+                else {
+                    if ($flag == 0)
+                        $z = "update a_sootv_exp set t_sap=concat('ZZZ '," . '"' . $t_sap . '"' . ") where id='$id'";
                     else
-                        $z = "update a_sootv_exp set t_sap=concat('ZZZ ',"."'".$t_sap."'".") where id='$id'";
+                        $z = "update a_sootv_exp set t_sap=concat('ZZZ '," . "'" . $t_sap . "'" . ") where id='$id'";
 
                     Yii::$app->db_sap->createCommand($z)->execute();
                     break;
@@ -14811,25 +14756,25 @@ WHERE
             }
 
 
-
         }
 
 //        echo "OK";
     }
 
 // Создание ключа САП
-    public function actionCrt_key(){
-        $e='Разрядник РВС 35кВ РВТ-32 Ф"А" б/у (dserf)';
+    public function actionCrt_key()
+    {
+        $e = 'Разрядник РВС 35кВ РВТ-32 Ф"А" б/у (dserf)';
 
         $tmc = all_tmc::findbysql('Select a.* from a_sootv_exp1 a')->asArray()->all();
-        $y=count($tmc);
+        $y = count($tmc);
 
-        for($i=0;$i<$y;$i++){
-            $t=$tmc[$i]['t_cek'];
-            $id=$tmc[$i]['ID'];
+        for ($i = 0; $i < $y; $i++) {
+            $t = $tmc[$i]['t_cek'];
+            $id = $tmc[$i]['ID'];
 
             //$k=del_symb($t);
-            $k=del_symb1($t);
+            $k = del_symb1($t);
             $z = "update a_sootv_exp1 set key_nazv3='$k' where id='$id'";
             Yii::$app->db_sap->createCommand($z)->execute();
         }
@@ -14837,111 +14782,114 @@ WHERE
     }
 
     // Задача №1
-    public function actionTask1(){
+    public function actionTask1()
+    {
 
         $model = new input();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
 
             //$arr['src'] = split ("\n", trim($model->number));
             $arr['src'] = explode("\n", trim($model->txt));
 
             $kol = count($arr['src']);
-            $i=0;
-            $r='';
+            $i = 0;
+            $r = '';
 
-            $mas=[];
+            $mas = [];
 
-            foreach ($arr['src'] as $v)
-            {
-                $mas[$i]=$v;
+            foreach ($arr['src'] as $v) {
+                $mas[$i] = $v;
                 $i++;
             }
 
-            $model=new Pract1();
-            $r=$model->task7($mas[0]
-        );
-            $header='Результат';
-        }
-        else
-        {
+            $model = new Pract1();
+            $r = $model->task7($mas[0]
+            );
+            $header = 'Результат';
+        } else {
             return $this->render('input', [
                 'model' => $model
             ]);
         }
 
-        return $this->render('res_task',['r' => $r,'header' => $header]);
+        return $this->render('res_task', ['r' => $r, 'header' => $header]);
 
     }
 
     // Задача №3
-    public function actionTask3(){
+    public function actionTask3()
+    {
 
         //$arr = [ 5, 7, 8, -2, 9, 11, -87, 99, -150, 10];
         $arr = [1, 2, 3, 4, 5, 77, 99, 200, 201, 202];
         $flag = 0;
         $a = $arr[0];
-        print_r ($arr);
+        print_r($arr);
         echo "<p>";
         for ($i = 1; $i <= count($arr); $i++) {
 //echo $arr[$i]. " ";
             if ($a < $arr[$i]) {
                 $flag = 1;
-                echo $arr[$i]. " ";
+                echo $arr[$i] . " ";
             }
         }
 //echo $flag;
         if ($flag == 1) {
             echo "No";
-        }
-        else {
+        } else {
             echo "Yes";
         }
         echo "</p>";
 //        return $this->render('res_task',['r' => $r]);
 
     }
+
     // Задача №5 (Рекурсия)
-    public function actionTask5(){
+    public function actionTask5()
+    {
         echo '<br>';
         echo '<br>';
         echo '<br>';
         echo '<br>';
-        $model=new Pract1();
-        for($i=1;$i<10;$i++) {
+        $model = new Pract1();
+        for ($i = 1; $i < 10; $i++) {
             $r = $model->task5($i);
             echo $r;
             echo '<br>';
 
         }
-        return $this->render('res_task',['r' => $r]);
+        return $this->render('res_task', ['r' => $r]);
 
     }
+
     // Задача №6 (Рекурсия)
-    public function actionTask6(){
+    public function actionTask6()
+    {
         echo '<br>';
         echo '<br>';
         echo '<br>';
         echo '<br>';
-        $model=new Pract1();
-            $s='12345';
-            $r = $model->task6($s,strlen($s));
+        $model = new Pract1();
+        $s = '12345';
+        $r = $model->task6($s, strlen($s));
 
-        return $this->render('res_task',['r' => $r]);
+        return $this->render('res_task', ['r' => $r]);
 
     }
+
     // Формирование вопросов для опросника
-    public function actionForm_quest(){
+    public function actionForm_quest()
+    {
 
         Yii::$app->db->createCommand('SET SESSION wait_timeout = 28800;')->execute();
 //        phpinfo();
 //        return;
-       // Yii::$app->db->active = false;
+        // Yii::$app->db->active = false;
 
         $model = new addquestions();
         if ($model->load(Yii::$app->request->post())) {
-            $sql = 'select ids from ws_polls where id='.$model->theme;
+            $sql = 'select ids from ws_polls where id=' . $model->theme;
             $ids = project_polls::findBySql($sql)->asarray()->all();
             $ids_polls = $ids[0]['ids'];
             // Запись вопроса
@@ -14960,13 +14908,13 @@ WHERE
             $qids = quest::findBySql($sql)->asarray()->all();
 
             $ids_quest = $qids[0]['id'];
-            if($model->a1) $q_all=1;
-            if($model->a2) $q_all=2;
-            if($model->a3) $q_all=3;
-            if($model->a4) $q_all=4;
-            if($model->a5) $q_all=5;
+            if ($model->a1) $q_all = 1;
+            if ($model->a2) $q_all = 2;
+            if ($model->a3) $q_all = 3;
+            if ($model->a4) $q_all = 4;
+            if ($model->a5) $q_all = 5;
 
-            if(!empty($model->a1)) {
+            if (!empty($model->a1)) {
                 $answer = new answer();
 
                 $answer->answer = $model->a1;
@@ -14985,7 +14933,7 @@ WHERE
                 unset($answer);
             }
 
-            if(!empty($model->a2)) {
+            if (!empty($model->a2)) {
                 $answer = new answer();
                 $answer->answer = $model->a2;
                 if (!empty($model->c2))
@@ -15003,7 +14951,7 @@ WHERE
                 unset($answer);
             }
 
-            if(!empty($model->a3)) {
+            if (!empty($model->a3)) {
                 $answer = new answer();
 
                 $answer->answer = $model->a3;
@@ -15022,7 +14970,7 @@ WHERE
                 unset($answer);
             }
 
-            if(!empty($model->a4)) {
+            if (!empty($model->a4)) {
                 $answer = new answer();
 
                 $answer->answer = $model->a4;
@@ -15041,7 +14989,7 @@ WHERE
                 unset($answer);
             }
 
-            if(!empty($model->a5)) {
+            if (!empty($model->a5)) {
                 $answer = new answer();
                 $answer->answer = $model->a5;
                 if (!empty($model->c5))
@@ -15060,13 +15008,13 @@ WHERE
             }
             return $this->render('save_ok', ['v' => 1]);
 
-        }
-        else {
+        } else {
             return $this->render('addquestions', ['model' => $model]);
         }
     }
 
-    public function actionForm_no(){
+    public function actionForm_no()
+    {
         return $this->render('save_ok', ['v' => 2]);
     }
 
@@ -15253,8 +15201,9 @@ WHERE
         fclose($f);
         return;
     }
-        // Импорт списка рабочих в справочник телефонов для нового телефонного справочника
-        public function actionImport_list_works_tel()
+
+    // Импорт списка рабочих в справочник телефонов для нового телефонного справочника
+    public function actionImport_list_works_tel()
     {
         $sql = "CREATE TABLE tmp_works (
               tab_nom varchar(255) NOT NULL,
@@ -15270,19 +15219,19 @@ WHERE
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('list_works.csv','r');
+        $f = fopen('list_works.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
             //if($i==1) continue;
-            $data = explode("~",$s);
+            $data = explode("~", $s);
 
-            if(empty($data[0])) break;
+            if (empty($data[0])) break;
 
-                        $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,main_unit) VALUES(" .
-                            "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" . "," . "'" . $data[3] . "'" .
-                             ","."'" . $data[6] . "'". ')';
+            $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,main_unit) VALUES(" .
+                "'" . $data[1] . "'" . "," . '"' . $data[2] . '"' . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" . "," . "'" . $data[3] . "'" .
+                "," . "'" . $data[6] . "'" . ')';
 
 
             Yii::$app->db_phone_loc->createCommand($sql)->execute();
@@ -15295,10 +15244,10 @@ WHERE
         $sql = 'UPDATE tmp_works a,1c b SET a.id_podr=b.id_podr,a.id_name=b.id_name,a.main_unit=b.main_unit
                 WHERE a.fio = b.fio ';
         Yii::$app->db_phone_loc->createCommand($sql)->execute();
-        $data=tmp_works_1::find()->where('id_name is not null')->orderby('id_name')->all();
+        $data = tmp_works_1::find()->where('id_name is not null')->orderby('id_name')->all();
         $i = 0;
         // Делаем чтобы все номера работников шли по порядку
-        foreach ($data as $d){
+        foreach ($data as $d) {
             $i++;
 //            $d->id_sort = $i;
             $d->id_name = $i;
@@ -15306,9 +15255,9 @@ WHERE
         }
 
         $max = $i;  // Сдесь макс. последний номер работника
-        $data=tmp_works_1::find()->where('id_name is null')->all();
+        $data = tmp_works_1::find()->where('id_name is null')->all();
         // Делаем чтобы все номера работников шли по порядку - тем которые null присваивается максимальный номер + 1
-        foreach ($data as $d){
+        foreach ($data as $d) {
             $max++;
 //            $d->id_sort = $max;
             $d->id_name = $max;
@@ -15316,7 +15265,7 @@ WHERE
             $d->save();
         }
 
-        
+
         // Заполняем поле main_unit
 //        $sql = 'UPDATE tmp_works a,1c b SET `a`.`main_unit` = `b`.`Входит в подразделение`
 //                WHERE `a`.`unit` = `b`.`Підрозділ організації`';
@@ -15335,36 +15284,36 @@ WHERE
         Yii::$app->db_phone_loc->createCommand($sql)->execute();
         // Переписываем данные из tmp_works в 1c
         $sql = 'INSERT INTO 1c (id,id_podr,id_name,tab_nom,fio,main_unit,unit_1,unit_2,post,email)'
-                . ' SELECT id,id_podr,id_name,tab_nom,fio,main_unit,unit_1,unit_2,post,email FROM tmp_works';
+            . ' SELECT id,id_podr,id_name,tab_nom,fio,main_unit,unit_1,unit_2,post,email FROM tmp_works';
         Yii::$app->db_phone_loc->createCommand($sql)->execute();
-        
-        $sql = "UPDATE 1c SET main_unit = unit_1 "
-                . "WHERE unit_1 LIKE '%РЕМ%' AND unit_1 NOT LIKE 'Група РЕМ%' and main_unit is null";
-          Yii::$app->db_phone_loc->createCommand($sql)->execute();
-          
-          $sql = "UPDATE 1c SET email = unit_1 "
-                . " WHERE unit_1 LIKE 'Загальновиробничий персонал%'" ;
-          Yii::$app->db_phone_loc->createCommand($sql)->execute();
-          
-          $sql = "UPDATE 1c SET unit_1 = unit_2 "
-                . " WHERE unit_1 LIKE 'Загальновиробничий персонал%'" ;
-          Yii::$app->db_phone_loc->createCommand($sql)->execute();
 
-          $sql = "UPDATE 1c SET unit_2 = email "
-                . " WHERE email LIKE 'Загальновиробничий персонал%'" ;
-          Yii::$app->db_phone_loc->createCommand($sql)->execute();
-          
-          $sql = "UPDATE 1c SET email = ''"
-                . " WHERE email LIKE 'Загальновиробничий персонал%'" ;
-          Yii::$app->db_phone_loc->createCommand($sql)->execute();
-          
-          $sql =    "update 1c
+        $sql = "UPDATE 1c SET main_unit = unit_1 "
+            . "WHERE unit_1 LIKE '%РЕМ%' AND unit_1 NOT LIKE 'Група РЕМ%' and main_unit is null";
+        Yii::$app->db_phone_loc->createCommand($sql)->execute();
+
+        $sql = "UPDATE 1c SET email = unit_1 "
+            . " WHERE unit_1 LIKE 'Загальновиробничий персонал%'";
+        Yii::$app->db_phone_loc->createCommand($sql)->execute();
+
+        $sql = "UPDATE 1c SET unit_1 = unit_2 "
+            . " WHERE unit_1 LIKE 'Загальновиробничий персонал%'";
+        Yii::$app->db_phone_loc->createCommand($sql)->execute();
+
+        $sql = "UPDATE 1c SET unit_2 = email "
+            . " WHERE email LIKE 'Загальновиробничий персонал%'";
+        Yii::$app->db_phone_loc->createCommand($sql)->execute();
+
+        $sql = "UPDATE 1c SET email = ''"
+            . " WHERE email LIKE 'Загальновиробничий персонал%'";
+        Yii::$app->db_phone_loc->createCommand($sql)->execute();
+
+        $sql = "update 1c
                     set main_unit = unit_1
                     WHERE `unit_1` LIKE '%РЕМ%'
                     AND `main_unit` LIKE '%РЕМ%'
                     AND unit_1 <> main_unit";
-          Yii::$app->db_phone_loc->createCommand($sql)->execute();
-//        
+        Yii::$app->db_phone_loc->createCommand($sql)->execute();
+//
         echo "Інформацію записано";
         return;
 ////        $sql = "INSERT INTO 1c ('Входит в подразделение', 'id_podr',
@@ -15383,8 +15332,8 @@ WHERE
 ////            $model->Підрозділ організації = $d->unit;
 //            $model->save();
 //        }
-      
-        
+
+
         $sql = "ALTER TABLE tmp_works CHANGE COLUMN `fio` `Працівник` varchar(255) NOT NULL";
         Yii::$app->db_phone->createCommand($sql)->execute();
         $sql = "ALTER TABLE tmp_works CHANGE COLUMN `post` `Посада` varchar(255) NOT NULL";
@@ -15422,18 +15371,18 @@ WHERE
         Yii::$app->db_phone_loc->createCommand($sql)->execute();
 
         // Добавляем записи в таблицу other_tel с csv файла
-        $f = fopen('Vinnitsa.csv','r');
+        $f = fopen('Vinnitsa.csv', 'r');
         $i = 0;
         $pred = '';
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode(";",$s);
-            $data[3] = str_replace('О','0',$data[3]);
+            $data = explode(";", $s);
+            $data[3] = str_replace('О', '0', $data[3]);
 
-            if(empty($data[1])) $data[1]=$pred;
+            if (empty($data[1])) $data[1] = $pred;
             $sql = "INSERT INTO other_tel (fio,post,tel,tel_town) VALUES(" .
-                "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" .$data[3]."'"."," . "'".$data[4] . "'" .')';
+                "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[3] . "'" . "," . "'" . $data[4] . "'" . ')';
 
             Yii::$app->db_phone_loc->createCommand($sql)->execute();
             $pred = $data[2];
@@ -15441,7 +15390,6 @@ WHERE
 
         fclose($f);
     }
-
 
 
     // Импорт списка рабочих из файла ОК во врем. табл.
@@ -15466,35 +15414,33 @@ WHERE
 
         // Добавляем записи в таблицу tmp_works с csv файла list_works.csv
         // файл list_works.csv нужно предварительно сформировать
-        $f = fopen('list_work0220.csv','r');
+        $f = fopen('list_work0220.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode("~",$s);
-            if(empty($data[0])) break;
-            $data[5] = str_replace('"',' ',$data[5]);
-            $data[5] = str_replace('i','і',$data[5]);
-            $data[5] = str_replace('c','с',$data[5]);
-            $data[6] = str_replace('i','і',$data[6]);
-            $data[6] = str_replace('c','с',$data[6]);
-            $e=1;
-            while($e==1)
-            {
+            if ($i == 1) continue;
+            $data = explode("~", $s);
+            if (empty($data[0])) break;
+            $data[5] = str_replace('"', ' ', $data[5]);
+            $data[5] = str_replace('i', 'і', $data[5]);
+            $data[5] = str_replace('c', 'с', $data[5]);
+            $data[6] = str_replace('i', 'і', $data[6]);
+            $data[6] = str_replace('c', 'с', $data[6]);
+            $e = 1;
+            while ($e == 1) {
                 $pos = strpos($data[2], "'");
-                if(!$pos)
-                    {$sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
-                        "'".$data[1]."'".","."'".$data[2]."'".","."'".$data[5]."'".","."'".$data[4]."'".","."'".$data[3]."'".
-                        ",".'null'.",".'null'.","."'". $data[7] ."'".')';
+                if (!$pos) {
+                    $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(" .
+                        "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" . "," . "'" . $data[5] . "'" . "," . "'" . $data[4] . "'" . "," . "'" . $data[3] . "'" .
+                        "," . 'null' . "," . 'null' . "," . "'" . $data[7] . "'" . ')';
 
-                    }
-                else
-                    {$sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
-                        '"'.$data[1].'"'.",".'"'.$data[2].'"'.",".'"'.$data[5].'"'.",".'"'.$data[4].'"'.",".'"'.$data[3].'"'.
-                        ",".'null'.",".'null'.",".'"'. $data[7] .'"'.')';
-                     break;
-                    }
+                } else {
+                    $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(" .
+                        '"' . $data[1] . '"' . "," . '"' . $data[2] . '"' . "," . '"' . $data[5] . '"' . "," . '"' . $data[4] . '"' . "," . '"' . $data[3] . '"' .
+                        "," . 'null' . "," . 'null' . "," . '"' . $data[7] . '"' . ')';
+                    break;
+                }
 
 //                $pos = strpos($data[1], "'");
 //                if(!$pos)
@@ -15505,50 +15451,49 @@ WHERE
 //                    $sql = "INSERT INTO tmp_works (tab_nom,fio,unit_2,unit_1,post,id_podr,id_name,main_unit) VALUES(".
 //                        "'".$data[0]."'".",".'"'.$data[1].'"'.","."'".$data[5]."'".",".'"'.$data[3].'"'.","."'".$data[2]."'".
 //                        ",".'null'.",".'null'.","."'".$data[4]."'".')';
-                $e=0;
+                $e = 0;
             }
 
             Yii::$app->db_phone_loc->createCommand($sql)->execute();
         }
 
         fclose($f);
-        
-        
+
+
         // Переписываем данные из tmp_works в 1c
         $sql = 'INSERT INTO 1c (id_podr,id_name,tab_nom,fio,main_unit,unit_1,unit_2,post)'
-                . ' SELECT id_podr,id_name,tab_nom,fio,main_unit,unit_1,unit_2,post FROM tmp_works_new '
-                . 'where cast(tab_nom as dec(4,0))>1731';
+            . ' SELECT id_podr,id_name,tab_nom,fio,main_unit,unit_1,unit_2,post FROM tmp_works_new '
+            . 'where cast(tab_nom as dec(4,0))>1731';
         //Yii::$app->db_phone_loc->createCommand($sql)->execute();
-        
-                
-        
+
+
         echo "Інформацію записано";
         //return $this->render('base');
 
     }
 
-    
+
     // Импорт населенных пунктов Украины по Днепропетровской области на MySql
     public function actionImport_towns()
     {
         // Добавляем записи в таблицу spr_towns с csv файла houses.csv
         // файл houses.csv взят с УкрПочты
-        $f = fopen('houses.csv','r');
+        $f = fopen('houses.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode(";",$s);
-            $obl = mb_convert_encoding($data[0],"UTF-8","Windows-1251");
-            if($obl<>'Дніпропетровська') continue;
-                 
-                    $sql = "INSERT INTO spr_towns (obl,district,town,street) VALUES(".
-                        '"'.$obl.'"'.",".'"'.
-                            mb_convert_encoding($data[1],"UTF-8","Windows-1251").'"'.",".'"'.
-                            mb_convert_encoding($data[2],"UTF-8","Windows-1251").'"'.",".'"'.
-                            mb_convert_encoding($data[4],"UTF-8","Windows-1251").'"'.')';
-                       
+            if ($i == 1) continue;
+            $data = explode(";", $s);
+            $obl = mb_convert_encoding($data[0], "UTF-8", "Windows-1251");
+            if ($obl <> 'Дніпропетровська') continue;
+
+            $sql = "INSERT INTO spr_towns (obl,district,town,street) VALUES(" .
+                '"' . $obl . '"' . "," . '"' .
+                mb_convert_encoding($data[1], "UTF-8", "Windows-1251") . '"' . "," . '"' .
+                mb_convert_encoding($data[2], "UTF-8", "Windows-1251") . '"' . "," . '"' .
+                mb_convert_encoding($data[4], "UTF-8", "Windows-1251") . '"' . ')';
+
 
             Yii::$app->db_connect->createCommand($sql)->execute();
         }
@@ -15562,23 +15507,23 @@ WHERE
     {
         // Добавляем записи в таблицу spr_towns с csv файла houses.csv
         // файл houses.csv взят с УкрПочты
-        $f = fopen('houses.csv','r');
+        $f = fopen('houses.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode(";",$s);
-            $obl = mb_convert_encoding($data[0],"UTF-8","Windows-1251");
+            if ($i == 1) continue;
+            $data = explode(";", $s);
+            $obl = mb_convert_encoding($data[0], "UTF-8", "Windows-1251");
             //if($obl<>'Дніпропетровська') continue;
 
-            $sql = "INSERT INTO spr_towns (obl,district,town,ind,street,houses) VALUES(".
-                '$$'.$obl.'$$'.",".'$$'.
-                mb_convert_encoding($data[1],"UTF-8","Windows-1251").'$$'.",".'$$'.
-                mb_convert_encoding($data[2],"UTF-8","Windows-1251").'$$'.",".
-                mb_convert_encoding($data[3],"UTF-8","Windows-1251").",".'$$'.
-                mb_convert_encoding($data[4],"UTF-8","Windows-1251").'$$'.","."'".
-                mb_convert_encoding(trim($data[5]),"UTF-8","Windows-1251")."'".')';
+            $sql = "INSERT INTO spr_towns (obl,district,town,ind,street,houses) VALUES(" .
+                '$$' . $obl . '$$' . "," . '$$' .
+                mb_convert_encoding($data[1], "UTF-8", "Windows-1251") . '$$' . "," . '$$' .
+                mb_convert_encoding($data[2], "UTF-8", "Windows-1251") . '$$' . "," .
+                mb_convert_encoding($data[3], "UTF-8", "Windows-1251") . "," . '$$' .
+                mb_convert_encoding($data[4], "UTF-8", "Windows-1251") . '$$' . "," . "'" .
+                mb_convert_encoding(trim($data[5]), "UTF-8", "Windows-1251") . "'" . ')';
 
 
             Yii::$app->db_pg_local_energo->createCommand($sql)->execute();
@@ -15591,22 +15536,22 @@ WHERE
     // Импорт точек учета в Energo
     public function actionImport_points()
     {
-        $f = fopen('gv_energo.csv','r');
+        $f = fopen('gv_energo.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            $data = explode(";",$s);
+            $data = explode(";", $s);
             if (!isset($data[0])) exit;
             if (!isset($data[1])) exit;
             $code1 = $data[0];
             $code2 = $data[1];
 
             $sql = "select del_notrigger('eqm_equipment_tbl' ,
-            'UPDATE eqm_equipment_tbl SET num_eqp="."''".$code2."''"." WHERE id=".$code1."')";
+            'UPDATE eqm_equipment_tbl SET num_eqp=" . "''" . $code2 . "''" . " WHERE id=" . $code1 . "')";
 
             Yii::$app->db_pg_gv_energo->createCommand($sql)->execute();
-            $sql = "insert into aa_p(id) values (".$code1.")";
+            $sql = "insert into aa_p(id) values (" . $code1 . ")";
             //Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
 
             echo $i;
@@ -15619,10 +15564,10 @@ WHERE
 
 
 // Импорт данных по лицензированной деятельности
-// в справочник видов услуг в 1Click    
+// в справочник видов услуг в 1Click
     public function actionImport_lic()
     {
-       $sql = "CREATE TABLE tmp_works (
+        $sql = "CREATE TABLE tmp_works (
               work varchar(255) NOT NULL,
               brig varchar(255) DEFAULT NULL,
               stavka dec(7,2) NOT NULL,
@@ -15631,57 +15576,56 @@ WHERE
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         Yii::$app->db->createCommand($sql)->execute();
-        $f = fopen('lic.csv','r');
+        $f = fopen('lic.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            
-            if($i<3 || ($i>38 && $i<53)) continue;
-            $data = explode(";",$s);
-            $s1=$data[0];
-            $s1=substr($s1,0,1);
+
+            if ($i < 3 || ($i > 38 && $i < 53)) continue;
+            $data = explode(";", $s);
+            $s1 = $data[0];
+            $s1 = substr($s1, 0, 1);
             $cod = ord($s1);
-            
-           // debug($data);
-            
-            if($cod>=48 && $cod<58){
-               //echo $i.' '.$data[1].' '.$data[2].' '.$data[3].' '.$data[6]."\n";
-               $work = str_replace("'","`",$data[1]);
-               $brig = $data[2];
-               $stavka = str_replace(',','.',$data[3]);
-               $time = str_replace(',','.',$data[6]);;
-               $v = "'".$work."'".","."'".$brig."'".",".$stavka.",".$time;
+
+            // debug($data);
+
+            if ($cod >= 48 && $cod < 58) {
+                //echo $i.' '.$data[1].' '.$data[2].' '.$data[3].' '.$data[6]."\n";
+                $work = str_replace("'", "`", $data[1]);
+                $brig = $data[2];
+                $stavka = str_replace(',', '.', $data[3]);
+                $time = str_replace(',', '.', $data[6]);;
+                $v = "'" . $work . "'" . "," . "'" . $brig . "'" . "," . $stavka . "," . $time;
+            } else {
+                //if($i==76) debug($data);
+                //echo $i.' '.$data[2].' '.$data[3]."\n";
+                $brig = $data[2];
+                $stavka = str_replace(',', '.', $data[3]);;
+
+                //$v = "'".$work."'".","."'".$brig."'".",".$stavka.",".$time;
             }
-            else{
-               //if($i==76) debug($data); 
-               //echo $i.' '.$data[2].' '.$data[3]."\n"; 
-               $brig = $data[2]; 
-               $stavka = str_replace(',','.',$data[3]);;
-               
-               //$v = "'".$work."'".","."'".$brig."'".",".$stavka.",".$time;
-            }
-            if($brig=='-') continue;
-            if(empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3]) &&  $i<>41) break;         
+            if ($brig == '-') continue;
+            if (empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3]) && $i <> 41) break;
             //echo $i.' '.$data[0].' '.$data[1].' '.$data[2].' '.$data[5]."\n";
             //echo $v."\n";
-            $sql = "INSERT INTO tmp_works (work,brig,stavka,time_transp) VALUES(".$v.')';
+            $sql = "INSERT INTO tmp_works (work,brig,stavka,time_transp) VALUES(" . $v . ')';
 
             Yii::$app->db->createCommand($sql)->execute();
-            }
+        }
 
         fclose($f);
-                
-        echo "Інформацію записано";
-     }
 
-     
-     
+        echo "Інформацію записано";
+    }
+
+
+
 // Импорт данных по не лицензированной деятельности
-// в справочник видов услуг в 1Click    
+// в справочник видов услуг в 1Click
     public function actionImport_notlic()
     {
-       $sql = "CREATE TABLE tmp_notlic (
+        $sql = "CREATE TABLE tmp_notlic (
               work varchar(255) NOT NULL,
               cast_1 dec(7,2) NOT NULL,
               cast_2 dec(7,2) NOT NULL,
@@ -15693,58 +15637,58 @@ WHERE
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         Yii::$app->db->createCommand($sql)->execute();
-        $f = fopen('work.csv','r');
+        $f = fopen('work.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            
-            if($i<6) continue;
-            $data = explode(";",$s);
+
+            if ($i < 6) continue;
+            $data = explode(";", $s);
             //debug($data);
-            $work = str_replace("'","`",trim($data[1]));
-            
+            $work = str_replace("'", "`", trim($data[1]));
+
             $cast_1 = del_space($data[2]);
             $cast_2 = del_space($data[4]);
             $cast_3 = del_space($data[6]);
             $cast_4 = del_space($data[8]);
             $cast_5 = del_space($data[10]);
             $cast_6 = del_space($data[12]);
-            
-            $cast_1 = str_replace(",",".",$cast_1);
-            $cast_2 = str_replace(",",".",$cast_2);
-            $cast_3 = str_replace(",",".",$cast_3);
-            $cast_4 = str_replace(",",".",$cast_4);
-            $cast_5 = str_replace(",",".",$cast_5);
-            $cast_6 = str_replace(",",".",$cast_6);
-                                    
-            if(empty($cast_1)) $cast_1='0'; 
-            if(empty($cast_2)) $cast_2='0';
-            if(empty($cast_3)) $cast_3='0';
-            if(empty($cast_4)) $cast_4='0';
-            if(empty($cast_5)) $cast_5='0';
-            if(empty($cast_6)) $cast_6='0';
-            
-            $v = "'".$work."'".",".$cast_1.",".$cast_2.",".$cast_3.",".$cast_4.",".$cast_5.",".$cast_6;
-            
-            if(empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;         
+
+            $cast_1 = str_replace(",", ".", $cast_1);
+            $cast_2 = str_replace(",", ".", $cast_2);
+            $cast_3 = str_replace(",", ".", $cast_3);
+            $cast_4 = str_replace(",", ".", $cast_4);
+            $cast_5 = str_replace(",", ".", $cast_5);
+            $cast_6 = str_replace(",", ".", $cast_6);
+
+            if (empty($cast_1)) $cast_1 = '0';
+            if (empty($cast_2)) $cast_2 = '0';
+            if (empty($cast_3)) $cast_3 = '0';
+            if (empty($cast_4)) $cast_4 = '0';
+            if (empty($cast_5)) $cast_5 = '0';
+            if (empty($cast_6)) $cast_6 = '0';
+
+            $v = "'" . $work . "'" . "," . $cast_1 . "," . $cast_2 . "," . $cast_3 . "," . $cast_4 . "," . $cast_5 . "," . $cast_6;
+
+            if (empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;
             //echo $i.' '.$data[0].' '.$data[1].' '.$data[2].' '.$data[5]."\n";
-            echo $v."\n";
-            $sql = "INSERT INTO tmp_notlic (work,cast_1,cast_2,cast_3,cast_4,cast_5,cast_6) VALUES(".$v.')';
+            echo $v . "\n";
+            $sql = "INSERT INTO tmp_notlic (work,cast_1,cast_2,cast_3,cast_4,cast_5,cast_6) VALUES(" . $v . ')';
 
             Yii::$app->db->createCommand($sql)->execute();
-            }
+        }
 
         fclose($f);
-                
-        echo "Інформацію записано";
-     }
 
-     // Импорт данных по транспорту
-    // в справочник транспорта в 1Click    
+        echo "Інформацію записано";
+    }
+
+    // Импорт данных по транспорту
+    // в справочник транспорта в 1Click
     public function actionImport_transport()
     {
-       $sql = "CREATE TABLE tmp_transport (
+        $sql = "CREATE TABLE tmp_transport (
               transport varchar(255) NOT NULL,
               nomer varchar(15) NOT NULL,
               prostoy dec(7,2) NOT NULL,
@@ -15754,41 +15698,41 @@ WHERE
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         Yii::$app->db->createCommand($sql)->execute();
-        $f = fopen('tr_2020.csv','r');
+        $f = fopen('tr_2020.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            
+
             //if($i<8) continue;
-            $data = explode("~",$s);
+            $data = explode("~", $s);
             //debug($data);
             $transport = $data[1];
             $nomer = $data[2];
             $prostoy = $data[3];
             $proezd = $data[4];
             $rabota = $data[5];
-           
-            $prostoy = str_replace(",",".",$prostoy);
-            $proezd = str_replace(",",".",$proezd);
-            $rabota = str_replace(",",".",$rabota);
-            
-            if(empty($rabota) || is_null($rabota) || $rabota=='' || ord($rabota)==10) $rabota=0;
-            
-            $v = "'".$transport."'".","."'".$nomer."'".",".$prostoy.",".$proezd.",".$rabota;
-            
-            if(empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;         
+
+            $prostoy = str_replace(",", ".", $prostoy);
+            $proezd = str_replace(",", ".", $proezd);
+            $rabota = str_replace(",", ".", $rabota);
+
+            if (empty($rabota) || is_null($rabota) || $rabota == '' || ord($rabota) == 10) $rabota = 0;
+
+            $v = "'" . $transport . "'" . "," . "'" . $nomer . "'" . "," . $prostoy . "," . $proezd . "," . $rabota;
+
+            if (empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;
             //echo $i.' '.$data[0].' '.$data[1].' '.$data[2].' '.$data[5]."\n";
             //echo $v."\n";
-            $sql = "INSERT INTO tmp_transport (transport,nomer,prostoy,proezd,rabota) VALUES(".$v.')';
+            $sql = "INSERT INTO tmp_transport (transport,nomer,prostoy,proezd,rabota) VALUES(" . $v . ')';
             //echo $sql;
             Yii::$app->db->createCommand($sql)->execute();
-            }
+        }
 
         fclose($f);
-                
+
         echo "Інформацію записано";
-     }
+    }
 
     // Импорт данных по транспорту детальная (для САП)
     // в справочник транспорта в 1Click
@@ -15826,14 +15770,14 @@ WHERE
                      
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         Yii::$app->db->createCommand($sql)->execute();
-        $f = fopen('tr_2020_detal.csv','r');
+        $f = fopen('tr_2020_detal.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
 
             //if($i<8) continue;
-            $data = explode("~",$s);
+            $data = explode("~", $s);
             //debug($data);
             $model = $data[1];
             $nomer = $data[2];
@@ -15860,16 +15804,16 @@ WHERE
 //            debug($zp);
 //            return;
 
-            $v = "'".$model."'".","."'".$nomer."'"."," . "'".$place."'".","."'".$fuel."'" .
-                    "," . "'".$all_p."'".","."'".$oil_p."'". "," . "'".$zp."'".","."'".$esv."'" .
-                     "," . "'".$amort."'".","."'".$common."'". "," . "'".$all_move."'".","."'".$cost_92_move."'" .
-                     "," . "'".$cost_95_move."'".","."'".$cost_df_move."'". "," . "'".$cost_g_move."'" .
-                     "," . "'".$all_work."'".","."'".$cost_92_work."'". "," . "'".$cost_95_work."'".","."'".$cost_df_work."'" .
-                     "," . "'".$cost_g_work."'";
+            $v = "'" . $model . "'" . "," . "'" . $nomer . "'" . "," . "'" . $place . "'" . "," . "'" . $fuel . "'" .
+                "," . "'" . $all_p . "'" . "," . "'" . $oil_p . "'" . "," . "'" . $zp . "'" . "," . "'" . $esv . "'" .
+                "," . "'" . $amort . "'" . "," . "'" . $common . "'" . "," . "'" . $all_move . "'" . "," . "'" . $cost_92_move . "'" .
+                "," . "'" . $cost_95_move . "'" . "," . "'" . $cost_df_move . "'" . "," . "'" . $cost_g_move . "'" .
+                "," . "'" . $all_work . "'" . "," . "'" . $cost_92_work . "'" . "," . "'" . $cost_95_work . "'" . "," . "'" . $cost_df_work . "'" .
+                "," . "'" . $cost_g_work . "'";
 
             $sql = "INSERT INTO tmp_transport_d (model,nomer,place,fuel,all_p,oil_p,wage,esv,amort,common,
                                 all_move,cost_92_move,cost_95_move,cost_df_move,cost_g_move,
-                                all_work,cost_92_work,cost_95_work,cost_df_work,cost_g_work) VALUES(".$v.')';
+                                all_work,cost_92_work,cost_95_work,cost_df_work,cost_g_work) VALUES(" . $v . ')';
             //echo $sql;
             Yii::$app->db->createCommand($sql)->execute();
         }
@@ -15879,11 +15823,11 @@ WHERE
         echo "Інформацію записано";
     }
 
-      // Импорт данных по MTS
-    // в справочник телефонов   
+    // Импорт данных по MTS
+    // в справочник телефонов
     public function actionImport_mts()
     {
-       $sql = "CREATE TABLE mts (
+        $sql = "CREATE TABLE mts (
               tel varchar(10) NOT NULL,
               tarif varchar(80) NOT NULL,
               fio varchar(80) NOT NULL,
@@ -15892,30 +15836,30 @@ WHERE
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         Yii::$app->db_phone_loc->createCommand($sql)->execute();
-        $f = fopen('mts.csv','r');
+        $f = fopen('mts.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode(",",$s);
+            if ($i == 1) continue;
+            $data = explode(",", $s);
             $tel = $data[0];
             $tarif = $data[1];
             $fio = $data[2];
             $post = $data[3];
-                      
-            $v = "'".$tel."'".","."'".$tarif."'".","."'".$fio."'".","."'".$post."'";
-            
-            if(empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;         
-            
-            $sql = "INSERT INTO mts (tel,tarif,fio,post) VALUES(".$v.')';
+
+            $v = "'" . $tel . "'" . "," . "'" . $tarif . "'" . "," . "'" . $fio . "'" . "," . "'" . $post . "'";
+
+            if (empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;
+
+            $sql = "INSERT INTO mts (tel,tarif,fio,post) VALUES(" . $v . ')';
             Yii::$app->db_phone_loc->createCommand($sql)->execute();
-            }
+        }
 
         fclose($f);
-                
+
         echo "Інформацію записано";
-     }
+    }
 
     // Перенос данных по eerm [для юр. лиц]
     public function actionEerm2cnt()
@@ -15926,18 +15870,18 @@ WHERE
                   eerm numeric(12,4)
                 )";
         Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
-        $f = fopen('eerm_pv.csv','r');
+        $f = fopen('eerm_pv.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode("~",$s);
-            if(!isset($data[1])) break;
-            $cnt =  $data[1];
-            $eerm = str_replace(',','.',$data[2]);
-            $v = "$$$cnt$$".",".$eerm;
-            $sql = "INSERT INTO eerm2cnt (cnt,eerm) VALUES(".$v.')';
+            if ($i == 1) continue;
+            $data = explode("~", $s);
+            if (!isset($data[1])) break;
+            $cnt = $data[1];
+            $eerm = str_replace(',', '.', $data[2]);
+            $v = "$$$cnt$$" . "," . $eerm;
+            $sql = "INSERT INTO eerm2cnt (cnt,eerm) VALUES(" . $v . ')';
             Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
         }
         fclose($f);
@@ -15967,25 +15911,25 @@ WHERE
                id_sap char(10)                 
                 )";
         Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
-        $f = fopen('spr_line.csv','r');
+        $f = fopen('spr_line.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode("~",$s);
-            if(!isset($data[1])) break;
-            $v = "4".",".$data[0].","."'".$data[1]."'".","."'".$data[2]."'".
-                ","."'".$data[3]."'".","."'".$data[4]."'".
-                ","."'".$data[5]."'".","."'".$data[6]."'".
-                ","."'".$data[7]."'".","."'".$data[8]."'".
-                ","."'".$data[9]."'".","."'".$data[10]."'".
-                ","."'".$data[11]."'".","."'".$data[12]."'".
-                ","."'".$data[13]."'".","."'".$data[14]."'";
+            if ($i == 1) continue;
+            $data = explode("~", $s);
+            if (!isset($data[1])) break;
+            $v = "4" . "," . $data[0] . "," . "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" .
+                "," . "'" . $data[3] . "'" . "," . "'" . $data[4] . "'" .
+                "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" .
+                "," . "'" . $data[7] . "'" . "," . "'" . $data[8] . "'" .
+                "," . "'" . $data[9] . "'" . "," . "'" . $data[10] . "'" .
+                "," . "'" . $data[11] . "'" . "," . "'" . $data[12] . "'" .
+                "," . "'" . $data[13] . "'" . "," . "'" . $data[14] . "'";
 
             $sql = "INSERT INTO Sap_lines (kod_res,id,type,normative,voltage_nom,
                        amperage_nom, voltage_max,amperage_max,cords,cover,ro,xo,dpo,show_def,s_nom,id_sap) 
-                       VALUES(".$v.')';
+                       VALUES(" . $v . ')';
             Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
         }
         fclose($f);
@@ -16015,27 +15959,27 @@ WHERE
                id_sap char(10)                 
                 )";
         Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
-        $f = fopen('spr_transf.csv','r');
+        $f = fopen('spr_transf.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($i==1) continue;
-            $data = explode("~",$s);
-            if(!isset($data[1])) break;
-            $v = "4".",".$data[0].","."'".$data[1]."'".","."'".$data[2]."'".
-                ","."'".$data[3]."'".","."'".$data[4]."'".
-                ","."'".$data[5]."'".","."'".$data[6]."'".
-                ","."'".$data[7]."'".","."'".$data[8]."'".
-                ","."'".$data[9]."'".","."'".$data[10]."'".
-                ","."'".$data[11]."'".","."'".$data[12]."'".
-                ","."'".$data[13]."'".","."'".$data[14]."'".
-                ","."'".$data[15]."'".","."'".$data[16]."'";
+            if ($i == 1) continue;
+            $data = explode("~", $s);
+            if (!isset($data[1])) break;
+            $v = "4" . "," . $data[0] . "," . "'" . $data[1] . "'" . "," . "'" . $data[2] . "'" .
+                "," . "'" . $data[3] . "'" . "," . "'" . $data[4] . "'" .
+                "," . "'" . $data[5] . "'" . "," . "'" . $data[6] . "'" .
+                "," . "'" . $data[7] . "'" . "," . "'" . $data[8] . "'" .
+                "," . "'" . $data[9] . "'" . "," . "'" . $data[10] . "'" .
+                "," . "'" . $data[11] . "'" . "," . "'" . $data[12] . "'" .
+                "," . "'" . $data[13] . "'" . "," . "'" . $data[14] . "'" .
+                "," . "'" . $data[15] . "'" . "," . "'" . $data[16] . "'";
 
             $sql = "INSERT INTO Sap_transf (kod_res,id,type,normative,voltage_nom,
                        amperage_nom, voltage_max,amperage_max,phase,swathe,hook_up,power_nom_old
                        ,amperage_no_load,power_nom,show_def, id_sap) 
-                       VALUES(".$v.')';
+                       VALUES(" . $v . ')';
             Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
         }
         fclose($f);
@@ -16045,18 +15989,18 @@ WHERE
     // Транслитерация
     public function actionTranslit()
     {
-        $f = fopen('adres.csv','r');
-        $ff = fopen('result.txt','w+');
+        $f = fopen('adres.csv', 'r');
+        $ff = fopen('result.txt', 'w+');
         $i = 0;
         while (!feof($f)) {
             $i++;
-            if($i==1) continue;
+            if ($i == 1) continue;
             $s = trim(fgets($f));
             $ss = translit($s);
-            if(!empty($s))
-                $s=$s.';'.$ss;
-            fputs($ff,$s);
-            fputs($ff,"\n");
+            if (!empty($s))
+                $s = $s . ';' . $ss;
+            fputs($ff, $s);
+            fputs($ff, "\n");
         }
         fclose($f);
         fclose($ff);
@@ -16071,14 +16015,12 @@ WHERE
         ini_set('max_execution_time', 900);
         $model = new input_find_server();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
             $data = $model->search();
-            
+
             return $this->render('result_find', ['r' => $data]);
-          
-        }
-        else {
+
+        } else {
 
             return $this->render('input_find_server', [
                 'model' => $model,
@@ -16089,37 +16031,34 @@ WHERE
     // Test
     public function actionTest()
     {
-        $mmgg="'2019-07-01'";
-        $mm=(int) substr($mmgg,6,2);
+        $mmgg = "'2019-07-01'";
+        $mm = (int)substr($mmgg, 6, 2);
 
-        $yy=(int) substr($mmgg,1,4);
-        if($mm==1) {
+        $yy = (int)substr($mmgg, 1, 4);
+        if ($mm == 1) {
             $mm = 12;
             $yy--;
-        }
-        else
+        } else
             $mm--;
-        if($mm<10)
-            $mm='0'.$mm;
+        if ($mm < 10)
+            $mm = '0' . $mm;
 
-        $hist_table="spog_hist_".$yy.'_'.$mm;
+        $hist_table = "spog_hist_" . $yy . '_' . $mm;
         echo $hist_table;
     }
 
-    
-     // Делает поиск на сервере MySQL
+
+    // Делает поиск на сервере MySQL
     public function actionFind_mysql()
     {
         $model = new input_find_server_mysql();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
             $data = $model->search();
-            
+
             return $this->render('result_find', ['r' => $data]);
-          
-        }
-        else {
+
+        } else {
 
             return $this->render('input_find_server_mysql', [
                 'model' => $model,
@@ -16134,20 +16073,19 @@ WHERE
         //phpinfo();
         $model = new index();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
 
             //$arr['src'] = split ("\n", trim($model->number));
             $arr['src'] = explode("\n", trim($model->number));
 
             $kol = count($arr['src']);
-            $i=0;
+            $i = 0;
 
 
-            foreach ($arr['src'] as $v)
-            { if(empty($v) || !isset($v)) continue;
+            foreach ($arr['src'] as $v) {
+                if (empty($v) || !isset($v)) continue;
 
-                if(empty($model->sys_res)) {
+                if (empty($model->sys_res)) {
                     if ($model->sys == 1) {
                         $arr['dec'][$i] = base_convert($v, 16, 10);
                         $arr['oct'][$i] = base_convert($v, 16, 8);
@@ -16168,9 +16106,8 @@ WHERE
                         $arr['oct'][$i] = base_convert($v, 2, 8);
                         $arr['hex'][$i] = base_convert($v, 2, 16);
                     }
-                }
-                else {
-                    switch($model->sys_res) {
+                } else {
+                    switch ($model->sys_res) {
                         case 1:
                             $k = 'hex';
                             break;
@@ -16184,7 +16121,7 @@ WHERE
                             $k = 'bin';
                             break;
                     }
-                    switch($model->sys) {
+                    switch ($model->sys) {
                         case 1:
                             $q = 16;
                             break;
@@ -16198,7 +16135,7 @@ WHERE
                             $q = 2;
                             break;
                     }
-                    switch($model->sys_res) {
+                    switch ($model->sys_res) {
                         case 1:
                             $r = 16;
                             break;
@@ -16222,15 +16159,15 @@ WHERE
 //            return;
 
 
-            return $this->render('result', ['arr' => $arr,'q' => $q,'r' => $r , 'k' => $k, 'kol' => $kol]);
-        }
-        else {
+            return $this->render('result', ['arr' => $arr, 'q' => $q, 'r' => $r, 'k' => $k, 'kol' => $kol]);
+        } else {
 
             return $this->render('index', [
                 'model' => $model,
             ]);
         }
     }
+
     // Отображение результата (происходит при нажатии на кн. OK)
     public function actionResult($model)
     {
@@ -16245,52 +16182,48 @@ WHERE
 //    Кодирование строки
     public function actionCode()
     {
-       $model = new symbol();
+        $model = new symbol();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
             $r = $model->str;
             $p = $model->passwd;
-            return $this->render('result_code', ['r' => $r,'p' => $p ]);
-        }
-        else {
+            return $this->render('result_code', ['r' => $r, 'p' => $p]);
+        } else {
 
             return $this->render('symbol_code', [
-                'model' => $model,'vid'=>2
+                'model' => $model, 'vid' => 2
             ]);
         }
     }
-    
+
     //    Операции с множествами
     public function actionOper_sets()
     {
-       $model = new sets();
+        $model = new sets();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
             $a = $model->a;
             $b = $model->b;
             $mas_a = explode(",", $a);
             $mas_b = explode(",", $b);
             $oper = $model->oper;
-            $key = $model->prepare($mas_a,$mas_b);
-            if($oper==1)
+            $key = $model->prepare($mas_a, $mas_b);
+            if ($oper == 1)
                 $data = $model->union($key);
-            if($oper==2)
+            if ($oper == 2)
                 $data = $model->cross($key);
-            if($oper==3)
+            if ($oper == 3)
                 $data = $model->a_m_b($key);
-            if($oper==4)
+            if ($oper == 4)
                 $data = $model->b_m_a($key);
-            if($oper==5)
+            if ($oper == 5)
                 $data = $model->uncross($key);
             $model->finish();
             return $this->render('result_set', ['data' => $data]);
-        }
-        else {
+        } else {
 
             return $this->render('oper_sets', [
-                'model' => $model,'vid'=>2
+                'model' => $model, 'vid' => 2
             ]);
         }
     }
@@ -16298,49 +16231,45 @@ WHERE
     //    Кодирование файла
     public function actionCode_file()
     {
-       $model = new code_file();
-        
-            
-        if ($model->load(Yii::$app->request->post()))
-        {
-            if (Yii::$app->request->isPost) 
+        $model = new code_file();
+
+
+        if ($model->load(Yii::$app->request->post())) {
+            if (Yii::$app->request->isPost)
                 $model->file = UploadedFile::getInstance($model, 'file');
             $p = $model->passwd;
             $file = $model->file;
-            $model->file->saveAs('./'.$file->name);            
-            return $this->render('result_code_file', ['file' => $file,'p' => $p,'mode' => 1]);
-        }
-        else {
+            $model->file->saveAs('./' . $file->name);
+            return $this->render('result_code_file', ['file' => $file, 'p' => $p, 'mode' => 1]);
+        } else {
 
             return $this->render('file_code', [
-                'model' => $model,'vid'=>1
+                'model' => $model, 'vid' => 1
             ]);
         }
     }
-    
+
     //    Декодирование файла
     public function actionDecode_file()
     {
-       $model = new decode_file();
-        
-            
-        if ($model->load(Yii::$app->request->post()))
-        {
-            if (Yii::$app->request->isPost) 
+        $model = new decode_file();
+
+
+        if ($model->load(Yii::$app->request->post())) {
+            if (Yii::$app->request->isPost)
                 $model->file = UploadedFile::getInstance($model, 'file');
             $p = $model->passwd;
             $file = $model->file;
-            $model->file->saveAs('./'.$file->name);            
-            return $this->render('result_code_file', ['file' => $file,'p' => $p,'mode' => 2]);
-        }
-        else {
+            $model->file->saveAs('./' . $file->name);
+            return $this->render('result_code_file', ['file' => $file, 'p' => $p, 'mode' => 2]);
+        } else {
 
             return $this->render('file_code', [
-                'model' => $model,'vid'=>2
+                'model' => $model, 'vid' => 2
             ]);
         }
     }
-    
+
 //    Страница о программе
     public function actionAbout()
     {
@@ -16353,103 +16282,220 @@ WHERE
 //        echo phpinfo();
         $model = new symbol();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
 
             return $this->render('symbol_result', ['model' => $model]);
-        }
-        else {
+        } else {
 
             return $this->render('symbol', [
-                'model' => $model,'vid'=>1
+                'model' => $model, 'vid' => 1
             ]);
         }
     }
-    
+
     // Проверка строк на различие
     public function actionCmp_str()
     {
         $model = new cmp_str();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
 
             return $this->render('symbol_result_str', ['model' => $model]);
-        }
-        else {
+        } else {
 
             return $this->render('cmp_str', [
-                'model' => $model,'vid'=>1
+                'model' => $model, 'vid' => 1
             ]);
         }
     }
-    
-     public function actionDownload($f)
+
+    public function actionDownload($f)
     {
         $file = Yii::getAlias($f);
         return Yii::$app->response->sendFile($file);
     }
 
-     // Делает ввод данных и работу с функцией a2sql
+    // Делает ввод данных и работу с функцией a2sql
     public function actionA2sql()
     {
         $model = new input_array();
 
-        if ($model->load(Yii::$app->request->post()))
-        {
+        if ($model->load(Yii::$app->request->post())) {
 
             //$arr['src'] = split ("\n", trim($model->number));
-            
+
             $str = trim($model->number);
             $y = strlen($str);
-            $flag=0;
-            $s='';
-            $j=0;
-            $k=0;
-            $p=1;
-            for($i=0;$i<$y;$i++){
-                $c = substr($str,$i,1);
-                if($i==($y-1)) $s.=$c;
-                if($c!="\n" && $i!=($y-1)){
-                     $s.=$c;
-                }
-                else{
-                    if(strlen($s)==1 || $s=='') {$flag=1;$s='';$p++;$k=0;continue;}
-                    if($flag==0)
-                    {
+            $flag = 0;
+            $s = '';
+            $j = 0;
+            $k = 0;
+            $p = 1;
+            for ($i = 0; $i < $y; $i++) {
+                $c = substr($str, $i, 1);
+                if ($i == ($y - 1)) $s .= $c;
+                if ($c != "\n" && $i != ($y - 1)) {
+                    $s .= $c;
+                } else {
+                    if (strlen($s) == 1 || $s == '') {
+                        $flag = 1;
+                        $s = '';
+                        $p++;
+                        $k = 0;
+                        continue;
+                    }
+                    if ($flag == 0) {
                         $arr['dat1'][$j] = $s;
                         $j++;
-                        
+
                     }
-                    if($flag==1)
-                    {
-                        $arr['dat'.$p][$k] = $s;
+                    if ($flag == 1) {
+                        $arr['dat' . $p][$k] = $s;
                         $k++;
-                        
+
                     }
-                   
-                    $s='';
+
+                    $s = '';
                 }
-                
+
             }
             $kol = 0;
-            $i=0;
+            $i = 0;
             $k = count($arr);
 //            for($i=0;$i<$k;$i++)
 //                echo $arr[$i];
 //            debug(count($arr));
 //            return;
-                        
-            return $this->render('result_task', ['arr' => $arr,'kol' => $kol]);
-        }
-        else {
+
+            return $this->render('result_task', ['arr' => $arr, 'kol' => $kol]);
+        } else {
 
             return $this->render('input_data', [
                 'model' => $model,
             ]);
         }
     }
+
+
+//Ввести строку и вывести на экран перевернутую строку и строку со всеми большими символами
+
+    public function actionStroka()
+    {
+        return $this->render('stroka');
+    }
+
+//Ввести свой день рождения и посчитать сколько прожито дней - вывести результат в рамке.
+
+    public function actionBirthday()
+    {
+        return $this->render('birthday');
+    }
+
+//Ввести число и вывести таблицу умножения этого числа от 1 до 20. Результат вывести в таблице.
+
+    public function actionTable()
+    {
+        $model = new TableForm();
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            return $this->render('table2', compact('model'));
+        } else {
+            return $this->render('table', compact('model'));
+        }
+    }
+
+
+//Ввести три строки в отдельные поля ввода и вывести на экран длину каждой строки.
+
+    public function actionLength()
+    {
+
+
+    }
+
+//Проверка файлв на пустые поля. Юр
+
+    public function actionUpload()
+    {
+
+        $model = new UploadForm();
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $model->file = UploadedFile::getInstance($model, 'file');
+                return $this->render('upload2', compact('model'));
+            }
+        else {
+            return $this->render('upload', compact('model'));
+        }
+
+    }
+
+
+    //Проверка файлв на пустые поля. Быт
+
+    public function actionUploadbyt()
+    {
+
+        $model = new UploadBytForm();
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $model->file = UploadedFile::getInstance($model, 'file');
+            return $this->render('uploadbytt', compact('model'));
+        }
+        else {
+            return $this->render('uploadbyt', compact('model'));
+        }
+
+    }
+
+
+    public function actionPower_outages ()
+    {
+        $model = new Power_outages();
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $sql = "SELECT descr, encode, accbegin_date as date_begin,
+case WHEN acctypeid = 1 then 'Плановые' else 'Аварийные' END as type_otkl,
+case WHEN acctypeid = 1 then planend_date else factend_date END as date_end
+FROM cc_crash 
+where issubmit = 1";
+            if (!empty($model -> begin_date)) {
+                $sql = $sql. ' and accbegin_date >='. "'". $model -> begin_date. "'";
+            }
+            if (!empty($model -> end_date)) {
+                $sql = $sql. ' and factend_date <='. "'". $model -> end_date. "'";
+            }
+            if (!empty($model -> type)) {
+                if ($model -> type != 3)
+                $sql = $sql. ' and acctypeid ='. "'". $model -> type. "'";
+            }
+            if (!empty($model -> pidrozdil)) {
+                if ($model -> pidrozdil == 1)
+                    $res = 'Днепропетровский РЭС';
+                if ($model -> pidrozdil == 2)
+                    $res = 'Ингулецкий РЭС';
+                if ($model -> pidrozdil == 3)
+                    $res = 'Желтоводский РЭС';
+                if ($model -> pidrozdil == 4)
+                    $res = 'Гвардейский  РЭС';
+                if ($model -> pidrozdil == 5)
+                    $res = 'Апостоловский РЭС';
+                if ($model -> pidrozdil == 6)
+                    $res = 'Криворожский РЭС';
+                if ($model -> pidrozdil == 7)
+                    $res = 'Вольногорский РЭС';
+                if ($model -> pidrozdil == 8)
+                    $res = 'Павлоградский РЭС';
+                $sql = $sql. ' and encode ='. "'". $res. "'";
+            }
+            $sql = $sql . ' ORDER BY 1';
+//            debug($model);
+//            return;
+            $data = Off_site::findbysql($sql)->asArray()
+                ->all();
+//            debug($data);
+//            return;
+            return $this -> render ('result_power_outage', compact('data'));
+        }
+            else {
+            return $this->render('power_outages', compact('model'));
+            }
+    }
 }
-
-
 

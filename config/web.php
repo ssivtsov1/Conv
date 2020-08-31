@@ -113,6 +113,7 @@ $config = [
         'db_pg_call'    => require(__DIR__ . '/db_pg_call.php'),
         'db_pools'    => require(__DIR__ . '/db_pools.php'),
         'db_sap'    => require(__DIR__ . '/db_sap.php'),
+        'db_mysql_site'   => require(__DIR__ . '/db_mysql_site.php'),
 
         'formatter' => [
         'class' => 'yii\i18n\Formatter',

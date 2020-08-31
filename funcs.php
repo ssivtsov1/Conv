@@ -3990,7 +3990,7 @@ function double_oldkey ($filename)
         if (isset($data[1])) {
             if ($data[1] == 'INIT' || $data[1] == 'CO_EHA' ||  $data[1] == 'EVBSD'
                 || $data[1] == 'DATA' || $data[1] == 'EGPLD' || $data[1] == 'AUTO' || $data[1] == 'EGRH'
-                || $data[1] == 'DI_INT' || $data[1] == 'EVER') {
+                || $data[1] == 'DI_INT' || $data[1] == 'EVER' || $data[1] == 'EQUI' || $data[1] == 'EDEVGR') {
                 $arr_k[$j] = $data[0];
                 $j++;
             }
@@ -4102,7 +4102,7 @@ function no_refer ($filename,$data_u)
    $upload=$data_u[0]['upload'];
    $pole=$data_u[0]['n_data'];
    $refer=$data_u[0]['refer'];
-   $tail=substr($filename,strlen($upload));
+   $tail=substr($filename,($upload));
     $arr_k = [];
 
     for($q=0;$q<count($data_u);$q++) {
@@ -4436,5 +4436,1507 @@ function n2sap($a) {
 
     return $e;
 
+
 }
-?>
+
+function countDaysBetweenDates($d1, $d2)
+{
+    $d1_ts = strtotime($d1);
+    $d2_ts = strtotime($d2);
+
+    $seconds = abs($d1_ts - $d2_ts);
+
+    return floor($seconds / 86400);
+}
+
+function multiplicationTable ($r) {
+$i = 1;
+echo "<table class='table-bordered'>";
+while ($i <= 20) {
+    echo "<tr>";
+    $n = 1;
+    while ($n <= 9999) {
+        $a = $n * $i;
+        if ($n == $r) {
+            echo "<td> $i * $n = $a </td>";
+        }
+        $n++;
+        $a = 0;
+
+    }
+    echo "</tr>";
+    $i++;
+}
+echo '</table>';
+}
+
+//function field ($f1) {
+////    echo $f;
+////    return;
+//     $f1 = "C:\WEB\OSPanel\domains\localhost\yii\web".chr(92).$f1;
+////        echo $f1;
+////    return;
+//    $f = fopen($f1, "r");
+//   // $ff = fopen("Dn.txt", "w+");
+//    $count = 0;
+//    $b = 0;
+//    while(($s = fgets($f)) !== false){
+//        $r = explode("\t", $s);
+//        if ($r[1] == 'DATA' && empty($r[12])) {
+//            $c = substr($r[0], 11);
+//            print_r ($c. '<br>');
+////            fputs($ff, $c);
+////            fputs($ff, "\n");
+//            $b++;
+//            $count++;
+//        }
+//    }
+//    echo $count. "</br>";
+//}
+
+//Проверка файла INSTLN на пустые поля. Юридические потребители
+function fieldINSTLN ($f1)
+{
+//    echo $f;
+//    return;
+    $f1 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f1;
+    $f2 = stristr($f1, '_', true);
+    $f3 = 'C:\WEB\OSPanel\domains\localhost\yii\web\INSTLN';
+    if ($f2 == $f3) {
+        $f = fopen($f1, "r");
+        $count = 0;
+        $count1 = 0;
+        $count2 = 0;
+        $count3 = 0;
+        $count4 = 0;
+        $a = 0;
+        $b = 0;
+        $n = 0;
+        $l = 0;
+        $k = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'DATA' && empty($r[12])) {
+                $c = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Не заполнена еденица считывания</td>";
+                echo "<td> $c </td>";
+                echo "</tr>";
+                $b++;
+                $count++;
+            }
+            if ($r[1] == 'DATA' && empty($r[2])) {
+                $p = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Нет ссылки места потребления</td>";
+                echo "<td> $p </td>";
+                echo "</tr>";
+                $a++;
+                $count1++;
+            }
+            if ($r[1] == 'DATA' && empty($r[17])) {
+                $m = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Нет EIC кода</td>";
+                echo "<td> $m  </td>";
+                echo "</tr>";
+                $n++;
+                $count2++;
+            }
+            if ($r[1] == 'DATA' && empty($r[9])) {
+                $q = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Тип тарифа пустой</td>";
+                echo "<td> $q </td>";
+                echo "</tr>";
+                $l++;
+                $count3++;
+            }
+            if ($r[1] == 'DATA' && empty($r[11])) {
+                $w = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Класс рассчета пустой</td>";
+                echo "<td> $w </td>";
+                echo "</tr>";
+                $k++;
+                $count4++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0 && $count1 == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0)) {
+    echo "</br>";
+        echo '<td>';
+    echo 'Общее количество ед. считывания' . ' - '. $count;
+        echo '</td>';
+        echo '<td>';
+    echo 'Общее количество ссылок места потребления' . ' - ' . $count1;
+        echo '</td>';
+        echo '<td>';
+    echo 'Общее количество EIC кода' . ' - ' . $count2;
+        echo '</td>';
+        echo '<td>';
+    echo 'Общее количество пустых типов тарифа' . ' - ' . $count3;
+        echo '</td>';
+        echo '<td>';
+    echo 'Общее количество пустых классов рассчета' . ' - ' . $count4;
+        echo '<td>';
+}
+    if ($count == 0 && $count1 == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0) echo 'Пустых полей нет';
+    echo '</table>';
+
+    echo "<table class='table table-bordered'>";
+// задвоения по oldkey  {
+    $err = [];
+    $err = double_oldkey($f1);
+// Запись в таблицу ошибок
+    if (count($err)) {
+        foreach ($err as $v1) {
+            echo "<tr>";
+            echo "<td> Задвоения </td>";
+            echo "<td>$v1 </td>";
+            echo "</tr>";
+        }
+    }
+// задвоения по oldkey
+    echo '</table>';
+    return 1;
+}
+
+
+//Проверка файла DEVLOC на пустые поля. Юридические потребители
+
+function fieldDEVLOC ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\DEVLOC';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $a = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'EGPLD' && empty($r[2])) {
+//                $c = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td> Пустая ссылка на CONNOBJ</td>";
+                echo "<td> $r[0] </td>";
+                echo "</tr>";
+                $a++;
+                $count++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0)) {
+        echo '<td>';
+        echo 'Общее количество пустых ссылок' . ' - ' . $count . "</br>";
+        echo '</td>';
+    }
+    if ($count == 0) echo 'Пустых полей нет';
+    echo '</table>';
+    echo "<table class='table table-bordered'>";
+//// задвоения по oldkey  {
+    $err = [];
+    $err = double_oldkey($f4);
+//// Запись в таблицу ошибок
+    if (count($err)) {
+        foreach ($err as $v2) {
+            echo "<tr>";
+            echo "<td> Задвоения </td>";
+            echo "<td>$v2 </td>";
+            echo "</tr>";
+        }
+    }
+//// задвоения по oldkey
+    echo '</table>';
+    return 1;
+}
+
+//Проверка файла ZLINES на пустые поля. Юридические потребители
+
+function fieldZLINES ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\ZLINES';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $count1 = 0;
+        $a = 0;
+        $b = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'AUTO' && empty($r[2])) {
+                $c = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td> Пустая ссылка</td>";
+                echo "<td> $c </td>";
+                echo "</tr>";
+                $a++;
+                $count++;
+            } elseif ($r[1] == 'AUTO' && empty($r[6])) {
+//            debug ($r);
+//            return;
+                $m = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td> Пустой тип линии</td>";
+                echo "<td> $m </td>";
+                echo "</tr>";
+                $b++;
+                $count1++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0 && $count1 == 0)) {
+        echo '<td>';
+        echo 'Общее количество пустых ссылок' . ' - ' . $count . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых типов линий' . ' - ' . $count1 . "</br>";
+        echo '</td>';
+    }
+    if ($count == 0 && $count1 == 0) echo 'Пустых полей нет';
+    echo '</table>';
+    echo "<table class='table table-bordered'>";
+//// задвоения по oldkey  {
+    $err = [];
+    $err = double_oldkey($f4);
+//// Запись в таблицу ошибок
+    if (count($err)) {
+        foreach ($err as $v2) {
+                echo "<tr>";
+                echo "<td> Задвоения </td>";
+                echo "<td>$v2 </td>";
+                echo "</tr>";
+        }
+    }
+//// задвоения по oldkey
+    echo '</table>';
+    return 1;
+}
+
+//Проверка файла SEALS на пустые поля. Юридические потребители
+
+function fieldSEALS ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\SEALS';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $a = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'AUTO' && empty($r[10])) {
+                $c = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td> Пустой тип прибора</td>";
+                echo "<td> $c </td>";
+                $a++;
+                $count++;
+            }
+        }
+        echo '</table>';
+        }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0)) {
+        echo '<td>';
+    echo 'Общее количество пустых приборов' . ' - ' . $count . "</br>";
+        echo '</td>';
+    }
+    if ($count == 0) echo 'Пустых полей нет';
+    echo '</table>';
+}
+
+//Проверка файла PARTNER на пустые поля. Юридические потребители
+
+function fieldPARTNER ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\PARTNER';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+//        $count1 = 0;
+//        $a = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            if ($r[1] == 'BUT020' && empty($r[16])) {
+////                debug ($matches);
+////                return;
+//                $c = substr($r[0], 8);
+//                echo "<tr>";
+//                echo "<td>Номер телефона пуст</td>";
+//                echo "<td>$c </td>";
+//                echo "</tr>";
+//                $a++;
+//                $count++;
+//            }
+            if ($r[1] == 'BUT020' && !empty($r[16])) {
+                preg_match("/^[0-9]+/u", $r[16], $matches);
+//                debug ($matches);
+//                return;
+                $h = strlen($matches[0]);
+                if ($h < 10) {
+                    echo "<tr>";
+                    echo "<td>Номер содержит букву</td>";
+                    echo "<td>$r[0] </td>";
+                    echo "</tr>";
+                    $count1++;
+                }
+            }
+        }
+        echo '</table>';
+        }
+    echo "<table class='table table-bordered'>";
+    if (!( $count1 == 0)) {
+//        echo '<td>';
+//        echo 'Общее количество пустых номеров' . ' - ' . $count . "</br>";
+//        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество номеров содержащие буквы' . ' - ' . $count1 . "</br>";
+        echo '</td>';
+    }
+    if ($count1 == 0) echo 'Пустых полей нет';
+    echo '</table>';
+    echo "<table class='table table-bordered'>";
+// задвоения по oldkey  {
+    $err = [];
+    $err = double_oldkey($f4);
+// Запись в таблицу ошибок
+    if (count($err)) {
+        foreach ($err as $v1) {
+            echo "<tr>";
+            echo "<td> Задвоения </td>";
+            echo "<td>$v1 </td>";
+            echo "</tr>";
+        }
+    }
+// задвоения по oldkey
+    echo '</table>';
+    return 1;
+}
+
+//Проверка файла INSTLNCHA на пустые поля. Юридические потребители
+
+function fieldINSTLNCHA ($f1)
+{
+//    echo $f;
+//    return;
+    $f1 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f1;
+    $f2 = stristr($f1, '_', true);
+    $f3 = 'C:\WEB\OSPanel\domains\localhost\yii\web\INSTLNCHA';
+    if ($f2 == $f3) {
+        $f = fopen($f1, "r");
+        $count = 0;
+        $count1 = 0;
+        $count2 = 0;
+        $a = 0;
+        $b = 0;
+        $n = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'KEY' && empty($r[2])) {
+                $c = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Нет установки</td>";
+                echo "<td>$c </td>";
+                echo "</tr>";
+                $b++;
+                $count++;
+            } elseif ($r[1] == 'DATA' && empty($r[2])) {
+//                debug ($r);
+//                return;
+                $p = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Нет места потребления</td>";
+                echo "<td>$p </td>";
+                echo "</tr>";
+                $a++;
+                $count1++;
+            } elseif ($r[1] == 'DATA' && empty($r[12])) {
+                $m = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td> Не заполнена еденица считывания</td>";
+                echo "<td>$m </td>";
+                echo "</tr>";
+                $n++;
+                $count2++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0 && $count1 == 0 && $count2 == 0)) {
+    echo "</br>";
+        echo '<td>';
+    echo 'Общее количество пустых установок' . ' - ' . $count . "</br>";
+        echo '</td>';
+        echo '<td>';
+    echo 'Общее количество мест потребления' . ' - ' . $count1 . "</br>";
+        echo '</td>';
+        echo '<td>';
+    echo 'Общее количество пустых ед. считывания' . ' - ' . $count2 . "</br>";
+        echo '</td>';
+}
+    if ($count == 0 && $count1 == 0 && $count2 == 0) echo 'Пустых полей нет';
+    echo '</table>';
+    echo "<table class='table table-bordered'>";
+// задвоения по oldkey  {
+    $err = [];
+    $err = double_oldkey($f1);
+// Запись в таблицу ошибок
+    if (count($err)) {
+        foreach ($err as $v1) {
+            echo "<tr>";
+            echo "<td> Задвоения </td>";
+            echo "<td>$v1 </td>";
+            echo "</tr>";
+        }
+    }
+// задвоения по oldkey
+    echo '</table>';
+    return 1;
+}
+
+// Проверка на пустые поля DEVGRP. Юридические потребители
+
+function fieldDEVGRP ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\DEVGRP';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $count1 = 0;
+        $a = 0;
+        $b = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'DEVICE' && empty($r[2])) {
+                $c = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td> Нет ссылки на DEVICE</td>";
+                echo "<td> $c </td>";
+                $a++;
+                $count++;
+            }
+            if ($r[1] == 'DEVICE' && !empty($r[2])) {
+                $f7 = stristr($f4, '_');
+                $f9 = 'C:\WEB\OSPanel\domains\localhost\yii\web\DEVICE'. $f7;
+                    $f1 = fopen($f9, "r");
+                    $flag = 0;
+                    while (($s1 = fgets($f1)) !== false) {
+                        $r1 = explode("\t", $s1);
+                        if ($r1[1] == 'EQUI' && $r[2] == $r1[0]) {
+                            $flag = 1;
+                            break;
+                        }
+                }
+                if ($flag == 0) {
+                    echo "<tr>";
+                    echo "<td> Нет ссылки в файле DEVICE</td>";
+                    echo "<td> $r[2] </td>";
+                    $b++;
+                    $count1++;
+                }
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0 && $count1 == 0)) {
+        echo '<td>';
+        echo 'Общее количество пустых ссылок' . ' - ' . $count . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых ссылок в файле DEVICE' . ' - ' . $count1 . "</br>";
+        echo '</td>';
+    }
+    if ($count == 0 && $count1 == 0) echo 'Пустых полей нет';
+    echo '</table>';
+    echo "<table class='table table-bordered'>";
+// задвоения по oldkey  {
+    $err = [];
+    $err = double_oldkey($f4);
+// Запись в таблицу ошибок
+    if (count($err)) {
+        foreach ($err as $v1) {
+            echo "<tr>";
+            echo "<td> Задвоения </td>";
+            echo "<td>$v1 </td>";
+            echo "</tr>";
+        }
+    }
+// задвоения по oldkey
+    echo '</table>';
+    return 1;
+}
+
+
+//Проверка файла MOVE_IN на пустые поля. Юридические потребители
+
+function fieldMOVEIN ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\MOVE';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+//        $count = 0;
+//        $a = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            if ($r[1] == 'EVER' && empty($r[6])) {
+////                                debug ($r);
+////                return;
+////                $c = substr($r[0], 8);
+//                echo "<tr>";
+//                echo "<td>Нет номера договора</td>";
+//                echo "<td>$r[0] </td>";
+//                echo "</tr>";
+//                $a++;
+//                $count++;
+//            }
+//        }
+//    }
+//    echo '</table>';
+//    echo "<table class='table table-bordered'>";
+//    if (!($count == 0)) {
+//        echo '<td>';
+//        echo 'Общее количество пустых номеров договора' . ' - ' . $count . "</br>";
+//        echo '</td>';
+        }
+//    if ($count == 0) echo 'Пустых полей нет';
+//    echo '</table>';
+//    echo "<table class='table table-bordered'>";
+// задвоения по oldkey  {
+        $err = [];
+        $err = double_oldkey($f4);
+// Запись в таблицу ошибок
+        if (count($err)) {
+            foreach ($err as $v1) {
+                echo "<tr>";
+                echo "<td> Задвоения </td>";
+                echo "<td>$v1 </td>";
+                echo "</tr>";
+            }
+        }
+        if (count($err) == 0) echo 'Задвоений нет';
+// задвоения по oldkey
+        echo '</table>';
+        return 1;
+    }
+}
+
+
+//Проверка файла DEVICE на пустые поля. Юридические потребители
+
+function fieldDEVICE ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\DEVICE';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $count1 = 0;
+        $a = 0;
+        $b = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+            if ($r[1] == 'EGERH' && empty($r[2])) {
+                $c = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет даты </td>";
+                echo "<td>$c </td>";
+                echo "</tr>";
+                $a++;
+                $count++;
+            }
+            if ($r[1] == 'EQUI' && empty($r[11])) {
+//                debug ($r);
+//                return;
+                $k = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет типа прибора </td>";
+                echo "<td>$k </td>";
+                echo "</tr>";
+                $b++;
+                $count1++;
+                }
+            }
+            echo '</table>';
+        }
+        echo "<table class='table table-bordered'>";
+        if (!($count == 0 && $count1 == 0)) {
+            echo '<td>';
+            echo 'Общее количество пустых дат' . ' - ' . $count . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество типов приборов' . ' - ' . $count1 . "</br>";
+            echo '</td>';
+        }
+    if ($count == 0 && $count1 == 0) echo 'Пустых полей нет';
+    echo '</table>';
+    echo '</table>';
+    echo "<table class='table table-bordered'>";
+//// задвоения по oldkey  {
+$err = double_oldkey($f4);
+//// Запись в таблицу ошибок
+if (count($err)) {
+    foreach ($err as $v) {
+        if (!($v == 0)) {
+            echo "<tr>";
+            echo "<td> Задвоения </td>";
+            echo "<td>$v </td>";
+            echo "</tr>";
+        }
+    }
+}
+//// задвоения по oldkey  }
+    echo '</table>';
+    return 1;
+}
+
+// Проверка на пустые поля PARTNER. Бытовые потребители
+
+function fieldPARTNERbyt ($f4)
+{
+//                echo $pa;
+//                return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\PARTNER';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $count1 = 0;
+        $count2 = 0;
+        $count3 = 0;
+        $count4 = 0;
+        $a = 0;
+        $b = 0;
+        $e = 0;
+        $d = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+            if ($r[1] == 'BUT020' && empty($r[4])) {
+                $k = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Пустое поле города</td>";
+                echo "<td>$k </td>";
+                echo "</tr>";
+                $b++;
+                $count2++;
+            }
+            if ($r[1] == 'BUT020' && empty($r[5])) {
+                $l = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Пустое поле индекса</td>";
+                echo "<td>$l </td>";
+                echo "</tr>";
+                $e++;
+                $count3++;
+            }
+            if ($r[1] == 'BUT020' && empty($r[8]) && empty($r[11])) {
+//                debug ($r);
+//                return;
+                $m = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Пустое поле с улицей</td>";
+                echo "<td>$m </td>";
+                echo "</tr>";
+                $d++;
+                $count4++;
+            }
+            if (($r[1] == 'BUT020' && empty($r[8]) && empty($r[11])) || ($r[1] == 'BUT020' && !empty($r[8]) && trim($r[8]) == mb_convert_encoding('Неопределено', "UTF-8"))) {
+//                debug ($r);
+//                return;
+
+                echo "<tr>";
+                echo "<td>Адрес Неопределен или пустой</td>";
+                echo "<td>$r[0] </td>";
+                echo "</tr>";
+                $a++;
+                $count++;
+
+            }
+            if ($r[1] == 'BUT020' && !empty($r[16])) {
+                preg_match("/^[0-9]+/u", $r[16], $matches);
+//                debug ($matches);
+//                return;
+                $h = strlen($matches[0]);
+                if ($h < 10) {
+                    echo "<tr>";
+                    echo "<td>Длина номера меньше 10 символов или содержит букву</td>";
+                    echo "<td>$r[0] </td>";
+                    echo "</tr>";
+                    $count1++;
+                }
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0 && $count1 == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0)) {
+        echo '<td>';
+        echo 'Общее количество Неопределенных адресов' . ' - ' . $count . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых городов' . ' - ' . $count2 . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых полей индексов' . ' - ' . $count3 . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество не заполненных улиц' . ' - ' . $count4 . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество не стандартных номеров' . ' - ' . $count1 . "</br>";
+        echo '</td>';
+    }
+    if ($count == 0 && $count1 == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0) echo 'Пустых полей нет';
+    echo '</table>';
+}
+
+// Проверка на пустые поля CONNOBJ. Бытовые потребители
+
+function fieldCONNOBJbyt ($f4)
+{
+//                echo $pa;
+//                return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\CONNOBJ';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $count2 = 0;
+        $count3 = 0;
+        $count4 = 0;
+        $a = 0;
+        $b = 0;
+        $e = 0;
+        $d = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+            if ($r[1] == 'CO_ADR' && empty($r[2])) {
+                $k = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Пустое поле города</td>";
+                echo "<td>$k </td>";
+                echo "</tr>";
+                $b++;
+                $count2++;
+            }
+            if ($r[1] == 'CO_ADR' && empty($r[3])) {
+//                debug ($r);
+//                return;
+                $l = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Пустое поле индекса</td>";
+                echo "<td>$l </td>";
+                echo "</tr>";
+                $e++;
+                $count3++;
+            }
+            if ($r[1] == 'CO_ADR' && empty($r[4]) && empty($r[6])) {
+
+                $m = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Пустые поля с улицей</td>";
+                echo "<td>$m </td>";
+                echo "</tr>";
+                $d++;
+                $count4++;
+            }
+//            debug ($r);
+//            return;
+            if (($r[1] == 'CO_ADR' && empty($r[4]) && empty($r[6])) || ($r[1] == 'CO_ADR' && !empty($r[4]) && trim($r[4]) == mb_convert_encoding('Неопределено', "UTF-8"))) {
+//            debug ($r);
+//            return;
+
+                    echo "<tr>";
+                    echo "<td>Адрес Неопределен или пустой</td>";
+                    echo "<td>$r[0] </td>";
+                    echo "</tr>";
+                    $a++;
+                    $count++;
+
+            }
+        }
+        echo '</table>';
+        echo "<table class='table table-bordered'>";
+        if (!($count == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0)) {
+            echo '<td>';
+            echo 'Общее количество пустых городов' . ' - ' . $count2 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество пустых полей индексов' . ' - ' . $count3 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество не заполненных улиц' . ' - ' . $count4 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество Неопределенных адресов' . ' - ' . $count . "</br>";
+            echo '</td>';
+        }
+        if ($count == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0) echo 'Пустых полей нет';
+        echo '</table>';
+    }
+
+}
+
+// Проверка на пустые поля PREMISE. Бытовые потребители
+
+function fieldPREMISEbyt ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\PREMISE';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $a = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'EVBSD' && empty($r[2])) {
+                $c = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td> Нет ссылки на объект подключения</td>";
+                echo "<td> $c </td>";
+                $a++;
+                $count++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0)) {
+        echo '<td>';
+        echo 'Общее количество пустых ссылок' . ' - ' . $count . "</br>";
+        echo '</td>';
+    }
+    echo '</table>';
+    echo "<table class='table table-bordered'>";
+//// задвоения по oldkey  {
+    $err = double_oldkey($f4);
+//// Запись в таблицу ошибок
+    if (count($err)) {
+        foreach ($err as $v) {
+            if (!($v == 0)) {
+                echo "<tr>";
+                echo "<td> Задвоения </td>";
+                echo "<td>$v </td>";
+                echo "</tr>";
+            }
+        }
+    }
+//// задвоения по oldkey  }
+    echo '</table>';
+    if ($count == 0) echo 'Пустых полей нет';
+}
+
+
+// Проверка на пустые поля ACCOUNT. Бытовые потребители
+
+function fieldACCOUNTbyt ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\ACCOUNT';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $a = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'VKP' && empty($r[2])) {
+                $c = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td> Нет ссылки </td>";
+                echo "<td> $c </td>";
+                $a++;
+                $count++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0)) {
+        echo '<td>';
+        echo 'Общее количество пустых ссылок' . ' - ' . $count . "</br>";
+        echo '</td>';
+    }
+    if ($count == 0) echo 'Пустых полей нет';
+    echo '</table>';
+}
+
+
+//Проверка файла DEVLOC на пустые поля. Бытовые потребители
+
+function fieldDEVLOCbyt ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\DEVLOC';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $count1 = 0;
+        $a = 0;
+        $b = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+            if ($r[1] == 'EGPLD' && empty($r[2])) {
+                $c = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет ссылки подключения на CONNOBJ</td>";
+                echo "<td>$c </td>";
+                echo "</tr>";
+                $a++;
+                $count++;
+            }
+            if ($r[1] == 'EGPLD' && empty($r[3])) {
+//                debug ($r);
+//                return;
+                $k = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет ссылки подключения на PREMISE</td>";
+                echo "<td>$k </td>";
+                echo "</tr>";
+                $b++;
+                $count1++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0 && $count1 == 0)) {
+        echo '<td>';
+        echo 'Общее количество пустых ссылок на CONNOBJ' . ' - ' . $count . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых ссылок на PREMISE' . ' - ' . $count1 . "</br>";
+        echo '</td>';
+    }
+    echo '</table>';
+    echo "<table class='table table-bordered'>";
+//// задвоения по oldkey  {
+    $err = double_oldkey($f4);
+//// Запись в таблицу ошибок
+    if (count($err)) {
+        foreach ($err as $v) {
+            if (!($v == 0)) {
+                echo "<tr>";
+                echo "<td> Задвоения </td>";
+                echo "<td>$v </td>";
+                echo "</tr>";
+            }
+        }
+    }
+//// задвоения по oldkey  }
+    echo '</table>';
+    if ($count == 0 && $count1 == 0) echo 'Пустых полей нет';
+    return 1;
+}
+
+// Проверка на пустые поля DEVICE. Бытовые потребители
+
+function fieldDEVICEbyt ($f4)
+{
+//                echo $pa;
+//                return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\DEVICE';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $count2 = 0;
+        $count3 = 0;
+        $count4 = 0;
+        $count5 = 0;
+        $count6 = 0;
+        $a = 0;
+        $a1 = 0;
+        $b = 0;
+        $e = 0;
+        $d = 0;
+        $d1 = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+            if ($r[1] == 'EQUI' && empty($r[11])) {
+//                debug ($r);
+//                return;
+                $k = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет типа прибора</td>";
+                echo "<td>$k </td>";
+                echo "</tr>";
+                $b++;
+                $count2++;
+            }
+            if ($r[1] == 'EQUI' && empty($r[12])) {
+//                debug ($r);
+//                return;
+                $l = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет серийного номера</td>";
+                echo "<td>$l </td>";
+                echo "</tr>";
+                $e++;
+                $count3++;
+            }
+            if ($r[1] == 'EQUI' && empty($r[14])) {
+
+                $m = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Дата поверки пустая</td>";
+                echo "<td>$m </td>";
+                echo "</tr>";
+                $d++;
+                $count4++;
+            }
+            if ($r[1] == 'EQUI' && !empty($r[14])) {
+                date_default_timezone_set('UTC');
+                $p1 = date ('Ymd');
+//                echo $p1;
+//                debug ($r);
+//                return;
+                if (strtotime($r[14]) > strtotime($p1)) {
+                $t = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Дата поверки в будущем</td>";
+                echo "<td>$t </td>";
+                echo "</tr>";
+                $d1++;
+                $count5++;
+                }
+            }
+
+//            debug ($r);
+//            return;
+            if ($r[1] == 'EGERS' && !empty($r[2])) {
+                date_default_timezone_set('UTC');
+                $p = date ('Y');
+//                echo $p;
+//                debug ($r);
+//                return;
+                if ((int) $r[2] > (int) $p) {
+                $g = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Год поверки указан в будущем</td>";
+                echo "<td>$g</td>";
+                echo "</tr>";
+                $a++;
+                $count++;
+                }
+            }
+            if ($r[1] == 'EGERS' && empty($r[2])) {
+//                echo $p;
+//                debug ($r);
+//                return;
+                $g1 = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Год поверки отсутствует</td>";
+                echo "<td>$g1</td>";
+                echo "</tr>";
+                $a1++;
+                $count6++;
+            }
+        }
+        echo '</table>';
+        echo "<table class='table table-bordered'>";
+        if (!($count == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0 && $count5 == 0 && $count6 == 0)) {
+            echo '<td>';
+            echo 'Общее количество пустых типов прибора' . ' - ' . $count2 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество пустых серийных номеров' . ' - ' . $count3 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество пустых дат' . ' - ' . $count4 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество дат в будущем' . ' - ' . $count5 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество годов указанных в будущем' . ' - ' . $count . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество пустых годов' . ' - ' . $count6 . "</br>";
+            echo '</td>';
+        }
+        echo '</table>';
+        if ($count == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0 && $count5 == 0 && $count6 == 0) echo 'Пустых полей нет';
+    }
+
+}
+
+
+// Проверка на пустые поля SEALS. Бытовые потребители
+
+function fieldSEALbyt ($f4)
+{
+//                echo $pa;
+//                return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\SEAL';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $count2 = 0;
+        $count3 = 0;
+        $count4 = 0;
+        $a = 0;
+        $b = 0;
+        $e = 0;
+        $d = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+            if ($r[1] == 'AUTO' && empty($r[2])) {
+//            debug ($r);
+//            return;
+                $k = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Пустой тип пломбы</td>";
+                echo "<td>$k </td>";
+                echo "</tr>";
+                $b++;
+                $count2++;
+            }
+            if ($r[1] == 'AUTO' && empty($r[3])) {
+//                debug ($r);
+//                return;
+                $l = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Пустой серийный номер пломбы</td>";
+                echo "<td>$l </td>";
+                echo "</tr>";
+                $e++;
+                $count3++;
+            }
+            if ($r[1] == 'AUTO' && empty($r[10])) {
+
+                $m = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Пустой тип счетчика</td>";
+                echo "<td>$m </td>";
+                echo "</tr>";
+                $d++;
+                $count4++;
+            }
+
+            if ($r[1] == 'AUTO' && empty($r[11])) {
+                $g = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Пустой серийный номер счетчика</td>";
+                echo "<td>$g </td>";
+                echo "</tr>";
+                $a++;
+                $count++;
+
+            }
+        }
+        echo '</table>';
+        echo "<table class='table table-bordered'>";
+        if (!($count == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0)) {
+            echo '<td>';
+            echo 'Общее количество пустых типов пломбы' . ' - ' . $count2 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество пустых серийных номеров пломб' . ' - ' . $count3 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество пустых типов счетчиков' . ' - ' . $count4 . "</br>";
+            echo '</td>';
+            echo '<td>';
+            echo 'Общее количество пустых серийных номеров счетчиков' . ' - ' . $count . "</br>";
+            echo '</td>';
+        }
+        echo '</table>';
+        if ($count == 0 && $count2 == 0 && $count3 == 0 && $count4 == 0) echo 'Пустых полей нет';
+    }
+
+}
+
+//Проверка файла INSTLN на пустые поля. Бытовые потребители
+
+function fieldINSTLNbyt ($f1)
+{
+//    echo $f;
+//    return;
+    $f1 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f1;
+    $f2 = stristr($f1, '_', true);
+    $f3 = 'C:\WEB\OSPanel\domains\localhost\yii\web\INSTLN';
+    if ($f2 == $f3) {
+        $f = fopen($f1, "r");
+        $count = 0;
+        $count1 = 0;
+        $count2 = 0;
+        $a = 0;
+        $b = 0;
+        $n = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'DATA' && empty($r[2])) {
+                $c = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Нет ссылки на PREMISE</td>";
+                echo "<td>$c </td>";
+                echo "</tr>";
+                $b++;
+                $count++;
+            }
+                if ($r[1] == 'DATA' && empty($r[9])) {
+//                debug ($r);
+//                return;
+                $p = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td>Нет типа тарифа</td>";
+                echo "<td>$p </td>";
+                echo "</tr>";
+                $a++;
+                $count1++;
+            }
+                if ($r[1] == 'DATA' && empty($r[12])) {
+                $m = substr($r[0], 11);
+                echo "<tr>";
+                echo "<td> Не заполнена еденица считывания</td>";
+                echo "<td>$m </td>";
+                echo "</tr>";
+                $n++;
+                $count2++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0 && $count1 == 0 && $count2 == 0)) {
+        echo "</br>";
+        echo '<td>';
+        echo 'Общее количество пустых ссылок' . ' - ' . $count . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых типов тарифов' . ' - ' . $count1 . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых ед. считывания' . ' - ' . $count2 . "</br>";
+        echo '</td>';
+    }
+    echo '</table>';
+    echo "<table class='table table-bordered'>";
+//// задвоения по oldkey  {
+    $err = double_oldkey($f1);
+//// Запись в таблицу ошибок
+    if (count($err)) {
+        foreach ($err as $v) {
+            if (!($v == 0)) {
+                echo "<tr>";
+                echo "<td> Задвоения </td>";
+                echo "<td>$v </td>";
+                echo "</tr>";
+            }
+        }
+    }
+//// задвоения по oldkey  }
+    if ($count == 0 && $count1 == 0 && $count2 == 0) echo 'Пустых полей нет';
+    echo '</table>';
+}
+
+//
+//Проверка файла INST_MGMT на пустые поля. Бытовые потребители
+
+function fieldINSTMGMTbyt ($f1)
+{
+//    echo $f;
+//    return;
+    $f1 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f1;
+    $f2 = stristr($f1, '_', true);
+    $f3 = 'C:\WEB\OSPanel\domains\localhost\yii\web\INST';
+    if ($f2 == $f3) {
+        $f = fopen($f1, "r");
+        $count = 0;
+        $count1 = 0;
+        $count2 = 0;
+        $a = 0;
+        $b = 0;
+        $n = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+//            debug ($r);
+//            return;
+            if ($r[1] == 'DI_INT' && empty($r[2])) {
+                $c = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет ссылки на DEVLOC</td>";
+                echo "<td>$c </td>";
+                echo "</tr>";
+                $b++;
+                $count++;
+            }
+            if ($r[1] == 'DI_INT' && empty($r[3])) {
+//                debug ($r);
+//                return;
+                $p = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет ссылки на INSTLN</td>";
+                echo "<td>$p </td>";
+                echo "</tr>";
+                $a++;
+                $count1++;
+            }
+            if ($r[1] == 'DI_GER' && empty($r[2])) {
+                $m = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td> Нет ссылки на прибор DEVICE</td>";
+                echo "<td>$m </td>";
+                echo "</tr>";
+                $n++;
+                $count2++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0 && $count1 == 0 && $count2 == 0)) {
+        echo "</br>";
+        echo '<td>';
+        echo 'Общее количество пустых ссылок на DEVLOC' . ' - ' . $count . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых ссылок на INSTLN' . ' - ' . $count1 . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых ссылок на DEVICE' . ' - ' . $count2 . "</br>";
+        echo '</td>';
+    }
+    if ($count == 0 && $count1 == 0 && $count2 == 0) echo 'Пустых полей нет';
+    echo '</table>';
+
+
+}
+
+
+//Проверка файла MOVE_IN на пустые поля. Бытовые потребители
+
+function fieldMOVEINbyt ($f4)
+{
+//    echo $f;
+//    return;
+    $f4 = "C:\WEB\OSPanel\domains\localhost\yii\web" . chr(92) . $f4;
+    $f5 = stristr($f4, '_', true);
+    $f6 = 'C:\WEB\OSPanel\domains\localhost\yii\web\MOVE';
+    if ($f5 == $f6) {
+        $f = fopen($f4, "r");
+        $count = 0;
+        $count1 = 0;
+        $a = 0;
+        $b = 0;
+        echo "<table class='table table-bordered'>";
+        while (($s = fgets($f)) !== false) {
+            $r = explode("\t", $s);
+            if ($r[1] == 'EVER' && empty($r[8])) {
+                $c = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет ссылки на INSTLN</td>";
+                echo "<td>$c </td>";
+                echo "</tr>";
+                $a++;
+                $count++;
+            }
+            if ($r[1] == 'EVER' && empty($r[9])) {
+//                debug ($r);
+//                return;
+                $k = substr($r[0], 8);
+                echo "<tr>";
+                echo "<td>Нет ссылки на ACCOUNT</td>";
+                echo "<td>$k </td>";
+                echo "</tr>";
+                $b++;
+                $count1++;
+            }
+        }
+        echo '</table>';
+    }
+    echo "<table class='table table-bordered'>";
+    if (!($count == 0 && $count1 == 0)) {
+        echo '<td>';
+        echo 'Общее количество пустых ссылок на INSTLN' . ' - ' . $count . "</br>";
+        echo '</td>';
+        echo '<td>';
+        echo 'Общее количество пустых ссылок на ACCOUNT' . ' - ' . $count1 . "</br>";
+        echo '</td>';
+    }
+    echo '</table>';
+    if ($count == 0 && $count1 == 0) echo 'Пустых полей нет';
+}
