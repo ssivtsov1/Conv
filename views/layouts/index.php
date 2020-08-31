@@ -220,9 +220,11 @@ AppAsset::register($this);
                                     ['label' => 'Экспорт данных по складу в САП', 'url' => ['/site/sklad2sap']],
                                     ['label' => 'Задача', 'url' => ['/site/task3']],
                                     ['label' => 'Закачка таблицы wo', 'url' => ['/site/wosootv']],
+                                    ['label' => 'Закачка таблицы реквизитов поставщиков', 'url' => ['/site/rekv_post']],
                                     ['label' => 'Преобразование таблицы инструмента', 'url' => ['/site/do_mshp']],
                                     ['label' => 'Установка даты для инструмента', 'url' => ['/site/set_date']],
                                     ['label' => 'Тест', 'url' => ['/site/test_task']],
+                                    ['label' => 'Преобразование файла DEVICE', 'url' => ['/site/cnv_dev']],
 
                                 ]
                         ],
@@ -296,7 +298,7 @@ AppAsset::register($this);
                                         'options' => ['id' => 'down_menu'],
                                         'items' =>
                                             [
-//                                                ['label' => 'Поиск на PostGreSQL', 'url' => ['/site/find']],
+                                                ['label' => 'Работа с XML', 'url' => ['/site/exml']],
                                             ]
                                     ],
                                 ]
