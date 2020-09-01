@@ -3042,7 +3042,6 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     }
 
 
-
     // Формирование файла остатков по бухгалтерии DOCUMENT_POST (юридические лица поставщики - только для Днепра)
     public function actionSap_document_post($res)
     {
@@ -3601,8 +3600,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
 
 
     // Формирование файла группировки устройств DEVGRP (юридические лица)
-    public
-    function actionSap_devgrp($res)
+    public function actionSap_devgrp($res)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -3919,8 +3917,7 @@ order by sort,ord";
 
 
     // Формирование файла instln для САП для юридических потребителей
-    public
-    function actionSap_instln($res)
+    public function actionSap_instln($res)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -4488,8 +4485,7 @@ order by q.code_eqp
 
 
     // Формирование файла zsign_ca(подписанты)  для САП для юридических потребителей
-    public
-    function actionSap_zsign_ca($res)
+    public function actionSap_zsign_ca($res)
     {
 
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
@@ -4778,8 +4774,7 @@ order by q.code_eqp
     }
 
     // Формирование файла instlncha (субпотребители) - САП для юридических потребителей
-    public
-    function actionSap_instlncha($res)
+    public function actionSap_instlncha($res)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -4884,9 +4879,211 @@ order by code_ust,lvl";
             $i_status = 0;
             if ($kol >= $q) $i_status = 1;
 //            while($i_status==0) {
+
             if ($ust1 == $ust) {
                 $j++;
                 if ($j == 1) {
+
+                    if ($ust1 == $ust) {
+                        $j++;
+                        if ($j == 1) {
+                            // Запись информации по главной установке
+                            $oldkey = $v['oldkey_m'];
+                            $spebene = $v['spebene_m'];
+                            $anlart = $v['anlart_m'];
+                            $vstelle = $v['vstelle_m'];
+                            $ablesartst = $v['ablesartst_m'];
+                            $zz_nametu = $v['zz_nametu_m'];
+                            $zz_fider = $v['zz_fider_m'];
+                            $ab = $v['ab_m'];
+                            $tariftyp = $v['tariftyp_m'];
+                            $branche = $v['branche_m'];
+                            $aklasse = $v['aklasse_m'];
+                            $ableinh = $v['ableinh_m'];
+                            $zzcode4nkre = $v['zzcode4nkre_m'];
+                            $zzcode4nkre_dop = $v['zzcode4nkre_dop_m'];
+                            $zzotherarea = $v['zzotherarea_m'];
+                            $begru = $v['begru_m'];
+                            $zz_eic = $v['zz_eic_m'];
+                            $maininst = '';
+                            $instrole = '';
+                            $instgrtype = '0002';
+                            $highlevinst = '';
+
+                            $zsub[$i][0] = $oldkey;
+                            $zsub[$i][1] = 'DATA';
+                            $zsub[$i][2] = $vstelle;
+                            $zsub[$i][3] = $spebene;
+                            $zsub[$i][4] = $anlart;
+                            $zsub[$i][5] = $ablesartst;
+                            $zsub[$i][6] = $zz_nametu;
+                            $zsub[$i][7] = $zz_fider;
+                            $zsub[$i][8] = $ab;
+                            $zsub[$i][9] = $tariftyp;
+                            $zsub[$i][10] = $branche;
+                            $zsub[$i][11] = $aklasse;
+                            $zsub[$i][12] = $ableinh;
+                            $zsub[$i][13] = $maininst;
+                            $zsub[$i][14] = $instrole;
+                            $zsub[$i][15] = $instgrtype;
+                            $zsub[$i][16] = $highlevinst;
+                            $zsub[$i][17] = $zzcode4nkre;
+                            $zsub[$i][18] = $zzcode4nkre_dop;
+                            $zsub[$i][19] = $zzotherarea;
+                            $zsub[$i][20] = $begru;
+                            $zsub[$i][21] = $zz_eic;
+                            $i++;
+                        }
+                        // Запись информации по субпотребителю
+                        $oldkey = $v['oldkey_r'];
+                        $spebene = $v['spebene'];
+                        $anlart = $v['anlart'];
+                        $vstelle = $v['vstelle'];
+                        $ablesartst = $v['ablesartst'];
+                        $zz_nametu = $v['zz_nametu'];
+                        $zz_fider = $v['zz_fider'];
+                        $ab = $v['ab'];
+                        $tariftyp = $v['tariftyp'];
+                        $branche = $v['branche'];
+                        $aklasse = $v['aklasse'];
+                        $ableinh = $v['ableinh'];
+                        $zzcode4nkre = $v['zzcode4nkre'];
+                        $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+                        $zzotherarea = $v['zzotherarea'];
+                        $begru = $v['begru'];
+                        $zz_eic = $v['zz_eic'];
+                        $maininst = $v['oldkey_m'];
+                        $instrole = 'VL_N';
+                        $instgrtype = '';
+                        $highlevinst = $v['oldkey_m'];
+
+                        $zsub[$i][0] = $oldkey;
+                        $zsub[$i][1] = 'DATA';
+                        $zsub[$i][2] = $vstelle;
+                        $zsub[$i][3] = $spebene;
+                        $zsub[$i][4] = $anlart;
+                        $zsub[$i][5] = $ablesartst;
+                        $zsub[$i][6] = $zz_nametu;
+                        $zsub[$i][7] = $zz_fider;
+                        $zsub[$i][8] = $ab;
+                        $zsub[$i][9] = $tariftyp;
+                        $zsub[$i][10] = $branche;
+                        $zsub[$i][11] = $aklasse;
+                        $zsub[$i][12] = $ableinh;
+                        $zsub[$i][13] = $maininst;
+                        $zsub[$i][14] = $instrole;
+                        $zsub[$i][15] = $instgrtype;
+                        $zsub[$i][16] = $highlevinst;
+                        $zsub[$i][17] = $zzcode4nkre;
+                        $zsub[$i][18] = $zzcode4nkre_dop;
+                        $zsub[$i][19] = $zzotherarea;
+                        $zsub[$i][20] = $begru;
+                        $zsub[$i][21] = $zz_eic;
+                        $i++;
+                    } else {
+                        $ust = $ust1;
+                        $i_status = 1;
+                        $j = 1;
+
+
+                        // Запись информации по главной установке
+                        $oldkey = $v['oldkey_m'];
+                        $spebene = $v['spebene_m'];
+                        $anlart = $v['anlart_m'];
+                        $vstelle = $v['vstelle_m'];
+                        $ablesartst = $v['ablesartst_m'];
+                        $zz_nametu = $v['zz_nametu_m'];
+                        $zz_fider = $v['zz_fider_m'];
+                        $ab = $v['ab_m'];
+                        $tariftyp = $v['tariftyp_m'];
+                        $branche = $v['branche_m'];
+                        $aklasse = $v['aklasse_m'];
+                        $ableinh = $v['ableinh_m'];
+                        $zzcode4nkre = $v['zzcode4nkre_m'];
+                        $zzcode4nkre_dop = $v['zzcode4nkre_dop_m'];
+                        $zzotherarea = $v['zzotherarea_m'];
+                        $begru = $v['begru_m'];
+                        $zz_eic = $v['zz_eic_m'];
+                        $maininst = '';
+                        $instrole = '';
+                        $instgrtype = '0002';
+                        $highlevinst = '';
+
+                        $zsub[$i][0] = $oldkey;
+                        $zsub[$i][1] = 'DATA';
+                        $zsub[$i][2] = $vstelle;
+                        $zsub[$i][3] = $spebene;
+                        $zsub[$i][4] = $anlart;
+                        $zsub[$i][5] = $ablesartst;
+                        $zsub[$i][6] = $zz_nametu;
+                        $zsub[$i][7] = $zz_fider;
+                        $zsub[$i][8] = $ab;
+                        $zsub[$i][9] = $tariftyp;
+                        $zsub[$i][10] = $branche;
+                        $zsub[$i][11] = $aklasse;
+                        $zsub[$i][12] = $ableinh;
+                        $zsub[$i][13] = $maininst;
+                        $zsub[$i][14] = $instrole;
+                        $zsub[$i][15] = $instgrtype;
+                        $zsub[$i][16] = $highlevinst;
+                        $zsub[$i][17] = $zzcode4nkre;
+                        $zsub[$i][18] = $zzcode4nkre_dop;
+                        $zsub[$i][19] = $zzotherarea;
+                        $zsub[$i][20] = $begru;
+                        $zsub[$i][21] = $zz_eic;
+                        $i++;
+                    }
+                    // Запись информации по субпотребителю
+                    $oldkey = $v['oldkey'];
+                    $spebene = $v['spebene'];
+                    $anlart = $v['anlart'];
+                    $vstelle = $v['vstelle'];
+                    $ablesartst = $v['ablesartst'];
+                    $zz_nametu = $v['zz_nametu'];
+                    $zz_fider = $v['zz_fider'];
+                    $ab = $v['ab'];
+                    $tariftyp = $v['tariftyp'];
+                    $branche = $v['branche'];
+                    $aklasse = $v['aklasse'];
+                    $ableinh = $v['ableinh'];
+                    $zzcode4nkre = $v['zzcode4nkre'];
+                    $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+                    $zzotherarea = $v['zzotherarea'];
+                    $begru = $v['begru'];
+                    $zz_eic = $v['zz_eic'];
+                    $maininst = $v['oldkey_m'];
+                    $instrole = 'VL_N';
+                    $instgrtype = '';
+                    $highlevinst = $v['oldkey_m'];
+
+                    $zsub[$i][0] = $oldkey;
+                    $zsub[$i][1] = 'DATA';
+                    $zsub[$i][2] = $vstelle;
+                    $zsub[$i][3] = $spebene;
+                    $zsub[$i][4] = $anlart;
+                    $zsub[$i][5] = $ablesartst;
+                    $zsub[$i][6] = $zz_nametu;
+                    $zsub[$i][7] = $zz_fider;
+                    $zsub[$i][8] = $ab;
+                    $zsub[$i][9] = $tariftyp;
+                    $zsub[$i][10] = $branche;
+                    $zsub[$i][11] = $aklasse;
+                    $zsub[$i][12] = $ableinh;
+                    $zsub[$i][13] = $maininst;
+                    $zsub[$i][14] = $instrole;
+                    $zsub[$i][15] = $instgrtype;
+                    $zsub[$i][16] = $highlevinst;
+                    $zsub[$i][17] = $zzcode4nkre;
+                    $zsub[$i][18] = $zzcode4nkre_dop;
+                    $zsub[$i][19] = $zzotherarea;
+                    $zsub[$i][20] = $begru;
+                    $zsub[$i][21] = $zz_eic;
+                    $i++;
+                } else {
+                    $ust = $ust1;
+                    $i_status = 1;
+                    $j = 1;
+
                     // Запись информации по главной установке
                     $oldkey = $v['oldkey_m'];
                     $spebene = $v['spebene_m'];
@@ -4933,7 +5130,56 @@ order by code_ust,lvl";
                     $zsub[$i][20] = $begru;
                     $zsub[$i][21] = $zz_eic;
                     $i++;
+
+
+                    // Запись информации по субпотребителю
+                    $oldkey = $v['oldkey_r'];
+                    $spebene = $v['spebene'];
+                    $anlart = $v['anlart'];
+                    $vstelle = $v['vstelle'];
+                    $ablesartst = $v['ablesartst'];
+                    $zz_nametu = $v['zz_nametu'];
+                    $zz_fider = $v['zz_fider'];
+                    $ab = $v['ab'];
+                    $tariftyp = $v['tariftyp'];
+                    $branche = $v['branche'];
+                    $aklasse = $v['aklasse'];
+                    $ableinh = $v['ableinh'];
+                    $zzcode4nkre = $v['zzcode4nkre'];
+                    $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+                    $zzotherarea = $v['zzotherarea'];
+                    $begru = $v['begru'];
+                    $zz_eic = $v['zz_eic'];
+                    $maininst = $v['oldkey_m'];
+                    $instrole = 'VL_N';
+                    $instgrtype = '';
+                    $highlevinst = $v['oldkey_m'];
+
+                    $zsub[$i][0] = $oldkey;
+                    $zsub[$i][1] = 'DATA';
+                    $zsub[$i][2] = $vstelle;
+                    $zsub[$i][3] = $spebene;
+                    $zsub[$i][4] = $anlart;
+                    $zsub[$i][5] = $ablesartst;
+                    $zsub[$i][6] = $zz_nametu;
+                    $zsub[$i][7] = $zz_fider;
+                    $zsub[$i][8] = $ab;
+                    $zsub[$i][9] = $tariftyp;
+                    $zsub[$i][10] = $branche;
+                    $zsub[$i][11] = $aklasse;
+                    $zsub[$i][12] = $ableinh;
+                    $zsub[$i][13] = $maininst;
+                    $zsub[$i][14] = $instrole;
+                    $zsub[$i][15] = $instgrtype;
+                    $zsub[$i][16] = $highlevinst;
+                    $zsub[$i][17] = $zzcode4nkre;
+                    $zsub[$i][18] = $zzcode4nkre_dop;
+                    $zsub[$i][19] = $zzotherarea;
+                    $zsub[$i][20] = $begru;
+                    $zsub[$i][21] = $zz_eic;
+                    $i++;
                 }
+
                 // Запись информации по субпотребителю
                 $oldkey = $v['oldkey'];
                 $spebene = $v['spebene'];
@@ -4980,195 +5226,10 @@ order by code_ust,lvl";
                 $zsub[$i][20] = $begru;
                 $zsub[$i][21] = $zz_eic;
                 $i++;
-            } else {
-                $ust = $ust1;
-                $i_status = 1;
-                $j = 1;
-
-                // Запись информации по главной установке
-                $oldkey = $v['oldkey_m'];
-                $spebene = $v['spebene_m'];
-                $anlart = $v['anlart_m'];
-                $vstelle = $v['vstelle_m'];
-                $ablesartst = $v['ablesartst_m'];
-                $zz_nametu = $v['zz_nametu_m'];
-                $zz_fider = $v['zz_fider_m'];
-                $ab = $v['ab_m'];
-                $tariftyp = $v['tariftyp_m'];
-                $branche = $v['branche_m'];
-                $aklasse = $v['aklasse_m'];
-                $ableinh = $v['ableinh_m'];
-                $zzcode4nkre = $v['zzcode4nkre_m'];
-                $zzcode4nkre_dop = $v['zzcode4nkre_dop_m'];
-                $zzotherarea = $v['zzotherarea_m'];
-                $begru = $v['begru_m'];
-                $zz_eic = $v['zz_eic_m'];
-                $maininst = '';
-                $instrole = '';
-                $instgrtype = '0002';
-                $highlevinst = '';
-
-                $zsub[$i][0] = $oldkey;
-                $zsub[$i][1] = 'DATA';
-                $zsub[$i][2] = $vstelle;
-                $zsub[$i][3] = $spebene;
-                $zsub[$i][4] = $anlart;
-                $zsub[$i][5] = $ablesartst;
-                $zsub[$i][6] = $zz_nametu;
-                $zsub[$i][7] = $zz_fider;
-                $zsub[$i][8] = $ab;
-                $zsub[$i][9] = $tariftyp;
-                $zsub[$i][10] = $branche;
-                $zsub[$i][11] = $aklasse;
-                $zsub[$i][12] = $ableinh;
-                $zsub[$i][13] = $maininst;
-                $zsub[$i][14] = $instrole;
-                $zsub[$i][15] = $instgrtype;
-                $zsub[$i][16] = $highlevinst;
-                $zsub[$i][17] = $zzcode4nkre;
-                $zsub[$i][18] = $zzcode4nkre_dop;
-                $zsub[$i][19] = $zzotherarea;
-                $zsub[$i][20] = $begru;
-                $zsub[$i][21] = $zz_eic;
-                $i++;
-
-
-                // Запись информации по субпотребителю
-                $oldkey = $v['oldkey_r'];
-                $spebene = $v['spebene'];
-                $anlart = $v['anlart'];
-                $vstelle = $v['vstelle'];
-                $ablesartst = $v['ablesartst'];
-                $zz_nametu = $v['zz_nametu'];
-                $zz_fider = $v['zz_fider'];
-                $ab = $v['ab'];
-                $tariftyp = $v['tariftyp'];
-                $branche = $v['branche'];
-                $aklasse = $v['aklasse'];
-                $ableinh = $v['ableinh'];
-                $zzcode4nkre = $v['zzcode4nkre'];
-                $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
-                $zzotherarea = $v['zzotherarea'];
-                $begru = $v['begru'];
-                $zz_eic = $v['zz_eic'];
-                $maininst = $v['oldkey_m'];
-                $instrole = 'VL_N';
-                $instgrtype = '';
-                $highlevinst = $v['oldkey_m'];
-
-                $zsub[$i][0] = $oldkey;
-                $zsub[$i][1] = 'DATA';
-                $zsub[$i][2] = $vstelle;
-                $zsub[$i][3] = $spebene;
-                $zsub[$i][4] = $anlart;
-                $zsub[$i][5] = $ablesartst;
-                $zsub[$i][6] = $zz_nametu;
-                $zsub[$i][7] = $zz_fider;
-                $zsub[$i][8] = $ab;
-                $zsub[$i][9] = $tariftyp;
-                $zsub[$i][10] = $branche;
-                $zsub[$i][11] = $aklasse;
-                $zsub[$i][12] = $ableinh;
-                $zsub[$i][13] = $maininst;
-                $zsub[$i][14] = $instrole;
-                $zsub[$i][15] = $instgrtype;
-                $zsub[$i][16] = $highlevinst;
-                $zsub[$i][17] = $zzcode4nkre;
-                $zsub[$i][18] = $zzcode4nkre_dop;
-                $zsub[$i][19] = $zzotherarea;
-                $zsub[$i][20] = $begru;
-                $zsub[$i][21] = $zz_eic;
-                $i++;
             }
 
-            // Запись информации по субпотребителю
-            $oldkey = $v['oldkey'];
-            $spebene = $v['spebene'];
-            $anlart = $v['anlart'];
-            $vstelle = $v['vstelle'];
-            $ablesartst = $v['ablesartst'];
-            $zz_nametu = $v['zz_nametu'];
-            $zz_fider = $v['zz_fider'];
-            $ab = $v['ab'];
-            $tariftyp = $v['tariftyp'];
-            $branche = $v['branche'];
-            $aklasse = $v['aklasse'];
-            $ableinh = $v['ableinh'];
-            $zzcode4nkre = $v['zzcode4nkre'];
-            $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
-            $zzotherarea = $v['zzotherarea'];
-            $begru = $v['begru'];
-            $zz_eic = $v['zz_eic'];
-            $maininst = $v['oldkey_m'];
-            $instrole = 'VL_N';
-            $instgrtype = '';
-            $highlevinst = $v['oldkey_m'];
-
-            $zsub[$i][0] = $oldkey;
-            $zsub[$i][1] = 'DATA';
-            $zsub[$i][2] = $vstelle;
-            $zsub[$i][3] = $spebene;
-            $zsub[$i][4] = $anlart;
-            $zsub[$i][5] = $ablesartst;
-            $zsub[$i][6] = $zz_nametu;
-            $zsub[$i][7] = $zz_fider;
-            $zsub[$i][8] = $ab;
-            $zsub[$i][9] = $tariftyp;
-            $zsub[$i][10] = $branche;
-            $zsub[$i][11] = $aklasse;
-            $zsub[$i][12] = $ableinh;
-            $zsub[$i][13] = $maininst;
-            $zsub[$i][14] = $instrole;
-            $zsub[$i][15] = $instgrtype;
-            $zsub[$i][16] = $highlevinst;
-            $zsub[$i][17] = $zzcode4nkre;
-            $zsub[$i][18] = $zzcode4nkre_dop;
-            $zsub[$i][19] = $zzotherarea;
-            $zsub[$i][20] = $begru;
-            $zsub[$i][21] = $zz_eic;
-            $i++;
         }
-
     }
-
-////        debug($zsub);
-////        return;
-//
-//    // Формируем имя файла и создаем файл
-//$fd = date('Ymd');
-//$ver = '8';
-//if ($ver < 10) $ver = '0' . $ver;
-//$fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
-//$f = fopen($fname, 'w+');
-//
-//$i = 0;
-//foreach ($zsub as $d)
-//{
-//$d1 = array_map('trim', $d);
-//$s = implode("\t", $d1);
-//$s = str_replace("~", "", $s);
-//$s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
-//fputs($f, $d1[0] . "\t" . 'KEY' . "\t" . $d1[0]);
-//fputs($f, "\n");
-//fputs($f, $s);
-//fputs($f, "\n");
-//fputs($f, $d1[0] . "\t" . '&ENDE');
-//fputs($f, "\n");
-//
-//$i++;
-//}
-//
-//$model = new info();
-//$model->title = 'УВАГА!';
-//$model->info1 = "Файл INSTLNCHA сформовано.";
-//$model->style1 = "d15";
-//$model->style2 = "info-text";
-//$model->style_title = "d9";
-//
-//return $this->render('info', [
-//    'model' => $model]);
-
-
 
     // Формирование файла линий(zlines) для САП для юридических потребителей
     public function actionSap_zlines($res)
@@ -5504,8 +5565,7 @@ select * from (
     }
 
     // Формирование файла трансформаторов (ztransf) для САП для юридических потребителей
-    public
-    function actionSap_ztransf($res)
+    public function actionSap_ztransf($res)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -5841,8 +5901,7 @@ select * from (
     }
 
     // Формирование файла facts для САП для юридических потребителей
-    public
-    function actionSap_facts($res)
+    public function actionSap_facts($res)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -6644,8 +6703,7 @@ order by 6
     }
 
     // Формирование файла facts для САП для бытовых потребителей
-    public
-    function actionSap_facts_ind($res, $par = 0)
+    public function actionSap_facts_ind($res, $par = 0)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -6864,8 +6922,7 @@ inner join
     }
 
     //выгрузка ид фалов сап факты , для бытовых потребителей
-    public
-    function actionIdfile_facts_ind($res)
+    public function actionIdfile_facts_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -6956,8 +7013,7 @@ group by id,power,plita,opal,mmgg,mmgg_end,ver,id_res,ver) as ext
     }
 
     // Формирование файла inst_mgmt для САП для бытовых потребителей
-    public
-    function actionSap_inst_mgmt_ind($res, $par = 0)
+    public function actionSap_inst_mgmt_ind($res, $par = 0)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -7188,8 +7244,7 @@ where  (dat_ind=dat_ind_last or dat_ind is null)
     }
 
     // Формирование файла imove_in для САП для бытовых потребителей
-    public
-    function actionSap_move_in_ind($res, $par = 0)
+    public function actionSap_move_in_ind($res, $par = 0)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -7384,8 +7439,7 @@ where a.archive='0'
 
 
 // Формирование файла move_in для САП для юрид. потребителей
-    public
-    function actionSap_move_in($res)
+    public function actionSap_move_in($res)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -7716,8 +7770,7 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
     }
 
     //выгрузка ид фалов сап imove_in , для бытовых потребителей
-    public
-    function actionIdfile_move_in_ind($res)
+    public function actionIdfile_move_in_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -7797,8 +7850,7 @@ where a.archive='0'
 
     // Выгрузка всех ID файлов (САП)  для бытовых потребителей
 
-    public
-    function beforeAction($action)
+    public function beforeAction($action)
     {
 //       debug($action);
         if ($action->id == 'idfile_launch') {
@@ -7825,15 +7877,13 @@ where a.archive='0'
         return parent::beforeAction($action);
     }
 
-    public
-    function actionIdfile_launch($nom, $res, $i)
+    public function actionIdfile_launch($nom, $res, $i)
     {
         //$r=Yii::$app->response->redirect(['All_idfile',  'res' => $res,'par' => 1])->send();
         return $i;
     }
 
-    public
-    function actionAll_idfile($res)
+    public function actionAll_idfile($res)
     {
         $actions = [
             'idfile_partner_ind',
@@ -7867,8 +7917,7 @@ where a.archive='0'
 
     }
 
-    public
-    function actionAll_sapfile($res)
+    public function actionAll_sapfile($res)
     {
         $actions = [
             'sap_partner_ind',
@@ -7907,8 +7956,7 @@ where a.archive='0'
 
     }
 
-    public
-    function actionAll_idfile_full()
+    public function actionAll_idfile_full()
     {
         $actions = [
             'idfile_partner_ind',
@@ -7946,8 +7994,7 @@ where a.archive='0'
 
 
     // Формирование файла пломб(seal) для САП для юр. потребителей
-    public
-    function actionSap_seals($res)
+    public function actionSap_seals($res)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -8205,8 +8252,7 @@ select distinct
     }
 
 
-    public
-    function actionIdfile_seals($res)
+    public function actionIdfile_seals($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -8271,8 +8317,7 @@ select distinct
 
 
     // Формирование файла заводских пломб (seals) для САП для юр. потребителей
-    public
-    function actionSap_seals2($res)
+    public function actionSap_seals2($res)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -8455,8 +8500,7 @@ select distinct
             'model' => $model]);
     }
 
-    public
-    function actionIdfile_seals2($res)
+    public function actionIdfile_seals2($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -8520,8 +8564,7 @@ select distinct
 
 
     // Формирование файла connobj для САП для бытовых
-    public
-    function actionSap_connobj_ind($res, $par = 0)
+    public function actionSap_connobj_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -8807,8 +8850,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
     }
 
     // Формирование файла account для САП для бытовых
-    public
-    function actionSap_account_ind($res, $par = 0)
+    public function actionSap_account_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 4000);
@@ -9066,8 +9108,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
 
     //формирование файла идентификации
     // Формирование файла account для САП для бытовых абонентов
-    public
-    function actionIdfile_account_ind($res)
+    public function actionIdfile_account_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -9129,8 +9170,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
     }
 
     // Формирование файла device для САП для юридических потребителей
-    public
-    function actionSap_device($res)
+    public function actionSap_device($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -9400,8 +9440,7 @@ order by tzap
 
     //формирование файла идентификации
     // Формирование файла device для САП для ЮР.лиц
-    public
-    function actionIdfile_device($res)
+    public function actionIdfile_device($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -9470,8 +9509,7 @@ order by tzap
     }
 
     // Формирование файла devloc для САП для бытовых
-    public
-    function actionSap_devloc_ind($res, $par = 0)
+    public function actionSap_devloc_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -9689,8 +9727,7 @@ order by tzap
 
     //формирование файла идентификации
     // Формирование файла devloc для САП для бытовых абонентов
-    public
-    function actionIdfile_devloc_ind($res)
+    public function actionIdfile_devloc_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -9753,8 +9790,7 @@ order by tzap
 
 
     // Формирование файла device для САП для бытовых
-    public
-    function actionSap_device_ind($res, $par = 0)
+    public function actionSap_device_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', -1);
@@ -10125,8 +10161,7 @@ order by tzap
 
     //формирование файла идентификации
     // Формирование файла devloc для САП для бытовых абонентов
-    public
-    function actionIdfile_device_ind($res)
+    public function actionIdfile_device_ind($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -10189,8 +10224,7 @@ order by tzap
 
 
     // Формирование файла connobj для САП для Юридических потребителей
-    public
-    function actionSap_connobj($res)
+    public function actionSap_connobj($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -10829,8 +10863,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
     }
 
     // Формирование файла premise для САП для Юридических потребителей
-    public
-    function actionSap_premise($res)
+    public function actionSap_premise($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -11340,8 +11373,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 
     //формирование файлов идентификации в САП абонентов ЕНЕРГО структруры "премайс"
     //юридические лица
-    public
-    function actionIdfile_premise($res)
+    public function actionIdfile_premise($res)
     {
 
         ini_set('memory_limit', '-1');
@@ -11404,8 +11436,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 
     //формирование файлов идентификации в САП абонентов ЕНЕРГО структруры "instln"
     //юридические лица
-    public
-    function actionIdfile_instln($res)
+    public function actionIdfile_instln($res)
     {
 
         ini_set('memory_limit', '-1');
@@ -11593,8 +11624,7 @@ inner join sap_const const on 1=1
     }
 
     // Формирование файла connobj для САП для бытовых
-    public
-    function actionSap_premise_ind($res, $par = 0)
+    public function actionSap_premise_ind($res, $par = 0)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -11965,8 +11995,7 @@ inner join sap_const const on 1=1
 
     //формирование файлов идентификации в САП абонентов АБН структруры "премайс"
     //бытовые абоненты
-    public
-    function actionIdfile_premise_ind($res, $par = 0)
+    public function actionIdfile_premise_ind($res, $par = 0)
     {
 
         ini_set('memory_limit', '-1');
@@ -12032,8 +12061,7 @@ inner join sap_const const on 1=1
 
 
     // Форматирование файла partner для САП для юридических партнеров
-    public
-    function actionSap_account($res)
+    public function actionSap_account($res)
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
@@ -13460,7 +13488,7 @@ WHERE
 //        return $this->render('info', [
 //            'model' => $model]);
     }
-    
+
 
     public function actionSap_discorder_ind($res, $par = 0)
     {
@@ -13715,7 +13743,6 @@ left join sap_const as const on 1=1';
 //            public function actionSap_discenter_ind($res, $par = 0)
 
     public function actionSap_discenter_ind($res, $par = 0)
-
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
@@ -17055,14 +17082,6 @@ left join sap_const as const on 1=1';
     }
 
 
-//Ввести три строки в отдельные поля ввода и вывести на экран длину каждой строки.
-
-    public function actionLength()
-    {
-
-
-    }
-
 //Проверка файлв на пустые поля. Юр
 
     public function actionUpload()
@@ -17145,6 +17164,7 @@ where issubmit = 1";
             return $this->render('power_outages', compact('model'));
         }
     }
-
 }
+
+
 
