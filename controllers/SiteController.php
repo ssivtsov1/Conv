@@ -5315,7 +5315,8 @@ order by q.code_eqp
 // Главный запрос со всеми необходимыми данными
 $sql = "select q.*,'*' as div,i.*,
 j.oldkey||'_'||row_number() OVER (partition BY j.oldkey,q.code_ust) as oldkey_m,
-i.oldkey||'_'||row_number() OVER (partition BY i.oldkey) as oldkey_r,
+-- i.oldkey||'_'||row_number() OVER (partition BY i.oldkey) as oldkey_r,
+i.oldkey as oldkey_r,
 j.vstelle as vstelle_m,j.spebene as spebene_m,j.anlart as anlart_m,
 j.ablesartst as ablesartst_m,j.zz_nametu as zz_nametu_m,j.zz_fider as zz_fider_m,
 j.ab as ab_m,j.tariftyp as tariftyp_m,j.branche as branche_m,j.aklasse as aklasse_m,
