@@ -5289,7 +5289,7 @@ order by q.code_eqp
 
     }
 
-    // Формирование файла instlncha (субпотребители) - САП для юридических потребителей
+        // Формирование файла instlncha (субпотребители) - САП для юридических потребителей
     public function actionSap_instlncha($res)
     {
         $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
@@ -5313,11 +5313,8 @@ order by q.code_eqp
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
 // Главный запрос со всеми необходимыми данными
-$sql = "select q.*,'*' as div,i.*,
-j.oldkey||'_'||row_number() OVER (partition BY j.oldkey,q.code_ust) as oldkey_m,
--- i.oldkey||'_'||row_number() OVER (partition BY i.oldkey) as oldkey_r,
-i.oldkey as oldkey_r,
-j.vstelle as vstelle_m,j.spebene as spebene_m,j.anlart as anlart_m,
+        $sql = "select q.*,'*' as div,i.*,
+j.oldkey as oldkey_m,j.vstelle as vstelle_m,j.spebene as spebene_m,j.anlart as anlart_m,
 j.ablesartst as ablesartst_m,j.zz_nametu as zz_nametu_m,j.zz_fider as zz_fider_m,
 j.ab as ab_m,j.tariftyp as tariftyp_m,j.branche as branche_m,j.aklasse as aklasse_m,
 j.ableinh as ableinh_m,j.zzcode4nkre as zzcode4nkre_m,j.zzcode4nkre_dop as zzcode4nkre_dop_m,
@@ -5392,108 +5389,9 @@ order by code_ust,lvl";
             $i_status=0;
             if($kol>=$q) $i_status=1;
 //            while($i_status==0) {
-                if ($ust1 == $ust) {
-                    $j++;
-                    if ($j == 1) {
-                        // Запись информации по главной установке
-                        $oldkey = $v['oldkey_m'];
-                        $spebene = $v['spebene_m'];
-                        $anlart = $v['anlart_m'];
-                        $vstelle = $v['vstelle_m'];
-                        $ablesartst = $v['ablesartst_m'];
-                        $zz_nametu = $v['zz_nametu_m'];
-                        $zz_fider = $v['zz_fider_m'];
-                        $ab = $v['ab_m'];
-                        $tariftyp = $v['tariftyp_m'];
-                        $branche = $v['branche_m'];
-                        $aklasse = $v['aklasse_m'];
-                        $ableinh = $v['ableinh_m'];
-                        $zzcode4nkre = $v['zzcode4nkre_m'];
-                        $zzcode4nkre_dop = $v['zzcode4nkre_dop_m'];
-                        $zzotherarea = $v['zzotherarea_m'];
-                        $begru = $v['begru_m'];
-                        $zz_eic = $v['zz_eic_m'];
-                        $maininst = '';
-                        $instrole = '';
-                        $instgrtype = '0002';
-                        $highlevinst = '';
-
-                        $zsub[$i][0]=$oldkey;
-                        $zsub[$i][1]='DATA';
-                         $zsub[$i][2]=$vstelle;
-                         $zsub[$i][3]=$spebene;
-                         $zsub[$i][4]=$anlart;
-                         $zsub[$i][5]=$ablesartst;
-                         $zsub[$i][6]=$zz_nametu;
-                         $zsub[$i][7]=$zz_fider;
-                          $zsub[$i][8]=$ab;
-                          $zsub[$i][9]=$tariftyp;
-                          $zsub[$i][10]=$branche;
-                          $zsub[$i][11]=$aklasse;
-                          $zsub[$i][12]=$ableinh;
-                          $zsub[$i][13]=$maininst;
-                          $zsub[$i][14]=$instrole;
-                          $zsub[$i][15]=$instgrtype;
-                          $zsub[$i][16]=$highlevinst;
-                          $zsub[$i][17]=$zzcode4nkre;
-                          $zsub[$i][18]=$zzcode4nkre_dop;
-                          $zsub[$i][19]=$zzotherarea;
-                          $zsub[$i][20]=$begru;
-                          $zsub[$i][21]=$zz_eic;
-                          $i++;
-                    }
-                    // Запись информации по субпотребителю
-                    $oldkey = $v['oldkey_r'];
-                    $spebene = $v['spebene'];
-                    $anlart = $v['anlart'];
-                    $vstelle = $v['vstelle'];
-                    $ablesartst = $v['ablesartst'];
-                    $zz_nametu = $v['zz_nametu'];
-                    $zz_fider = $v['zz_fider'];
-                    $ab = $v['ab'];
-                    $tariftyp = $v['tariftyp'];
-                    $branche = $v['branche'];
-                    $aklasse = $v['aklasse'];
-                    $ableinh = $v['ableinh'];
-                    $zzcode4nkre = $v['zzcode4nkre'];
-                    $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
-                    $zzotherarea = $v['zzotherarea'];
-                    $begru = $v['begru'];
-                    $zz_eic = $v['zz_eic'];
-                    $maininst = $v['oldkey_m'];
-                    $instrole = 'VL_N';
-                    $instgrtype = '';
-                    $highlevinst = $v['oldkey_m'];
-
-                    $zsub[$i][0]=$oldkey;
-                    $zsub[$i][1]='DATA';
-                    $zsub[$i][2]=$vstelle;
-                    $zsub[$i][3]=$spebene;
-                    $zsub[$i][4]=$anlart;
-                    $zsub[$i][5]=$ablesartst;
-                    $zsub[$i][6]=$zz_nametu;
-                    $zsub[$i][7]=$zz_fider;
-                    $zsub[$i][8]=$ab;
-                    $zsub[$i][9]=$tariftyp;
-                    $zsub[$i][10]=$branche;
-                    $zsub[$i][11]=$aklasse;
-                    $zsub[$i][12]=$ableinh;
-                    $zsub[$i][13]=$maininst;
-                    $zsub[$i][14]=$instrole;
-                    $zsub[$i][15]=$instgrtype;
-                    $zsub[$i][16]=$highlevinst;
-                    $zsub[$i][17]=$zzcode4nkre;
-                    $zsub[$i][18]=$zzcode4nkre_dop;
-                    $zsub[$i][19]=$zzotherarea;
-                    $zsub[$i][20]=$begru;
-                    $zsub[$i][21]=$zz_eic;
-                    $i++;
-                }
-                else {
-                    $ust = $ust1;
-                    $i_status=1;
-                    $j=1;
-
+            if ($ust1 == $ust) {
+                $j++;
+                if ($j == 1) {
                     // Запись информации по главной установке
                     $oldkey = $v['oldkey_m'];
                     $spebene = $v['spebene_m'];
@@ -5540,54 +5438,153 @@ order by code_ust,lvl";
                     $zsub[$i][20]=$begru;
                     $zsub[$i][21]=$zz_eic;
                     $i++;
+                }
+                // Запись информации по субпотребителю
+                $oldkey = $v['oldkey'];
+                $spebene = $v['spebene'];
+                $anlart = $v['anlart'];
+                $vstelle = $v['vstelle'];
+                $ablesartst = $v['ablesartst'];
+                $zz_nametu = $v['zz_nametu'];
+                $zz_fider = $v['zz_fider'];
+                $ab = $v['ab'];
+                $tariftyp = $v['tariftyp'];
+                $branche = $v['branche'];
+                $aklasse = $v['aklasse'];
+                $ableinh = $v['ableinh'];
+                $zzcode4nkre = $v['zzcode4nkre'];
+                $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+                $zzotherarea = $v['zzotherarea'];
+                $begru = $v['begru'];
+                $zz_eic = $v['zz_eic'];
+                $maininst = $v['oldkey_m'];
+                $instrole = 'VL_N';
+                $instgrtype = '';
+                $highlevinst = $v['oldkey_m'];
 
-            // Запись информации по субпотребителю
-            $oldkey = $v['oldkey_r'];
-            $spebene = $v['spebene'];
-            $anlart = $v['anlart'];
-            $vstelle = $v['vstelle'];
-            $ablesartst = $v['ablesartst'];
-            $zz_nametu = $v['zz_nametu'];
-            $zz_fider = $v['zz_fider'];
-            $ab = $v['ab'];
-            $tariftyp = $v['tariftyp'];
-            $branche = $v['branche'];
-            $aklasse = $v['aklasse'];
-            $ableinh = $v['ableinh'];
-            $zzcode4nkre = $v['zzcode4nkre'];
-            $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
-            $zzotherarea = $v['zzotherarea'];
-            $begru = $v['begru'];
-            $zz_eic = $v['zz_eic'];
-            $maininst = $v['oldkey_m'];
-            $instrole = 'VL_N';
-            $instgrtype = '';
-            $highlevinst = $v['oldkey_m'];
+                $zsub[$i][0]=$oldkey;
+                $zsub[$i][1]='DATA';
+                $zsub[$i][2]=$vstelle;
+                $zsub[$i][3]=$spebene;
+                $zsub[$i][4]=$anlart;
+                $zsub[$i][5]=$ablesartst;
+                $zsub[$i][6]=$zz_nametu;
+                $zsub[$i][7]=$zz_fider;
+                $zsub[$i][8]=$ab;
+                $zsub[$i][9]=$tariftyp;
+                $zsub[$i][10]=$branche;
+                $zsub[$i][11]=$aklasse;
+                $zsub[$i][12]=$ableinh;
+                $zsub[$i][13]=$maininst;
+                $zsub[$i][14]=$instrole;
+                $zsub[$i][15]=$instgrtype;
+                $zsub[$i][16]=$highlevinst;
+                $zsub[$i][17]=$zzcode4nkre;
+                $zsub[$i][18]=$zzcode4nkre_dop;
+                $zsub[$i][19]=$zzotherarea;
+                $zsub[$i][20]=$begru;
+                $zsub[$i][21]=$zz_eic;
+                $i++;
+            }
+            else {
+                $ust = $ust1;
+                $i_status=1;
+                $j=1;
 
-            $zsub[$i][0]=$oldkey;
-            $zsub[$i][1]='DATA';
-            $zsub[$i][2]=$vstelle;
-            $zsub[$i][3]=$spebene;
-            $zsub[$i][4]=$anlart;
-            $zsub[$i][5]=$ablesartst;
-            $zsub[$i][6]=$zz_nametu;
-            $zsub[$i][7]=$zz_fider;
-            $zsub[$i][8]=$ab;
-            $zsub[$i][9]=$tariftyp;
-            $zsub[$i][10]=$branche;
-            $zsub[$i][11]=$aklasse;
-            $zsub[$i][12]=$ableinh;
-            $zsub[$i][13]=$maininst;
-            $zsub[$i][14]=$instrole;
-            $zsub[$i][15]=$instgrtype;
-            $zsub[$i][16]=$highlevinst;
-            $zsub[$i][17]=$zzcode4nkre;
-            $zsub[$i][18]=$zzcode4nkre_dop;
-            $zsub[$i][19]=$zzotherarea;
-            $zsub[$i][20]=$begru;
-            $zsub[$i][21]=$zz_eic;
-            $i++;
-              }
+                // Запись информации по главной установке
+                $oldkey = $v['oldkey_m'];
+                $spebene = $v['spebene_m'];
+                $anlart = $v['anlart_m'];
+                $vstelle = $v['vstelle_m'];
+                $ablesartst = $v['ablesartst_m'];
+                $zz_nametu = $v['zz_nametu_m'];
+                $zz_fider = $v['zz_fider_m'];
+                $ab = $v['ab_m'];
+                $tariftyp = $v['tariftyp_m'];
+                $branche = $v['branche_m'];
+                $aklasse = $v['aklasse_m'];
+                $ableinh = $v['ableinh_m'];
+                $zzcode4nkre = $v['zzcode4nkre_m'];
+                $zzcode4nkre_dop = $v['zzcode4nkre_dop_m'];
+                $zzotherarea = $v['zzotherarea_m'];
+                $begru = $v['begru_m'];
+                $zz_eic = $v['zz_eic_m'];
+                $maininst = '';
+                $instrole = '';
+                $instgrtype = '0002';
+                $highlevinst = '';
+
+                $zsub[$i][0]=$oldkey;
+                $zsub[$i][1]='DATA';
+                $zsub[$i][2]=$vstelle;
+                $zsub[$i][3]=$spebene;
+                $zsub[$i][4]=$anlart;
+                $zsub[$i][5]=$ablesartst;
+                $zsub[$i][6]=$zz_nametu;
+                $zsub[$i][7]=$zz_fider;
+                $zsub[$i][8]=$ab;
+                $zsub[$i][9]=$tariftyp;
+                $zsub[$i][10]=$branche;
+                $zsub[$i][11]=$aklasse;
+                $zsub[$i][12]=$ableinh;
+                $zsub[$i][13]=$maininst;
+                $zsub[$i][14]=$instrole;
+                $zsub[$i][15]=$instgrtype;
+                $zsub[$i][16]=$highlevinst;
+                $zsub[$i][17]=$zzcode4nkre;
+                $zsub[$i][18]=$zzcode4nkre_dop;
+                $zsub[$i][19]=$zzotherarea;
+                $zsub[$i][20]=$begru;
+                $zsub[$i][21]=$zz_eic;
+                $i++;
+
+                // Запись информации по субпотребителю
+                $oldkey = $v['oldkey'];
+                $spebene = $v['spebene'];
+                $anlart = $v['anlart'];
+                $vstelle = $v['vstelle'];
+                $ablesartst = $v['ablesartst'];
+                $zz_nametu = $v['zz_nametu'];
+                $zz_fider = $v['zz_fider'];
+                $ab = $v['ab'];
+                $tariftyp = $v['tariftyp'];
+                $branche = $v['branche'];
+                $aklasse = $v['aklasse'];
+                $ableinh = $v['ableinh'];
+                $zzcode4nkre = $v['zzcode4nkre'];
+                $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
+                $zzotherarea = $v['zzotherarea'];
+                $begru = $v['begru'];
+                $zz_eic = $v['zz_eic'];
+                $maininst = $v['oldkey_m'];
+                $instrole = 'VL_N';
+                $instgrtype = '';
+                $highlevinst = $v['oldkey_m'];
+
+                $zsub[$i][0]=$oldkey;
+                $zsub[$i][1]='DATA';
+                $zsub[$i][2]=$vstelle;
+                $zsub[$i][3]=$spebene;
+                $zsub[$i][4]=$anlart;
+                $zsub[$i][5]=$ablesartst;
+                $zsub[$i][6]=$zz_nametu;
+                $zsub[$i][7]=$zz_fider;
+                $zsub[$i][8]=$ab;
+                $zsub[$i][9]=$tariftyp;
+                $zsub[$i][10]=$branche;
+                $zsub[$i][11]=$aklasse;
+                $zsub[$i][12]=$ableinh;
+                $zsub[$i][13]=$maininst;
+                $zsub[$i][14]=$instrole;
+                $zsub[$i][15]=$instgrtype;
+                $zsub[$i][16]=$highlevinst;
+                $zsub[$i][17]=$zzcode4nkre;
+                $zsub[$i][18]=$zzcode4nkre_dop;
+                $zsub[$i][19]=$zzotherarea;
+                $zsub[$i][20]=$begru;
+                $zsub[$i][21]=$zz_eic;
+                $i++;
+            }
         }
 
 //        debug($zsub);
