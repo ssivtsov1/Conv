@@ -4206,7 +4206,7 @@ function no_refer ($filename,$data_u)
    $upload=$data_u[0]['upload'];
    $pole=$data_u[0]['n_data'];
    $refer=$data_u[0]['refer'];
-   $tail=substr($filename,($upload));
+   $tail=substr($filename,strlen($upload));
     $arr_k = [];
 
     for($q=0;$q<count($data_u);$q++) {
