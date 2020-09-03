@@ -2287,6 +2287,9 @@ function f_devloc($n_struct,$rem,$v) {
     //$oldkey = '04_C04P_'. trim($vstelle);
     $oldkey = '04_C04P_'. $v['id']. trim($vstelle);
 
+    $oldkey = str_replace("_",'',$oldkey);
+
+
     if($n_struct=='EGPLD')
         $z = "insert into sap_egpld(oldkey,dat_type,haus,vstelle,swerk,stort,begru,pltxt)
                     values('$oldkey','$n_struct','$haus','$vstelle','$swerk','$stort','$begru','~')";

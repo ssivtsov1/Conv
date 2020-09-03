@@ -3306,7 +3306,7 @@ select b.partner_id as gpart,b.acc_id,'' as schet,a.*,const.ver,const.begru
                     $v['begru'] . "\t" .
                     $v['gpart'] . "\t" .
                     "\t" .
-                    $v['gpart'] . "\t" .
+                    $v['acc_id'] . "\t" .
                     '0068' . "\t" .
                     '0010' . "\t" .
                     $v['kofiz'] . "\t" .
@@ -12426,6 +12426,9 @@ WHERE
 	  -- where s1.id=162582
         order by kzabsver 
 ";
+        
+
+
 
         $sql1 = " select * from (
             select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_meter_tbl m
