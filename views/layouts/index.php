@@ -218,7 +218,7 @@ AppAsset::register($this);
                                     ['label' => 'Закачка справочника материалов', 'url' => ['/site/spr_mat']],
                                     ['label' => 'Закачка таблицы соответствия для служб', 'url' => ['/site/sootv']],
                                     ['label' => 'Экспорт данных по складу в САП', 'url' => ['/site/sklad2sap']],
-                                    ['label' => 'Задача', 'url' => ['/site/task3']],
+                                    ['label' => 'Проверка фактов [пром.]', 'url' => ['/site/check_facts']],
                                     ['label' => 'Закачка таблицы wo', 'url' => ['/site/wosootv']],
                                     ['label' => 'Закачка таблицы реквизитов поставщиков', 'url' => ['/site/rekv_post']],
                                     ['label' => 'Преобразование таблицы инструмента', 'url' => ['/site/do_mshp']],
