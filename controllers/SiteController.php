@@ -2106,7 +2106,8 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
                 a.id_type=c.id
                 left join (select distinct id as id,sap_meter_id from sap_meter) s on s.id::integer=w.id_type_meter
                 left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22 where sap_meter_id<>'') sd on s.sap_meter_id=sd.sap_meter_id
-                left join sap_equi d on
+                -- left join sap_equi d on
+                inner join sap_equi d on
                 trim(w.num_meter)=trim(d.sernr) and upper(trim(d.matnr))=upper(trim(sd.sap_meter_name))
                 inner join sap_const const on 1=1
                 left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
@@ -2114,6 +2115,7 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
                 where dt_off is null and length(a.plomb_num) <= 15 
 		         and cl.archive=0 
 		        -- and w.num_meter='10682627'
+		        -- and
                 ) g
                 ) gg
                 ";
@@ -15358,31 +15360,57 @@ left join sap_const as const on 1=1';
 
     }
 
-    // Задача №3
-    public function actionTask3()
+    // Проверка фактов [пром.]
+    public function actionCheck_facts()
     {
+        // Запись всех oldkey в массив
+        $code=[];
+        $result=[];
+        $f = fopen('FACTS_04_CK01_20200831_08_L.txt', 'r');
+        $ff = fopen('INSTLN_04_CK01_20200831_08_L.txt', 'r');
+        $i = 0;
+        while (!feof($f)) {
+            $s = fgets($f);
+            $data = explode("\t", $s);
+           if(isset($data[1])) {
+               if ($data[1] == '&ENDE') {
+                   $code[$i] = $data[0];
+                   $i++;
+               }
+           }
+        }
+        // Проверка oldkey в INSTLN файле
+        $index=0;
+        for($j=0;$j<$i;$j++){
+            $k=$code[$j];
+            $flag=0;
+            $all=0;
+            while (!feof($ff)) {
+                $all++;
+                $s = fgets($ff);
+                $data = explode("\t", $s);
+//                if(($all%2)==0)
+//                    debug($data);
+                if(isset($data[1]) ) {
+                    if (($all%2)==0) {
+//                        debug($code[$j]);
+//                        debug($data[0]);
+//                        return;
 
-        //$arr = [ 5, 7, 8, -2, 9, 11, -87, 99, -150, 10];
-        $arr = [1, 2, 3, 4, 5, 77, 99, 200, 201, 202];
-        $flag = 0;
-        $a = $arr[0];
-        print_r($arr);
-        echo "<p>";
-        for ($i = 1; $i <= count($arr); $i++) {
-//echo $arr[$i]. " ";
-            if ($a < $arr[$i]) {
-                $flag = 1;
-                echo $arr[$i] . " ";
+                        if (trim($code[$j]) == trim($data[0])) {
+                            $flag = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+            if($flag == 0) {
+                $result[$index]=$code[$j];
+                $index++;
             }
         }
-//echo $flag;
-        if ($flag == 1) {
-            echo "No";
-        } else {
-            echo "Yes";
-        }
-        echo "</p>";
-//        return $this->render('res_task',['r' => $r]);
+        echo 'Результат: ';
+        debug($result);
 
     }
 
