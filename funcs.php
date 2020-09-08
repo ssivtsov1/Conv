@@ -2424,7 +2424,7 @@ function f_seal_ind($n_struct,$rem,$v,$vid) {
     // Устранение дублей с другими обл-энерго
     for($j=1;$j<=count($excl);$j++){
         if($r==$excl[$j]) {
-            $scode = $scode . 'S';
+            $scode = $scode . 'C';
             break;
         }
     }
