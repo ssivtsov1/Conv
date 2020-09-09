@@ -13287,8 +13287,110 @@ WHERE
         return $this->render('info', [
             'model' => $model]);
 
-
     }
+
+    // Отключения Disc_Doc (юрид. лица)
+    public function actionSap_discdoc($res,$par=0)
+    {
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 900);
+        $rem = '0'.$res;  // Код РЭС
+
+        // Определяем тип базы 1-abn, 2-energo
+        // и название суффикса в имени файла
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
+            $vid = 1;
+            $_suffix = '_R';
+        }
+        else {
+            $vid = 2;
+            $_suffix = '_L';
+        }
+        // Получаем название подпрограммы
+        $routine = strtoupper(substr($method,10));
+        $filename = get_routine($method); // Получаем название подпрограммы для названия файла
+
+        //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
+        $sql = "select a.*,const.ver,
+              case when a.vkonto<>'' then b.id else a.anlage::int end as id
+              from docoff a
+              left join sap_const as const on 1=1
+              left join clm_client_tbl b on
+              case when a.vkonto<>'' then a.vkonto::int else 0 end = b.code
+             ";
+
+        // Получаем необходимые данные
+        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
+        // Заполняем массивы структур: $di_int и $di_zw
+        $i=0;
+        foreach ($data as $w) {
+            $di_doc[$i]=f_discdoc1($rem,$w);
+            $di_inf[$i]=f_discdoc2($rem,$w);
+            $i++;
+        }
+
+        // Формируем имя файла и создаем файл
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+//        deleterOM($fname,$rem);
+        $f = fopen($fname,'w+');
+//        debug($di_inf);
+//        return;
+        // Считываем данные в файл с массивов $di_int и $di_zw
+        $i=0;
+        $j=0;
+        foreach ($di_doc as $key=>$d) {
+            $d1 = array_map('trim', $d);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            $v=$di_inf[$key];
+
+//            foreach ($di_inf as $v) {
+            $d1 = array_map('trim', $v);
+            $s = implode("\t", $d1);
+            $s = str_replace("~", "", $s);
+            $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+            fputs($f, $s);
+            fputs($f, "\n");
+            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, "\n");
+//
+//                 break;
+//            }
+            $i++;
+        }
+        fclose($f);
+
+//        if($par==0)
+//            if (file_exists($fname)) {
+//                return \Yii::$app->response->sendFile($fname);
+//            }
+//            else
+//                return 1;
+
+//        if (file_exists($fname)) {
+//            return \Yii::$app->response->sendFile($fname);
+//        }
+
+//         Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл DISCDOC сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+        return $this->render('info', [
+            'model' => $model]);
+    }
+
 
     public function actionSap_discdoc_ind($res, $par = 0)
     {
