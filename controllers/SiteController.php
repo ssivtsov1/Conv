@@ -6464,7 +6464,11 @@ left join eqi_grouptarif_tbl as tgr on tgr.id= p.id_grouptarif
 left join eqi_classtarif_tbl as tcl on (p.id_classtarif=tcl.id) 
 --left join reading_controller as w on w.tabel_numb = p.num_tab
 left join (select ins.code_eqp, eq3.id as id_area, eq3.name_eqp as area_name from eqm_compens_station_inst_tbl as ins join eqm_equipment_tbl as eq3 on (eq3.id = ins.code_eqp_inst and eq3.type_eqp = 11) ) as area on (area.code_eqp = p.code_eqp) 
-left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp) 
+left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_energy_tbl as pe join eqk_energy_tbl as e on (e.id = pe.kind_energy) group by code_eqp ) as en on (en.code_eqp = p.code_eqp)
+where (c2.code>999 or c2.code=900) AND coalesce(c2.idk_work,0)<>0 or (c2.code=999 and use.code_eqp is not null) 
+	     and  c2.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	    '10999999','11000000','19999369','50999999','1000000','1000001')  
 ) q
 inner join sap_const const on 1=1
 left join ed_sch eds on q.code_eqp=eds.code_tu::int
@@ -6647,7 +6651,7 @@ case when c.id_gtar in(3,5,16) then 1 end as plita,
 case when c.id_gtar in(4,6,14) then 1 end as opal,const.ver
 from clm_paccnt_tbl c
 left join clm_meterpoint_tbl b on c.id=b.id_paccnt and c.archive='0'
-left join clm_plandemand_tbl a on a.id_paccnt=b.id_paccnt
+left join clm_plandemand_tbl a on a.id_paccnt=b.id_paccnt and a.work_period=(select max(work_period) from clm_plandemand_tbl)
 left join (select (fun_mmgg())::date as mmgg_current) w1
 on 1=1
 left join (select id_paccnt,max(mmgg) as mmgg,id_zone,max(dat_ind) as dat_ind from acm_indication_tbl 
@@ -6655,7 +6659,7 @@ group by id_paccnt,id_zone) j on j.id_paccnt=a.id_paccnt --and j.mmgg=w1.mmgg_cu
  and j.id_zone=a.id_zone
 inner join sap_const const on 1=1
 --where c.id=100042822
-where c.archive='0' and a.work_period=(select max(work_period) from clm_plandemand_tbl)
+where c.archive='0'  -- and a.work_period=(select max(work_period) from clm_plandemand_tbl)
 order by b.id_paccnt
 ) q
 left join 
@@ -15385,6 +15389,7 @@ left join sap_const as const on 1=1';
             $k=$code[$j];
             $flag=0;
             $all=0;
+            rewind($ff);
             while (!feof($ff)) {
                 $all++;
                 $s = fgets($ff);
@@ -15399,7 +15404,7 @@ left join sap_const as const on 1=1';
 
                         if (trim($code[$j]) == trim($data[0])) {
                             $flag = 1;
-                            break;
+                            break 1;
                         }
                     }
                 }
