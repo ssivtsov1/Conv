@@ -3738,7 +3738,6 @@ left join sap_vkp c on c.oldkey=c2.gpart
                 $oldkey = $oldkey_const . $id;
                 $oldkey1 = '04_C' . $rem . 'P_';
                 $sql_1 = "select  distinct  1 as ord,eq.id_point ,
-
 'EDEVGR' as n_struct,
 case when substr(zz.clas,1,1)='J'  then '0002'  else '0003' end as devgrptyp,
 '$period'  as keydate, 
