@@ -3600,35 +3600,35 @@ left join sap_vkp c on c.oldkey=c2.gpart
             'model' => $model]);
     }
 
-
-    // Формирование файла группировки устройств DEVGRP (юридические лица)
+// Формирование файла группировки устройств DEVGRP (юридические лица)
     public function actionSap_devgrp($res)
     {
-        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0' . $res;  // Код РЭС
+        $rem = '0'.$res;  // Код РЭС
         $end = '&ENDE';
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method = __FUNCTION__;
-        if (substr($method, -4) == '_ind') {
+        $method=__FUNCTION__;
+        if(substr($method,-4)=='_ind') {
             $vid = 1;
             $_suffix = '_R';
-        } else {
+        }
+        else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method, 10));
+        $routine = strtoupper(substr($method,10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 //   Дальше идет плагиат - взято из выгрузки Чернигова
-        $sql_p = " select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
-        $period = str_replace('-', '', $period);
+        $period = str_replace('-','',$period);
 
-        $sql = "select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
+        $sql="select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
         from group_trans1 as eq
          join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, eq.name_eqp,
 		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
@@ -3664,81 +3664,25 @@ left join sap_vkp c on c.oldkey=c2.gpart
 
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
-        $fd = date('Ymd');
-        $ver = $data[0]['ver'];
+        $fd=date('Ymd');
+        $ver=$data[0]['ver'];
 //        Формируем имя файла выгрузки
-        if ($ver < 10) $ver = '0' . $ver;
-        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
-        $f = fopen($fname, 'w+');
-        $oldkey_const = '04_C' . $rem . 'B_';
+        if ($ver<10) $ver='0'.$ver;
+        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $f = fopen($fname,'w+');
+        $oldkey_const='04_C'.$rem.'B_';
 
         $fname1 = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $ff = fopen($fname1, 'w+');
 
-        foreach ($data as $v) {
+        foreach($data as $v) {
             $id_eq = $v['id_eq'];
             $id = $v['id'];
-            $short_name = $v['short_name'];
-            $code = $v['code'];
+            $short_name=$v['short_name'];
+            $code=$v['code'];
             $oldkey = $oldkey_const . $id;
-            $oldkey1 = '04_C' . $rem . 'P_';
-//            $sql_1="select  distinct  1 as ord,eq.id_point ,
-
-//   Дальше идет плагиат - взято из выгрузки Чернигова
-            $sql_p = "select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
-            $data_p = data_from_server($sql_p, $res, $vid);
-            $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
-            $period = str_replace('-', '', $period);
-
-            $sql = "select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
-        from group_trans1 as eq
-         join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, eq.name_eqp,
-		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
-	      ic.id as id_type_tr, ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner 
-	    from eqm_compensator_i_tbl as c 
-	    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
-	    left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
-	    select dt_b from eqm_equipment_h where id = eq.id 
-	    and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
-	    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
-	    left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
-	    left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
-	    left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
-	    left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
-	    left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
-	    order by 1
-	    ) as sti on (sti.id_meter = eq.id_meter::integer)  	  
-            left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.code_tt::integer) 
-            join eqm_eqp_tree_tbl as ttr on (ttr.code_eqp =eq.code_tt::integer)
-            left join eqm_tree_tbl as tr on  (tr.id = ttr.id_tree) 
-            left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
-            left join clm_statecl_tbl as sc on (c.id = sc.id_client) 
-            left join eqm_equipment_tbl as e on e.id= eq.id_point
-            inner join sap_const const on 1=1 
-            where  c.book=-1 and c.idk_work not in (0) and coalesce(c.id_state,0) not in (50,99,49,100) and sc.id_section not in (205,206,207,208,209,218) and c.id <> syi_resid_fun() and c.id <>999999999 and eq.code_t_new is not null
-            order by 5";
-            // Получаем необходимые данные
-            $data = data_from_server($sql, $res, $vid);
-            $fd = date('Ymd');
-            $ver = $data[0]['ver'];
-//        Формируем имя файла выгрузки
-            if ($ver < 10) $ver = '0' . $ver;
-            $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
-            $f = fopen($fname, 'w+');
-            $oldkey_const = '04_C' . $rem . 'B_';
-
-            $fname1 = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
-            $ff = fopen($fname1, 'w+');
-
-            foreach ($data as $v) {
-                $id_eq = $v['id_eq'];
-                $id = $v['id'];
-                $short_name = $v['short_name'];
-                $code = $v['code'];
-                $oldkey = $oldkey_const . $id;
-                $oldkey1 = '04_C' . $rem . 'P_';
-                $sql_1 = "select  distinct  1 as ord,eq.id_point ,
-
+            $oldkey1= '04_C'.$rem.'P_';
+            $sql_1="select  distinct  1 as ord,eq.id_point ,
 'EDEVGR' as n_struct,
 case when substr(zz.clas,1,1)='J'  then '0002'  else '0003' end as devgrptyp,
 '$period'  as keydate, 
@@ -3809,49 +3753,48 @@ join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b,
                where eq.id_point = $id_eq and eq.code_t_new is not null
 order by sort,ord";
 
-                $data_1 = data_from_server($sql_1, $res, $vid);
+            $data_1 = data_from_server($sql_1, $res, $vid);
 
 //            debug($data_1);
 //            return;
 
-                // Запись в файл структуры DI_INT
-                $oldkey2 = '';
-                foreach ($data_1 as $v1) {
-                    $link_tr = str_replace(chr(13), '', $v1['devgrptyp']);
-                    $link_tr = str_replace(chr(10), '', $v1['devgrptyp']);
-                    $oldkey2 = $oldkey1 . $v1['id_point'];
-                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey2 . "\t" .
-                        $v1['n_struct'] . "\t" .
-                        $link_tr . "\t" .
-                        $v1['keydate'] . "\n"));
+            // Запись в файл структуры DI_INT
+            $oldkey2='';
+            foreach ($data_1 as $v1) {
+                $link_tr = str_replace(chr(13),'',$v1['devgrptyp']);
+                $link_tr = str_replace(chr(10),'',$v1['devgrptyp']);
+                $oldkey2 = $oldkey1 . $v1['id_point'];
+                fwrite($f, iconv("utf-8","windows-1251",$oldkey2."\t".
+                    $v1['n_struct']."\t".
+                    $link_tr."\t".
+                    $v1['keydate']."\n") );
 
-                }
-                if (trim($oldkey2) <> '') {
-                    fwrite($f, $oldkey2 . "\t" .
-                        $end . "\n");
-
-                    // Запись в _ext файл
-                    fwrite($ff, iconv("utf-8", "windows-1251", 'DEVGRP' . "\t" .
-                        $oldkey2 . "\t" .
-                        $code . "\t" .
-                        $short_name . "\n"
-                    ));
-                }
             }
+            if (trim($oldkey2)<>'')
+            { fwrite($f, $oldkey2."\t".
+                $end."\n");
 
-
-            // Выдаем предупреждение на экран об окончании формирования файла
-            $model = new info();
-            $model->title = 'УВАГА!';
-            $model->info1 = "Файл DEVGRP сформовано.";
-            $model->style1 = "d15";
-            $model->style2 = "info-text";
-            $model->style_title = "d9";
-
-            return $this->render('info', [
-                'model' => $model]);
+                // Запись в _ext файл
+                fwrite($ff, iconv("utf-8","windows-1251", 'DEVGRP'."\t".
+                    $oldkey2."\t".
+                    $code."\t".
+                    $short_name."\n"
+                ) );}
         }
+
+
+        // Выдаем предупреждение на экран об окончании формирования файла
+        $model = new info();
+        $model->title = 'УВАГА!';
+        $model->info1 = "Файл DEVGRP сформовано.";
+        $model->style1 = "d15";
+        $model->style2 = "info-text";
+        $model->style_title = "d9";
+
+        return $this->render('info', [
+            'model' => $model]);
     }
+
 
     //выгрузка ид фалов сап инстлн , для бытовых потребителей
     public function actionIdfile_instln_ind($res)
