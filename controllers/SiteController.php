@@ -13313,12 +13313,14 @@ WHERE
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = "select a.*,const.ver,
-              case when a.vkonto<>'' then b.id else a.anlage::int end as id
+        $sql = "select *,id1||'_'||row_number() over(partition by id1) as id from
+               (select a.*,const.ver,
+              case when a.vkonto<>'' then b.id else a.anlage::int end as id1
               from docoff a
               left join sap_const as const on 1=1
               left join clm_client_tbl b on
               case when a.vkonto<>'' then a.vkonto::int else 0 end = b.code
+              ) f
              ";
 
         // Получаем необходимые данные
@@ -13598,13 +13600,15 @@ WHERE
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
         $sql = "
-                select a.*,case when a.vkonto<>'' then b.id else a.anlage::int end as id,
+                select *,id1||'_'||row_number() over(partition by id1) as id from
+(select a.*,case when a.vkonto<>'' then b.id else a.anlage::int end as id1,
                 substr(a.date,7,4)||substr(a.date,4,2)||substr(a.date,1,2) as date_sap,const.ver,
               length(disctype) as vid_l  
                 from docoff a
                 left join clm_client_tbl b on
                 case when a.vkonto<>'' then a.vkonto::int else 0 end = b.code
              left join sap_const as const on 1=1
+) f             
                 ";
 
         // Получаем необходимые данные
@@ -13678,13 +13682,15 @@ WHERE
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
-        $sql = 'select a.*,case when a.vkonto<>' . "''" .
-            'then b.id else a.anlage::int end as id,const.ver,
+        $sql = "select *,id1||'_'||row_number() over(partition by id1) as id from
+(select a.*,case when a.vkonto<>" . "''" .
+            " then b.id else a.anlage::int end as id1,const.ver,
            substr(a.date,7,4)||substr(a.date,4,2)||substr(a.date,1,2) as date_sap
            from docoff a
 left join clm_client_tbl b on
-case when a.vkonto<>' . "''" . 'then a.vkonto::int else 0 end = b.code
-left join sap_const as const on 1=1';
+case when a.vkonto<>" . "''" .  " then a.vkonto::int else 0 end = b.code
+left join sap_const as const on 1=1
+) f ";
 
 //        debug($sql);
 //        return;

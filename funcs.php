@@ -3282,7 +3282,7 @@ function f_discdoc1($rem,$v) {
     $oldkey_const='04_C'.$rem.'P_01_';
     $oldkey_acc='04_C'.$rem.'P_';
     $oldkey = $oldkey_const . $v['id'];
-    $account_link = $oldkey_acc . $v['id'];
+    $account_link = $oldkey_acc . $v['id1'];
     $di_doc=[];
     $di_doc[0]=$oldkey;     //oldkey
     $di_doc[1]='HEADER';    //datatype
@@ -3353,12 +3353,13 @@ function f_discenter_ind($rem,$v) {
 }
 
 function f_discenter($rem,$v) {
-    $oldkey_const='04_C'.$rem.'B_01_';
+    $oldkey_const='04_C'.$rem.'P_01_';
     $oldkey = $oldkey_const . $v['id'];
     $di_ent=[];
     $di_ent[0]=$oldkey;     //oldkey
     $di_ent[1]='HEADER';    //datatype
-    $di_ent[2]=$oldkey;     //ANLAGE
+//    $di_ent[2]=$oldkey1;     //ANLAGE
+    $di_ent[2]=$oldkey_const . $v['anlage'];      //ANLAGE
 //    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251','UTF-8');
     $di_ent[3]=$v['disctype'];
 //    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251', mb_detect_encoding($v['disctype']));
