@@ -3653,7 +3653,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
             left join clm_statecl_tbl as sc on (c.id = sc.id_client) 
             left join eqm_equipment_tbl as e on e.id= eq.id_point
             inner join sap_const const on 1=1 
-            where  c.book=-1 and c.idk_work not in (0) and coalesce(c.id_state,0) not in (50,99,49,100)
+            where  c.book=-1 and coalesce(c.idk_work,0) not in (0) and coalesce(c.id_state,0) not in (50,99,49,100)
              and sc.id_section not in (205,206,207,208,209,218) and c.id <> syi_resid_fun() and c.id <>999999999
               and eq.code_t_new is not null
               and (c.code>999 or c.code=900) 
