@@ -7454,7 +7454,8 @@ inner join sap_const const on 1=1) tt
 left join clm_statecl_tbl as stt on (stt.id_client = tt.id_cl) 
 left join clm_client_tbl as cc2 on (tt.id_cl = cc2.id) 
 left join eqm_eqp_use_tbl use1 on use1.code_eqp=tt.id 	
-left join (select distinct id_contractor,id_client from clm_contractor_tbl where dt_contr_end is null) ct on ct.id_client=cc2.id
+left join (select distinct id_contractor,id_client from clm_contractor_tbl 
+where dt_contr_end is null and id_contractor is not null limit 1) ct on ct.id_client=cc2.id
 left join cli_contractor_tbl ci on ci.id=ct.id_contractor and ci.edrpou_contr is not null 
 inner join sap_const const on 1=1
 WHERE (cc2.code>999 or cc2.code=900) AND coalesce(cc2.idk_work,0)<>0 or (cc2.code=999 and use1.code_eqp is not null) 
