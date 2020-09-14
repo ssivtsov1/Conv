@@ -5140,7 +5140,7 @@ select * from (
                 left join eqm_tree_tbl tr on tr.id = ttr.id_tree
                 left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 inner join sap_const const on 1=1   
-                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1  -- and  p.type_eqp<>2
+                where p.type_eqp not in (1,12,3,4,5,9,15,16,17)  -- and p.loss_power=1  -- and  p.type_eqp<>2
                 ) r
                 where (code>999 or code=900) AND coalesce(idk_work,0)<>0
 	        and  code not in(20000556,20000565,20000753,
