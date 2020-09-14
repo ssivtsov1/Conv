@@ -5464,7 +5464,7 @@ select * from (
                 left join sap_transf as v on (v.id::int=eqk.id and v.kod_res=$res)
                 
                 inner join sap_const const on 1=1   
-                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) and p.loss_power=1 
+                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) -- and p.loss_power=1 
                 
                -- and  p.type_eqp=2
                -- order by p.id_point, p.lvl desc
