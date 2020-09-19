@@ -1096,7 +1096,8 @@ b.doc_ground as ZZ_DOCUMENT,
 'I' as CHIND_ADDR,
 '' as POST_CODE2,
 '' as PO_BOX,
-UPPER(am.building) as HOUSE_NUM1,
+-- UPPER(am.building) as HOUSE_NUM1,
+f_get_number_house(am.building,am.building_add) as HOUSE_NUM1,
 UPPER(am.office) as HOUSE_NUM2,
 'UA' as COUNTRY,
 case when substring(trim(b.phone),1,30) <> '' then 'I' else '' end as CHIND_TEL,
@@ -1157,7 +1158,9 @@ case when length(regexp_replace(regexp_replace(trim(b.phone), '-.*?$', '') , '[^
 	    else '' end as ID_TYPE,
 	
 kt.shot_name||' '||t.name as town,ads.town as town_sap,am.post_index,b2.post_index as post_index_sap,ks.shot_name||' '||s.name as street,ads.street as street_sap,
-UPPER(am.building) as house,UPPER(am.office) as flat,
+-- UPPER(am.building) as house,
+ f_get_number_house(am.building,am.building_add) as house,
+UPPER(am.office) as flat,
 b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl,
 u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_client as id_wo
  from clm_client_tbl a
@@ -17862,6 +17865,5 @@ where issubmit = 1";
         }
     }
 }
-
 
 
