@@ -240,6 +240,8 @@ AppAsset::register($this);
                                     ['label' => 'Импорт таблицы районов', 'url' => ['/site/imp_region']],
                                     ['label' => 'Импорт address с Ингульца [Энерго]', 'url' => ['/site/imp_address']],
                                     ['label' => 'Импорт готовой таблицы street в базы РЭСов', 'url' => ['/site/imp_street_in_bd']],
+                                    ['label' => 'Импорт остатков по бухгалтерии перетоки', 'url' => ['/site/imp_ost_reflow']],
+                                    ['label' => 'Импорт остатков по бухгалтерии реактив', 'url' => ['/site/imp_ost_reactiv']],
                                     ['label' => 'Закачка данных в справочник адресов САП', 'url' => ['/site/addr_from_sap']],
                                     ['label' => 'Запись данных по единицам считывания САП', 'url' => ['/site/ed_sch']],
                                     ['label' => 'Запись данных по измер. трансформаторам', 'url' => ['/site/get_data_tv']],

@@ -679,6 +679,57 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+// Импорт остатков по бухгалтерии перетоки
+    public function actionImp_ost_reflow()
+    {
+        $f = fopen('ost_reflow.csv', 'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+
+            $data = explode("~", $s);
+            $data[3] = str_replace(",", ".", $data[3]);
+            $data[5] = str_replace(",", ".", $data[5]);
+
+            $sql = "INSERT INTO ost_detal (contragent,dogovor,kredit,data_v_k,debet,data_v_d) VALUES(" .
+                '$$' . $data[1] . '$$' . "," . '$$' . $data[2] . '$$' . "," . '$$'.$data[3] . '$$' . "," . '$$' . $data[4] . '$$' . "," .
+                '$$' . $data[5] . '$$' .  "," . '$$' . $data[6] . '$$' .')';
+
+            Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
+
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
+    // Импорт остатков по бухгалтерии реактив
+    public function actionImp_ost_reactiv()
+    {
+        $f = fopen('ost_detal.csv', 'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+
+            $data = explode("~", $s);
+            $data[3] = str_replace(",", ".", $data[3]);
+            $data[5] = str_replace(",", ".", $data[5]);
+
+            $sql = "INSERT INTO ost_detal (contragent,dogovor,kredit,data_v_k,debet,data_v_d) VALUES(" .
+                '$$' . $data[1] . '$$' . "," . '$$' . $data[2] . '$$' . "," . '$$'.$data[3] . '$$' . "," . '$$' . $data[4] . '$$' . "," .
+                '$$' . $data[5] . '$$' .  "," . '$$' . $data[6] . '$$' .')';
+
+            Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
+
+        }
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
     // ---------------- ИМПОРТ ТАБЛИЦ В ДЛЯ НОВОЙ ПРОГРАММЫ С ВИННИЦЫ -----------------------------------------
 
     // Импорт street с Ингульца [Энерго]
@@ -3388,7 +3439,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
 
 //        if(1==2) {
         //        Формируем данные по перетокам
-        $sql1 = "select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
+        $sql1_old = "select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
  -- (replace(c2.date,'.','-')::date+interval '1 day')::date as faedn
  from (
 select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
@@ -3403,6 +3454,28 @@ const.ver,const.begru,def_bank_day(a.date_s,5) as date_sf
 ) c2
 left join sap_vkp c on c.oldkey=c2.gpart
       ";
+
+        $sql1="
+select *,def_bank_day(date::date,5) as date_sf from (
+select c.kofiz_sd as kofiz, 
+gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_') as oldkey,c2.*,
+ case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
+case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
+ case when trim(kredit)<>'' then kredit else '' end as prepay
+ from (
+select c1.* from (
+select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,a.*,const.ver,const.begru
+     from ost_detal as a 
+       inner join sap_const const on 1=1
+      left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
+     where dogovor like '%перетоки%' 
+     and substr(dogovor,1,2)='$rem'
+) c1
+) c2
+left join sap_vkp c on c.oldkey=c2.gpart
+) r
+      ";
+
         $data = data_from_server($sql1, $res, $vid);
 
 
@@ -5797,6 +5870,7 @@ select * from (
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17)  -- and p.loss_power=1  -- and  p.type_eqp<>2
                 ) r
+                where case when '$res'='5' then id_sap is not null and trim(id_sap)<>'' else 1=1 end 
     	       ORDER BY 6";
 
         if ($helper == 1)
