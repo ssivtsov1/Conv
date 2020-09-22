@@ -4756,7 +4756,8 @@ case when st.id_section = 201 then '02'
      when c2.idk_work = 99 then '72'
      else '67' end  as BRANCHE,
 --case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
-case when c.code = '900' then '0004' else '0002' end as AKLASSE,
+case when c.code = '900' or (p.code_eqp=118522 and $res=5) or (p.code_eqp=120129 and $res=4) 
+then '0004' else '0002' end as AKLASSE,
     -- 'PC010131' as ABLEINH,
     -- eds.ed_sch as ABLEINH,
 case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
