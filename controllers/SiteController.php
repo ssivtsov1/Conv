@@ -5997,7 +5997,7 @@ select * from (
 		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then uu2.u_sap else coalesce(uu1.u_sap,uu2.u_sap) end 
 		       else case when v1.normative is not null then v1.normative::dec(6,2) else coalesce(uu1.u_sap,uu2.u_sap) end end as voltage			
                 from (select x.*,eq.name_eqp as name_point from (
-        select a.id as code_eqp,get_tu3(a.id) as id_point,
+        select a.id as code_eqp,get_tu3(a.id,$res) as id_point,
                 a.type_eqp,a.name_eqp as name,
                 b.lvl,c.idk_work,c.book,c,code 
                 from eqm_equipment_tbl a 
@@ -11765,7 +11765,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         $rem = '0' . $res;  // Код РЭС
         $dt = date('Y-m-d');
 
-        $sql_old = "select distinct on (oldkey) * from (
+        if (1==2) {
+            $sql_old = "select distinct on (oldkey) * from (
 select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then 
@@ -11840,9 +11841,9 @@ and type_eqp=12)
             --and dd.oldkey is null     
             order by 7) e";
 
-        $sql_f = "select f_for_premise('$rem','$dt')";
+            $sql_f = "select f_for_premise('$rem','$dt')";
 // Это старый запрос (правильный  - но медленный)
-        $sql = "select distinct on (oldkey) * from (
+            $sql = "select distinct on (oldkey) * from (
 select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then 
@@ -11876,8 +11877,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             and (select count(*) from eqm_compens_station_inst_tbl where code_eqp_inst=eq.id)>0
               order by 7) e";
 
-        // Делаем выборку по новому для ускорения
-        $sql = "select distinct on (oldkey) * from (
+            // Делаем выборку по новому для ускорения
+            $sql = "select distinct on (oldkey) * from (
         select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then
@@ -11912,159 +11913,163 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             order by 7) e";
 
 
-        $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
-        $zsql = 'delete from sap_evbsd';
-        $sql_q = "select * from  sap_premise_dop ";
-        $sql_dd = "select * from  sap_co_adr";
+            $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
+            $zsql = 'delete from sap_evbsd';
+            $sql_q = "select * from  sap_premise_dop ";
+            $sql_dd = "select * from  sap_co_adr";
 
 
-        if (1 == 1) {
-            // Получаем необходимые данные
-            switch ($res) {
-                case 1:
-                    $data1 = \Yii::$app->db_pg_dn_energo->createCommand($sql_f)->queryAll();
-                    $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
-                    $nd2 = \Yii::$app->db_pg_dn_energo->createCommand($sql_q)->queryAll();
-                    $nd_dd = \Yii::$app->db_pg_dn_energo->createCommand($sql_dd)->queryAll();
-                    // Удаляем данные в таблицах
-                    Yii::$app->db_pg_dn_energo->createCommand($zsql)->execute();
-                    break;
+            if (1 == 1) {
+                // Получаем необходимые данные
+                switch ($res) {
+                    case 1:
+                        $data1 = \Yii::$app->db_pg_dn_energo->createCommand($sql_f)->queryAll();
+                        $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                        $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
+                        $nd2 = \Yii::$app->db_pg_dn_energo->createCommand($sql_q)->queryAll();
+                        $nd_dd = \Yii::$app->db_pg_dn_energo->createCommand($sql_dd)->queryAll();
+                        // Удаляем данные в таблицах
+                        Yii::$app->db_pg_dn_energo->createCommand($zsql)->execute();
+                        break;
 
-                case 2:
-                    $data1 = \Yii::$app->db_pg_zv_energo->createCommand($sql_f)->queryAll();
-                    $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
-                    $nd2 = \Yii::$app->db_pg_zv_energo->createCommand($sql_q)->queryAll();
-                    $nd_dd = \Yii::$app->db_pg_zv_energo->createCommand($sql_dd)->queryAll();
-                    // Удаляем данные в таблицах
-                    Yii::$app->db_pg_zv_energo->createCommand($zsql)->execute();
-                    break;
-                case 3:
-                    $data1 = \Yii::$app->db_pg_vg_energo->createCommand($sql_f)->queryAll();
-                    $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
-                    $nd2 = \Yii::$app->db_pg_vg_energo->createCommand($sql_q)->queryAll();
-                    $nd_dd = \Yii::$app->db_pg_vg_energo->createCommand($sql_dd)->queryAll();
-                    // Удаляем данные в таблицах
-                    Yii::$app->db_pg_vg_energo->createCommand($zsql)->execute();
-                    break;
-                case 4:
-                    $data1 = \Yii::$app->db_pg_pv_energo->createCommand($sql_f)->queryAll();
-                    $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
-                    $nd2 = \Yii::$app->db_pg_pv_energo->createCommand($sql_q)->queryAll();
-                    $nd_dd = \Yii::$app->db_pg_pv_energo->createCommand($sql_dd)->queryAll();
-                    // Удаляем данные в таблицах
-                    Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
-                    break;
-                case 5:
-                    $data1 = \Yii::$app->db_pg_krg_energo->createCommand($sql_f)->queryAll();
-                    $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
-                    $nd2 = \Yii::$app->db_pg_krg_energo->createCommand($sql_q)->queryAll();
-                    $nd_dd = \Yii::$app->db_pg_krg_energo->createCommand($sql_dd)->queryAll();
-                    // Удаляем данные в таблицах
-                    Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
-                    break;
-                case 6:
-                    $data1 = \Yii::$app->db_pg_ap_energo->createCommand($sql_f)->queryAll();
-                    $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
-                    $nd2 = \Yii::$app->db_pg_ap_energo->createCommand($sql_q)->queryAll();
-                    $nd_dd = \Yii::$app->db_pg_ap_energo->createCommand($sql_dd)->queryAll();
-                    // Удаляем данные в таблицах
-                    Yii::$app->db_pg_ap_energo->createCommand($zsql)->execute();
-                    break;
-                case 7:
-                    $data1 = \Yii::$app->db_pg_gv_energo->createCommand($sql_f)->queryAll();
-                    $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
-                    $nd2 = \Yii::$app->db_pg_gv_energo->createCommand($sql_q)->queryAll();
-                    $nd_dd = \Yii::$app->db_pg_gv_energo->createCommand($sql_dd)->queryAll();
-                    // Удаляем данные в таблицах
-                    Yii::$app->db_pg_gv_energo->createCommand($zsql)->execute();
-                    break;
-                case 8:
-                    $data1 = \Yii::$app->db_pg_in_energo->createCommand($sql_f)->queryAll();
-                    $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
-                    $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
-                    $nd2 = \Yii::$app->db_pg_in_energo->createCommand($sql_q)->queryAll();
-                    $nd_dd = \Yii::$app->db_pg_in_energo->createCommand($sql_dd)->queryAll();
-                    // Удаляем данные в таблицах
-                    Yii::$app->db_pg_in_energo->createCommand($zsql)->execute();
-                    break;
+                    case 2:
+                        $data1 = \Yii::$app->db_pg_zv_energo->createCommand($sql_f)->queryAll();
+                        $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                        $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
+                        $nd2 = \Yii::$app->db_pg_zv_energo->createCommand($sql_q)->queryAll();
+                        $nd_dd = \Yii::$app->db_pg_zv_energo->createCommand($sql_dd)->queryAll();
+                        // Удаляем данные в таблицах
+                        Yii::$app->db_pg_zv_energo->createCommand($zsql)->execute();
+                        break;
+                    case 3:
+                        $data1 = \Yii::$app->db_pg_vg_energo->createCommand($sql_f)->queryAll();
+                        $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                        $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
+                        $nd2 = \Yii::$app->db_pg_vg_energo->createCommand($sql_q)->queryAll();
+                        $nd_dd = \Yii::$app->db_pg_vg_energo->createCommand($sql_dd)->queryAll();
+                        // Удаляем данные в таблицах
+                        Yii::$app->db_pg_vg_energo->createCommand($zsql)->execute();
+                        break;
+                    case 4:
+                        $data1 = \Yii::$app->db_pg_pv_energo->createCommand($sql_f)->queryAll();
+                        $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                        $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+                        $nd2 = \Yii::$app->db_pg_pv_energo->createCommand($sql_q)->queryAll();
+                        $nd_dd = \Yii::$app->db_pg_pv_energo->createCommand($sql_dd)->queryAll();
+                        // Удаляем данные в таблицах
+                        Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
+                        break;
+                    case 5:
+                        $data1 = \Yii::$app->db_pg_krg_energo->createCommand($sql_f)->queryAll();
+                        $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
+                        $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
+                        $nd2 = \Yii::$app->db_pg_krg_energo->createCommand($sql_q)->queryAll();
+                        $nd_dd = \Yii::$app->db_pg_krg_energo->createCommand($sql_dd)->queryAll();
+                        // Удаляем данные в таблицах
+                        Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
+                        break;
+                    case 6:
+                        $data1 = \Yii::$app->db_pg_ap_energo->createCommand($sql_f)->queryAll();
+                        $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                        $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
+                        $nd2 = \Yii::$app->db_pg_ap_energo->createCommand($sql_q)->queryAll();
+                        $nd_dd = \Yii::$app->db_pg_ap_energo->createCommand($sql_dd)->queryAll();
+                        // Удаляем данные в таблицах
+                        Yii::$app->db_pg_ap_energo->createCommand($zsql)->execute();
+                        break;
+                    case 7:
+                        $data1 = \Yii::$app->db_pg_gv_energo->createCommand($sql_f)->queryAll();
+                        $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                        $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
+                        $nd2 = \Yii::$app->db_pg_gv_energo->createCommand($sql_q)->queryAll();
+                        $nd_dd = \Yii::$app->db_pg_gv_energo->createCommand($sql_dd)->queryAll();
+                        // Удаляем данные в таблицах
+                        Yii::$app->db_pg_gv_energo->createCommand($zsql)->execute();
+                        break;
+                    case 8:
+                        $data1 = \Yii::$app->db_pg_in_energo->createCommand($sql_f)->queryAll();
+                        $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                        $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
+                        $nd2 = \Yii::$app->db_pg_in_energo->createCommand($sql_q)->queryAll();
+                        $nd_dd = \Yii::$app->db_pg_in_energo->createCommand($sql_dd)->queryAll();
+                        // Удаляем данные в таблицах
+                        Yii::$app->db_pg_in_energo->createCommand($zsql)->execute();
+                        break;
+                }
             }
-        }
-        $i = 0;
+            $i = 0;
 
 //debug($cnt);
 //            return;
 
-        // Заполнение ссылок в памяти
-        foreach ($data as $key => $n1) {
+            // Заполнение ссылок в памяти
+            foreach ($data as $key => $n1) {
 
-            $n1_code = $n1['code'];
-            $n1_id = $n1['id_eq'];
-            $mas = [];
-            $o = 0;
-            foreach ($nd2 as $n2) {
-                if ($n2['id_eq'] == $n1_id && $n2['code'] == $n1_code) {
-                    $mas[$o] = $n2['id_tu'];
-                    $o++;
+                $n1_code = $n1['code'];
+                $n1_id = $n1['id_eq'];
+                $mas = [];
+                $o = 0;
+                foreach ($nd2 as $n2) {
+                    if ($n2['id_eq'] == $n1_id && $n2['code'] == $n1_code) {
+                        $mas[$o] = $n2['id_tu'];
+                        $o++;
+                    }
                 }
-            }
-            $haus = '';
-            foreach ($nd_dd as $n3) {
-                $n1_co = substr(trim($n3['oldkey']), 8);
+                $haus = '';
+                foreach ($nd_dd as $n3) {
+                    $n1_co = substr(trim($n3['oldkey']), 8);
 
 //                debug($n3);
 //                debug($n1_id);
 //                debug($mas);
 //                return;
-                $flag = 0;
-                for ($oo = 0; $oo < $o; $oo++) {
-                    if ($mas[$oo] == $n1_co) {
-                        $haus = $n3['oldkey'];
-                        $house_num2 = $n3['house_num2'];
+                    $flag = 0;
+                    for ($oo = 0; $oo < $o; $oo++) {
+                        if ($mas[$oo] == $n1_co) {
+                            $haus = $n3['oldkey'];
+                            $house_num2 = $n3['house_num2'];
 //                            debug($haus);
 //                            return;
-                        $flag = 1;
+                            $flag = 1;
+                            break;
+                        }
+                    }
+                    if ($flag == 1) {
+                        $data[$key]['haus'] = $haus;
+                        $data[$key]['house_num2'] = $house_num2;
                         break;
                     }
                 }
-                if ($flag == 1) {
-                    $data[$key]['haus'] = $haus;
-                    $data[$key]['house_num2'] = $house_num2;
-                    break;
-                }
             }
-        }
 
 //            debug($data);
 //            return;
 
-        // Заполняем структуры
-        foreach ($data as $w) {
-            $i = 0;
-            foreach ($cnt as $v) {
-                $n_struct = trim($v['dattype']);
-                $i++;
-                f_premise($n_struct, $rem, $w);
+            // Заполняем структуры
+            foreach ($data as $w) {
+                $i = 0;
+                foreach ($cnt as $v) {
+                    $n_struct = trim($v['dattype']);
+                    $i++;
+                    f_premise($n_struct, $rem, $w);
+                }
             }
-        }
 
 //        return;
+        }   // end if 1==2
+
 
         // Формируем имя файла и создаем файл
         $fd = date('Ymd');
-        $ver = $data[0]['ver'];
+        //$ver = $data[0]['ver'];
+        $ver = 8;
         if ($ver < 10) $ver = '0' . $ver;
         $fname = 'PREMISE_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . '_L' . '.txt';
         $f = fopen($fname, 'w+');
         // Считываем данные в файл с каждой таблицы
         $i = 0;
         $sql = "select * from sap_evbsd";
+        $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
         switch ($res) {
             case 1:
                 $struct_data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
