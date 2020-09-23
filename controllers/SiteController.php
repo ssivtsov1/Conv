@@ -4314,6 +4314,45 @@ left join sap_vkp c on c.oldkey=c2.gpart
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
             order by 5";
 
+        if ($res==4)
+        $sql="select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
+        from group_trans1 as eq
+         join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, eq.name_eqp,
+		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
+	      ic.id as id_type_tr, ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner 
+	    from eqm_compensator_i_tbl as c 
+	    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+	    left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
+	    select dt_b from eqm_equipment_h where id = eq.id 
+	    and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
+	    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+	    left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+	    left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+	    left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+	    left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+	    left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
+	    order by 1
+	    ) as sti on (sti.id_meter = eq.id_meter::integer)  	  
+            left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.code_tt::integer) 
+            join eqm_eqp_tree_tbl as ttr on (ttr.code_eqp =eq.code_tt::integer)
+            left join eqm_tree_tbl as tr on  (tr.id = ttr.id_tree) 
+            left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+            left join clm_statecl_tbl as sc on (c.id = sc.id_client) 
+            left join eqm_equipment_tbl as e on e.id= eq.id_point
+            inner join sap_const const on 1=1 
+            where  c.book=-1 and coalesce(c.idk_work,0) not in (0) and coalesce(c.id_state,0) not in (50,99,49,100)
+             and sc.id_section not in (205,206,207,208,209,218) and c.id <> syi_resid_fun() and c.id <>999999999
+              and eq.code_t_new is not null
+              and (c.code>999 or c.code=900) 
+	         and  c.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	    '10999999','11000000','19999369','50999999','1000000','1000001')
+	    AND eq.id_point not in(120745,120741)
+            order by 5";
+
+//        and eq.id not in(120748,120744)
+//    and eq.id not in(120745,120741) instln
+
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
         $fd=date('Ymd');
@@ -10090,7 +10129,7 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
 	    and eq.id not in(120748,120744)
-   
+	      
 union                
 
 select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
