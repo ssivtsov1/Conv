@@ -3175,7 +3175,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
         $j=0;
         foreach($data as $v) {
             $j++;
-            $oldkey = $v['oldkey'];
+            $oldkey = trim($v['oldkey']);
             $date = date('Ymd', strtotime($v['date']));
 
 
@@ -3482,7 +3482,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
         $j = 0;
         foreach ($data as $v) {
             $j++;
-            $oldkey = $v['oldkey'];
+            $oldkey = trim($v['oldkey']);
             $date = date('Ymd', strtotime($v['date']));
 
             if (!empty($v['date_s']))
@@ -5970,9 +5970,11 @@ select * from (
 	       10999999,11000000,19999369,50999999,1000000,1000001)
 	       ORDER BY 6
                 ";
+       $z_sql = 'select * from get_schema()';
 
         $sql="select * from (
-            select DISTINCT on(p.code_eqp) p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+            select DISTINCT on(p.code_eqp) p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
+            RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -5997,7 +5999,7 @@ select * from (
 		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then uu2.u_sap else coalesce(uu1.u_sap,uu2.u_sap) end 
 		       else case when v1.normative is not null then v1.normative::dec(6,2) else coalesce(uu1.u_sap,uu2.u_sap) end end as voltage			
                 from (select x.*,eq.name_eqp as name_point from (
-        select a.id as code_eqp,get_tu3(a.id,$res) as id_point,
+        select a.id as code_eqp,get_equipment(a.id,6,12) as id_point,
                 a.type_eqp,a.name_eqp as name,
                 b.lvl,c.idk_work,c.book,c,code 
                 from eqm_equipment_tbl a 
@@ -6051,6 +6053,7 @@ select * from (
         $sql_c = "select * from sap_export where objectsap='$routine' order by id_object";
 
         // Получаем необходимые данные
+        $data_1 = data_from_server($z_sql, $res, $vid);   // Заполнение таблицы схемы оборудования
         $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
         $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
@@ -6393,7 +6396,7 @@ select * from (
 		       const.ver as ver,v.id_sap,eq.is_owner		
                 from (
 select x.*,eq.name_eqp as name_point from (
-select a.id as code_eqp,get_tu3(a.id) as id_point,
+select a.id as code_eqp,get_equipment(a.id,2,12) as id_point,
                 a.type_eqp,a.name_eqp as name,
                 b.lvl,c.idk_work,c.book,c,code 
                 from eqm_equipment_tbl a 
@@ -11765,7 +11768,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         $rem = '0' . $res;  // Код РЭС
         $dt = date('Y-m-d');
 
-        if (1==2) {
+//       if (1==2) {
             $sql_old = "select distinct on (oldkey) * from (
 select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
@@ -12002,6 +12005,9 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 //debug($cnt);
 //            return;
 
+//                debug($data);
+//                return;
+
             // Заполнение ссылок в памяти
             foreach ($data as $key => $n1) {
 
@@ -12042,8 +12048,6 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                 }
             }
 
-//            debug($data);
-//            return;
 
             // Заполняем структуры
             foreach ($data as $w) {
@@ -12056,7 +12060,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             }
 
 //        return;
-        }   // end if 1==2
+//        }   // end if 1==2
 
 
         // Формируем имя файла и создаем файл
