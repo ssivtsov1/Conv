@@ -6396,7 +6396,7 @@ select * from (
 		       const.ver as ver,v.id_sap,eq.is_owner		
                 from (
 select x.*,eq.name_eqp as name_point from (
-select a.id as code_eqp,get_equipment(a.id,2,12,$res) as id_point,
+select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 a.type_eqp,a.name_eqp as name,
                 b.lvl,c.idk_work,c.book,c,code 
                 from eqm_equipment_tbl a 
