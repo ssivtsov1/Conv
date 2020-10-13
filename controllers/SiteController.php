@@ -5999,9 +5999,9 @@ select * from (
 		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then uu2.u_sap else coalesce(uu1.u_sap,uu2.u_sap) end 
 		       else case when v1.normative is not null then v1.normative::dec(6,2) else coalesce(uu1.u_sap,uu2.u_sap) end end as voltage			
                 from (select x.*,eq.name_eqp as name_point from (
-        select a.id as code_eqp,get_equipment(a.id,6,12) as id_point,
+        select a.id as code_eqp,get_equipment_m(a.id,6,12,$res) as id_point,
                 a.type_eqp,a.name_eqp as name,
-                b.lvl,c.idk_work,c.book,c,code 
+                b.lvl,c.idk_work,c.book,c.code 
                 from eqm_equipment_tbl a 
                 left join eqm_eqp_tree_tbl b on a.id=b.code_eqp
                 left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
@@ -6396,7 +6396,7 @@ select * from (
 		       const.ver as ver,v.id_sap,eq.is_owner		
                 from (
 select x.*,eq.name_eqp as name_point from (
-select a.id as code_eqp,get_equipment(a.id,2,12) as id_point,
+select a.id as code_eqp,get_equipment(a.id,2,12,$res) as id_point,
                 a.type_eqp,a.name_eqp as name,
                 b.lvl,c.idk_work,c.book,c,code 
                 from eqm_equipment_tbl a 
