@@ -4924,7 +4924,9 @@ case when st.id_section = 201 then '02'
      when c2.idk_work = 99 then '72'
      else '67' end  as BRANCHE,
 --case when c2.idk_work = 99 then '0004' else '0002' end as AKLASSE,
-case when c.code = '900' then '0004' else '0002' end as AKLASSE,
+--case when c.code = '900' then '0004' else '0002' end as AKLASSE,
+case when c.code = '900' or (p.code_eqp=118522 and $res=5) or (p.code_eqp=120129 and $res=4) 
+then '0004' else '0002' end as AKLASSE,
     -- 'PC010131' as ABLEINH,
     -- eds.ed_sch as ABLEINH,
 case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '004'
@@ -5031,8 +5033,8 @@ order by q.code_eqp
 
 //        $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
 
-//debug($data);
-//return;
+debug($data);
+return;
 
         $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
@@ -6043,6 +6045,7 @@ select * from (
                 ) r
                 where case when '$res'='5' then id_sap is not null and trim(id_sap)<>'' else 1=1 end
                 and  case when '$res'='4' then code_eqp not in(116758,116766,117269,118413)  else 1=1 end
+             and  case when '$res'='3' then code_eqp not in(107239,107747,107870,113325)  else 1=1 end
     	       ORDER BY 6";
 
         if ($helper == 1)
