@@ -6041,7 +6041,8 @@ select * from (
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17)  -- and p.loss_power=1  -- and  p.type_eqp<>2
                 ) r
-                where case when '$res'='5' then id_sap is not null and trim(id_sap)<>'' else 1=1 end 
+                where case when '$res'='5' then id_sap is not null and trim(id_sap)<>'' else 1=1 end
+                and  case when '$res'='4' then code_eqp not in(116758,116766,117269,118413)  else 1=1 end
     	       ORDER BY 6";
 
         if ($helper == 1)
