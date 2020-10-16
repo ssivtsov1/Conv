@@ -2527,6 +2527,15 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'P_01_';
     $r = $v['code_eqp'];
     $pnt=$v['pnt'];
+
+    if($r==108416 && (int)$rem==5)
+        $pnt='002';
+   
+    if($r==108486 && (int)$rem==5)
+        $pnt='002';
+    if($r==108487 && (int)$rem==5)
+        $pnt='003';
+
     $pnt= substr((1000+$pnt),1,3);
     $swathe=$v['swathe'];
     $id_sap=$v['id_sap'];
