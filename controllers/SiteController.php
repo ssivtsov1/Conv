@@ -3456,7 +3456,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
       ";
 
         $sql1="
-select *,def_bank_day(date::date,5) as date_sf from (
+select *,def_bank_day(date_format(date,1)::date,5) as date_sf from (
 select c.kofiz_sd as kofiz, 
 gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_') as oldkey,c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
@@ -3469,7 +3469,7 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,
        inner join sap_const const on 1=1
       left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
      where dogovor like '%перетоки%' 
-     and substr(dogovor,1,2)='$rem'
+     and substr(dogovor,1,2)='$rem' or ('$rem'='07' and substr(dogovor,1,1)='7' and dogovor like '%перетоки%')
 ) c1
 ) c2
 left join sap_vkp c on c.oldkey=c2.gpart
@@ -3740,7 +3740,8 @@ select c1.* from (
 select b.partner_id as gpart,b.acc_id,'' as schet,a.*,const.ver,const.begru
      from ost_detal_post as a 
        inner join sap_const const on 1=1
-     left join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
+     --left join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
+     inner join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
 ) c1
 ) c2
       ";
@@ -6045,7 +6046,12 @@ select * from (
                 ) r
                 where case when '$res'='5' then id_sap is not null and trim(id_sap)<>'' else 1=1 end
                 and  case when '$res'='4' then code_eqp not in(116758,116766,117269,118413)  else 1=1 end
-             and  case when '$res'='3' then code_eqp not in(107239,107747,107870,113325)  else 1=1 end
+                and  case when '$res'='3' then code_eqp not in(107239,107747,107870,113325,107259)  else 1=1 end
+                and  case when '$res'='2' then code_eqp not in(108033,109456,110357,113908,113915,114059,232344,
+               1057436,1103582,1228227,1302623)  else 1=1 end   
+               and  case when '$res'='1' then code_eqp not in(114760,121176,118475,149669,122030,122872,
+               122878,123103,123108,123124,124528,124540,143928,146434,146469,146804,146888,
+               148961,149139,149589,149610,150130,159139,159301)  else 1=1 end 
     	       ORDER BY 6";
 
         if ($helper == 1)
@@ -14333,7 +14339,9 @@ WHERE
               left join sap_const as const on 1=1
               left join clm_client_tbl b on
               case when a.vkonto<>'' then a.vkonto::int else 0 end = b.code
+              and coalesce(b.idk_work,0)<>0
               ) f
+              where id1 is not null
              ";
 
         // Получаем необходимые данные
@@ -14620,8 +14628,10 @@ WHERE
                 from docoff a
                 left join clm_client_tbl b on
                 case when a.vkonto<>'' then a.vkonto::int else 0 end = b.code
+                and coalesce(b.idk_work,0)<>0
              left join sap_const as const on 1=1
-) f             
+) f         
+where id1 is not null    
                 ";
 
         // Получаем необходимые данные
@@ -14702,8 +14712,11 @@ WHERE
            from docoff a
 left join clm_client_tbl b on
 case when a.vkonto<>" . "''" .  " then a.vkonto::int else 0 end = b.code
+and coalesce(b.idk_work,0)<>0
 left join sap_const as const on 1=1
-) f ";
+) f 
+where id1 is not null  
+";
 
 //        debug($sql);
 //        return;

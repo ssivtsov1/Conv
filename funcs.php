@@ -2530,7 +2530,7 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
 
     if($r==108416 && (int)$rem==5)
         $pnt='002';
-   
+
     if($r==108486 && (int)$rem==5)
         $pnt='002';
     if($r==108487 && (int)$rem==5)
@@ -3369,6 +3369,7 @@ function f_discenter($rem,$v) {
     $di_ent[1]='HEADER';    //datatype
 //    $di_ent[2]=$oldkey1;     //ANLAGE
     $di_ent[2]=$oldkey_const . $v['anlage'];      //ANLAGE
+    if(trim($v['anlage'])=='')  $di_ent[2]='';
 //    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251','UTF-8');
     $di_ent[3]=$v['disctype'];
 //    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251', mb_detect_encoding($v['disctype']));
