@@ -6070,3 +6070,11 @@ function fieldMOVEINbyt ($f4)
     echo '</table>';
     if ($count == 0 && $count1 == 0) echo 'Пустых полей нет';
 }
+
+function posti($i){
+    $s = iconv_strlen($i);
+    if($s == 3){
+        $i = $i.'0';
+    }
+    return $i;
+}

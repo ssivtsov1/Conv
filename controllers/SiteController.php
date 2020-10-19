@@ -1974,7 +1974,7 @@ b.tax_number else null end else null end as tax_number,b.last_name,
     {
 //       for($i=1;$i<40;$i++)
 //       {
-        $s = r_len('erty0', 0);
+        $s=posti('12,6');
         echo $s - 1;
         echo '<br>';
 //       }
