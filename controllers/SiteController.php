@@ -3143,7 +3143,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
       ";
 
         $sql="select c.kofiz_sd as kofiz, 
-gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_') as oldkey,c2.*,
+gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_')||'_01' as oldkey,c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
 case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
  case when trim(kredit)<>'' then kredit else '' end as prepay
@@ -3459,7 +3459,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
         $sql1="
 select *,def_bank_day(date_format(date,1)::date,5) as date_sf from (
 select c.kofiz_sd as kofiz, 
-gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_') as oldkey,c2.*,
+gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_')||'_02' as oldkey,c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
 case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
  case when trim(kredit)<>'' then kredit else '' end as prepay
@@ -3476,6 +3476,7 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,
 left join sap_vkp c on c.oldkey=c2.gpart
 ) r
 where schet not in('070000112','050300005','010000673','010000373')
+and (trim(debet)<>'0.00')
  ";
 
  $data = data_from_server($sql1, $res, $vid);
