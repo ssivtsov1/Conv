@@ -1249,10 +1249,11 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'') and u.connobj is null) or (a.id=u.id_client)
          and u.res=$rem)
         WHERE 
-        (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
+        ((a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
 	     and  a.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001')  -- AND a.id=12098
+	     '10999999','11000000','19999369','50999999','1000000','1000001')) or  a.code in('10001306')
+	     -- AND a.id=12098
 	     -- and u.town is not null
    ";
 
@@ -3466,7 +3467,7 @@ case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
 select c1.* from (
 select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,a.*,const.ver,const.begru
      from ost_detal as a 
-       inner join sap_const const on 1=1
+      inner join sap_const const on 1=1
       left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
      where dogovor like '%перетоки%' 
      and substr(dogovor,1,2)='$rem' or ('$rem'='07' and substr(dogovor,1,1)='7' and dogovor like '%перетоки%')
@@ -3474,11 +3475,10 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,
 ) c2
 left join sap_vkp c on c.oldkey=c2.gpart
 ) r
-      ";
+where schet not in('070000112','050300005','010000673','010000373')
+ ";
 
-        $data = data_from_server($sql1, $res, $vid);
-
-
+ $data = data_from_server($sql1, $res, $vid);
         $j = 0;
         foreach ($data as $v) {
             $j++;
@@ -4764,7 +4764,7 @@ order by 7
 // Самый новый правильный запрос
         $sql = "SELECT distinct q.code_eqp as id,ar.code_eqp_inst,yy.oldkey as vstelle,''::char(20) as vstelle1,'10' as sparte,
 const.ver,const.begru_all as begru,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh,
-case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
+case when www.code=900  or (p.code_eqp=118522 and $res=5) or (p.code_eqp=120129 and $res=4) then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
 q.* from (
 select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
 case when p.voltage_max = 0.22 then '02'
@@ -6051,7 +6051,8 @@ select * from (
                1057436,1103582,1228227,1302623)  else 1=1 end   
                and  case when '$res'='1' then code_eqp not in(114760,121176,118475,149669,122030,122872,
                122878,123103,123108,123124,124528,124540,143928,146434,146469,146804,146888,
-               148961,149139,149589,149610,150130,159139,159301)  else 1=1 end 
+               148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
+               143002,144466,148340)  else 1=1 end 
     	       ORDER BY 6";
 
         if ($helper == 1)
@@ -6445,6 +6446,7 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) 
                  order by 4) r
+                 where  case when '$res'='4' then code_eqp not in(118478,118479,149671,149672)  else 1=1 end
 	       order by 1 ";
 
         if ($helper == 1)
@@ -13001,10 +13003,10 @@ WHERE
         --a.code_okpo<>'' and a.code_okpo<>'000000000'
        -- and a.code_okpo<>'0000000'
 	    --and a.code_okpo<>'000000'
-	       (a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
+	       ((a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
 	     and  a.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001') 
+	     '10999999','11000000','19999369','50999999','1000000','1000001')) or  a.code in('10001306')  
 	    ) s1
 left join
 --VK
@@ -13019,10 +13021,10 @@ WHERE
       -- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
        -- and cl.code_okpo<>'0000000'
 	   -- and cl.code_okpo<>'000000'
-	       (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
+	       ((cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
 	     and  cl.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001') 
+	     '10999999','11000000','19999369','50999999','1000000','1000001')) or  cl.code in('10001306')  
 	   ) s2 on s1.id=s2.id
 left join
 -- VKP
@@ -13113,10 +13115,10 @@ WHERE
        --cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         --and cl.code_okpo<>'0000000'
 	    --and cl.code_okpo<>'000000'
-	      (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
+	      ((cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
 	     and  cl.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001') 
+	     '10999999','11000000','19999369','50999999','1000000','1000001')) or  cl.code in('10001306') 
 	    ) s3 on s2.id=s3.id
 
 left join
@@ -13129,10 +13131,10 @@ WHERE
         --cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         --and cl.code_okpo<>'0000000'
 	    --and cl.code_okpo<>'000000'
-	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
+	     ((cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
 	     and  cl.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001') 
+	     '10999999','11000000','19999369','50999999','1000000','1000001')) or  cl.code in('10001306')  
 	    ) s4 on s3.id=s4.id
 left join
 --ZSTAT
@@ -13150,10 +13152,10 @@ WHERE
         -- cl.code_okpo<>'' and cl.code_okpo<>'000000000'
         -- and cl.code_okpo<>'0000000'
 	    -- and cl.code_okpo<>'000000'
-	     (cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
+	     ((cl.code>999 or  cl.code=900) AND coalesce(cl.idk_work,0)<>0 
 	     and  cl.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001')  
+	     '10999999','11000000','19999369','50999999','1000000','1000001')) or  cl.code in('10001306') 
 	     
 	    ) s5 on s4.id=s5.id  
 	  -- where s1.id=162582
