@@ -3371,16 +3371,16 @@ function f_discenter($rem,$v) {
     $di_ent[2]=$oldkey_const . $v['anlage'];      //ANLAGE
     if(trim($v['anlage'])=='')  $di_ent[2]='';
 //    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251','UTF-8');
-    $di_ent[3]=$v['disctype'];
+//    $di_ent[3]=$v['disctype'];
 //    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251', mb_detect_encoding($v['disctype']));
-    $di_ent[4]=str_replace('-','',$v['date_sap']);
+    $di_ent[3]=str_replace('-','',$v['date_sap']);
     $y=$v['vid_l'];
-    if($y==25) $di_ent[3] = 4;
-    if($y==12) $di_ent[3] = 2;
-    if($y==13) $di_ent[3] = 3;
-    if($y==12 && strpos($v['disctype'],',')) $di_ent[3] = 6;
-    if($y<12) $di_ent[3] = 1;
-    if($y>25) $di_ent[3] = 5;
+//    if($y==25) $di_ent[3] = 4;
+//    if($y==12) $di_ent[3] = 2;
+//    if($y==13) $di_ent[3] = 3;
+//    if($y==12 && strpos($v['disctype'],',')) $di_ent[3] = 6;
+//    if($y<12) $di_ent[3] = 1;
+//    if($y>25) $di_ent[3] = 5;
 //    debug(strlen($di_ent[3]));
     return $di_ent;
 }

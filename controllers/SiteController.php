@@ -691,6 +691,7 @@ WHERE year_p=0 and year_q>0';
             $data = explode("~", $s);
             $data[3] = str_replace(",", ".", $data[3]);
             $data[5] = str_replace(",", ".", $data[5]);
+            $data[2] = str_replace("Р", "", $data[2]);
 
             $sql = "INSERT INTO ost_detal (contragent,dogovor,kredit,data_v_k,debet,data_v_d) VALUES(" .
                 '$$' . $data[1] . '$$' . "," . '$$' . $data[2] . '$$' . "," . '$$'.$data[3] . '$$' . "," . '$$' . $data[4] . '$$' . "," .
@@ -4894,7 +4895,7 @@ order by q.code_eqp
         if ($res==4)
         $sql = "SELECT distinct q.code_eqp as id,ar.code_eqp_inst,yy.oldkey as vstelle,''::char(20) as vstelle1,'10' as sparte,
 const.ver,const.begru_all as begru,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh,
-case when www.code=900 then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
+case when www.code=900  or (q.code_eqp=118522 and $res=5) or (q.code_eqp=120129 and $res=4) then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
 q.* from (
 select  distinct 'DATA' as DATA,c.id as id_cl,c.idk_work,
 case when p.voltage_max = 0.22 then '02'
