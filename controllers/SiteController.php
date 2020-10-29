@@ -1145,7 +1145,7 @@ case when coalesce(b.FLAG_JUR,0)= 0 then  'X' else '' end as ZPROCIND,
 '' as ZCODESPODU,
 '' as ZCODEBANKROOT,
 '' as ZCODELICENSE,
-case when length(trim(a.name))> 160 then trim(a.name) else '' end as ZNAMEALL,
+case when length(trim(a.name))> 140 then trim(a.name) else '' end as ZNAMEALL,
 replace(replace(replace(trim(a.short_name),'   ',' '),'  ',' '),'''','’') as ZZ_NAMESHORT,
 b.doc_ground as ZZ_DOCUMENT,
 '' as ADEXT_ADDR,
@@ -2991,7 +2991,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                     '04_C'||'$rem'||'P_'||m.code_eqp::text  as EQUNRNEU,
                     '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(grp.code_t_new::text)) as met_id,
                     '' as WANDNR,
-                    '' as WANDNRE
+                    '' as WANDNRE --,dev.wgruppe
                     from eqm_tree_tbl as tr 
                     join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
                     join eqm_equipment_tbl as eq on (ttr.code_eqp = eq.id) 
@@ -3012,8 +3012,14 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                             left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
                             ) as sti on (sti.id_meter = eq.id) 
                     left join group_trans1 as grp on grp.id_meter=m.code_eqp
+                    --left join sap_egerh dev  on substr(dev.oldkey,9)=
+                   -- split_part(extract_sn(cyrillic_transliterate(grp.code_t_new::text)),'_',1)
                     where m.code_eqp=$id_eq limit 1";
                     $data_3 = data_from_server($sql_3, $res, $vid);
+
+//                    debug($data_3);
+
+
                     // Запись в файл структуры DI_GER
                     $end = '&ENDE';
                     foreach ($data_3 as $v3) {
@@ -6079,10 +6085,11 @@ select * from (
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17)  -- and p.loss_power=1  -- and  p.type_eqp<>2
                 ) r
                 where case when '$res'='5' then id_sap is not null and trim(id_sap)<>'' else 1=1 end
+              and  case when '$res'='5' then code_eqp not in(124614,116220)  else 1=1 end
                 and  case when '$res'='4' then code_eqp not in(116758,116766,117269,118413)  else 1=1 end
                 and  case when '$res'='3' then code_eqp not in(107239,107747,107870,113325,107259)  else 1=1 end
                 and  case when '$res'='2' then code_eqp not in(108033,109456,110357,113908,113915,114059,232344,
-               1057436,1103582,1228227,1302623)  else 1=1 end   
+               1057436,1103582,1228227,1302623,108235)  else 1=1 end   
                and  case when '$res'='1' then code_eqp not in(114760,121176,118475,149669,122030,122872,
                122878,123103,123108,123124,124528,124540,143928,146434,146469,146804,146888,
                148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
@@ -6481,6 +6488,7 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) 
                  order by 4) r
                  where  case when '$res'='4' then code_eqp not in(118478,118479,149671,149672)  else 1=1 end
+                and  case when '$res'='5' then code_eqp not in(106232,116145)  else 1=1 end
 	       order by 1 ";
 
         if ($helper == 1)
@@ -10044,9 +10052,9 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         $data_d = data_from_server($sql_d, $res, $vid);
         $date_ab = $data_d[0]['mmgg_current'];
         // Главный запрос со всеми необходимыми данными
-        $sql = "select * from 
-(select distinct m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
-                 (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
+        $sql ="select * from
+        (select distinct m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then
+    (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
                  case when m.dt_control is null then '2004' else substring(m.dt_control::varchar,1,4) end as BAUJJ, 
@@ -10085,10 +10093,10 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
        left join eqm_tree_tbl tr on tr.id = ttr.id_tree
        left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 inner join sap_const const on 1=1
-        where (c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0 
-	     and  c.code not in('20000556','20000565','20000753',
-	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	    '10999999','11000000','19999369','50999999','1000000','1000001')
+        where (c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0
+        and  c.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001')
    
 union                
 
@@ -10114,6 +10122,93 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                  join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int
 		    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
 		    left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
+    select dt_b from eqm_equipment_h where id = eq.id
+    and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
+		    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+		    left join sap_type_tr_i_tbl as type_tr on type_tr.id_type = ic.id 
+		     left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = ic.id left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+		    left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+			left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+			left join clm_client_tbl as cl1 on (cl1.id = coalesce (use.id_client, tr.id_client)) 
+                    inner join sap_const const on 1=1 
+                    where  (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0
+                    and  cl1.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001') ) x
+order by tzap
+    --limit 3";
+
+        $sql_new = "select SERNR1 as sernr,* from 
+(select distinct m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
+                 (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
+                'EQUI' as EQUI,
+                case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
+                 case when m.dt_control is null then '2004' else substring(m.dt_control::varchar,1,4) end as BAUJJ, 
+                '$date_ab' as datab,
+                 '' as EQKTX,
+                case when m.dt_control is null then '2005' else substring(m.dt_control::varchar,1,4)  end as bgljahr,
+                case  when coalesce(eq.is_owner,0) = 0 then 'CK01230370' else '' end as KOSTL, 
+                 trim(eq.num_eqp) as SERNR1,
+                 case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
+                  substring(replace(m.dt_control::varchar,'-',''),1,8) as CERT_DATE,
+                  upper(sd.sap_meter_name) as matnr,
+                 case when en1.kind_energy =1 then case when eqz1.zone in (4,5,9,10) then '2' when eqz1.zone in (1,2,3,6,7,8) then '3' when  eqz1.zone = 0 then '1' else '0' end ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
+case when en2.kind_energy =3 then case when eqz2.zone in (4,5,9,10) then '2' when eqz2.zone in (1,2,3,6,7,8) then '3' when  eqz2.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
+case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' when eqz3.zone in (1,2,3,6,7,8) then '3' when  eqz3.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
+case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' when eqz4.zone in (1,2,3,6,7,8) then '1' when  eqz4.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end as ZWGRUPPE,
+                  '' as wgruppe,
+                  const.swerk,const.stort,const.ver,const.begru_b as begru,1 as tzap
+                from eqm_meter_tbl as m 
+                join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
+                left join eqm_equipment_h as hm on (hm.id = eq.id) 
+                left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+                left join (select code as id,min(sap_cnt) as sap_meter_id from sap_meter_cnt where sap_cnt<>'' group by code) s on s.id::integer=m.id_type_eqp
+                left join (select distinct sap_meter_id,sap_meter_name,group_schet from sap_device22) sd on s.sap_meter_id=sd.sap_meter_id
+                left join eqd_meter_zone_h as eqz1 on (eqz1.code_eqp = m.code_eqp and eqz1.dt_e is null and eqz1.kind_energy =1)
+		left join eqd_meter_zone_h as eqz2 on (eqz2.code_eqp = m.code_eqp and eqz2.dt_e is null and eqz2.kind_energy =3)
+		left join eqd_meter_zone_h as eqz3 on (eqz3.code_eqp = m.code_eqp and eqz3.dt_e is null and eqz3.kind_energy in(2,5))
+		left join eqd_meter_zone_h as eqz4 on (eqz4.code_eqp = m.code_eqp and eqz4.dt_e is null and eqz4.kind_energy in(4,6))
+		left join eqi_meter_tbl as t on t.id=m.id_type_eqp
+		left join types_meter as t1 on trim(t1.type)=trim(t.type) 
+                left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy=1 and dt_e is null) as en1 on en1.code_eqp = m.code_eqp
+		left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy=3 and dt_e is null) as en2 on en2.code_eqp = m.code_eqp
+		left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy in(2,5) and dt_e is null) as en3 on en3.code_eqp = m.code_eqp
+		left join (select kind_energy, code_eqp from eqd_meter_energy_h where kind_energy in(6,4) and dt_e is null) as en4 on en4.code_eqp = m.code_eqp
+		left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+       left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
+       left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+       left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                inner join sap_const const on 1=1
+        where (c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0 
+	     and  c.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	    '10999999','11000000','19999369','50999999','1000000','1000001')
+   
+union                
+select case when left(coalesce(type_tr.group_ob,type_tr_u.group_ob),1)='U' then SPLIT_PART(sernr1,'_',1) 
+ else sernr1 end as sernr,* from (
+select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
+                'EQUI' as EQUI,
+                case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
+                '2004' as BAUJJ, 
+                '$date_ab' as datab,
+                 '' as EQKTX,
+                 '2005' as bgljahr,
+                case  when coalesce(eq.is_owner,0) = 0 then 'CK01230370' else '' end as KOSTL, 
+                 --trim(eq.num_eqp) as SERNR,
+                 --get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
+                 -- substr(cyrillic_transliterate(gr.code_t_new::text),8) as sernr,
+               f_get_sn(cyrillic_transliterate(gr.code_t_new::text),1) as sernr1,
+                  case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
+                 c.date_check::text as CERT_DATE,
+                  coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
+                  '' as zwgruppe,
+                 coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
+                  const.swerk,const.stort,const.ver,const.begru_b as begru,2 as tzap
+                 from group_trans1 as gr
+                 join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int
+		    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+		    left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
 		    select dt_b from eqm_equipment_h where id = eq.id 
 		    and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
 		    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
@@ -10126,7 +10221,8 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                     where  (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0 
                  and  cl1.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-                 '10999999','11000000','19999369','50999999','1000000','1000001') ) x
+                 '10999999','11000000','19999369','50999999','1000000','1000001')) ee
+                  ) x
 order by tzap   
 --limit 3
 ";
