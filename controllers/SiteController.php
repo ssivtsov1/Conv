@@ -1099,10 +1099,14 @@ end  as BU_SORT1,
 '' as BU_SORT2,
 '0006' as SOURCE,
 'LEG' as AUGRP,
-substr(trim(a.name),1,40) as name_org1,
-substr(trim(a.name),41,40) as name_org2,
-substr(trim(a.name),81,40) as name_org3,
-substr(trim(a.name),121,40) as name_org4,
+--substr(trim(a.name),1,40) as name_org1,
+--substr(trim(a.name),41,40) as name_org2,
+--substr(trim(a.name),81,40) as name_org3,
+--substr(trim(a.name),121,40) as name_org4,
+ltrim(get_org1(trim(a.name),1)) as name_org1,
+ltrim(get_org1(trim(a.name),2)) as name_org2,
+ltrim(get_org1(trim(a.name),3))as name_org3,
+ltrim(get_org1(trim(a.name),4)) as name_org4,
 case when coalesce(b.FLAG_JUR,0)= 1 then  
      case 
      when upper(trim(a.name)) LIKE  'ФЕРМЕР%' AND upper(trim(a.name)) LIKE '%ГОСП%' then '02' 
@@ -1253,7 +1257,12 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         ((a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
 	     and  a.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001')) or  a.code in('10001306')
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
+	     and case when $res=2 then a.code not in('110000011') else 1=1 end
+	     and case when $res=4 then a.code not in('110000010') else 1=1 end
+	     and case when $res=5 then a.code not in('110000009') else 1=1 end
+	     ) or  a.code in('10001306')
+	     
 	     -- AND a.id=12098
 	     -- and u.town is not null
    ";
@@ -1499,10 +1508,16 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
             fputs($f, $old_key . "\t&ENDE");
             fputs($f, "\n");
         }
-
-
-//        fputs($f, "\t&ENDE");
-//        fputs($f, "\n");
+// Добавление в конец файла миграции сетевых потребителей
+//  только для Днепра
+if($res==1) {
+    $f_add = fopen('add_info.txt', 'r');
+    while (!feof($f_add)) {
+        $s = fgets($f_add);
+        fputs($f, $s);
+    }
+    fclose($f_add);
+}
 
 // Проверка файла выгрузки
         $method = __FUNCTION__;
@@ -3143,22 +3158,29 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
 left join sap_vkp c on c.oldkey=c2.gpart
       ";
 
-        $sql="select c.kofiz_sd as kofiz, 
+        $sql="
+select *,case when substr(saldo1,1,2)='--' then substr(saldo1,3) else saldo1 end as saldo,
+ case when substr(saldo1,1,2)='--' then '' else prepay1 end as prepay
+ from (
+select case when schet='010001306' then '02' else c.kofiz_sd end as kofiz, 
 gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_')||'_01' as oldkey,c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
-case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
- case when trim(kredit)<>'' then kredit else '' end as prepay
+case when trim(kredit)<>'' 
+then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' else debet end::dec(12,2)) else debet end as saldo1,
+ case when trim(kredit)<>'' then kredit else '' end as prepay1
  from (
 select c1.* from (
 select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,a.*,const.ver,const.begru
      from ost_detal as a 
        inner join sap_const const on 1=1
       left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
-     where dogovor like '%розподіл%' 
-     and substr(dogovor,1,2)='$rem'
+     where (dogovor like '%розподіл%' 
+     and substr(dogovor,1,2)='$rem')
+      or ('01'='01' and substr(dogovor,1,2)='11' and dogovor like '%розподіл%') 
 ) c1
 ) c2
 left join sap_vkp c on c.oldkey=c2.gpart
+) z
       ";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
@@ -3470,13 +3492,16 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,
      from ost_detal as a 
       inner join sap_const const on 1=1
       left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
-     where dogovor like '%перетоки%' 
-     and substr(dogovor,1,2)='$rem' or ('$rem'='07' and substr(dogovor,1,1)='7' and dogovor like '%перетоки%')
+     where (dogovor like '%перетоки%' 
+     and substr(dogovor,1,2)='$rem') or ('$rem'='07' and substr(dogovor,1,1)='7' and dogovor like '%перетоки%')
+     or ('$rem'='01' and substr(dogovor,1,2)='11' and dogovor like '%перетоки%') 
+     
 ) c1
 ) c2
 left join sap_vkp c on c.oldkey=c2.gpart
 ) r
-where schet not in('070000112','050300005','010000673','010000373')
+where schet not in('070000112','050300005','010000673',
+'010000373','110000001','110000004')
 and (trim(debet)<>'0.00')
  ";
 
@@ -3731,11 +3756,16 @@ and (trim(debet)<>'0.00')
         $date_p = str_replace('-', '', $date_p);
 
 //        Формируем данные по розподілу
-        $sql = "select '06' as kofiz,'04_C'||'01'||'P_'|| 
-gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_') as oldkey,
+        $sql = "
+select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' else oldkey1 end as oldkey from (
+select '06' as kofiz,'04_C'||'01'||'P_'|| 
+gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_') as oldkey1,
 c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
-case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
+-- case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
+case when trim(kredit)<>'' 
+then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' else debet end::dec(12,2)) else debet end as saldo,
+
  case when trim(kredit)<>'' then kredit else '' end as prepay
  from (
 select c1.* from (
@@ -3746,6 +3776,8 @@ select b.partner_id as gpart,b.acc_id,'' as schet,a.*,const.ver,const.begru
      inner join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
 ) c1
 ) c2
+order by 2
+) qqq
       ";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
@@ -8431,7 +8463,7 @@ left join clm_statecl_tbl as stt on (stt.id_client = tt.id_cl)
 left join clm_client_tbl as cc2 on (tt.id_cl = cc2.id) 
 left join eqm_eqp_use_tbl use1 on use1.code_eqp=tt.id 	
 left join (select distinct id_contractor,id_client from clm_contractor_tbl 
-where dt_contr_end is null and id_contractor is not null limit 1) ct on ct.id_client=cc2.id
+where dt_contr_end is null and id_contractor is not null) ct on ct.id_client=cc2.id
 left join cli_contractor_tbl ci on ci.id=ct.id_contractor and ci.edrpou_contr is not null 
 inner join sap_const const on 1=1
 WHERE (cc2.code>999 or cc2.code=900) AND coalesce(cc2.idk_work,0)<>0 or (cc2.code=999 and use1.code_eqp is not null) 
@@ -12997,7 +13029,9 @@ select s1.*,s2.*,s3.*,s4.*,s5.*,case when s1.vkona in(select c.code from eqm_met
      row_number() OVER() as id_str  
 from
 (select 'INIT' as struct,a.id,a.code as vkona,
-case when a.code<>900 then const.vktyp else '44' end as vktyp,'04_C'||'$rem'||'P_'||a.id as gpart
+case when a.code<>900 then const.vktyp else '44' end as vktyp,
+case when a.code-110000000>0 and a.code-110000000<12 then get_ref_netklient(a.code) else '04_C'||'$rem'||'P_'||a.id end as gpart
+--'04_C'||'$rem'||'P_'||a.id as gpart
 from clm_client_tbl as a
 left join clm_statecl_tbl as b on a.id = b.id_client
 inner join sap_const const on 1=1
@@ -14345,6 +14379,7 @@ WHERE
               case when a.vkonto<>'' then a.vkonto::int else 0 end = b.code
               and coalesce(b.idk_work,0)<>0
               ) f
+            inner join sap_init_acc acc on substr(acc.oldkey,9)=f.id1::character varying
               where id1 is not null
              ";
 
@@ -14648,6 +14683,8 @@ where id1 is not null
         $i = 0;
         foreach ($data as $w) {
             $di_ord[$i] = f_discenter($rem, $w);
+            if(trim($w['anlage'])!='')
+                $di_ust[$i] = f_discenter1($rem,$w);
             $i++;
         }
 
@@ -14662,14 +14699,24 @@ where id1 is not null
 //        return;
         // Считываем данные в файл с массивов $di_int и $di_zw
         $i = 0;
-        foreach ($di_ord as $d) {
+        foreach ($di_ord as $key=>$d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
             $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0] . "\t" . '&ENDE');
+            if(isset($di_ust[$key])) {
+            $v=$di_ust[$key];
+//            foreach ($di_inf as $v) {
+                $d1 = array_map('trim', $v);
+                $s = implode("\t", $d1);
+                $s = str_replace("~", "", $s);
+                $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
+                fputs($f, $s);
+                fputs($f, "\n");
+            }
+            fputs($f, $d1[0]."\t".'&ENDE');
             fputs($f, "\n");
 
             $i++;

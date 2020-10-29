@@ -1456,6 +1456,14 @@ function f_account($n_struct, $rem, $v) {
     $vktyp = $v['vktyp'];
 
     $vkona = $v['vkona'];
+    $flag=0;
+    // Добавляем ведущий 0 если это не сетевой потребитель
+    if(substr(trim($vkona),0,2)=='11')
+        $flag=1;
+    if(strlen(trim($vkona))<8)
+        $flag=1;
+    if($flag==0)  $vkona = '0' . $vkona;
+
     $zdaterep = $v['zdaterep'];
     if(empty($zdaterep)) $zdaterep='01';
     $zdaterep='26';
@@ -3368,8 +3376,9 @@ function f_discenter($rem,$v) {
     $di_ent[0]=$oldkey;     //oldkey
     $di_ent[1]='HEADER';    //datatype
 //    $di_ent[2]=$oldkey1;     //ANLAGE
-    $di_ent[2]=$oldkey_const . $v['anlage'];      //ANLAGE
-    if(trim($v['anlage'])=='')  $di_ent[2]='';
+    //$di_ent[2]=$oldkey_const . $v['anlage'];      //ANLAGE
+    $di_ent[2]=$oldkey;
+    //if(trim($v['anlage'])=='')  $di_ent[2]='';
 //    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251','UTF-8');
 //    $di_ent[3]=$v['disctype'];
 //    $di_ent[3]=mb_convert_encoding($v['disctype'], 'CP1251', mb_detect_encoding($v['disctype']));
@@ -3382,6 +3391,20 @@ function f_discenter($rem,$v) {
 //    if($y<12) $di_ent[3] = 1;
 //    if($y>25) $di_ent[3] = 5;
 //    debug(strlen($di_ent[3]));
+    return $di_ent;
+}
+
+function f_discenter1($rem,$v) {
+    $oldkey_const='04_C'.$rem.'P_01_';
+    $oldkey = $oldkey_const . $v['id'];
+    $di_ent=[];
+    $di_ent[0]=$oldkey;     //oldkey
+    $di_ent[1]='ANLAGE';    //datatype
+    $di_ent[2]=str_replace('-','',$v['date_sap']);
+    $di_ent[3]=$oldkey_const . $v['anlage'];
+    $di_ent[4]=$v['zz_discreason'];
+    $di_ent[5]='150100';
+
     return $di_ent;
 }
 
