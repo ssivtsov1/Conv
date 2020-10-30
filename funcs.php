@@ -1457,12 +1457,16 @@ function f_account($n_struct, $rem, $v) {
 
     $vkona = $v['vkona'];
     $flag=0;
+    $flag1=0;
     // Добавляем ведущий 0 если это не сетевой потребитель
-    if(substr(trim($vkona),0,2)=='11')
-        $flag=1;
+    if(substr(trim($vkona),0,2)=='11') {
+        $flag = 1;
+        $flag1=1;
+    }
     if(strlen(trim($vkona))<8)
         $flag=1;
     if($flag==0)  $vkona = '0' . $vkona;
+    if($flag1==1) $vktyp = '45';
 
     $zdaterep = $v['zdaterep'];
     if(empty($zdaterep)) $zdaterep='01';
