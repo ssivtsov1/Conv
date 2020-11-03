@@ -3164,7 +3164,7 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
 left join sap_vkp c on c.oldkey=c2.gpart
       ";
 
-        $sql="
+        $sql1="
 select *,case when substr(saldo1,1,2)='--' then substr(saldo1,3) else saldo1 end as saldo,
  case when substr(saldo1,1,2)='--' then '' else prepay1 end as prepay
  from (
@@ -3188,6 +3188,36 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,
 left join sap_vkp c on c.oldkey=c2.gpart
 ) z
       ";
+
+
+        $sql="select *,case when substr(saldo1,1,2)='--' then substr(saldo1,3) else saldo1 end as saldo,
+ case when substr(saldo1,1,2)='--' then '' else prepay1 end as prepay,
+ case when kofiz1 is null or trim(kofiz1)='' then net1.kofiz else kofiz1 end as kofiz 
+ from (
+     select case when schet='010001306' then '02' else c.kofiz_sd end as kofiz1, 
+gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_')||'_01' as oldkey,c2.*,
+ case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
+case when trim(kredit)<>'' 
+then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' else debet end::dec(12,2)) else debet end as saldo1,
+ case when trim(kredit)<>'' then kredit else '' end as prepay1
+ from (
+     select cp.* from (
+        select c1.*,case when gpart1 is null or trim(gpart1)='' then '04_C'||'01'||'P_'||net.id else gpart1 end as gpart from (
+        select '04_C'||'$rem'||'P_'||b.id as gpart1,split_part(a.dogovor,' ',1) as schet,a.*,const.ver,const.begru
+     from ost_detal as a 
+       inner join sap_const const on 1=1
+      left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
+     where (dogovor like '%розподіл%'
+    and substr(dogovor,1,2)='$rem')
+      or ('$rem'='01' and substr(dogovor,1,2)='11' and dogovor like '%розподіл%') 
+) c1 
+left join network_client net on  net.schet=split_part(c1.dogovor,' ',1)
+) cp
+) c2
+left join sap_vkp c on c.oldkey=c2.gpart
+) z
+left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
+
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
 
@@ -3507,7 +3537,7 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,
 left join sap_vkp c on c.oldkey=c2.gpart
 ) r
 where schet not in('070000112','050300005','010000673',
-'010000373','110000001','110000004')
+'010000373')
 and (trim(debet)<>'0.00')
  ";
 
@@ -13876,6 +13906,18 @@ WHERE
 
 //        fputs($f, "\t&ENDE");
 //        fputs($f, "\n");
+
+// Добавление в конец файла миграции сетевых потребителей
+//  только для Днепра
+        if($res==1) {
+            $f_add = fopen('add_info_acc.txt', 'r');
+            while (!feof($f_add)) {
+                $s = fgets($f_add);
+                fputs($f, $s);
+            }
+            fclose($f_add);
+        }
+
         fclose($f);
 
         // Проверка файла выгрузки
@@ -14475,12 +14517,13 @@ WHERE
               case when a.vkonto<>'' then a.vkonto::int else 0 end = b.code
               and coalesce(b.idk_work,0)<>0
               ) f
-            inner join sap_init_acc acc on substr(acc.oldkey,9)=f.id1::character varying
-              where id1 is not null
+            left join sap_init_acc acc on substr(acc.oldkey,9)=f.id1::character varying
+            where id1 is not null
              ";
 
         // Получаем необходимые данные
         $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+
 
         // Заполняем массивы структур: $di_int и $di_zw
         $i=0;
@@ -14492,7 +14535,7 @@ WHERE
 
         // Формируем имя файла и создаем файл
         $fd=date('Ymd');
-        $ver=$data[0]['ver'];
+        $ver=8;
         if ($ver<10) $ver='0'.$ver;
         $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
 //        deleterOM($fname,$rem);

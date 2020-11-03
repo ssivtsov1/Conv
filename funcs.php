@@ -1514,6 +1514,18 @@ function f_account($n_struct, $rem, $v) {
     $id=$v['id_str'];
     $id=str_pad($id, 5, "0", STR_PAD_LEFT);
 
+    $rem1=(int) $rem;
+    // Подмена oldkey для сетевых потребителей
+    if($rem1==2){
+        if($r==11305)  return;  //$oldkey='04_C01P_400000';
+    }
+    if($rem1==4){
+        if($r==11734) return;  //$oldkey='04_C01P_300000';
+    }
+    if($rem1==5){
+        if($r==10876) return;  //$oldkey='04_C01P_200000';
+    }
+
     if($n_struct=='INIT')
         $z = "insert into sap_init_acc(oldkey,dat_type,gpart,vktyp,vkona)
                     values('$oldkey','$n_struct','$gpart','$vktyp','$vkona')";
@@ -1527,7 +1539,7 @@ function f_account($n_struct, $rem, $v) {
                                        ikey,mahnv,begru,adrnb_ext,
                                        zahlkond,vertyp,kofiz_sd,kzabsver,stdbk,fkru_fis,zsector,zz_ministry,
                                        zz_start,zz_end,zz_budget,zz_territory,zz_categ,zz_distrib_type,zz_area_id)
-                    values('$oldkey','$n_struct','$partner','$opbuk','$ebvty','$abvty',$$$abwvk$$,
+                    values('$oldkey','$n_struct','$gpart','$opbuk','$ebvty','$abvty',$$$abwvk$$,
                            $$$ikey$$,$$$mahnv$$,'$begru','$adrnb_ext','$zahlkond','$vertyp',
                            '$kofiz_sd','$kzabsver','$stdbk','$fkru_fis',
                            '$zsector','$zz_ministry','$zz_start','$zz_end','$zz_budget','$zz_territory','$zz_categ','$zz_distrib_type','$zz_area_id')";
@@ -3097,6 +3109,19 @@ function f_move_in($rem,$v) {
     $oldkey = $oldkey_const . $v['id'];
     $oldkey_instln = $oldkey_const1 . $v['id'];
     $vkonto = $oldkey_const . $v['id_cl'];
+
+    $rem1=(int) $rem;
+    // Подмена oldkey для сетевых потребителей
+    if($rem1==2){
+        if( $v['id']==11305) $vkonto='04_C01P_400000';
+    }
+    if($rem1==4){
+        if($v['id']==11734) $vkonto='04_C01P_300000';
+    }
+    if($rem1==5){
+        if($v['id']==10876) $vkonto='04_C01P_200000';
+    }
+
     $ever=[];
     $ever[0]=$oldkey;
     $ever[1]='EVER';
