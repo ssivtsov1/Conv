@@ -2951,8 +2951,8 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                     $sql_2 = "select distinct 
                 '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                 'DI_GER' as struc,
-                case when grp.code_t_new is null then 
-                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(grp.code_t_new::text)) end as EQUNRNEU,
+                case when grp.code_t_new_old is null then 
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text else  '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(grp.code_t_new_old::text)) end as EQUNRNEU,
                 '' as WANDNR,
                 '' as WANDNRE
                 from eqm_tree_tbl as tr 
@@ -2989,7 +2989,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                     '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                     'DI_GER' as struc,
                     '04_C'||'$rem'||'P_'||m.code_eqp::text  as EQUNRNEU,
-                    '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(grp.code_t_new::text)) as met_id,
+                    '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(grp.code_t_new_old::text)) as met_id,
                     '' as WANDNR,
                     '' as WANDNRE --,dev.wgruppe
                     from eqm_tree_tbl as tr 
@@ -3147,6 +3147,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-','',$date_p);
+        $date_p = '20200930';  // Потом нужно закомментировать это
 
 //        Формируем данные по розподілу
         $sql_old="select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
@@ -4488,7 +4489,7 @@ union
 --eq.code_t_new
 select  distinct  eq.ord,eq.id_point,
 'DEVICE' as n_struct,
-'$oldkey1' || cyrillic_transliterate(extract_sn(eq.code_t_new)) as devgrptyp,
+'$oldkey1' || cyrillic_transliterate(extract_sn(eq.code_t_new_old)) as devgrptyp,
  '' as  keydate, 
 ''  as dop,
 '2' as sort
@@ -6044,7 +6045,7 @@ select * from (
 	       ORDER BY 6
                 ";
        $z_sql = 'select * from get_schema()';
-
+       if($res=='1' || $res=='3' )
         $sql="select * from (
             select DISTINCT on(p.code_eqp) p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
             RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
@@ -6123,7 +6124,90 @@ select * from (
                and  case when '$res'='1' then code_eqp not in(114760,121176,118475,149669,122030,122872,
                122878,123103,123108,123124,124528,124540,143928,146434,146469,146804,146888,
                148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
-               143002,144466,148340)  else 1=1 end 
+               143002,144466,148340,117581,117586,118341)  else 1=1 end 
+    	       ORDER BY 6";
+       else
+           $sql=" select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
+        select DISTINCT on(p.code_eqp) 
+            get_topology(p.code_eqp,p.id_point,6,$res) as pnt2,
+            p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
+            RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
+                case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
+                    when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
+                end as line_length,
+                case when p.type_eqp=6 then sap_c.m
+                    when p.type_eqp=7 then sap_l.m
+                end as line_voltage_nom,
+                case when p.type_eqp=2 then trim(coalesce(sap_tr.trtyp,eqk.type))
+                    when p.type_eqp=6 then trim(coalesce(sap_cable.id_sap,cable.type))
+                    when p.type_eqp=7 then trim(coalesce(sap_line.id_sap,corde.type))
+                end as type_eqp,  
+                case when p.type_eqp=7 then 'ПЛ: '||trim(corde.type)||';  R0='||round(corde.ro,3)||' X0='||round(corde.xo,3) end as line_text,
+                case when p.type_eqp=6 then 'КЛ: '||trim(cable.type)||';  R0='||round(cable.ro,3)||coalesce(' X0='||round(cable.xo,3),'') end as cable_text,
+                case when p.type_eqp=2 then trim(eqk.type) end as compensator_text,
+                p.name as text, p.type_eqp as id_type_eqp,
+                case when eqk.swathe=2 then '2L' 
+                    when eqk.swathe=2 then '3L'
+                end as swathe,
+                case when length(p.id_point::varchar)>7 then p.id_point else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.id_point::varchar)::int)),(7-(length(p.id_point::varchar)::int)))||p.id_point::varchar)::int end as instln_key,
+		       case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
+		       const.ver as ver,
+		       coalesce(v.id_sap,v1.id_sap) as id_sap,
+		       case when v.normative is null or trim(v.normative)='' then case when u.voltage_min is null then uu2.u_sap else coalesce(uu1.u_sap,uu2.u_sap) end 
+		       else case when v1.normative is not null then v1.normative::dec(6,2) else coalesce(uu1.u_sap,uu2.u_sap) end end as voltage			
+                from (select x.*,eq.name_eqp as name_point from (
+        select a.id as code_eqp,get_equipment_m(a.id,6,12,$res) as id_point,
+                a.type_eqp,a.name_eqp as name,
+                b.lvl,c.idk_work,c.book,c.code 
+                from eqm_equipment_tbl a 
+                left join eqm_eqp_tree_tbl b on a.id=b.code_eqp
+                left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+	        left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+	        left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+	        left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                where a.type_eqp in(6,7) --and a.is_owner=1
+    and COALESCE(c.idk_work,0) not in (0) and c.book=-1
+    and (coalesce(c.code,0)>999 or coalesce(c.code,0)=900)
+    and  coalesce(c.code,0) not in(20000556,20000565,20000753,
+        20555555,20888888,20999999,30999999,40999999,41000000,42000000,43000000,
+        10999999,11000000,19999369,50999999,1000000,1000001)  
+                ) x
+                left join eqm_equipment_tbl eq on eq.id=x.id_point
+                order by 1) as p
+                left join eqm_line_a_tbl as line_a on (line_a.code_eqp=p.code_eqp)
+                left join eqm_line_c_tbl as line_c on (line_c.code_eqp=p.code_eqp)
+                left join eqk_voltage_tbl as u on u.id=line_a.id_voltage
+                left join eqk_voltage_tbl as u1 on u1.id=line_c.id_voltage
+                left join eqi_corde_tbl as corde on (corde.id=line_a.id_type_eqp)
+                left join eqi_cable_tbl as cable on (cable.id=line_c.id_type_eqp)
+                left join eqm_compensator_tbl AS eqd on (eqd.code_eqp=p.code_eqp) 
+                left join eqi_compensator_tbl AS eqk on (eqd.id_type_eqp=eqk.id) 
+                left join sap_type_tr_2w_tbl as sap_tr on (sap_tr.id_type=eqk.id)
+                left join cabels_soed as sap_cable on (sap_cable.id_en=cable.id and sap_cable.type_cab=1)
+                left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
+                left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
+                left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
+                left join sap_lines as v on v.id::int=cable.id  and v.kod_res='$res' --and (v.normative is null or trim(v.normative)='')
+                left join sap_lines as v1 on v1.id::int=corde.id  and v1.kod_res='$res' --and (v1.normative is not null and trim(v1.normative)<>'')
+                left join voltage_line uu1 on u.voltage_min=uu1.u_our
+                left join voltage_line uu2 on u1.voltage_min=uu2.u_our
+                left join eqm_eqp_use_tbl as use on (use.code_eqp = p.id_point) 
+                left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = p.id_point
+                left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+                left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                inner join sap_const const on 1=1   
+                where p.type_eqp not in (1,12,3,4,5,9,15,16,17)  
+                ) r
+                where case when '$res'='5' then id_sap is not null and trim(id_sap)<>'' else 1=1 end
+    and  case when '$res'='5' then code_eqp not in(124614,116220)  else 1=1 end
+    and  case when '$res'='4' then code_eqp not in(116758,116766,117269,118413)  else 1=1 end
+    and  case when '$res'='3' then code_eqp not in(107239,107747,107870,113325,107259)  else 1=1 end
+    and  case when '$res'='2' then code_eqp not in(108033,109456,110357,113908,113915,114059,232344,
+        1057436,1103582,1228227,1302623,108235)  else 1=1 end
+    and  case when '$res'='1' then code_eqp not in(114760,121176,118475,149669,122030,122872,
+        122878,123103,123108,123124,124528,124540,143928,146434,146469,146804,146888,
+        148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
+        143002,144466,148340)  else 1=1 end 
     	       ORDER BY 6";
 
         if ($helper == 1)
@@ -6454,7 +6538,8 @@ select * from (
                 ";
 
 //  New query
-        $sql="select * from (
+            if($res==1 || $res==3)
+              $sql="select * from (
             select p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
@@ -6519,7 +6604,80 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                  order by 4) r
                  where  case when '$res'='4' then code_eqp not in(118478,118479,149671,149672)  else 1=1 end
                 and  case when '$res'='5' then code_eqp not in(106232,116145)  else 1=1 end
+              and  case when '$res'='1' then code_eqp not in(118347,118519,117601,120638,120634,
+              120930,120875,120884,121363,121384,121422,121444,121735,121796,123227,117587)  else 1=1 end
 	       order by 1 ";
+            else
+                $sql="select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
+                 select get_topology(p.code_eqp,p.id_point,2,$res) as pnt2,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp,
+                    RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
+                case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
+                    when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
+                end as line_length,
+                case when p.type_eqp=6 then sap_c.m
+                    when p.type_eqp=7 then sap_l.m
+                end as line_voltage_nom,
+                case when p.type_eqp=2 then trim(coalesce(sap_tr.trtyp,eqk.type))
+                    when p.type_eqp=6 then trim(coalesce(sap_cable.id_sap,cable.type))
+                    when p.type_eqp=7 then trim(coalesce(sap_line.id_sap,corde.type))
+                end as type_eqp,  
+                case when p.type_eqp=7 then 'ПЛ: '||trim(corde.type)||';  R0='||round(corde.ro,3)||' X0='||round(corde.xo,3) end as line_text,
+                case when p.type_eqp=6 then 'КЛ: '||trim(cable.type)||';  R0='||round(cable.ro,3)||coalesce(' X0='||round(cable.xo,3),'') end as cable_text,
+                case when p.type_eqp=2 then trim(eqk.type) end as compensator_text,
+                p.name as text, p.type_eqp as id_type_eqp,
+                case when eqk.swathe=2 then '2L' 
+                    when eqk.swathe=3 then '3L'
+                end as swathe,
+                case when length(p.id_point::varchar)>7 then p.id_point else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.id_point::varchar)::int)),(7-(length(p.id_point::varchar)::int)))||p.id_point::varchar)::int end as instln_key,
+		      case when length(p.code_eqp::varchar)>7 then p.code_eqp else (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(p.code_eqp::varchar)::int)),(7-(length(p.code_eqp::varchar)::int)))||p.code_eqp::varchar)::int end as oldkey,
+		       const.ver as ver,v.id_sap,eq.is_owner		
+                from (
+                    select x.*,eq.name_eqp as name_point from (
+        select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
+                a.type_eqp,a.name_eqp as name,
+                b.lvl,c.idk_work,c.book,c,code 
+                from eqm_equipment_tbl a 
+                left join eqm_eqp_tree_tbl b on a.id=b.code_eqp
+                left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+	        left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+	        left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+	        left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                where a.type_eqp=2 and a.is_owner=1
+    and COALESCE(c.idk_work,0) not in (0) and c.book=-1
+    and (coalesce(c.code,0)>999 or coalesce(c.code,0)=900)
+    and  coalesce(c.code,0) not in(20000556,20000565,20000753,
+        20555555,20888888,20999999,30999999,40999999,41000000,42000000,43000000,
+        10999999,11000000,19999369,50999999,1000000,1000001)  
+                ) x
+                left join eqm_equipment_tbl eq on eq.id=x.id_point
+                order by 1
+                ) p
+                left join eqm_line_a_tbl as line_a on (line_a.code_eqp=p.code_eqp)
+                left join eqm_line_c_tbl as line_c on (line_c.code_eqp=p.code_eqp)
+                left join eqi_corde_tbl as corde on (corde.id=line_a.id_type_eqp)
+                left join eqi_cable_tbl as cable on (cable.id=line_c.id_type_eqp)
+                left join eqm_compensator_tbl AS eqd on (eqd.code_eqp=p.code_eqp) 
+                left join eqi_compensator_tbl AS eqk on (eqd.id_type_eqp=eqk.id) 
+                left join sap_type_tr_2w_tbl as sap_tr on (sap_tr.id_type=eqk.id)
+                left join cabels_soed as sap_cable on (sap_cable.id_en=cable.id and sap_cable.type_cab=1)
+                left join cabels_soed as sap_line on (sap_line.id_en=corde.id and sap_line.type_cab=2)
+                left join cabels as sap_c on (sap_c.a=sap_cable.id_sap)
+                left join cabels as sap_l on (sap_l.a=sap_line.id_sap)
+                left join eqm_eqp_use_tbl as use on (use.code_eqp = p.id_point) 
+                 left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = p.id_point
+                left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+                left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                left join sap_transf as v on (v.id::int=eqk.id and v.kod_res=$res)
+                left join eqm_equipment_tbl as eq on (eq.id=p.code_eqp and eq.type_eqp=2 and eq.is_owner=1)
+                inner join sap_const const on 1=1   
+                where p.type_eqp not in (1,12,3,4,5,9,15,16,17) 
+                 order by 4) r
+                 where  case when '$res'='4' then code_eqp not in(118478,118479,149671,149672)  else 1=1 end
+    and  case when '$res'='5' then code_eqp not in(106232,116145)  else 1=1 end
+	       order by 1 ";
+
+
+
 
         if ($helper == 1)
             $sql = $sql . ' LIMIT 1';
@@ -10168,8 +10326,9 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
 order by tzap
     --limit 3";
 
-        $sql_new = "select SERNR1 as sernr,* from 
-(select distinct m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
+        $sql_new = "
+select SERNR2 as sernr,* from 
+(select distinct trim(eq.num_eqp) as SERNR2,m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
@@ -10214,9 +10373,9 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
    
-union                
-select case when left(coalesce(type_tr.group_ob,type_tr_u.group_ob),1)='U' then SPLIT_PART(sernr1,'_',1) 
- else sernr1 end as sernr,* from (
+union
+                
+select SPLIT_PART(id,'_',2) as sernr2,* from (
 select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
@@ -10253,7 +10412,8 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                  '10999999','11000000','19999369','50999999','1000000','1000001')) ee
                   ) x
-order by tzap   
+order by tzap 
+
 --limit 3
 ";
 
