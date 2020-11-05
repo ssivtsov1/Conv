@@ -2515,7 +2515,8 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'P_01_';
     $r = $v['code_eqp'];
     $pnt=$v['pnt'];
-    $pnt= substr((1000+$pnt),1,3);
+    if(((int) $pnt)<1000)
+        $pnt= substr((1000+$pnt),1,3);
     $line_length=$v['line_length'];
     $id_sap=trim($v['id_sap']);
     //$line_voltage_nom = $v['line_voltage_nom'];
@@ -2532,12 +2533,18 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     $anlage = $oldkey_const . $v['id_point'];
     $text = str_replace("'",'`',$text);
     $let = $v['id_type_eqp'];
+
+    if(substr($pnt,0,1)=='1')
+         $xnegp = 'X';
+    else
+        $xnegp = '~';
+
     if($let<>2) {
         if ($n_struct == 'AUTO')
             $z = "insert into sap_auto_zlines(oldkey,dat_type,anlage,linum,frdat,frtim,lityp,length,voltage,state,
                                     wxshr,fshar,xnegp,text,element_id)
                     values('$oldkey','$n_struct','$anlage','$pnt','$datab','000000','$id_sap','$line_length',
-                            '$line_voltage_nom','L','100','X','~','$text','$pnt')";
+                            '$line_voltage_nom','L','100','X','$xnegp','$text','$pnt')";
 
 //        echo($z);
         exec_on_server($z, (int)$rem, $vid);
@@ -2552,6 +2559,9 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
     $r = $v['code_eqp'];
     $pnt=$v['pnt'];
 
+    if(((int) $pnt)<1000)
+        $pnt= substr((1000+$pnt),1,3);
+
     if($r==108416 && (int)$rem==5)
         $pnt='002';
 
@@ -2560,7 +2570,11 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
     if($r==108487 && (int)$rem==5)
         $pnt='003';
 
-    $pnt= substr((1000+$pnt),1,3);
+    if(substr($pnt,0,1)=='1')
+        $xnegp = 'X';
+    else
+        $xnegp = '~';
+
     $swathe=$v['swathe'];
     $id_sap=$v['id_sap'];
     $text =$v['text'];

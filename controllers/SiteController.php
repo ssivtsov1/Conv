@@ -3209,7 +3209,7 @@ then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' e
        inner join sap_const const on 1=1
       left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
      where (dogovor like '%розподіл%'
-    and substr(dogovor,1,2)='$rem')
+    and substr(dogovor,1,2)='$rem') or ('$rem'='07' and substr(dogovor,1,1)='7' and dogovor like '%розподіл%')
       or ('$rem'='01' and substr(dogovor,1,2)='11' and dogovor like '%розподіл%') 
 ) c1 
 left join network_client net on  net.schet=split_part(c1.dogovor,' ',1)
@@ -6045,10 +6045,11 @@ select * from (
 	       ORDER BY 6
                 ";
        $z_sql = 'select * from get_schema()';
+
        if($res=='1' || $res=='3' )
-        $sql="select * from (
-            select DISTINCT on(p.code_eqp) p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
-            RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+        $sql="select case when topology is null then pnt1 else topology::int end as pnt,* from (
+            select DISTINCT on(p.code_eqp) h.topology,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
+            RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -6112,6 +6113,7 @@ select * from (
                 left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = p.id_point
                 left join eqm_tree_tbl tr on tr.id = ttr.id_tree
                 left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                left join equip_lost h on h.id=p.code_eqp and h.installation=p.id_point and h.type_eqp in(6,7) and rem=$res
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17)  -- and p.loss_power=1  -- and  p.type_eqp<>2
                 ) r
@@ -6125,7 +6127,8 @@ select * from (
                122878,123103,123108,123124,124528,124540,143928,146434,146469,146804,146888,
                148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
                143002,144466,148340,117581,117586,118341)  else 1=1 end 
-    	       ORDER BY 6";
+    	       ORDER BY 6
+";
        else
            $sql=" select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
         select DISTINCT on(p.code_eqp) 
@@ -6539,8 +6542,10 @@ select * from (
 
 //  New query
             if($res==1 || $res==3)
-              $sql="select * from (
-            select p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+              $sql="
+select case when topology is null then pnt1 else topology::int end as pnt,* from (
+            select h.topology,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp,
+             RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -6599,14 +6604,15 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 left join sap_transf as v on (v.id::int=eqk.id and v.kod_res=$res)
                 left join eqm_equipment_tbl as eq on (eq.id=p.code_eqp and eq.type_eqp=2 and eq.is_owner=1)
+                left join equip_lost h on h.id=p.code_eqp and h.installation=p.id_point and h.type_eqp in(2) and rem=$res
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) 
                  order by 4) r
-                 where  case when '$res'='4' then code_eqp not in(118478,118479,149671,149672)  else 1=1 end
-                and  case when '$res'='5' then code_eqp not in(106232,116145)  else 1=1 end
-              and  case when '$res'='1' then code_eqp not in(118347,118519,117601,120638,120634,
+                 where  
+                case when '$res'='1' then code_eqp not in(118347,118519,117601,120638,120634,
               120930,120875,120884,121363,121384,121422,121444,121735,121796,123227,117587)  else 1=1 end
-	       order by 1 ";
+	       order by 1
+ ";
             else
                 $sql="select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
                  select get_topology(p.code_eqp,p.id_point,2,$res) as pnt2,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp,
@@ -10240,7 +10246,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         $data_d = data_from_server($sql_d, $res, $vid);
         $date_ab = $data_d[0]['mmgg_current'];
         // Главный запрос со всеми необходимыми данными
-        $sql ="select * from
+        $sql_earlier ="select * from
         (select distinct m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then
     (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
@@ -10326,7 +10332,7 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
 order by tzap
     --limit 3";
 
-        $sql_new = "
+        $sql = "
 select SERNR2 as sernr,* from 
 (select distinct trim(eq.num_eqp) as SERNR2,m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
