@@ -1,0 +1,1 @@
+Yii::$app->db_pg_zv_energo->createCommand("INSERT  INTO sap_err VALUES('DEVICE','04_C02P_6�044491','Отсутствие структуры',2)")->execute();

@@ -6610,7 +6610,8 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                  order by 4) r
                  where  
                 case when '$res'='1' then code_eqp not in(118347,118519,117601,120638,120634,
-              120930,120875,120884,121363,121384,121422,121444,121735,121796,123227,117587)  else 1=1 end
+              120930,120875,120884,121363,121384,121422,121444,121735,121796,123227,117587,138263,
+              138286,158826,139015,139775,149614,153875,153537,153824,153971,153827)  else 1=1 end
 	       order by 1
  ";
             else
@@ -10571,7 +10572,7 @@ order by tzap
                 $i++;
                 if ($i > 1) {
                     $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
-                    $sql = "select $all from $table_struct where oldkey='$old_key'";
+                    $sql = "select distinct $all from $table_struct where oldkey='$old_key'";
                     $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
                     foreach ($cur_data as $d1) {
                         $d1 = array_map('trim', $d1);

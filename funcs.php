@@ -2237,11 +2237,15 @@ function f_device($n_struct,$rem,$v,$vid) {
 
         $oldkey = $oldkey_const . $sernr;
 
+    //debug($oldkey);
+
     if($n_struct=='EQUI')
         $z = "insert into sap_equi(oldkey,dat_type,begru,eqart,baujj,datab,swerk,stort,kostl,bukrs,
                                     matnr,sernr,zz_pernr,cert_date)
                     values('$oldkey','$n_struct','$begru','$eqart','$baujj','$datab','$swerk','$stort',
                             '$kostl','$bukrs','$matnr','$sernr','$zz_pernr','$cert_date')";
+
+
     if($n_struct=='EGERS')
         $z = "insert into sap_egers(oldkey,dat_type,bgljahr)
                     values('$oldkey','$n_struct','$bgljahr')";
