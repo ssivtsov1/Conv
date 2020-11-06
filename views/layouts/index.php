@@ -306,6 +306,7 @@ AppAsset::register($this);
                                         'items' =>
                                             [
                                                 ['label' => 'Работа с XML', 'url' => ['/site/exml']],
+                                                ['label' => 'Перестановки', 'url' => ['/site/perebor']],
                                             ]
                                     ],
                                 ]

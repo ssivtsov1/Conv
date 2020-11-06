@@ -2235,7 +2235,7 @@ function f_device($n_struct,$rem,$v,$vid) {
     if($pp>0)
         $r=substr($r,$pp+1);
 
-        $oldkey = $oldkey_const . $r;
+        $oldkey = $oldkey_const . $sernr;
 
     if($n_struct=='EQUI')
         $z = "insert into sap_equi(oldkey,dat_type,begru,eqart,baujj,datab,swerk,stort,kostl,bukrs,
@@ -6143,4 +6143,38 @@ function posti($i){
         $i = $i.'0';
     }
     return $i;
+}
+
+// Размещения с повторениями
+function perebor($s1,$s2,$n) {
+    if($n==strlen($s2)) {
+        echo($s1);
+        echo('<br>');
+        return;
+    }
+    for($i=1;$i<strlen($s1);$i++) {
+        $s1[$n+1]=$s1[$i];
+        perebor($s1,$s2,$n+1);
+    }
+
+}
+// Перестановки
+function AllPermutations($InArray, $InProcessedArray = array())
+{
+    $ReturnArray = array();
+    foreach($InArray as $Key=>$value)
+    {
+        $CopyArray = $InProcessedArray;
+        $CopyArray[$Key] = $value;
+        $TempArray = array_diff_key($InArray, $CopyArray);
+        if (count($TempArray) == 0)
+        {
+            $ReturnArray[] = $CopyArray;
+        }
+        else
+        {
+            $ReturnArray = array_merge($ReturnArray, AllPermutations($TempArray, $CopyArray));
+        }
+    }
+    return $ReturnArray;
 }

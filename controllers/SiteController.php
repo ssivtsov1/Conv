@@ -6682,9 +6682,6 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
     and  case when '$res'='5' then code_eqp not in(106232,116145)  else 1=1 end
 	       order by 1 ";
 
-
-
-
         if ($helper == 1)
             $sql = $sql . ' LIMIT 1';
 
@@ -10378,6 +10375,7 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
 	     and  c.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
+	    -- and ($res=4 and eq.id not in(120748,120744))
    
 union
                 
@@ -10416,16 +10414,20 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                     where  (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0 
                  and  cl1.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-                 '10999999','11000000','19999369','50999999','1000000','1000001')) ee
+                 '10999999','11000000','19999369','50999999','1000000','1000001')
+                 -- and ($res=4 and eq.id not in(120747,120746,120742,120743))
+                 ) ee
                   ) x
 order by tzap 
 
 --limit 3
 ";
+        // and ($res=4 and eq.id not in(120748,120744))
+//        and eq.id not in(120747,120746,120742,120743)
 
 if($res==4)
-        $sql = "select * from 
-(select distinct m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
+        $sql = "select SERNR2 as sernr,* from 
+(select distinct trim(eq.num_eqp) as SERNR2,m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
@@ -10434,7 +10436,7 @@ if($res==4)
                  '' as EQKTX,
                 case when m.dt_control is null then '2005' else substring(m.dt_control::varchar,1,4)  end as bgljahr,
                 case  when coalesce(eq.is_owner,0) = 0 then 'CK01230370' else '' end as KOSTL, 
-                 trim(eq.num_eqp) as SERNR,
+                 trim(eq.num_eqp) as SERNR1,
                  case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
                   substring(replace(m.dt_control::varchar,'-',''),1,8) as CERT_DATE,
                   upper(sd.sap_meter_name) as matnr,
@@ -10469,10 +10471,11 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
 	     and  c.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
-	    and eq.id not in(120748,120744)
-	      
-union                
-
+	     and  eq.id not in(120748,120744)
+   
+union
+                
+select SPLIT_PART(id,'_',2) as sernr2,* from (
 select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
@@ -10484,7 +10487,7 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                  --trim(eq.num_eqp) as SERNR,
                  --get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
                  -- substr(cyrillic_transliterate(gr.code_t_new::text),8) as sernr,
-               f_get_sn(cyrillic_transliterate(gr.code_t_new::text),1) as sernr,
+               f_get_sn(cyrillic_transliterate(gr.code_t_new::text),1) as sernr1,
                   case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
                  c.date_check::text as CERT_DATE,
                   coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
@@ -10507,10 +10510,11 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                     where  (cl1.code>999 or  cl1.code=900) AND coalesce(cl1.idk_work,0)<>0 
                  and  cl1.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-                 '10999999','11000000','19999369','50999999','1000000','1000001') 
-                 and eq.id not in(120747,120746,120742,120743) ) x
-order by tzap   
---limit 3
+                 '10999999','11000000','19999369','50999999','1000000','1000001')
+                  and eq.id not in(120747,120746,120742,120743)
+                 ) ee
+                  ) x
+order by tzap 
 ";
 
         // Запрос для получения списка необходимых
@@ -16853,6 +16857,18 @@ where id1 is not null
         return $this->render('res_task', ['r' => $r, 'header' => $header]);
 
     }
+
+    // Размещения
+    public function actionPerebor()
+    {
+//        $s1='....';
+//        $s2='1234';
+//        perebor($s2,$s1,0);
+        $a = (AllPermutations(array('1', '2', '0','0','0','0','0','0')));
+        debug($a);
+
+    }
+
 
     // Проверка фактов [пром.]
     public function actionCheck_facts()
