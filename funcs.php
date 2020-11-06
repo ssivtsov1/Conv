@@ -2235,7 +2235,10 @@ function f_device($n_struct,$rem,$v,$vid) {
     if($pp>0)
         $r=substr($r,$pp+1);
 
+    if($pp>0)
         $oldkey = $oldkey_const . $sernr;
+    else
+        $oldkey = $oldkey_const . $r;
 
     //debug($oldkey);
 
@@ -2244,7 +2247,6 @@ function f_device($n_struct,$rem,$v,$vid) {
                                     matnr,sernr,zz_pernr,cert_date)
                     values('$oldkey','$n_struct','$begru','$eqart','$baujj','$datab','$swerk','$stort',
                             '$kostl','$bukrs','$matnr','$sernr','$zz_pernr','$cert_date')";
-
 
     if($n_struct=='EGERS')
         $z = "insert into sap_egers(oldkey,dat_type,bgljahr)
@@ -2256,7 +2258,6 @@ function f_device($n_struct,$rem,$v,$vid) {
 
     exec_on_server($z,(int) $rem,$vid);
 }
-
 
 // Выгрузка по premise юридические
 function f_premise($n_struct,$rem,$v) {
