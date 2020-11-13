@@ -2587,13 +2587,14 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
     $oldkey = $oldkey_const . $r;
     $anlage = $oldkey_const . $v['id_point'];
     $let = $v['id_type_eqp'];
+
     if($let==2) {
 
         if ($n_struct == 'AUTO')
             $z = "insert into sap_auto_ztransf(oldkey,dat_type,anlage,frdat,frtim,trcat,trtyp,trsta,
                                     xnegp,text,element_id)
                     values('$oldkey','$n_struct','$anlage','$datab','000000','$swathe','$id_sap',
-                            'L','~','$text','$pnt')";
+                            'L','$xnegp','$text','$pnt')";
 //        debug($z);
 //        return;
 
@@ -3133,12 +3134,62 @@ function f_move_in($rem,$v) {
     // Подмена oldkey для сетевых потребителей
     if($rem1==2){
         if( $v['id']==11305) $vkonto='04_C01P_400000';
+        if( $v['id']==11801) $vkonto='04_C01P_14044';
+        if( $v['id']==11485) $vkonto='04_C01P_12237';
+        if( $v['id']==11833) $vkonto='04_C01P_14241';
+        if( $v['id']==10902) $vkonto='04_C01P_14226';
+        if( $v['id']==10634) $vkonto='04_C01P_11435';
+        if( $v['id']==110446) $vkonto='04_C01P_12135';
+        if( $v['id']==110450) $vkonto='04_C01P_14297';
+        if( $v['id']==110432) $vkonto='04_C01P_10810';
     }
+
     if($rem1==4){
         if($v['id']==11734) $vkonto='04_C01P_300000';
+        if($v['id']==11206) $vkonto='04_C01P_14297';
+        if($v['id']==11200) $vkonto='04_C01P_12135';
+        if($v['id']==11215) $vkonto='04_C01P_12237';
+        if($v['id']==11189) $vkonto='04_C01P_14241';
+        if($v['id']==11142) $vkonto='04_C01P_14226';
     }
+
     if($rem1==5){
         if($v['id']==10876) $vkonto='04_C01P_200000';
+        if($v['id']==10763) $vkonto='04_C01P_14297';
+        if($v['id']==10816) $vkonto='04_C01P_12135';
+        if($v['id']==10877) $vkonto='04_C01P_12237';
+        if($v['id']==10324) $vkonto='04_C01P_14226';
+    }
+
+    if($rem1==3){
+        if($v['id']==11201) $vkonto='04_C01P_12135';
+        if($v['id']==10786) $vkonto='04_C01P_12237';
+        if($v['id']==11173) $vkonto='04_C01P_14297';
+        if($v['id']==11246) $vkonto='04_C01P_11435';
+        if($v['id']==10696) $vkonto='04_C01P_10810';
+        if($v['id']==11096) $vkonto='04_C01P_14241';
+        if($v['id']==10988) $vkonto='04_C01P_400000';
+        if($v['id']==11195) $vkonto='04_C01P_14226';
+        if($v['id']==11296) $vkonto='04_C01P_200000';
+    }
+
+    if($rem1==6){
+        if($v['id']==10679) $vkonto='04_C01P_14297';
+        if($v['id']==10675) $vkonto='04_C01P_12237';
+        if($v['id']==10666) $vkonto='04_C01P_12135';
+        if($v['id']==10370) $vkonto='04_C01P_14241';
+    }
+    if($rem1==8){
+        if($v['id']==15880) $vkonto='04_C01P_12135';
+        if($v['id']==10654) $vkonto='04_C01P_14226';
+        if($v['id']==10940) $vkonto='04_C01P_14241';
+    }
+    if($rem1==7){
+        if($v['id']==11205) $vkonto='04_C01P_14297';
+        if($v['id']==10852) $vkonto='04_C01P_12237';
+        if($v['id']==10877) $vkonto='04_C01P_12135';
+        if($v['id']==10678) $vkonto='04_C01P_14226';
+        if($v['id']==10844) $vkonto='04_C01P_300000';
     }
 
     $ever=[];

@@ -1451,9 +1451,67 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
                 break;
         }
 
+//        debug($struct_data);
+//        return;
 
         foreach ($struct_data as $d) {
             $old_key = trim($d['oldkey']);
+            $code_id = trim(substr($old_key, 8));
+            // Пропускаем сетевых потребителей - их подаем только в Днепре
+            if($res==2) {
+                if ($code_id == '11485') continue;
+                if ($code_id == '11801') continue;
+                if ($code_id == '110446') continue;
+                if ($code_id == '110450') continue;
+                if ($code_id == '10634') continue;
+                if ($code_id == '110432') continue;
+                if ($code_id == '11833') continue;
+                if ($code_id == '10902') continue;
+            }
+           if($res==3) {
+               if ($code_id == '11096') continue;
+               if ($code_id == '11201') continue;
+               if ($code_id == '10746') continue;
+               if ($code_id == '10786') continue;
+               if ($code_id == '11173') continue;
+               if ($code_id == '11246') continue;
+               if ($code_id == '10988') continue;
+               if ($code_id == '11195') continue;
+               if ($code_id == '11296') continue;
+               if ($code_id == '10696') continue;
+           }
+            if($res==4) {
+                if ($code_id == '11200') continue;
+                if ($code_id == '11206') continue;
+                if ($code_id == '11215') continue;
+                if ($code_id == '11189') continue;
+                if ($code_id == '11142') continue;
+            }
+            if($res==5) {
+                if ($code_id == '10763') continue;
+                if ($code_id == '10816') continue;
+                if ($code_id == '10877') continue;
+                if ($code_id == '10324') continue;
+            }
+            if($res==6) {
+                if ($code_id == '10679') continue;
+                if ($code_id == '10675') continue;
+                if ($code_id == '10666') continue;
+                if ($code_id == '10370') continue;
+            }
+            if($res==7) {
+                if ($code_id == '10877') continue;
+                if ($code_id == '10852') continue;
+                if ($code_id == '11205') continue;
+                if ($code_id == '10678') continue;
+                if ($code_id == '10844') continue;
+            }
+            if($res==8) {
+                if ($code_id == '15880') continue;
+                if ($code_id == '10654') continue;
+                if ($code_id == '10940') continue;
+            }
+
             $d = array_map('trim', $d);
             $s = implode("\t", $d);
             $s = str_replace("~", "", $s);
@@ -1989,12 +2047,20 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 // Test
     public function actionTest_task()
     {
-//       for($i=1;$i<40;$i++)
-//       {
-        $s=posti('12,6');
-        echo $s - 1;
-        echo '<br>';
-//       }
+        $oldkey_const='04_C'.'02'.'P_';
+        $sernr='0595029';
+        $r='1029979';
+        $pp=strpos($r,'_');
+
+        if($pp>0)
+            $r=substr($r,$pp+1);
+
+        if($pp>0)
+            $oldkey = $oldkey_const . $sernr;
+        else
+            $oldkey = $oldkey_const . $r;
+
+        debug($oldkey);
     }
 
 // Тестовая функция для записи в файл
@@ -3147,7 +3213,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-','',$date_p);
-        $date_p = '20200930';  // Потом нужно закомментировать это
+//        $date_p = '20200930';  // Потом нужно закомментировать это
 
 //        Формируем данные по розподілу
         $sql_old="select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
@@ -9097,7 +9163,9 @@ select distinct
         left join sap_recode_place_plomb p1 on trim(p1.place_cek)=trim(p.object_name)
         left join spr_place_plomb p2 on trim(p2.name)=trim(p1.place_sap)
          inner join sap_const const on 1=1
-         left join (select oldkey,get_tu(extract_n(substr(oldkey,9,6))::integer) as id_tu,matnr,sernr from sap_equi) u on u.id_tu=eq.id
+         left join (select a.oldkey,case when length(substr(a.oldkey,9))=6 then substr(a.oldkey,9,6) else substr(a.oldkey,9,7) end as code,
+	a.matnr,a.sernr,get_tu(extract_n(case when length(substr(a.oldkey,9))=6 then substr(a.oldkey,9,6) else substr(a.oldkey,9,7) end)::integer) as id_tu 
+	from sap_equi a inner join sap_egerh b on trim(a.oldkey)=trim(b.oldkey) and trim(b.zwgruppe)<>'') u on u.id_tu=eq.id
          where (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
                  and  c.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
@@ -14017,9 +14085,72 @@ WHERE
                 break;
         }
 
+//        debug($struct_data);
+//        return;
+
 
         foreach ($struct_data as $d) {
             $old_key = trim($d['oldkey']);
+            $code_id = trim(substr($old_key, 8));
+
+            // Пропускаем сетевых потребителей - их подаем только в Днепре
+            if($res==2) {
+                if ($code_id == '11485') continue;
+                if ($code_id == '11801') continue;
+                if ($code_id == '110446') continue;
+                if ($code_id == '110450') continue;
+                if ($code_id == '10634') continue;
+                if ($code_id == '110432') continue;
+                if ($code_id == '11833') continue;
+                if ($code_id == '10902') continue;
+            }
+            if($res==3) {
+                if ($code_id == '11096') continue;
+                if ($code_id == '11201') continue;
+                if ($code_id == '10746') continue;
+                if ($code_id == '10786') continue;
+                if ($code_id == '11173') continue;
+                if ($code_id == '11246') continue;
+                if ($code_id == '10988') continue;
+                if ($code_id == '11195') continue;
+                if ($code_id == '11296') continue;
+                if ($code_id == '10696') continue;
+            }
+            if($res==4) {
+                if ($code_id == '11200') continue;
+                if ($code_id == '11206') continue;
+                if ($code_id == '11215') continue;
+                if ($code_id == '11189') continue;
+                if ($code_id == '11142') continue;
+            }
+            if($res==5) {
+                if ($code_id == '10763') continue;
+                if ($code_id == '10816') continue;
+                if ($code_id == '10877') continue;
+                if ($code_id == '10324') continue;
+            }
+            if($res==6) {
+                if ($code_id == '10679') continue;
+                if ($code_id == '10675') continue;
+                if ($code_id == '10666') continue;
+                if ($code_id == '10370') continue;
+            }
+            if($res==7) {
+                if ($code_id == '10877') continue;
+                if ($code_id == '10852') continue;
+                if ($code_id == '11205') continue;
+                if ($code_id == '10678') continue;
+                if ($code_id == '10844') continue;
+            }
+            if($res==8) {
+                if ($code_id == '15880') {
+                    continue;
+//                    debug('15880');
+                 }
+                if ($code_id == '10654') continue;
+                if ($code_id == '10940') continue;
+            }
+
             $d = array_map('trim', $d);
             $s = implode("\t", $d);
             $s = str_replace("~", "", $s);
