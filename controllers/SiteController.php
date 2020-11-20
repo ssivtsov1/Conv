@@ -2047,20 +2047,10 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 // Test
     public function actionTest_task()
     {
-        $oldkey_const='04_C'.'02'.'P_';
-        $sernr='0595029';
-        $r='1029979';
-        $pp=strpos($r,'_');
+       $mas = ['pole1' => [1,2,3],'pole2' => ['a','b','c'],'pole3' => [10,100,300]];
+       $r=a2sql('select pole1  from mas where pole1=2',$mas);
 
-        if($pp>0)
-            $r=substr($r,$pp+1);
-
-        if($pp>0)
-            $oldkey = $oldkey_const . $sernr;
-        else
-            $oldkey = $oldkey_const . $r;
-
-        debug($oldkey);
+        ///debug($r);
     }
 
 // Тестовая функция для записи в файл
@@ -3014,7 +3004,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                             $v2['pruefkla'] . "\n"));
                     }
 
-                    $sql_2 = "select distinct 
+                    $sql_2_old = "select distinct 
                 '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
                 'DI_GER' as struc,
                 case when grp.code_t_new_old is null then 
@@ -3044,6 +3034,39 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 where m.code_eqp= $id_eq and sti.id_comp is not null and grp.code_t_new is not null
                 -- order by grp.ord 
                 ";
+
+                    $sql_2 = " select DISTINCT on(dev.oldkey)
+                '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
+                'DI_GER' as struc,
+                case when grp.code_t_new_old is null then 
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text 
+                    --else  '04_C'||'08'||'P_'||extract_sn(cyrillic_transliterate(grp.code_t_new_old::text)) end as EQUNRNEU,
+                   else dev.oldkey end as EQUNRNEU,
+                '' as WANDNR,
+                '' as WANDNRE
+                from eqm_tree_tbl as tr 
+                join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
+                join eqm_equipment_tbl as eq on (ttr.code_eqp = eq.id) 
+                join eqm_meter_tbl as m on (m.code_eqp = eq.id) 
+                left join eqd_meter_energy_tbl as eqd on eqd.code_eqp = m.code_eqp
+                left join eqm_equipment_h as hm on (hm.id = eq.id) 
+                left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+                left join eqm_point_tbl as pp on (pp.code_eqp = mp.id_point ) 
+                left join ( select eq.id as id_comp,CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, tt3.code_eqp_e as id_area, 
+                ic.amperage_nom, ic.conversion , ic.type as tt_type,ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner --,
+                   from eqm_compensator_i_tbl as c 
+                        join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+                        join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+                        left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+                        left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+                        left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+                        left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+                        left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
+                        ) as sti on (sti.id_meter = eq.id) 
+                left join group_trans1 as grp on grp.id_meter=m.code_eqp
+                left join sap_equi dev on dev.id=grp.code_tt::int 
+                where m.code_eqp= $id_eq and sti.id_comp is not null and grp.code_t_new is not null";
+
                     $data_2 = data_from_server($sql_2, $res, $vid);
                     // Запись в файл структуры DI_GER
                     foreach ($data_2 as $v2) {
@@ -3213,7 +3236,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-','',$date_p);
-//        $date_p = '20200930';  // Потом нужно закомментировать это
+        $date_p = '20200930';  // Потом нужно закомментировать это
 
 //        Формируем данные по розподілу
         $sql_old="select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
@@ -3857,6 +3880,7 @@ and (trim(debet)<>'0.00')
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
+        $date_p = '20200930';  // Потом нужно закомментировать это
 
 //        Формируем данные по розподілу
         $sql = "
@@ -3872,11 +3896,11 @@ then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' e
  case when trim(kredit)<>'' then kredit else '' end as prepay
  from (
 select c1.* from (
-select b.partner_id as gpart,b.acc_id,'' as schet,a.*,const.ver,const.begru
+select b.partner_id as gpart,trim(b.acc_id) as acc_id,'' as schet,a.*,const.ver,const.begru
      from ost_detal_post as a 
        inner join sap_const const on 1=1
      --left join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
-     inner join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
+     inner join rekv_post1 b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
 ) c1
 ) c2
 order by 2
@@ -4511,7 +4535,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
             $code=$v['code'];
             $oldkey = $oldkey_const . $id;
             $oldkey1= '04_C'.$rem.'P_';
-            $sql_1="select  distinct  1 as ord,eq.id_point ,
+            $sql_1_old="select  distinct  1 as ord,eq.id_point ,
 'EDEVGR' as n_struct,
 case when substr(zz.clas,1,1)='J'  then '0002'  else '0003' end as devgrptyp,
 '$period'  as keydate, 
@@ -4581,6 +4605,80 @@ join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b,
                left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = sti.id_type_tr
                where eq.id_point = $id_eq and eq.code_t_new is not null
 order by sort,ord";
+
+            $sql_1="select  distinct  1 as ord,eq.id_point ,
+'EDEVGR' as n_struct,
+case when substr(zz.clas,1,1)='J'  then '0002'  else '0003' end as devgrptyp,
+'$period'  as keydate, 
+'' as dop,
+'1' as sort
+from group_trans1 as eq
+join ( select eq.num_eqp as num_comp , 
+    CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter
+      from eqm_compensator_i_tbl as c 
+      join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+      left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
+            select dt_b from eqm_equipment_h where id = eq.id
+            and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
+      join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+      left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+      left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+      left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+      left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+      left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
+      order by 1
+      ) as sti on (sti.id_meter = eq.id_meter)        
+left join
+            (select mt.id_meter, type_tr.group_ob as clas from
+            (select CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, ic.id as id_type_tr
+from eqm_compensator_i_tbl as c 
+join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+      left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+      left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+      left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+      left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+      left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
+) as mt
+           join sap_type_tr_i_tbl as type_tr on type_tr.id_type = mt.id_type_tr
+          -- join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = mt.id_type_tr
+                where type_tr.id_type is not null
+) as zz on zz.id_meter=sti.id_meter
+                where eq.id_point= $id_eq and eq.code_t_new is not null
+    
+union
+--eq.code_t_new
+select  distinct  min(eq.ord) as ord,eq.id_point,
+'DEVICE' as n_struct,
+-- '$oldkey1' || cyrillic_transliterate(extract_sn(eq.code_t_new_old)) as devgrptyp,
+dev.oldkey as devgrptyp,
+ '' as  keydate, 
+''  as dop,
+'2' as sort
+from group_trans1 as eq
+join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, 
+		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
+	       gr.id_area, ic.amperage_nom, ic.conversion , ic.type as tt_type,ic.id as id_type_tr, ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner 
+	    from eqm_compensator_i_tbl as c 
+	    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+	    left join eqm_equipment_h as hm on (hm.id = c.code_eqp) and hm.dt_b = (
+            select dt_b from eqm_equipment_h where id = eq.id
+            and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
+	    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+	    left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+	    left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+	    left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+	    left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+	    left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp ) 
+	    left join (select eq.id as id_area, eq.id_addres,  eq.name_eqp, ins.code_eqp from eqm_equipment_tbl as eq join eqm_compens_station_inst_tbl as ins on (ins.code_eqp_inst = eq.id) where eq.type_eqp = 11 order by ins.code_eqp ) as gr on (gr.code_eqp =  tt3.code_eqp_e) 
+	    order by 1
+	    ) as sti on (sti.id_meter = eq.id_meter::integer)
+            left join sap_type_tr_i_tbl as type_tr on type_tr.id_type = sti.id_type_tr
+            left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = sti.id_type_tr
+            left join sap_equi dev on dev.id=sti.id_comp
+                   where eq.id_point = $id_eq and eq.code_t_new is not null
+             group by 2,3,4,5,6,7 
+order by sort,devgrptyp";
 
             $data_1 = data_from_server($sql_1, $res, $vid);
 
@@ -4951,8 +5049,10 @@ case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (2
      when tgr.ident in('tgr5',' tgr8_62','tgr8_63') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '084'
      when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) in (1009,1017,1018,1019,1020,1021,1001)then '286'
      when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) =1010 then '288'
-     when tgr.ident in('tgr8_10','tgr8_30') then '298'
-     when tgr.ident in('tgr8_12','tgr8_22','tgr8_32','tgr8_4') then '300'
+     when tgr.ident in('tgr8_10','tgr8_30')  and p.voltage_min>=27.5 then '298'
+     when tgr.ident in('tgr8_10','tgr8_30')  and p.voltage_min<27.5 then '504'
+     when tgr.ident in('tgr8_12','tgr8_22','tgr8_32','tgr8_4') and p.voltage_min>=27.5 then '300'
+     when tgr.ident in('tgr8_12','tgr8_22','tgr8_32','tgr8_4') and p.voltage_min<27.5 then '506'
      when tgr.ident in('tgr7_1','tgr7_11','tgr7_21','tgr7_211','tgr7_21','tgr7_211') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218)then '352'
      when ((tgr.ident ~ 'tgr7_12') or (tgr.ident~ 'tgr7_22') or (tgr.ident= 'tgr7_13') or (tgr.ident = 'tgr7_23') or (tgr.ident= 'tgr8_101') or (tgr.ident = 'tgr8_61') ) and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '354'
 when tgr.ident in ('tgr7_511','tgr7_514','tgr7_5141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '384'
@@ -5081,8 +5181,10 @@ case when tgr.ident in('tgr1') and tcl.ident='tcl1'  and st.id_section not in (2
      when tgr.ident in('tgr5',' tgr8_62','tgr8_63') and tcl.ident='tcl2'  and st.id_section not in (208,218) and tar.id not in (900001,999999) then '084'
      when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) in (1009,1017,1018,1019,1020,1021,1001)then '286'
      when tgr.ident in('tgr8_32','tgr8_4','tgr8_10','tgr8_30') and coalesce(st.id_section,1009) =1010 then '288'
-     when tgr.ident in('tgr8_10','tgr8_30') then '298'
-     when tgr.ident in('tgr8_12','tgr8_22','tgr8_32','tgr8_4') then '300'
+     when tgr.ident in('tgr8_10','tgr8_30') and p.voltage_min>=27.5 then '298'
+     when tgr.ident in('tgr8_10','tgr8_30')  and p.voltage_min<27.5 then '504'
+     when tgr.ident in('tgr8_12','tgr8_22','tgr8_32','tgr8_4') and p.voltage_min>=27.5 then '300'
+     when tgr.ident in('tgr8_12','tgr8_22','tgr8_32','tgr8_4') and p.voltage_min<27.5 then '506'
      when tgr.ident in('tgr7_1','tgr7_11','tgr7_21','tgr7_211','tgr7_21','tgr7_211') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218)then '352'
      when ((tgr.ident ~ 'tgr7_12') or (tgr.ident~ 'tgr7_22') or (tgr.ident= 'tgr7_13') or (tgr.ident = 'tgr7_23') or (tgr.ident= 'tgr8_101') or (tgr.ident = 'tgr8_61') ) and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '354'
 when tgr.ident in ('tgr7_511','tgr7_514','tgr7_5141') and tcl.ident='tcl2' and c.idk_work <> 0  and st.id_section not in (208,218) then '384'
@@ -5560,8 +5662,12 @@ order by q.code_eqp
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
+//        $sql = "select b.oldkey as oldkey_acc,a.*,b.oldkey||'_PAY' as oldkey_pay from sap_payment_scheme a
+//                 right join sap_init_acc b on trim(a.vkont)=trim(b.vkona) ";
+
         $sql = "select b.oldkey as oldkey_acc,a.*,b.oldkey||'_PAY' as oldkey_pay from sap_payment_scheme a 
-                 right join sap_init_acc b on trim(a.vkont)=trim(b.vkona) ";
+                 right join sap_init_acc b on a.vkont::int=b.vkona::int 
+		          order by 1";
 
         if ($helper == 1)
             $sql = $sql . ' LIMIT 1';
@@ -10400,7 +10506,7 @@ order by tzap
 
         $sql = "
 select SERNR2 as sernr,* from 
-(select distinct trim(eq.num_eqp) as SERNR2,m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
+(select distinct trim(eq.num_eqp) as SERNR2,1 as ord,m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
@@ -10448,7 +10554,7 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
    
 union
                 
-select SPLIT_PART(id,'_',2) as sernr2,* from (
+select SPLIT_PART(id,'_',2) as sernr2,rank() over(partition by SPLIT_PART(id,'_',2) ORDER BY matnr DESC) as ord,* from (
 select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
@@ -10496,7 +10602,7 @@ order by tzap
 
 if($res==4)
         $sql = "select SERNR2 as sernr,* from 
-(select distinct trim(eq.num_eqp) as SERNR2,m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
+(select distinct trim(eq.num_eqp) as SERNR2,1 as ord,m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else '4001' end   EQART, 
@@ -10544,7 +10650,7 @@ case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' whe
    
 union
                 
-select SPLIT_PART(id,'_',2) as sernr2,* from (
+select SPLIT_PART(id,'_',2) as sernr2,rank() over(partition by SPLIT_PART(id,'_',2) ORDER BY matnr DESC) as ord,* from (
 select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_eqp,'' as sap_meter_id,c.code_eqp as OLDKEY,
                 'EQUI' as EQUI,
                 case when eq.is_owner = 1 then '4002' else case when ic.conversion=1 then  '4004' else '4006' end  end EQART,
@@ -10626,34 +10732,55 @@ order by tzap
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_$first_struct";
         $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
+        $a_mem=[];
+        $k=0;
         foreach ($struct_data as $d) {
             $old_key = trim($d['oldkey']);
+            $d = array_slice($d, 0, 15);
             $d = array_map('trim', $d);
             $s = implode("\t", $d);
             $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
-            fputs($f, $s);
-            fputs($f, "\n");
-            $i = 0;
-            foreach ($cnt as $v) {
-                $table_struct = 'sap_' . trim($v['dattype']);
-                $i++;
-                if ($i > 1) {
-                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
-                    $sql = "select distinct $all from $table_struct where oldkey='$old_key'";
-                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
-                    foreach ($cur_data as $d1) {
-                        $d1 = array_map('trim', $d1);
-                        $s1 = implode("\t", $d1);
-                        $s1 = str_replace("~", "", $s1);
-                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                        fputs($f, $s1);
-                        fputs($f, "\n");
-                    }
+            $a_mem[$k]=$s;
+            $flag_r=0;
+
+            for($j=0;$j<$k;$j++) {
+                $ss =  $a_mem[$j];
+                if(trim($ss)==trim($s)) {
+                    $flag_r=1; // Признак задвоения
+                    break;
                 }
             }
-            fputs($f, $old_key . "\t&ENDE");
-            fputs($f, "\n");
+            $k++;
+            if($flag_r==0) {
+                fputs($f, $s);
+                fputs($f, "\n");
+            }
+                $i = 0;
+                foreach ($cnt as $v) {
+                    $table_struct = 'sap_' . trim($v['dattype']);
+                    $i++;
+                    if ($i > 1) {
+                        $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
+                        $sql = "select distinct $all from $table_struct where oldkey='$old_key'";
+                        $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
+                        foreach ($cur_data as $d1) {
+                            $d1 = array_map('trim', $d1);
+                            $s1 = implode("\t", $d1);
+                            $s1 = str_replace("~", "", $s1);
+                            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                            if($flag_r==0) {
+                                fputs($f, $s1);
+                                fputs($f, "\n");
+                            }
+
+                    }
+                }
+           }
+            if($flag_r==0) {
+                fputs($f, $old_key . "\t&ENDE");
+                fputs($f, "\n");
+            }
         }
 
 
@@ -15124,8 +15251,8 @@ where id1 is not null
         $i = 0;
         foreach ($data as $w) {
             $di_ord[$i] = f_discenter($rem, $w);
-            if(trim($w['anlage'])!='')
-                $di_ust[$i] = f_discenter1($rem,$w);
+//            if(trim($w['anlage'])!='')
+//                $di_ust[$i] = f_discenter1($rem,$w);
             $i++;
         }
 

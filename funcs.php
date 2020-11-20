@@ -556,10 +556,16 @@ function a2sql($sql,$arr){
 // $data_orderby - массив данных для сортировки
 function proc_where($arr,$fields,$where,$orderby,$data_where,$data_orderby)
 {
+        debug($where);
+        debug($data_where);
+        return;
 
         $keys = array_keys($arr);
         $k = count($keys);
         $field = explode(',',$fields);
+//        debug($keys);
+//        return;
+
         for($i=0;$i<$k;$i++){
             
             if($fields<>'*'){
@@ -2209,6 +2215,7 @@ $excl[57]=200035460;
 function f_device($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'P_';
     $r = $v['id'];
+    $id= $v['oldkey'];
     $eqart=$v['eqart'];
     $baujj=$v['baujj'];
     if(((int) $baujj)==2020) $baujj='2019';
@@ -2236,17 +2243,20 @@ function f_device($n_struct,$rem,$v,$vid) {
         $r=substr($r,$pp+1);
 
     if($pp>0)
-        $oldkey = $oldkey_const . $sernr;
+        if($v['ord']==1)
+            $oldkey = $oldkey_const . $sernr;  // Если одинаковый сер. № и тип транса
+        else
+            $oldkey = $oldkey_const . $sernr.'_'.$v['ord'];  // Если одинаковый сер. № но  другой тип транса
     else
-        $oldkey = $oldkey_const . $r;
+        $oldkey = $oldkey_const . $r;  // for counter
 
     //debug($oldkey);
 
     if($n_struct=='EQUI')
         $z = "insert into sap_equi(oldkey,dat_type,begru,eqart,baujj,datab,swerk,stort,kostl,bukrs,
-                                    matnr,sernr,zz_pernr,cert_date)
+                                    matnr,sernr,zz_pernr,cert_date,id)
                     values('$oldkey','$n_struct','$begru','$eqart','$baujj','$datab','$swerk','$stort',
-                            '$kostl','$bukrs','$matnr','$sernr','$zz_pernr','$cert_date')";
+                            '$kostl','$bukrs','$matnr','$sernr','$zz_pernr','$cert_date',$id)";
 
     if($n_struct=='EGERS')
         $z = "insert into sap_egers(oldkey,dat_type,bgljahr)
@@ -3548,6 +3558,7 @@ function f_zpay_ca($rem,$v) {
     $zpay[0]=$oldkey;     // oldkey
     $zpay[1]='AUTO';
     $zpay[2]=$vkont;     // Account`s reference
+
     $zpay[3]=$v['day1'];
     $zpay[4]=$v['perc1'];
     $zpay[5]=$v['day2'];
@@ -3560,6 +3571,13 @@ function f_zpay_ca($rem,$v) {
     $zpay[12]=$v['perc5'];
     $zpay[13]=$v['TYPE'];
     if(empty($zpay[13]) || is_null($zpay[13]))  $zpay[13]='0';
+
+//    if(trim($v['kzabsver'])=='5' && is_null($v['vkont'])) {
+//        $zpay[3] = '0';
+//        $zpay[4] = '0';
+//        $zpay[13]='1';
+//    }
+
     return $zpay;
 }
 
