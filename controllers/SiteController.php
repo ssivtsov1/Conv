@@ -3236,7 +3236,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-','',$date_p);
-        $date_p = '20200930';  // Потом нужно закомментировать это
+//        $date_p = '20200930';  // Потом нужно закомментировать это
 
 //        Формируем данные по розподілу
         $sql_old="select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
@@ -3900,7 +3900,7 @@ select b.partner_id as gpart,trim(b.acc_id) as acc_id,'' as schet,a.*,const.ver,
      from ost_detal_post as a 
        inner join sap_const const on 1=1
      --left join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
-     inner join rekv_post1 b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
+     inner join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
 ) c1
 ) c2
 order by 2
@@ -6787,7 +6787,7 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 case when '$res'='1' then code_eqp not in(118347,118519,117601,120638,120634,
               120930,120875,120884,121363,121384,121422,121444,121735,121796,123227,117587,138263,
               138286,158826,139015,139775,149614,153875,153537,153824,153971,153827,
-              132803,132806,155666,153599,154276,154257,122507,118596
+              132803,132806,155666,153599,154276,154257,122507,118596,149671,149672
 
 )  else 1=1 end
 	       order by 1
@@ -13015,7 +13015,7 @@ left join (select code_eqp, trim(sum(e.name||','),',') as energy from eqd_point_
 left join eqm_equipment_tbl q1 
 on q.zz_nametu::text=q1.name_eqp::text and substr(q1.num_eqp::text,1,3)='62Z'
 left join eqm_area_tbl ar on ar.code_eqp=q1.id
-left join sap_evbsd x on substr(x.haus,9)::integer=q.id_cl
+left join sap_evbsd x on substr(x.haus,9)::integer=q.id_cl and (x.haus is not null and x.haus<>'') 
 left join clm_client_tbl as cc on cc.id = q.id_cl
 left join 
 (select u.id_client,a.id from eqm_equipment_tbl a
@@ -13027,7 +13027,7 @@ left join
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
 where SPEBENE::text<>'' and q1.num_eqp is not null) qqq
 left join tarif_sap_energo u on trim(u.name)=trim(qqq.vid_trf)
-left join sap_evbsd yy on substr(yy.haus,9)::integer=qqq.id_potr
+left join sap_evbsd yy on substr(yy.haus,9)::integer=qqq.id_potr and (yy.haus is not null and yy.haus<>'') 
 left join clm_client_tbl www on www.id=qqq.id_potr
 inner join sap_const const on 1=1            
 ) x left join 
