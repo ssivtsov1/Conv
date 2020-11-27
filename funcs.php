@@ -3143,63 +3143,63 @@ function f_move_in($rem,$v) {
     $rem1=(int) $rem;
     // Подмена oldkey для сетевых потребителей
     if($rem1==2){
-        if( $v['id']==11305) $vkonto='04_C01P_400000';
-        if( $v['id']==11801) $vkonto='04_C01P_14044';
-        if( $v['id']==11485) $vkonto='04_C01P_12237';
-        if( $v['id']==11833) $vkonto='04_C01P_14241';
-        if( $v['id']==10902) $vkonto='04_C01P_14226';
-        if( $v['id']==10634) $vkonto='04_C01P_11435';
-        if( $v['id']==110446) $vkonto='04_C01P_12135';
-        if( $v['id']==110450) $vkonto='04_C01P_14297';
-        if( $v['id']==110432) $vkonto='04_C01P_10810';
+        if( $v['id_potr']==11305) $vkonto='04_C01P_400000';
+        if( $v['id_potr']==11801) $vkonto='04_C01P_14044';
+        if( $v['id_potr']==11485) $vkonto='04_C01P_12237';
+        if( $v['id_potr']==11833) $vkonto='04_C01P_14226';
+        if( $v['id_potr']==10902) $vkonto='04_C01P_14241';
+        if( $v['id_potr']==10634) $vkonto='04_C01P_11435';
+        if( $v['id_potr']==110446) $vkonto='04_C01P_12135';
+        if( $v['id_potr']==110450) $vkonto='04_C01P_14297';
+        if( $v['id_potr']==110432) $vkonto='04_C01P_10810';
     }
 
     if($rem1==4){
-        if($v['id']==11734) $vkonto='04_C01P_300000';
-        if($v['id']==11206) $vkonto='04_C01P_14297';
-        if($v['id']==11200) $vkonto='04_C01P_12135';
-        if($v['id']==11215) $vkonto='04_C01P_12237';
-        if($v['id']==11189) $vkonto='04_C01P_14241';
-        if($v['id']==11142) $vkonto='04_C01P_14226';
+        if($v['id_potr']==11734) $vkonto='04_C01P_300000';
+        if($v['id_potr']==11206) $vkonto='04_C01P_14297';
+        if($v['id_potr']==11200) $vkonto='04_C01P_12135';
+        if($v['id_potr']==11215) $vkonto='04_C01P_12237';
+        if($v['id_potr']==11189) $vkonto='04_C01P_14241';
+        if($v['id_potr']==11142) $vkonto='04_C01P_14226';
     }
 
     if($rem1==5){
-        if($v['id']==10876) $vkonto='04_C01P_200000';
-        if($v['id']==10763) $vkonto='04_C01P_14297';
-        if($v['id']==10816) $vkonto='04_C01P_12135';
-        if($v['id']==10877) $vkonto='04_C01P_12237';
-        if($v['id']==10324) $vkonto='04_C01P_14226';
+        if($v['id_potr']==10876) $vkonto='04_C01P_200000';
+        if($v['id_potr']==10763) $vkonto='04_C01P_14297';
+        if($v['id_potr']==10816) $vkonto='04_C01P_12135';
+        if($v['id_potr']==10877) $vkonto='04_C01P_12237';
+        if($v['id_potr']==10324) $vkonto='04_C01P_14226';
     }
 
     if($rem1==3){
-        if($v['id']==11201) $vkonto='04_C01P_12135';
-        if($v['id']==10786) $vkonto='04_C01P_12237';
-        if($v['id']==11173) $vkonto='04_C01P_14297';
-        if($v['id']==11246) $vkonto='04_C01P_11435';
-        if($v['id']==10696) $vkonto='04_C01P_10810';
-        if($v['id']==11096) $vkonto='04_C01P_14241';
-        if($v['id']==10988) $vkonto='04_C01P_400000';
-        if($v['id']==11195) $vkonto='04_C01P_14226';
-        if($v['id']==11296) $vkonto='04_C01P_200000';
+        if($v['id_potr']==11201) $vkonto='04_C01P_12135';
+        if($v['id_potr']==10786) $vkonto='04_C01P_12237';
+        if($v['id_potr']==11173) $vkonto='04_C01P_14297';
+        if($v['id_potr']==11246) $vkonto='04_C01P_11435';
+        if($v['id_potr']==10696) $vkonto='04_C01P_10810';
+        if($v['id_potr']==11096) $vkonto='04_C01P_14241';
+        if($v['id_potr']==10988) $vkonto='04_C01P_400000';
+        if($v['id_potr']==11195) $vkonto='04_C01P_14226';
+        if($v['id_potr']==11296) $vkonto='04_C01P_200000';
     }
 
     if($rem1==6){
-        if($v['id']==10679) $vkonto='04_C01P_14297';
-        if($v['id']==10675) $vkonto='04_C01P_12237';
-        if($v['id']==10666) $vkonto='04_C01P_12135';
-        if($v['id']==10370) $vkonto='04_C01P_14241';
+        if($v['id_potr']==10679) $vkonto='04_C01P_14297';
+        if($v['id_potr']==10675) $vkonto='04_C01P_12237';
+        if($v['id_potr']==10666) $vkonto='04_C01P_12135';
+        if($v['id_potr']==10370) $vkonto='04_C01P_14241';
     }
     if($rem1==8){
-        if($v['id']==15880) $vkonto='04_C01P_12135';
-        if($v['id']==10654) $vkonto='04_C01P_14226';
-        if($v['id']==10940) $vkonto='04_C01P_14241';
+        if($v['id_potr']==15880) $vkonto='04_C01P_12135';
+        if($v['id_potr']==10654) $vkonto='04_C01P_14226';
+        if($v['id_potr']==10940) $vkonto='04_C01P_14241';
     }
     if($rem1==7){
-        if($v['id']==11205) $vkonto='04_C01P_14297';
-        if($v['id']==10852) $vkonto='04_C01P_12237';
-        if($v['id']==10877) $vkonto='04_C01P_12135';
-        if($v['id']==10678) $vkonto='04_C01P_14226';
-        if($v['id']==10844) $vkonto='04_C01P_300000';
+        if($v['id_potr']==11205) $vkonto='04_C01P_14297';
+        if($v['id_potr']==10852) $vkonto='04_C01P_12237';
+        if($v['id_potr']==10877) $vkonto='04_C01P_12135';
+        if($v['id_potr']==10678) $vkonto='04_C01P_14226';
+        if($v['id_potr']==10844) $vkonto='04_C01P_300000';
     }
 
     $ever=[];
@@ -3557,6 +3557,69 @@ function f_zpay_ca($rem,$v) {
     $vkont =  $v['oldkey_acc'];
     $zpay[0]=$oldkey;     // oldkey
     $zpay[1]='AUTO';
+    $code=substr($vkont,8);
+    $rem1=(int) $rem;
+    // Подмена oldkey для сетевых потребителей
+    if($rem1==2){
+        if( $code==11305) $vkont='04_C01P_400000';
+        if( $code==11801) $vkont='04_C01P_14044';
+        if( $code==11485) $vkont='04_C01P_12237';
+        if( $code==11833) $vkont='04_C01P_14226';
+        if( $code==10902) $vkont='04_C01P_14241';
+        if( $code==10634) $vkont='04_C01P_11435';
+        if( $code==110446) $vkont='04_C01P_12135';
+        if( $code==110450) $vkont='04_C01P_14297';
+        if( $code==110432) $vkont='04_C01P_10810';
+    }
+
+    if($rem1==4){
+        if($code==11734) $vkont='04_C01P_300000';
+        if($code==11206) $vkont='04_C01P_14297';
+        if($code==11200) $vkont='04_C01P_12135';
+        if($code==11215) $vkont='04_C01P_12237';
+        if($code==11189) $vkont='04_C01P_14241';
+        if($code==11142) $vkont='04_C01P_14226';
+    }
+
+    if($rem1==5){
+        if($code==10876) $vkont='04_C01P_200000';
+        if($code==10763) $vkont='04_C01P_14297';
+        if($code==10816) $vkont='04_C01P_12135';
+        if($code==10877) $vkont='04_C01P_12237';
+        if($code==10324) $vkont='04_C01P_14226';
+    }
+
+    if($rem1==3){
+        if($code==11201) $vkont='04_C01P_12135';
+        if($code==10786) $vkont='04_C01P_12237';
+        if($code==11173) $vkont='04_C01P_14297';
+        if($code==11246) $vkont='04_C01P_11435';
+        if($code==10696) $vkont='04_C01P_10810';
+        if($code==11096) $vkont='04_C01P_14241';
+        if($code==10988) $vkont='04_C01P_400000';
+        if($code==11195) $vkont='04_C01P_14226';
+        if($code==11296) $vkont='04_C01P_200000';
+    }
+
+    if($rem1==6){
+        if($code==10679) $vkont='04_C01P_14297';
+        if($code==10675) $vkont='04_C01P_12237';
+        if($code==10666) $vkont='04_C01P_12135';
+        if($code==10370) $vkont='04_C01P_14241';
+    }
+    if($rem1==8){
+        if($code==15880) $vkont='04_C01P_12135';
+        if($code==10654) $vkont='04_C01P_14226';
+        if($code==10940) $vkont='04_C01P_14241';
+    }
+    if($rem1==7){
+        if($code==11205) $vkont='04_C01P_14297';
+        if($code==10852) $vkont='04_C01P_12237';
+        if($code==10877) $vkont='04_C01P_12135';
+        if($code==10678) $vkont='04_C01P_14226';
+        if($code==10844) $vkont='04_C01P_300000';
+    }
+
     $zpay[2]=$vkont;     // Account`s reference
 
     $zpay[3]=$v['day1'];

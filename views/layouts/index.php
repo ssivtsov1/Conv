@@ -307,6 +307,8 @@ AppAsset::register($this);
                                             [
                                                 ['label' => 'Работа с XML', 'url' => ['/site/exml']],
                                                 ['label' => 'Перестановки', 'url' => ['/site/perebor']],
+                                                ['label' => 'Импорт csv файлов на SQL Server', 'url' => ['/site/csv2sql']],
+                                                ['label' => 'INST_MGMT EN 57', 'url' => ['/site/form_en57']],
                                             ]
                                     ],
                                 ]

@@ -694,8 +694,8 @@ WHERE year_p=0 and year_q>0';
             $data[2] = str_replace("Р", "", $data[2]);
 
             $sql = "INSERT INTO ost_detal (contragent,dogovor,kredit,data_v_k,debet,data_v_d) VALUES(" .
-                '$$' . $data[1] . '$$' . "," . '$$' . $data[2] . '$$' . "," . '$$'.$data[3] . '$$' . "," . '$$' . $data[4] . '$$' . "," .
-                '$$' . $data[5] . '$$' .  "," . '$$' . $data[6] . '$$' .')';
+                '$$' . $data[1] . '$$' . "," . '$$' . $data[2] . '$$' . "," . '$$' . $data[3] . '$$' . "," . '$$' . $data[4] . '$$' . "," .
+                '$$' . $data[5] . '$$' . "," . '$$' . $data[6] . '$$' . ')';
 
             Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
 
@@ -720,8 +720,8 @@ WHERE year_p=0 and year_q>0';
             $data[5] = str_replace(",", ".", $data[5]);
 
             $sql = "INSERT INTO ost_detal (contragent,dogovor,kredit,data_v_k,debet,data_v_d) VALUES(" .
-                '$$' . $data[1] . '$$' . "," . '$$' . $data[2] . '$$' . "," . '$$'.$data[3] . '$$' . "," . '$$' . $data[4] . '$$' . "," .
-                '$$' . $data[5] . '$$' .  "," . '$$' . $data[6] . '$$' .')';
+                '$$' . $data[1] . '$$' . "," . '$$' . $data[2] . '$$' . "," . '$$' . $data[3] . '$$' . "," . '$$' . $data[4] . '$$' . "," .
+                '$$' . $data[5] . '$$' . "," . '$$' . $data[6] . '$$' . ')';
 
             Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
 
@@ -1458,7 +1458,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
             $old_key = trim($d['oldkey']);
             $code_id = trim(substr($old_key, 8));
             // Пропускаем сетевых потребителей - их подаем только в Днепре
-            if($res==2) {
+            if ($res == 2) {
                 if ($code_id == '11485') continue;
                 if ($code_id == '11801') continue;
                 if ($code_id == '110446') continue;
@@ -1468,45 +1468,45 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
                 if ($code_id == '11833') continue;
                 if ($code_id == '10902') continue;
             }
-           if($res==3) {
-               if ($code_id == '11096') continue;
-               if ($code_id == '11201') continue;
-               if ($code_id == '10746') continue;
-               if ($code_id == '10786') continue;
-               if ($code_id == '11173') continue;
-               if ($code_id == '11246') continue;
-               if ($code_id == '10988') continue;
-               if ($code_id == '11195') continue;
-               if ($code_id == '11296') continue;
-               if ($code_id == '10696') continue;
-           }
-            if($res==4) {
+            if ($res == 3) {
+                if ($code_id == '11096') continue;
+                if ($code_id == '11201') continue;
+                if ($code_id == '10746') continue;
+                if ($code_id == '10786') continue;
+                if ($code_id == '11173') continue;
+                if ($code_id == '11246') continue;
+                if ($code_id == '10988') continue;
+                if ($code_id == '11195') continue;
+                if ($code_id == '11296') continue;
+                if ($code_id == '10696') continue;
+            }
+            if ($res == 4) {
                 if ($code_id == '11200') continue;
                 if ($code_id == '11206') continue;
                 if ($code_id == '11215') continue;
                 if ($code_id == '11189') continue;
                 if ($code_id == '11142') continue;
             }
-            if($res==5) {
+            if ($res == 5) {
                 if ($code_id == '10763') continue;
                 if ($code_id == '10816') continue;
                 if ($code_id == '10877') continue;
                 if ($code_id == '10324') continue;
             }
-            if($res==6) {
+            if ($res == 6) {
                 if ($code_id == '10679') continue;
                 if ($code_id == '10675') continue;
                 if ($code_id == '10666') continue;
                 if ($code_id == '10370') continue;
             }
-            if($res==7) {
+            if ($res == 7) {
                 if ($code_id == '10877') continue;
                 if ($code_id == '10852') continue;
                 if ($code_id == '11205') continue;
                 if ($code_id == '10678') continue;
                 if ($code_id == '10844') continue;
             }
-            if($res==8) {
+            if ($res == 8) {
                 if ($code_id == '15880') continue;
                 if ($code_id == '10654') continue;
                 if ($code_id == '10940') continue;
@@ -1568,14 +1568,14 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
         }
 // Добавление в конец файла миграции сетевых потребителей
 //  только для Днепра
-if($res==1) {
-    $f_add = fopen('add_info.txt', 'r');
-    while (!feof($f_add)) {
-        $s = fgets($f_add);
-        fputs($f, $s);
-    }
-    fclose($f_add);
-}
+        if ($res == 1) {
+            $f_add = fopen('add_info.txt', 'r');
+            while (!feof($f_add)) {
+                $s = fgets($f_add);
+                fputs($f, $s);
+            }
+            fclose($f_add);
+        }
 
 // Проверка файла выгрузки
         $method = __FUNCTION__;
@@ -2047,8 +2047,8 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 // Test
     public function actionTest_task()
     {
-       $mas = ['pole1' => [1,2,3],'pole2' => ['a','b','c'],'pole3' => [10,100,300]];
-       $r=a2sql('select pole1  from mas where pole1=2',$mas);
+        $mas = ['pole1' => [1, 2, 3], 'pole2' => ['a', 'b', 'c'], 'pole3' => [10, 100, 300]];
+        $r = a2sql('select pole1  from mas where pole1=2', $mas);
 
         ///debug($r);
     }
@@ -3212,34 +3212,33 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
     // Формирование файла остатков по бухгалтерии DOCUMENT (юридические лица)
     public function actionSap_document($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p=" select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
-        $date_p = str_replace('-','',$date_p);
+        $date_p = str_replace('-', '', $date_p);
 //        $date_p = '20200930';  // Потом нужно закомментировать это
 
 //        Формируем данные по розподілу
-        $sql_old="select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
+        $sql_old = "select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
  --(replace(c2.date,'.','-')::date+interval '1 day')::date as faedn
  from (
 select replace(date,'.','_') as date1,row_number() over(partition by date,schet) as num,c1.* from (
@@ -3254,7 +3253,7 @@ select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.data_doc,' ',1) as date,
 left join sap_vkp c on c.oldkey=c2.gpart
       ";
 
-        $sql1="
+        $sql1 = "
 select *,case when substr(saldo1,1,2)='--' then substr(saldo1,3) else saldo1 end as saldo,
  case when substr(saldo1,1,2)='--' then '' else prepay1 end as prepay
  from (
@@ -3280,7 +3279,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
       ";
 
 
-        $sql="select *,case when substr(saldo1,1,2)='--' then substr(saldo1,3) else saldo1 end as saldo,
+        $sql = "select *,case when substr(saldo1,1,2)='--' then substr(saldo1,3) else saldo1 end as saldo,
  case when substr(saldo1,1,2)='--' then '' else prepay1 end as prepay,
  case when kofiz1 is null or trim(kofiz1)='' then net1.kofiz else kofiz1 end as kofiz 
  from (
@@ -3294,7 +3293,7 @@ then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' e
      select cp.* from (
         select c1.*,case when gpart1 is null or trim(gpart1)='' then '04_C'||'01'||'P_'||net.id else gpart1 end as gpart from (
         select '04_C'||'$rem'||'P_'||b.id as gpart1,split_part(a.dogovor,' ',1) as schet,a.*,const.ver,const.begru
-     from ost_detal as a 
+     from ost_detal22r as a 
        inner join sap_const const on 1=1
       left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
      where (dogovor like '%розподіл%'
@@ -3314,16 +3313,16 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
 //        debug($data);
 //        return;
 
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
 
 //        Формируем имя файла выгрузки
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
-        $j=0;
-        foreach($data as $v) {
+        $j = 0;
+        foreach ($data as $v) {
             $j++;
             $oldkey = trim($v['oldkey']);
             $date = date('Ymd', strtotime($v['date']));
@@ -3335,53 +3334,56 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
 //            debug($faedn);
 //            return;
 
-            if(!empty($v['date_s']))
+            if (!empty($v['date_s']))
                 $date = date('Ymd', strtotime($v['date_s']));
 
             $date_ = date('Y-m-d', strtotime($date));
             $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
 
-            $nds=round($v['saldo']/6,2);
-            $wo_nds=round($v['saldo']-$nds,2);
-            $prepay=$v['prepay'];
-            if($date>$date_p) $date=$date_p;
+            $nds = round($v['saldo'] / 6, 2);
+            $wo_nds = round($v['saldo'] - $nds, 2);
+            $prepay = $v['prepay'];
+            if ($date > $date_p) $date = $date_p;
 
-            if($v['saldo']>0)
-            {
-                if($v['kofiz']=='02' || $v['kofiz']=='06')
-                    $sch='3611310077';
-                if($v['kofiz']=='03')
-                    $sch='3611320077';
-
-                $sch_opk= '6410303177';
-                $cod_nds='VE';
-                $priz='D';
-
-            }
+            if (substr($v['saldo1'], 0, 2) == '--')
+                $param_count = '0020';
             else
-            {
-                if($v['kofiz']<>'03')
-                    $sch='6811310077';
-                else
-                    $sch='6811320077';
+                $param_count = '0010';
 
-                $cod_nds='UC';
+
+            if ($v['saldo'] > 0) {
+                if ($v['kofiz'] == '02' || $v['kofiz'] == '06')
+                    $sch = '3611310077';
+                if ($v['kofiz'] == '03')
+                    $sch = '3611320077';
+
+                $sch_opk = '6410303177';
+                $cod_nds = 'VE';
+                $priz = 'D';
+
+            } else {
+                if ($v['kofiz'] <> '03')
+                    $sch = '6811310077';
+                else
+                    $sch = '6811320077';
+
+                $cod_nds = 'UC';
                 $faedn = $date;
-                $priz='D';
+                $priz = 'D';
             }
 
 // KO block
             fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                 'KO' . "\t" .
-                'SL'  . "\t" .
-                $date  . "\t" .
+                'SL' . "\t" .
+                $date . "\t" .
                 $date_p . "\t"));
 
-            fwrite($f,  "\n");
+            fwrite($f, "\n");
 
 // OP block
-            if(empty($prepay) || is_null($prepay)) {
-                if($cod_nds<>'UC')
+            if (empty($prepay) || is_null($prepay)) {
+                if ($cod_nds <> 'UC')
                     fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                         'OP' . "\t" .
                         $v['begru'] . "\t" .
@@ -3389,7 +3391,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                         "\t" .
                         $v['gpart'] . "\t" .
                         '0108' . "\t" .
-                        '0010' . "\t" .
+                        $param_count . "\t" .
                         $v['kofiz'] . "\t" .
                         $sch . "\t" .
                         $cod_nds . "\t" .
@@ -3423,7 +3425,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                         "\t" .
                         $v['gpart'] . "\t" .
                         '0068' . "\t" .
-                        '0010' . "\t" .
+                        $param_count . "\t" .
                         $v['kofiz'] . "\t" .
                         $sch . "\t" .
                         $cod_nds . "\t" .
@@ -3452,10 +3454,9 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                     ));
 
 
-
                 fwrite($f, "\n");
 // OPK block
-                if( $cod_nds=='VE') {
+                if ($cod_nds == 'VE') {
                     fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                         'OPK' . "\t" .
                         '001' . "\t" .
@@ -3496,7 +3497,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
 
                     fwrite($f, "\n");
                 }
-                if( $cod_nds=='UC') {
+                if ($cod_nds == 'UC') {
                     fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                         'OPK' . "\t" .
                         '001' . "\t" .
@@ -3517,12 +3518,11 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
 
 
                 }
-            }
-            else{
-                if( $v['kofiz']<>'03')
-                    $sch='6811310077';
+            } else {
+                if ($v['kofiz'] <> '03')
+                    $sch = '6811310077';
                 else
-                    $sch='6811320077';
+                    $sch = '6811320077';
                 // предоплата розподіл
                 fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                     'OP' . "\t" .
@@ -3531,7 +3531,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                     "\t" .
                     $v['gpart'] . "\t" .
                     '0068' . "\t" .
-                    '0010' . "\t" .
+                    $param_count . "\t" .
                     $v['kofiz'] . "\t" .
                     $sch . "\t" .
                     'UC' . "\t" .
@@ -3565,8 +3565,8 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                     '001' . "\t" .
                     $v['begru'] . "\t" .
                     'INITIAL3' . "\t" .
-                    n2sap($v['saldo']*(-1)) . "\t" .
-                    n2sap($v['saldo']*(-1)) . "\t" .
+                    n2sap($v['saldo'] * (-1)) . "\t" .
+                    n2sap($v['saldo'] * (-1)) . "\t" .
                     "\t" .
                     "\t" .
                     "\t" .
@@ -3605,7 +3605,7 @@ const.ver,const.begru,def_bank_day(a.date_s,5) as date_sf
 left join sap_vkp c on c.oldkey=c2.gpart
       ";
 
-        $sql1="
+        $sql1 = "
 select *,def_bank_day(date_format(date,1)::date,5) as date_sf from (
 select c.kofiz_sd as kofiz, 
 gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_')||'_02' as oldkey,c2.*,
@@ -3615,14 +3615,13 @@ case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
  from (
 select c1.* from (
 select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,a.*,const.ver,const.begru
-     from ost_detal as a 
+     from ost_detal22 as a 
       inner join sap_const const on 1=1
       left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
      where (dogovor like '%перетоки%' 
      and substr(dogovor,1,2)='$rem') or ('$rem'='07' and substr(dogovor,1,1)='7' and dogovor like '%перетоки%')
      or ('$rem'='01' and substr(dogovor,1,2)='11' and dogovor like '%перетоки%') 
-     
-) c1
+ ) c1
 ) c2
 left join sap_vkp c on c.oldkey=c2.gpart
 ) r
@@ -3631,7 +3630,7 @@ where schet not in('070000112','050300005','010000673',
 and (trim(debet)<>'0.00')
  ";
 
- $data = data_from_server($sql1, $res, $vid);
+        $data = data_from_server($sql1, $res, $vid);
         $j = 0;
         foreach ($data as $v) {
             $j++;
@@ -3643,7 +3642,7 @@ and (trim(debet)<>'0.00')
             $date_sf = date('Ymd', strtotime($v['date_sf']));  // +5 bank day
 
 //                $date_ = date('Y-m-d', strtotime($date));
-            $faedn = str_replace('-','',$date_sf);
+            $faedn = str_replace('-', '', $date_sf);
 
             $nds = round($v['saldo'] / 6, 2);
             $wo_nds = round($v['saldo'] - $nds, 2);
@@ -4417,32 +4416,31 @@ left join sap_vkp c on c.oldkey=c2.gpart
 // Формирование файла группировки устройств DEVGRP (юридические лица)
     public function actionSap_devgrp($res)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
         $end = '&ENDE';
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 //   Дальше идет плагиат - взято из выгрузки Чернигова
-        $sql_p=" select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $period = $data_p[0]['mmgg'];  // Получаем текущий отчетный период
-        $period = str_replace('-','',$period);
+        $period = str_replace('-', '', $period);
 
-        $sql="select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
+        $sql = "select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
         from group_trans1 as eq
          join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, eq.name_eqp,
 		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
@@ -4476,8 +4474,8 @@ left join sap_vkp c on c.oldkey=c2.gpart
 	    '10999999','11000000','19999369','50999999','1000000','1000001')
             order by 5";
 
-        if ($res==4)
-        $sql="select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
+        if ($res == 4)
+            $sql = "select distinct 'DEVGRP' as name, c.id,c.code,e.name_eqp,eq.id_point as id_eq,const.ver,c.short_name
         from group_trans1 as eq
          join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b, eq.name_eqp,
 		CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, 
@@ -4517,25 +4515,25 @@ left join sap_vkp c on c.oldkey=c2.gpart
 
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
-        $fd=date('Ymd');
-        $ver=$data[0]['ver'];
+        $fd = date('Ymd');
+        $ver = $data[0]['ver'];
 //        Формируем имя файла выгрузки
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
-        $oldkey_const='04_C'.$rem.'B_';
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
+        $oldkey_const = '04_C' . $rem . 'B_';
 
         $fname1 = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '_ext.txt';
         $ff = fopen($fname1, 'w+');
 
-        foreach($data as $v) {
+        foreach ($data as $v) {
             $id_eq = $v['id_eq'];
             $id = $v['id'];
-            $short_name=$v['short_name'];
-            $code=$v['code'];
+            $short_name = $v['short_name'];
+            $code = $v['code'];
             $oldkey = $oldkey_const . $id;
-            $oldkey1= '04_C'.$rem.'P_';
-            $sql_1_old="select  distinct  1 as ord,eq.id_point ,
+            $oldkey1 = '04_C' . $rem . 'P_';
+            $sql_1_old = "select  distinct  1 as ord,eq.id_point ,
 'EDEVGR' as n_struct,
 case when substr(zz.clas,1,1)='J'  then '0002'  else '0003' end as devgrptyp,
 '$period'  as keydate, 
@@ -4606,7 +4604,7 @@ join ( select eq.id as id_comp,eq.num_eqp as num_comp , hm.dt_b,
                where eq.id_point = $id_eq and eq.code_t_new is not null
 order by sort,ord";
 
-            $sql_1="select  distinct  1 as ord,eq.id_point ,
+            $sql_1 = "select  distinct  1 as ord,eq.id_point ,
 'EDEVGR' as n_struct,
 case when substr(zz.clas,1,1)='J'  then '0002'  else '0003' end as devgrptyp,
 '$period'  as keydate, 
@@ -4686,27 +4684,28 @@ order by sort,devgrptyp";
 //            return;
 
             // Запись в файл структуры DI_INT
-            $oldkey2='';
+            $oldkey2 = '';
             foreach ($data_1 as $v1) {
-                $link_tr = str_replace(chr(13),'',$v1['devgrptyp']);
-                $link_tr = str_replace(chr(10),'',$v1['devgrptyp']);
+                $link_tr = str_replace(chr(13), '', $v1['devgrptyp']);
+                $link_tr = str_replace(chr(10), '', $v1['devgrptyp']);
                 $oldkey2 = $oldkey1 . $v1['id_point'];
-                fwrite($f, iconv("utf-8","windows-1251",$oldkey2."\t".
-                    $v1['n_struct']."\t".
-                    $link_tr."\t".
-                    $v1['keydate']."\n") );
+                fwrite($f, iconv("utf-8", "windows-1251", $oldkey2 . "\t" .
+                    $v1['n_struct'] . "\t" .
+                    $link_tr . "\t" .
+                    $v1['keydate'] . "\n"));
 
             }
-            if (trim($oldkey2)<>'')
-            { fwrite($f, $oldkey2."\t".
-                $end."\n");
+            if (trim($oldkey2) <> '') {
+                fwrite($f, $oldkey2 . "\t" .
+                    $end . "\n");
 
                 // Запись в _ext файл
-                fwrite($ff, iconv("utf-8","windows-1251", 'DEVGRP'."\t".
-                    $oldkey2."\t".
-                    $code."\t".
-                    $short_name."\n"
-                ) );}
+                fwrite($ff, iconv("utf-8", "windows-1251", 'DEVGRP' . "\t" .
+                    $oldkey2 . "\t" .
+                    $code . "\t" .
+                    $short_name . "\n"
+                ));
+            }
         }
 
 
@@ -5127,8 +5126,8 @@ where ar.code_eqp_inst is not null and yy.oldkey is not null
 order by q.code_eqp
 ";
 
-        if ($res==4)
-        $sql = "SELECT distinct q.code_eqp as id,ar.code_eqp_inst,yy.oldkey as vstelle,''::char(20) as vstelle1,'10' as sparte,
+        if ($res == 4)
+            $sql = "SELECT distinct q.code_eqp as id,ar.code_eqp_inst,yy.oldkey as vstelle,''::char(20) as vstelle1,'10' as sparte,
 const.ver,const.begru_all as begru,coalesce(eds.ed_sch,eds1.ed_sch) as ableinh,
 case when www.code=900  or (q.code_eqp=118522 and $res=5) or (q.code_eqp=120129 and $res=4) then 'CK_4HN2_01' else u.tarif_sap end as tarif_sap,
 q.* from (
@@ -5747,6 +5746,9 @@ order by q.code_eqp
 
         // Заполняем структуры
         $i = 0;
+//        debug($data);
+//        return;
+
         foreach ($data as $w) {
             $zsign[$i] = f_zpay_ca($rem, $w);
             $i++;
@@ -5785,7 +5787,7 @@ order by q.code_eqp
 
     }
 
-        // Формирование файла instlncha (субпотребители) - САП для юридических потребителей
+    // Формирование файла instlncha (субпотребители) - САП для юридических потребителей
     public function actionSap_instlncha($res)
     {
         $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
@@ -5814,8 +5816,6 @@ order by q.code_eqp
 //j.oldkey||'_'||row_number() OVER (partition BY j.oldkey,q.code_ust) as oldkey_m,
 //i.oldkey||'_'||row_number() OVER (partition BY i.oldkey) as oldkey_r,
 //j.vstelle as vstelle_m,j.spebene as spebene_m,j.anlart as anlart_m,
-
-
 
 
         $sql = "select q.*,'*' as div,i.*,
@@ -5890,10 +5890,10 @@ order by code_ust,lvl";
         //return;
         $j = 0;
         foreach ($data as $v) {
-            $ust1=$v['code_ust'];
+            $ust1 = $v['code_ust'];
             $kol++;
-            $i_status=0;
-            if($kol>=$q) $i_status=1;
+            $i_status = 0;
+            if ($kol >= $q) $i_status = 1;
 //            while($i_status==0) {
             if ($ust1 == $ust) {
                 $j++;
@@ -5921,28 +5921,28 @@ order by code_ust,lvl";
                     $instgrtype = '0002';
                     $highlevinst = '';
 
-                    $zsub[$i][0]=$oldkey;
-                    $zsub[$i][1]='DATA';
-                    $zsub[$i][2]=$vstelle;
-                    $zsub[$i][3]=$spebene;
-                    $zsub[$i][4]=$anlart;
-                    $zsub[$i][5]=$ablesartst;
-                    $zsub[$i][6]=$zz_nametu;
-                    $zsub[$i][7]=$zz_fider;
-                    $zsub[$i][8]=$ab;
-                    $zsub[$i][9]=$tariftyp;
-                    $zsub[$i][10]=$branche;
-                    $zsub[$i][11]=$aklasse;
-                    $zsub[$i][12]=$ableinh;
-                    $zsub[$i][13]=$maininst;
-                    $zsub[$i][14]=$instrole;
-                    $zsub[$i][15]=$instgrtype;
-                    $zsub[$i][16]=$highlevinst;
-                    $zsub[$i][17]=$zzcode4nkre;
-                    $zsub[$i][18]=$zzcode4nkre_dop;
-                    $zsub[$i][19]=$zzotherarea;
-                    $zsub[$i][20]=$begru;
-                    $zsub[$i][21]=$zz_eic;
+                    $zsub[$i][0] = $oldkey;
+                    $zsub[$i][1] = 'DATA';
+                    $zsub[$i][2] = $vstelle;
+                    $zsub[$i][3] = $spebene;
+                    $zsub[$i][4] = $anlart;
+                    $zsub[$i][5] = $ablesartst;
+                    $zsub[$i][6] = $zz_nametu;
+                    $zsub[$i][7] = $zz_fider;
+                    $zsub[$i][8] = $ab;
+                    $zsub[$i][9] = $tariftyp;
+                    $zsub[$i][10] = $branche;
+                    $zsub[$i][11] = $aklasse;
+                    $zsub[$i][12] = $ableinh;
+                    $zsub[$i][13] = $maininst;
+                    $zsub[$i][14] = $instrole;
+                    $zsub[$i][15] = $instgrtype;
+                    $zsub[$i][16] = $highlevinst;
+                    $zsub[$i][17] = $zzcode4nkre;
+                    $zsub[$i][18] = $zzcode4nkre_dop;
+                    $zsub[$i][19] = $zzotherarea;
+                    $zsub[$i][20] = $begru;
+                    $zsub[$i][21] = $zz_eic;
                     $i++;
                 }
                 // Запись информации по субпотребителю
@@ -5968,34 +5968,33 @@ order by code_ust,lvl";
                 $instgrtype = '';
                 $highlevinst = $v['oldkey_m'];
 
-                $zsub[$i][0]=$oldkey;
-                $zsub[$i][1]='DATA';
-                $zsub[$i][2]=$vstelle;
-                $zsub[$i][3]=$spebene;
-                $zsub[$i][4]=$anlart;
-                $zsub[$i][5]=$ablesartst;
-                $zsub[$i][6]=$zz_nametu;
-                $zsub[$i][7]=$zz_fider;
-                $zsub[$i][8]=$ab;
-                $zsub[$i][9]=$tariftyp;
-                $zsub[$i][10]=$branche;
-                $zsub[$i][11]=$aklasse;
-                $zsub[$i][12]=$ableinh;
-                $zsub[$i][13]=$maininst;
-                $zsub[$i][14]=$instrole;
-                $zsub[$i][15]=$instgrtype;
-                $zsub[$i][16]=$highlevinst;
-                $zsub[$i][17]=$zzcode4nkre;
-                $zsub[$i][18]=$zzcode4nkre_dop;
-                $zsub[$i][19]=$zzotherarea;
-                $zsub[$i][20]=$begru;
-                $zsub[$i][21]=$zz_eic;
+                $zsub[$i][0] = $oldkey;
+                $zsub[$i][1] = 'DATA';
+                $zsub[$i][2] = $vstelle;
+                $zsub[$i][3] = $spebene;
+                $zsub[$i][4] = $anlart;
+                $zsub[$i][5] = $ablesartst;
+                $zsub[$i][6] = $zz_nametu;
+                $zsub[$i][7] = $zz_fider;
+                $zsub[$i][8] = $ab;
+                $zsub[$i][9] = $tariftyp;
+                $zsub[$i][10] = $branche;
+                $zsub[$i][11] = $aklasse;
+                $zsub[$i][12] = $ableinh;
+                $zsub[$i][13] = $maininst;
+                $zsub[$i][14] = $instrole;
+                $zsub[$i][15] = $instgrtype;
+                $zsub[$i][16] = $highlevinst;
+                $zsub[$i][17] = $zzcode4nkre;
+                $zsub[$i][18] = $zzcode4nkre_dop;
+                $zsub[$i][19] = $zzotherarea;
+                $zsub[$i][20] = $begru;
+                $zsub[$i][21] = $zz_eic;
                 $i++;
-            }
-            else {
+            } else {
                 $ust = $ust1;
-                $i_status=1;
-                $j=1;
+                $i_status = 1;
+                $j = 1;
 
                 // Запись информации по главной установке
                 $oldkey = $v['oldkey_m'];
@@ -6020,28 +6019,28 @@ order by code_ust,lvl";
                 $instgrtype = '0002';
                 $highlevinst = '';
 
-                $zsub[$i][0]=$oldkey;
-                $zsub[$i][1]='DATA';
-                $zsub[$i][2]=$vstelle;
-                $zsub[$i][3]=$spebene;
-                $zsub[$i][4]=$anlart;
-                $zsub[$i][5]=$ablesartst;
-                $zsub[$i][6]=$zz_nametu;
-                $zsub[$i][7]=$zz_fider;
-                $zsub[$i][8]=$ab;
-                $zsub[$i][9]=$tariftyp;
-                $zsub[$i][10]=$branche;
-                $zsub[$i][11]=$aklasse;
-                $zsub[$i][12]=$ableinh;
-                $zsub[$i][13]=$maininst;
-                $zsub[$i][14]=$instrole;
-                $zsub[$i][15]=$instgrtype;
-                $zsub[$i][16]=$highlevinst;
-                $zsub[$i][17]=$zzcode4nkre;
-                $zsub[$i][18]=$zzcode4nkre_dop;
-                $zsub[$i][19]=$zzotherarea;
-                $zsub[$i][20]=$begru;
-                $zsub[$i][21]=$zz_eic;
+                $zsub[$i][0] = $oldkey;
+                $zsub[$i][1] = 'DATA';
+                $zsub[$i][2] = $vstelle;
+                $zsub[$i][3] = $spebene;
+                $zsub[$i][4] = $anlart;
+                $zsub[$i][5] = $ablesartst;
+                $zsub[$i][6] = $zz_nametu;
+                $zsub[$i][7] = $zz_fider;
+                $zsub[$i][8] = $ab;
+                $zsub[$i][9] = $tariftyp;
+                $zsub[$i][10] = $branche;
+                $zsub[$i][11] = $aklasse;
+                $zsub[$i][12] = $ableinh;
+                $zsub[$i][13] = $maininst;
+                $zsub[$i][14] = $instrole;
+                $zsub[$i][15] = $instgrtype;
+                $zsub[$i][16] = $highlevinst;
+                $zsub[$i][17] = $zzcode4nkre;
+                $zsub[$i][18] = $zzcode4nkre_dop;
+                $zsub[$i][19] = $zzotherarea;
+                $zsub[$i][20] = $begru;
+                $zsub[$i][21] = $zz_eic;
                 $i++;
 
                 // Запись информации по субпотребителю
@@ -6067,28 +6066,28 @@ order by code_ust,lvl";
                 $instgrtype = '';
                 $highlevinst = $v['oldkey_m'];
 
-                $zsub[$i][0]=$oldkey;
-                $zsub[$i][1]='DATA';
-                $zsub[$i][2]=$vstelle;
-                $zsub[$i][3]=$spebene;
-                $zsub[$i][4]=$anlart;
-                $zsub[$i][5]=$ablesartst;
-                $zsub[$i][6]=$zz_nametu;
-                $zsub[$i][7]=$zz_fider;
-                $zsub[$i][8]=$ab;
-                $zsub[$i][9]=$tariftyp;
-                $zsub[$i][10]=$branche;
-                $zsub[$i][11]=$aklasse;
-                $zsub[$i][12]=$ableinh;
-                $zsub[$i][13]=$maininst;
-                $zsub[$i][14]=$instrole;
-                $zsub[$i][15]=$instgrtype;
-                $zsub[$i][16]=$highlevinst;
-                $zsub[$i][17]=$zzcode4nkre;
-                $zsub[$i][18]=$zzcode4nkre_dop;
-                $zsub[$i][19]=$zzotherarea;
-                $zsub[$i][20]=$begru;
-                $zsub[$i][21]=$zz_eic;
+                $zsub[$i][0] = $oldkey;
+                $zsub[$i][1] = 'DATA';
+                $zsub[$i][2] = $vstelle;
+                $zsub[$i][3] = $spebene;
+                $zsub[$i][4] = $anlart;
+                $zsub[$i][5] = $ablesartst;
+                $zsub[$i][6] = $zz_nametu;
+                $zsub[$i][7] = $zz_fider;
+                $zsub[$i][8] = $ab;
+                $zsub[$i][9] = $tariftyp;
+                $zsub[$i][10] = $branche;
+                $zsub[$i][11] = $aklasse;
+                $zsub[$i][12] = $ableinh;
+                $zsub[$i][13] = $maininst;
+                $zsub[$i][14] = $instrole;
+                $zsub[$i][15] = $instgrtype;
+                $zsub[$i][16] = $highlevinst;
+                $zsub[$i][17] = $zzcode4nkre;
+                $zsub[$i][18] = $zzcode4nkre_dop;
+                $zsub[$i][19] = $zzotherarea;
+                $zsub[$i][20] = $begru;
+                $zsub[$i][21] = $zz_eic;
                 $i++;
             }
         }
@@ -6098,23 +6097,23 @@ order by code_ust,lvl";
 //        return;
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver='8';
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
-        $f = fopen($fname,'w+');
+        $fd = date('Ymd');
+        $ver = '8';
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
+        $f = fopen($fname, 'w+');
 
-        $i=0;
+        $i = 0;
         foreach ($zsub as $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
             $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
-            fputs($f, $d1[0]."\t".'KEY'."\t".$d1[0]);
+            fputs($f, $d1[0] . "\t" . 'KEY' . "\t" . $d1[0]);
             fputs($f, "\n");
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, $d1[0] . "\t" . '&ENDE');
             fputs($f, "\n");
 
             $i++;
@@ -6216,10 +6215,10 @@ select * from (
 	       10999999,11000000,19999369,50999999,1000000,1000001)
 	       ORDER BY 6
                 ";
-       $z_sql = 'select * from get_schema()';
+        $z_sql = 'select * from get_schema()';
 
-       if($res=='1' || $res=='3' )
-        $sql="select case when topology is null then pnt1 else topology::int end as pnt,* from (
+        if ($res == '1' || $res == '3')
+            $sql = "select case when topology is null then pnt1 else topology::int end as pnt,* from (
             select DISTINCT on(p.code_eqp) h.topology,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
             RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
@@ -6303,8 +6302,8 @@ select * from (
 )  else 1=1 end 
     	       ORDER BY 6
 ";
-       else
-           $sql=" select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
+        else
+            $sql = " select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
         select DISTINCT on(p.code_eqp) 
             get_topology(p.code_eqp,p.id_point,6,$res) as pnt2,
             p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
@@ -6716,8 +6715,8 @@ select * from (
                 ";
 
 //  New query
-            if($res==1 || $res==3)
-              $sql="
+        if ($res == 1 || $res == 3)
+            $sql = "
 select case when topology is null then pnt1 else topology::int end as pnt,* from (
             select h.topology,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp,
              RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
@@ -6792,8 +6791,8 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
 )  else 1=1 end
 	       order by 1
  ";
-            else
-                $sql="select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
+        else
+            $sql = "select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
                  select get_topology(p.code_eqp,p.id_point,2,$res) as pnt2,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp,
                     RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
@@ -8868,6 +8867,9 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
         $f = fopen($fname, 'w+');
 
         $oldkey_const = '04_C' . $rem . 'P_01_';
+//        debug($data);
+//        return;
+
         foreach ($data as $w) {
             $ever[$i] = f_move_in($rem, $w);
 //            $ever1[$i]=f_move_in_ind1($rem,$w);
@@ -10424,7 +10426,7 @@ coalesce(str_supl2,'') as str_supl2,coalesce(korp,'') as korp from
         $data_d = data_from_server($sql_d, $res, $vid);
         $date_ab = $data_d[0]['mmgg_current'];
         // Главный запрос со всеми необходимыми данными
-        $sql_earlier ="select * from
+        $sql_earlier = "select * from
         (select distinct m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then
     (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
@@ -10606,8 +10608,8 @@ order by tzap
         // and ($res=4 and eq.id not in(120748,120744))
 //        and eq.id not in(120747,120746,120742,120743)
 
-if($res==4)
-        $sql = "select SERNR2 as sernr,* from 
+        if ($res == 4)
+            $sql = "select SERNR2 as sernr,* from 
 (select distinct trim(eq.num_eqp) as SERNR2,1 as ord,m.code_eqp::text as id,id_type_eqp,s.sap_meter_id,case when length(m.code_eqp::varchar)<8 then 
                  (substring(trim(getsysvarn('kod_res')::varchar),1,2)||substr('000000',(7-(length(m.code_eqp::varchar)::int)),(7-(length(m.code_eqp::varchar)::int)))||m.code_eqp::varchar)::int else m.code_eqp end  as OLDKEY,
                 'EQUI' as EQUI,
@@ -10738,8 +10740,8 @@ order by tzap
         // Считываем данные в файл с каждой таблицы
         $sql = "select * from sap_$first_struct";
         $struct_data = data_from_server($sql, $res, $vid); // Выполняем запрос
-        $a_mem=[];
-        $k=0;
+        $a_mem = [];
+        $k = 0;
         foreach ($struct_data as $d) {
             $old_key = trim($d['oldkey']);
             $d = array_slice($d, 0, 15);
@@ -10747,44 +10749,44 @@ order by tzap
             $s = implode("\t", $d);
             $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
-            $a_mem[$k]=$s;
-            $flag_r=0;
+            $a_mem[$k] = $s;
+            $flag_r = 0;
 
-            for($j=0;$j<$k;$j++) {
-                $ss =  $a_mem[$j];
-                if(trim($ss)==trim($s)) {
-                    $flag_r=1; // Признак задвоения
+            for ($j = 0; $j < $k; $j++) {
+                $ss = $a_mem[$j];
+                if (trim($ss) == trim($s)) {
+                    $flag_r = 1; // Признак задвоения
                     break;
                 }
             }
             $k++;
-            if($flag_r==0) {
+            if ($flag_r == 0) {
                 // Записываем только уникальные записи
                 fputs($f, $s);
                 fputs($f, "\n");
             }
-                $i = 0;
-                foreach ($cnt as $v) {
-                    $table_struct = 'sap_' . trim($v['dattype']);
-                    $i++;
-                    if ($i > 1) {
-                        $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
-                        $sql = "select distinct $all from $table_struct where oldkey='$old_key'";
-                        $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
-                        foreach ($cur_data as $d1) {
-                            $d1 = array_map('trim', $d1);
-                            $s1 = implode("\t", $d1);
-                            $s1 = str_replace("~", "", $s1);
-                            $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
-                            if($flag_r==0) {
-                                fputs($f, $s1);
-                                fputs($f, "\n");
-                            }
+            $i = 0;
+            foreach ($cnt as $v) {
+                $table_struct = 'sap_' . trim($v['dattype']);
+                $i++;
+                if ($i > 1) {
+                    $all = gen_column($table_struct, $res, $vid); // Получаем все колонки таблицы
+                    $sql = "select distinct $all from $table_struct where oldkey='$old_key'";
+                    $cur_data = data_from_server($sql, $res, $vid); // Выполняем запрос
+                    foreach ($cur_data as $d1) {
+                        $d1 = array_map('trim', $d1);
+                        $s1 = implode("\t", $d1);
+                        $s1 = str_replace("~", "", $s1);
+                        $s1 = mb_convert_encoding($s1, 'CP1251', mb_detect_encoding($s1));
+                        if ($flag_r == 0) {
+                            fputs($f, $s1);
+                            fputs($f, "\n");
+                        }
 
                     }
                 }
-           }
-            if($flag_r==0) {
+            }
+            if ($flag_r == 0) {
                 fputs($f, $old_key . "\t&ENDE");
                 fputs($f, "\n");
             }
@@ -12314,7 +12316,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         $dt = date('Y-m-d');
 
 //       if (1==2) {
-            $sql_old = "select distinct on (oldkey) * from (
+        $sql_old = "select distinct on (oldkey) * from (
 select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then 
@@ -12389,9 +12391,9 @@ and type_eqp=12)
             --and dd.oldkey is null     
             order by 7) e";
 
-            $sql_f = "select f_for_premise('$rem','$dt')";
+        $sql_f = "select f_for_premise('$rem','$dt')";
 // Это старый запрос (правильный  - но медленный)
-            $sql = "select distinct on (oldkey) * from (
+        $sql = "select distinct on (oldkey) * from (
 select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then 
@@ -12425,8 +12427,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             and (select count(*) from eqm_compens_station_inst_tbl where code_eqp_inst=eq.id)>0
               order by 7) e";
 
-            // Делаем выборку по новому для ускорения
-            $sql = "select distinct on (oldkey) * from (
+        // Делаем выборку по новому для ускорения
+        $sql = "select distinct on (oldkey) * from (
         select distinct const.begru_all as pltxt,'PREMISE' as name,
          cl1.id,cl1.code, eq.name_eqp,eq.id as id_eq,
             '04_C'||'$rem'||'P_'||case when length(eq.id::varchar)<8 then
@@ -12461,91 +12463,91 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             order by 7) e";
 
 
-            $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
-            $zsql = 'delete from sap_evbsd';
-            $sql_q = "select * from  sap_premise_dop ";
-            $sql_dd = "select * from  sap_co_adr";
+        $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
+        $zsql = 'delete from sap_evbsd';
+        $sql_q = "select * from  sap_premise_dop ";
+        $sql_dd = "select * from  sap_co_adr";
 
 
-            if (1 == 1) {
-                // Получаем необходимые данные
-                switch ($res) {
-                    case 1:
-                        $data1 = \Yii::$app->db_pg_dn_energo->createCommand($sql_f)->queryAll();
-                        $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
-                        $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
-                        $nd2 = \Yii::$app->db_pg_dn_energo->createCommand($sql_q)->queryAll();
-                        $nd_dd = \Yii::$app->db_pg_dn_energo->createCommand($sql_dd)->queryAll();
-                        // Удаляем данные в таблицах
-                        Yii::$app->db_pg_dn_energo->createCommand($zsql)->execute();
-                        break;
+        if (1 == 1) {
+            // Получаем необходимые данные
+            switch ($res) {
+                case 1:
+                    $data1 = \Yii::$app->db_pg_dn_energo->createCommand($sql_f)->queryAll();
+                    $data = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_dn_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_dn_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_dn_energo->createCommand($sql_dd)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_dn_energo->createCommand($zsql)->execute();
+                    break;
 
-                    case 2:
-                        $data1 = \Yii::$app->db_pg_zv_energo->createCommand($sql_f)->queryAll();
-                        $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
-                        $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
-                        $nd2 = \Yii::$app->db_pg_zv_energo->createCommand($sql_q)->queryAll();
-                        $nd_dd = \Yii::$app->db_pg_zv_energo->createCommand($sql_dd)->queryAll();
-                        // Удаляем данные в таблицах
-                        Yii::$app->db_pg_zv_energo->createCommand($zsql)->execute();
-                        break;
-                    case 3:
-                        $data1 = \Yii::$app->db_pg_vg_energo->createCommand($sql_f)->queryAll();
-                        $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
-                        $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
-                        $nd2 = \Yii::$app->db_pg_vg_energo->createCommand($sql_q)->queryAll();
-                        $nd_dd = \Yii::$app->db_pg_vg_energo->createCommand($sql_dd)->queryAll();
-                        // Удаляем данные в таблицах
-                        Yii::$app->db_pg_vg_energo->createCommand($zsql)->execute();
-                        break;
-                    case 4:
-                        $data1 = \Yii::$app->db_pg_pv_energo->createCommand($sql_f)->queryAll();
-                        $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
-                        $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
-                        $nd2 = \Yii::$app->db_pg_pv_energo->createCommand($sql_q)->queryAll();
-                        $nd_dd = \Yii::$app->db_pg_pv_energo->createCommand($sql_dd)->queryAll();
-                        // Удаляем данные в таблицах
-                        Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
-                        break;
-                    case 5:
-                        $data1 = \Yii::$app->db_pg_krg_energo->createCommand($sql_f)->queryAll();
-                        $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
-                        $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
-                        $nd2 = \Yii::$app->db_pg_krg_energo->createCommand($sql_q)->queryAll();
-                        $nd_dd = \Yii::$app->db_pg_krg_energo->createCommand($sql_dd)->queryAll();
-                        // Удаляем данные в таблицах
-                        Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
-                        break;
-                    case 6:
-                        $data1 = \Yii::$app->db_pg_ap_energo->createCommand($sql_f)->queryAll();
-                        $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
-                        $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
-                        $nd2 = \Yii::$app->db_pg_ap_energo->createCommand($sql_q)->queryAll();
-                        $nd_dd = \Yii::$app->db_pg_ap_energo->createCommand($sql_dd)->queryAll();
-                        // Удаляем данные в таблицах
-                        Yii::$app->db_pg_ap_energo->createCommand($zsql)->execute();
-                        break;
-                    case 7:
-                        $data1 = \Yii::$app->db_pg_gv_energo->createCommand($sql_f)->queryAll();
-                        $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
-                        $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
-                        $nd2 = \Yii::$app->db_pg_gv_energo->createCommand($sql_q)->queryAll();
-                        $nd_dd = \Yii::$app->db_pg_gv_energo->createCommand($sql_dd)->queryAll();
-                        // Удаляем данные в таблицах
-                        Yii::$app->db_pg_gv_energo->createCommand($zsql)->execute();
-                        break;
-                    case 8:
-                        $data1 = \Yii::$app->db_pg_in_energo->createCommand($sql_f)->queryAll();
-                        $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
-                        $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
-                        $nd2 = \Yii::$app->db_pg_in_energo->createCommand($sql_q)->queryAll();
-                        $nd_dd = \Yii::$app->db_pg_in_energo->createCommand($sql_dd)->queryAll();
-                        // Удаляем данные в таблицах
-                        Yii::$app->db_pg_in_energo->createCommand($zsql)->execute();
-                        break;
-                }
+                case 2:
+                    $data1 = \Yii::$app->db_pg_zv_energo->createCommand($sql_f)->queryAll();
+                    $data = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_zv_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_zv_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_zv_energo->createCommand($sql_dd)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_zv_energo->createCommand($zsql)->execute();
+                    break;
+                case 3:
+                    $data1 = \Yii::$app->db_pg_vg_energo->createCommand($sql_f)->queryAll();
+                    $data = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_vg_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_vg_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_vg_energo->createCommand($sql_dd)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_vg_energo->createCommand($zsql)->execute();
+                    break;
+                case 4:
+                    $data1 = \Yii::$app->db_pg_pv_energo->createCommand($sql_f)->queryAll();
+                    $data = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_pv_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_pv_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_pv_energo->createCommand($sql_dd)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_pv_energo->createCommand($zsql)->execute();
+                    break;
+                case 5:
+                    $data1 = \Yii::$app->db_pg_krg_energo->createCommand($sql_f)->queryAll();
+                    $data = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_krg_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_krg_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_krg_energo->createCommand($sql_dd)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_krg_energo->createCommand($zsql)->execute();
+                    break;
+                case 6:
+                    $data1 = \Yii::$app->db_pg_ap_energo->createCommand($sql_f)->queryAll();
+                    $data = \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_ap_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_ap_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_ap_energo->createCommand($sql_dd)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_ap_energo->createCommand($zsql)->execute();
+                    break;
+                case 7:
+                    $data1 = \Yii::$app->db_pg_gv_energo->createCommand($sql_f)->queryAll();
+                    $data = \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_gv_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_gv_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_gv_energo->createCommand($sql_dd)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_gv_energo->createCommand($zsql)->execute();
+                    break;
+                case 8:
+                    $data1 = \Yii::$app->db_pg_in_energo->createCommand($sql_f)->queryAll();
+                    $data = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                    $cnt = \Yii::$app->db_pg_in_energo->createCommand($sql_c)->queryAll();
+                    $nd2 = \Yii::$app->db_pg_in_energo->createCommand($sql_q)->queryAll();
+                    $nd_dd = \Yii::$app->db_pg_in_energo->createCommand($sql_dd)->queryAll();
+                    // Удаляем данные в таблицах
+                    Yii::$app->db_pg_in_energo->createCommand($zsql)->execute();
+                    break;
             }
-            $i = 0;
+        }
+        $i = 0;
 
 //debug($cnt);
 //            return;
@@ -12553,56 +12555,56 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 //                debug($data);
 //                return;
 
-            // Заполнение ссылок в памяти
-            foreach ($data as $key => $n1) {
+        // Заполнение ссылок в памяти
+        foreach ($data as $key => $n1) {
 
-                $n1_code = $n1['code'];
-                $n1_id = $n1['id_eq'];
-                $mas = [];
-                $o = 0;
-                foreach ($nd2 as $n2) {
-                    if ($n2['id_eq'] == $n1_id && $n2['code'] == $n1_code) {
-                        $mas[$o] = $n2['id_tu'];
-                        $o++;
-                    }
+            $n1_code = $n1['code'];
+            $n1_id = $n1['id_eq'];
+            $mas = [];
+            $o = 0;
+            foreach ($nd2 as $n2) {
+                if ($n2['id_eq'] == $n1_id && $n2['code'] == $n1_code) {
+                    $mas[$o] = $n2['id_tu'];
+                    $o++;
                 }
-                $haus = '';
-                foreach ($nd_dd as $n3) {
-                    $n1_co = substr(trim($n3['oldkey']), 8);
+            }
+            $haus = '';
+            foreach ($nd_dd as $n3) {
+                $n1_co = substr(trim($n3['oldkey']), 8);
 
 //                debug($n3);
 //                debug($n1_id);
 //                debug($mas);
 //                return;
-                    $flag = 0;
-                    for ($oo = 0; $oo < $o; $oo++) {
-                        if ($mas[$oo] == $n1_co) {
-                            $haus = $n3['oldkey'];
-                            $house_num2 = $n3['house_num2'];
+                $flag = 0;
+                for ($oo = 0; $oo < $o; $oo++) {
+                    if ($mas[$oo] == $n1_co) {
+                        $haus = $n3['oldkey'];
+                        $house_num2 = $n3['house_num2'];
 //                            debug($haus);
 //                            return;
-                            $flag = 1;
-                            break;
-                        }
-                    }
-                    if ($flag == 1) {
-                        $data[$key]['haus'] = $haus;
-                        $data[$key]['house_num2'] = $house_num2;
+                        $flag = 1;
                         break;
                     }
                 }
-            }
-
-
-            // Заполняем структуры
-            foreach ($data as $w) {
-                $i = 0;
-                foreach ($cnt as $v) {
-                    $n_struct = trim($v['dattype']);
-                    $i++;
-                    f_premise($n_struct, $rem, $w);
+                if ($flag == 1) {
+                    $data[$key]['haus'] = $haus;
+                    $data[$key]['house_num2'] = $house_num2;
+                    break;
                 }
             }
+        }
+
+
+        // Заполняем структуры
+        foreach ($data as $w) {
+            $i = 0;
+            foreach ($cnt as $v) {
+                $n_struct = trim($v['dattype']);
+                $i++;
+                f_premise($n_struct, $rem, $w);
+            }
+        }
 
 //        return;
 //        }   // end if 1==2
@@ -13696,8 +13698,6 @@ WHERE
 	  -- where s1.id=162582
         order by kzabsver 
 ";
-        
-
 
 
         $sql1 = " select * from (
@@ -14228,7 +14228,7 @@ WHERE
             $code_id = trim(substr($old_key, 8));
 
             // Пропускаем сетевых потребителей - их подаем только в Днепре
-            if($res==2) {
+            if ($res == 2) {
                 if ($code_id == '11485') continue;
                 if ($code_id == '11801') continue;
                 if ($code_id == '110446') continue;
@@ -14238,7 +14238,7 @@ WHERE
                 if ($code_id == '11833') continue;
                 if ($code_id == '10902') continue;
             }
-            if($res==3) {
+            if ($res == 3) {
                 if ($code_id == '11096') continue;
                 if ($code_id == '11201') continue;
                 if ($code_id == '10746') continue;
@@ -14250,37 +14250,37 @@ WHERE
                 if ($code_id == '11296') continue;
                 if ($code_id == '10696') continue;
             }
-            if($res==4) {
+            if ($res == 4) {
                 if ($code_id == '11200') continue;
                 if ($code_id == '11206') continue;
                 if ($code_id == '11215') continue;
                 if ($code_id == '11189') continue;
                 if ($code_id == '11142') continue;
             }
-            if($res==5) {
+            if ($res == 5) {
                 if ($code_id == '10763') continue;
                 if ($code_id == '10816') continue;
                 if ($code_id == '10877') continue;
                 if ($code_id == '10324') continue;
             }
-            if($res==6) {
+            if ($res == 6) {
                 if ($code_id == '10679') continue;
                 if ($code_id == '10675') continue;
                 if ($code_id == '10666') continue;
                 if ($code_id == '10370') continue;
             }
-            if($res==7) {
+            if ($res == 7) {
                 if ($code_id == '10877') continue;
                 if ($code_id == '10852') continue;
                 if ($code_id == '11205') continue;
                 if ($code_id == '10678') continue;
                 if ($code_id == '10844') continue;
             }
-            if($res==8) {
+            if ($res == 8) {
                 if ($code_id == '15880') {
                     continue;
 //                    debug('15880');
-                 }
+                }
                 if ($code_id == '10654') continue;
                 if ($code_id == '10940') continue;
             }
@@ -14345,7 +14345,7 @@ WHERE
 
 // Добавление в конец файла миграции сетевых потребителей
 //  только для Днепра
-        if($res==1) {
+        if ($res == 1) {
             $f_add = fopen('add_info_acc.txt', 'r');
             while (!feof($f_add)) {
                 $s = fgets($f_add);
@@ -14921,26 +14921,25 @@ WHERE
     }
 
     // Отключения Disc_Doc (юрид. лица)
-    public function actionSap_discdoc($res,$par=0)
+    public function actionSap_discdoc($res, $par = 0)
     {
-        $helper=0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
+        $helper = 0; // Включение режима помощника для создания текстового файла для помощи в создании функции заполнения
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 900);
-        $rem = '0'.$res;  // Код РЭС
+        $rem = '0' . $res;  // Код РЭС
 
         // Определяем тип базы 1-abn, 2-energo
         // и название суффикса в имени файла
-        $method=__FUNCTION__;
-        if(substr($method,-4)=='_ind') {
+        $method = __FUNCTION__;
+        if (substr($method, -4) == '_ind') {
             $vid = 1;
             $_suffix = '_R';
-        }
-        else {
+        } else {
             $vid = 2;
             $_suffix = '_L';
         }
         // Получаем название подпрограммы
-        $routine = strtoupper(substr($method,10));
+        $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         //  Главный запрос со всеми необходимыми данными из PostgerSQL SERVER
@@ -14958,37 +14957,37 @@ WHERE
              ";
 
         // Получаем необходимые данные
-        $data = data_from_server($sql,$res,$vid);   // Массив всех необходимых данных
+        $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
 
 
         // Заполняем массивы структур: $di_int и $di_zw
-        $i=0;
+        $i = 0;
         foreach ($data as $w) {
-            $di_doc[$i]=f_discdoc1($rem,$w);
-            $di_inf[$i]=f_discdoc2($rem,$w);
+            $di_doc[$i] = f_discdoc1($rem, $w);
+            $di_inf[$i] = f_discdoc2($rem, $w);
             $i++;
         }
 
         // Формируем имя файла и создаем файл
-        $fd=date('Ymd');
-        $ver=8;
-        if ($ver<10) $ver='0'.$ver;
-        $fname=$filename.'_04'.'_CK'.$rem.'_'.$fd.'_'.$ver.$_suffix.'.txt';
+        $fd = date('Ymd');
+        $ver = 8;
+        if ($ver < 10) $ver = '0' . $ver;
+        $fname = $filename . '_04' . '_CK' . $rem . '_' . $fd . '_' . $ver . $_suffix . '.txt';
 //        deleterOM($fname,$rem);
-        $f = fopen($fname,'w+');
+        $f = fopen($fname, 'w+');
 //        debug($di_inf);
 //        return;
         // Считываем данные в файл с массивов $di_int и $di_zw
-        $i=0;
-        $j=0;
-        foreach ($di_doc as $key=>$d) {
+        $i = 0;
+        $j = 0;
+        foreach ($di_doc as $key => $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
             $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            $v=$di_inf[$key];
+            $v = $di_inf[$key];
 
 //            foreach ($di_inf as $v) {
             $d1 = array_map('trim', $v);
@@ -14997,7 +14996,7 @@ WHERE
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, $d1[0] . "\t" . '&ENDE');
             fputs($f, "\n");
 //
 //                 break;
@@ -15274,15 +15273,15 @@ where id1 is not null
 //        return;
         // Считываем данные в файл с массивов $di_int и $di_zw
         $i = 0;
-        foreach ($di_ord as $key=>$d) {
+        foreach ($di_ord as $key => $d) {
             $d1 = array_map('trim', $d);
             $s = implode("\t", $d1);
             $s = str_replace("~", "", $s);
             $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
             fputs($f, $s);
             fputs($f, "\n");
-            if(isset($di_ust[$key])) {
-            $v=$di_ust[$key];
+            if (isset($di_ust[$key])) {
+                $v = $di_ust[$key];
 //            foreach ($di_inf as $v) {
                 $d1 = array_map('trim', $v);
                 $s = implode("\t", $d1);
@@ -15291,7 +15290,7 @@ where id1 is not null
                 fputs($f, $s);
                 fputs($f, "\n");
             }
-            fputs($f, $d1[0]."\t".'&ENDE');
+            fputs($f, $d1[0] . "\t" . '&ENDE');
             fputs($f, "\n");
 
             $i++;
@@ -15337,7 +15336,7 @@ where id1 is not null
            substr(a.date,7,4)||substr(a.date,4,2)||substr(a.date,1,2) as date_sap
            from docoff a
 left join clm_client_tbl b on
-case when a.vkonto<>" . "''" .  " then a.vkonto::int else 0 end = b.code
+case when a.vkonto<>" . "''" . " then a.vkonto::int else 0 end = b.code
 and coalesce(b.idk_work,0)<>0
 left join sap_const as const on 1=1
 ) f 
@@ -17130,7 +17129,7 @@ where id1 is not null
 //        $s1='....';
 //        $s2='1234';
 //        perebor($s2,$s1,0);
-        $a = (AllPermutations(array('1', '2', '0','0','0','0','0','0')));
+        $a = (AllPermutations(array('1', '2', '0', '0', '0', '0', '0', '0')));
         debug($a);
 
     }
@@ -17140,27 +17139,27 @@ where id1 is not null
     public function actionCheck_facts()
     {
         // Запись всех oldkey в массив
-        $code=[];
-        $result=[];
+        $code = [];
+        $result = [];
         $f = fopen('FACTS_04_CK01_20200831_08_L.txt', 'r');
         $ff = fopen('INSTLN_04_CK01_20200831_08_L.txt', 'r');
         $i = 0;
         while (!feof($f)) {
             $s = fgets($f);
             $data = explode("\t", $s);
-           if(isset($data[1])) {
-               if ($data[1] == '&ENDE') {
-                   $code[$i] = $data[0];
-                   $i++;
-               }
-           }
+            if (isset($data[1])) {
+                if ($data[1] == '&ENDE') {
+                    $code[$i] = $data[0];
+                    $i++;
+                }
+            }
         }
         // Проверка oldkey в INSTLN файле
-        $index=0;
-        for($j=0;$j<$i;$j++){
-            $k=$code[$j];
-            $flag=0;
-            $all=0;
+        $index = 0;
+        for ($j = 0; $j < $i; $j++) {
+            $k = $code[$j];
+            $flag = 0;
+            $all = 0;
             rewind($ff);
             while (!feof($ff)) {
                 $all++;
@@ -17168,8 +17167,8 @@ where id1 is not null
                 $data = explode("\t", $s);
 //                if(($all%2)==0)
 //                    debug($data);
-                if(isset($data[1]) ) {
-                    if (($all%2)==0) {
+                if (isset($data[1])) {
+                    if (($all % 2) == 0) {
 //                        debug($code[$j]);
 //                        debug($data[0]);
 //                        return;
@@ -17181,8 +17180,8 @@ where id1 is not null
                     }
                 }
             }
-            if($flag == 0) {
-                $result[$index]=$code[$j];
+            if ($flag == 0) {
+                $result[$index] = $code[$j];
                 $index++;
             }
         }
@@ -18861,6 +18860,123 @@ where issubmit = 1";
             return $this->render('power_outages', compact('model'));
         }
     }
+
+//  Импорт csv файлов на SQL Server
+    public function actionCsv2sql()
+    {
+        $n = 8;  // Кол-во полей для импорта
+        $table_name = 'error_prom';
+        $file_csv = 'mig19_p19.csv';
+        $delimeter = '~';
+        $f = fopen($file_csv, 'r');
+        // Вычисляем кол-во полей для импорта если не задано кол-во полей
+        if($n==0) {
+            $i = 0;
+            while (!feof($f)) {
+                $s = fgets($f);
+                $data = explode($delimeter, $s);
+                if ($i == 0) {
+                    $n = count($data);
+                    break;
+                }
+                $i++;
+            }
+        }
+        // Удаляем таблицу если она есть
+        $gen_drop = 'DROP TABLE IF EXISTS '.$table_name;
+        Yii::$app->db_phone->createCommand($gen_drop)->execute();
+        // Создаем таблицу
+        $gen_create = '';
+        $gen_insert='';
+       for($i=0;$i<=$n;$i++){
+           if($i==0)
+               $gen_create .= 'id'  . ' integer,';
+           else {
+               $gen_create .= 'field_' . $i . ' varchar(255),';
+               $gen_insert .='field_' . $i.',';
+           }
+        }
+        $gen_create=substr($gen_create,0,strlen($gen_create)-1);
+        $gen_insert='INSERT INTO ' . $table_name . '(' . 'id,' . substr($gen_insert,0,strlen($gen_insert)-1)  . ')';
+        $gen_create = 'CREATE TABLE '.$table_name.'('.$gen_create.')';
+        Yii::$app->db_phone->createCommand($gen_create)->execute();
+      // Пишем построчно в таблицу с файла
+        $i = 0;
+        while (!feof($f)) {
+            $s = fgets($f);
+            $data = explode($delimeter, $s);
+            if(!isset($data[1])) break;
+            $gen_values='';
+            $flag=0;
+            for($j=0;$j<$n;$j++) {
+                    $p1=strpos($data[$j],"'");
+                    $p2=strpos($data[$j],'"');
+                    if($p1>0 && $p2>0) {
+                        $flag=1;
+                        // Если одновременно встречаются двойные и одинарные кавычки - тогда удаляем  двойные  кавычки
+                        $data[$j]=str_replace('"','',$data[$j]);
+                    }
+                    if(strpos($data[$j],"'"))
+                        $gen_values .= '"'.$data[$j].'"' . ',';
+                    else
+                        $gen_values .= "'".$data[$j]."'" . ',';
+            }
+            $gen_values=$i . ',' . substr($gen_values,0,strlen($gen_values)-1);
+            $gen_values = 'VALUES('.$gen_values.')';
+            $sql=$gen_insert.' '.$gen_values;
+            if($i>0)
+                // Шапку не записываем
+                Yii::$app->db_phone->createCommand($sql)->execute();
+            $i++;
+        }
+
+    debug('Таблиця '. $table_name . ' сформована');
+    }
+
+    //  'INST_MGMT EN 57
+    public function actionForm_en57()
+    {
+        $f = fopen('en57.txt', 'r');
+        $file_res = 'RESULT_EN57.txt';
+        $ff = fopen($file_res, 'w+');
+        while (!feof($f)) {
+            $s = trim(fgets($f));
+            $res = substr($s, 5, 1);
+            $file_mgmt = 'INST_MGMT_04_CK0' . $res . '_20201120_08_L.txt';
+            $file_dev = 'DEVICE_04_CK0' . $res . '_20201120_08_L.txt';
+            $f_mgmt = fopen($file_mgmt, 'r');
+            $f_dev = fopen($file_dev, 'r');
+            rewind($f_mgmt);
+            while (!feof($f_mgmt)) {
+                $s1 = fgets($f_mgmt);
+                $data = explode("\t", $s1);
+                $dev = '';
+                if (trim($data[0]) == $s && trim($data[1]) == 'DI_GER') {
+
+                    if (!isset($data[4]))
+                        $dev = trim($data[2]);
+                     rewind($f_dev);
+                     while (!feof($f_dev)) {
+                        $s2 = fgets($f_dev);
+                        $data1 = explode("\t", $s2);
+//                        debug($data);
+                        if (isset($data1[1])) {
+                            if (trim($data1[0]) == $dev && trim($data1[1]) == 'EQUI') {
+                                $type_dev = $data1[11];
+                                $z = $s . '     ' . $type_dev;
+                                fputs($ff, $z);
+                                fputs($ff, "\n");
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            fputs($ff, "\n");
+        }
+        debug('Файл  сформований');
+    }
 }
+
 
 
