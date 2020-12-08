@@ -3234,7 +3234,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
@@ -3877,7 +3877,7 @@ and (trim(debet)<>'0.00')
         $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
@@ -3980,7 +3980,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     $v['begru'] . "\t" .
                     $v['gpart'] . "\t" .
                     "\t" .
-                    $v['gpart'] . "\t" .
+                    $v['kr_productiv'] . "\t" .
                     '0102' . "\t" .
                     '0020' . "\t" .
                     $v['kofiz'] . "\t" .
@@ -4016,7 +4016,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     $v['begru'] . "\t" .
                     $v['gpart'] . "\t" .
                     "\t" .
-                    $v['gpart'] . "\t" .
+                    $v['kr_productiv'] . "\t" .
                     '0062' . "\t" .
                     '0010' . "\t" .
                     $v['kofiz'] . "\t" .
@@ -4216,7 +4216,7 @@ order by 2
                         $v['begru'] . "\t" .
                         $v['gpart'] . "\t" .
                         "\t" .
-                        $v['gpart'] . "\t" .
+                        $v['kr_productiv'] . "\t" .
                         '0108' . "\t" .
                         '0020' . "\t" .  // Был сдесь раньше $param_count
                         $v['kofiz'] . "\t" .
@@ -4250,7 +4250,7 @@ order by 2
                         $v['begru'] . "\t" .
                         $v['gpart'] . "\t" .
                         "\t" .
-                        $v['gpart'] . "\t" .
+                        $v['kr_productiv'] . "\t" .
                         '0068' . "\t" .
                         $param_count . "\t" .
                         $v['kofiz'] . "\t" .
@@ -4451,7 +4451,7 @@ order by 2
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
 
-        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
