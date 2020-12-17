@@ -3650,10 +3650,8 @@ function f_instlncha($rem,$v) {
     $oldkey =  $v['oldkey_pay'] ;
     $zsub[0]=$oldkey;     // oldkey
 
-
     return $zsub;
 }
-
 
 // Выгрузка instln юридические потребители
 function f_instln($n_struct,$rem,$v,$vid) {

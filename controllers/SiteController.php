@@ -3234,7 +3234,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
@@ -3854,6 +3854,8 @@ and (trim(debet)<>'0.00')
             'model' => $model]);
     }
 
+
+
     // Формирование файла остатков по бухгалтерии - дополнительный (по которым нет лицевых счетов)
     //DOCUMENT_ADD (юридические лица поставщики - только для Днепра)
     public function actionSap_document_add($res)
@@ -3877,7 +3879,7 @@ and (trim(debet)<>'0.00')
         $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
@@ -3885,7 +3887,12 @@ and (trim(debet)<>'0.00')
 
         $sql1 = "
 select *,def_bank_day(date_format(date,1)::date,5) as date_sf from (
-select '02' as kofiz, '04_C'||'$rem'||'P_'|| gpart  || '_' || case when trim(data_v_k)<>'' then
+select 
+
+case when kr_productiv in ('2420000007','2420000043') then '03'
+ else '02' end as kofiz,
+ 
+ '04_C'||'$rem'||'P_'|| gpart  || '_' || case when trim(data_v_k)<>'' then
  replace(data_v_k,'.','_') else replace(data_v_d,'.','_') end as oldkey,c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
 case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
@@ -3980,7 +3987,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     $v['begru'] . "\t" .
                     $v['gpart'] . "\t" .
                     "\t" .
-                    $v['gpart'] . "\t" .
+                    $v['kr_productiv'] . "\t" .
                     '0102' . "\t" .
                     '0020' . "\t" .
                     $v['kofiz'] . "\t" .
@@ -4016,7 +4023,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     $v['begru'] . "\t" .
                     $v['gpart'] . "\t" .
                     "\t" .
-                    $v['gpart'] . "\t" .
+                    $v['kr_productiv'] . "\t" .
                     '0062' . "\t" .
                     '0010' . "\t" .
                     $v['kofiz'] . "\t" .
@@ -4216,7 +4223,7 @@ order by 2
                         $v['begru'] . "\t" .
                         $v['gpart'] . "\t" .
                         "\t" .
-                        $v['gpart'] . "\t" .
+                        $v['kr_productiv'] . "\t" .
                         '0108' . "\t" .
                         '0020' . "\t" .  // Был сдесь раньше $param_count
                         $v['kofiz'] . "\t" .
@@ -4250,7 +4257,7 @@ order by 2
                         $v['begru'] . "\t" .
                         $v['gpart'] . "\t" .
                         "\t" .
-                        $v['gpart'] . "\t" .
+                        $v['kr_productiv'] . "\t" .
                         '0068' . "\t" .
                         $param_count . "\t" .
                         $v['kofiz'] . "\t" .
@@ -4423,7 +4430,6 @@ order by 2
         return $this->render('info', [
             'model' => $model]);
     }
-
     // Формирование файла остатков по бухгалтерии DOCUMENT_POST (юридические лица поставщики - только для Днепра)
     public function actionSap_document_post($res)
     {
@@ -4450,16 +4456,16 @@ order by 2
         $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-
-        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
-        $date_p = '20200930';  // Потом нужно закомментировать это
+//        $date_p = '20200930';  // Потом нужно закомментировать это
 
 //        Формируем данные по розподілу
         $sql = "
-select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' else oldkey1 end as oldkey from (
+
+select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' else oldkey1||'_'||row_number() over(partition by oldkey1) end as oldkey from (
 select '06' as kofiz,'04_C'||'01'||'P_'|| 
 gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_') as oldkey1,
 c2.*,
@@ -4472,7 +4478,7 @@ then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' e
  from (
 select c1.* from (
 select b.partner_id as gpart,trim(b.acc_id) as acc_id,'' as schet,a.*,const.ver,const.begru
-     from ost_detal_post as a 
+     from ost_detal_post_22 as a 
        inner join sap_const const on 1=1
      --left join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
      inner join rekv_post b on trim(trim(chr(13) from trim(chr(10) from a.contragent)))=trim(trim(chr(13) from trim(chr(10) from b.post)))
@@ -4480,6 +4486,8 @@ select b.partner_id as gpart,trim(b.acc_id) as acc_id,'' as schet,a.*,const.ver,
 ) c2
 order by 2
 ) qqq
+
+
       ";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
@@ -4559,7 +4567,7 @@ order by 2
                         "\t" .
                         $v['acc_id'] . "\t" .
                         '0108' . "\t" .
-                        '0010' . "\t" .
+                        '0020' . "\t" .
                         $v['kofiz'] . "\t" .
                         $sch . "\t" .
                         $cod_nds . "\t" .
@@ -4755,7 +4763,7 @@ order by 2
                 $end . "\n");
         }
 
-        if (1 == 2) {
+        if (1 == 2) { // не работает
             //        Формируем данные по перетокам
             $sql1 = "select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
  -- (replace(c2.date,'.','-')::date+interval '1 day')::date as faedn
@@ -4845,7 +4853,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
                         "\t" .
                         $v['gpart'] . "\t" .
                         '0102' . "\t" .
-                        '0010' . "\t" .
+                        '0020' . "\t" .
                         $v['kofiz'] . "\t" .
                         $sch . "\t" .
                         $abr . "\t" .
