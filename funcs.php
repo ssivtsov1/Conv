@@ -1905,8 +1905,28 @@ function f_connobj($n_struct,$rem,$v) {
     $str_supll1 = '~';
     $str_supll2 = '~';
     $wo = $v['town_wo'];
+
     // Если садовое товарищество
-    if(!empty($wo)) {
+    if(!(empty($wo)) && !(empty($v['str_supll1']))) {
+        $str_supll1 = str_replace("'",'`',trim($v['str_supll1']));
+        $str_supll2 = $house_num1;
+        $town = trim($v['town_wo']);
+        $post_code1 = trim($v['ind_wo']);
+//        $region='DNP';
+        $region=trim($v['reg_wo']);;
+        $iuru_pro=$v['numobl'];
+        if(!empty($v['id_wo'])) {
+            $str_supll2 = $v['id_wo'];
+        }
+        $iuru_pro=$v['numobl_wo'];
+        if(!empty($street)) {
+            $str_supll1 = '';
+            $str_supll2 = '';
+        }
+    }
+
+    // Если садовое товарищество
+    if(!empty($wo) && empty($v['str_supll1'])) {
         $str_supll1 = str_replace("'",'`',trim($v['street_wo']));
         if(empty($str_supll1))
             $str_supll1 = 'вул. Взаємовиручки';
@@ -1923,7 +1943,12 @@ function f_connobj($n_struct,$rem,$v) {
 
         }
         $iuru_pro=$v['numobl_wo'];
+        if(!empty($street)) {
+            $str_supll1 = '';
+            $str_supll2 = '';
+        }
     }
+
 
     if($n_struct=='CO_EHA')
         $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
