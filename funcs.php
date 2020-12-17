@@ -1360,6 +1360,10 @@ function f_partner($n_struct, $rem, $v) {
             $post_code1 = trim($v['ind_wo']);
             $region=trim($v['reg_wo']);;
             $iuru_pro=$v['numobl_wo'];
+            if(!empty($street)) {
+                $str_supll1 = '';
+                $str_supll2 = '';
+            }
     }
 $flag_r=0;
     if($n_struct=='INIT') {
