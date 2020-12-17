@@ -1221,7 +1221,7 @@ kt.shot_name||' '||t.name as town,ads.town as town_sap,am.post_index,b2.post_ind
  f_get_number_house(am.building,am.building_add) as house,
 UPPER(am.office) as flat,
 b.phone,get_email(b.e_mail) as e_mail,ads.reg,ads.numobl,
-u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_client as id_wo
+u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_client as id_wo,u.numobl as numobl_wo 
  from clm_client_tbl a
         left join clm_statecl_tbl b on
         a.id=b.id_client

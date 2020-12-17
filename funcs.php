@@ -1359,7 +1359,7 @@ function f_partner($n_struct, $rem, $v) {
             $town = trim($v['town_wo']);
             $post_code1 = trim($v['ind_wo']);
             $region=trim($v['reg_wo']);;
-            $iuru_pro=$v['numobl'];
+            $iuru_pro=$v['numobl_wo'];
     }
 $flag_r=0;
     if($n_struct=='INIT') {
@@ -1908,13 +1908,16 @@ function f_connobj($n_struct,$rem,$v) {
             $str_supll1 = 'вул. Взаємовиручки';
 
         $str_supll2 = $house_num1;
-        if(!empty($v['id_wo']))
-            $str_supll2 = $v['id_wo'];
+
         $town = trim($v['town_wo']);
         $post_code1 = trim($v['ind_wo']);
 //        $region='DNP';
         $region=trim($v['reg_wo']);;
         $iuru_pro=$v['numobl'];
+        if(!empty($v['id_wo'])) {
+            $str_supll2 = $v['id_wo'];
+            $iuru_pro=$v['numobl_wo'];
+        }
     }
 
     if($n_struct=='CO_EHA')
@@ -3045,6 +3048,8 @@ function f_facts_ind($rem,$v) {
     $power = $v['power'];
     $plita = $v['plita'];
     $opal = $v['opal'];
+    if($plita==1) $plita='X';
+    if($opal==1) $opal='X';
     $datab = $v['datab'];
     $datab = str_replace('-','',$datab);
 //    $datae1 = $v['mmgg_end'];
