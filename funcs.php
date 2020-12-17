@@ -1920,8 +1920,9 @@ function f_connobj($n_struct,$rem,$v) {
         $iuru_pro=$v['numobl'];
         if(!empty($v['id_wo'])) {
             $str_supll2 = $v['id_wo'];
-            $iuru_pro=$v['numobl_wo'];
+
         }
+        $iuru_pro=$v['numobl_wo'];
     }
 
     if($n_struct=='CO_EHA')
