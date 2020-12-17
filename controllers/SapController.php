@@ -623,6 +623,125 @@ where qq.vstelle is null ";
 
     }
     
+    public function actionDownloadsap() {
+        
+        
+        $arr_upload = ['ACCOUNT', 'CONNOBJ','DEVGRP','DEVICE','DEVLOC','DISCDOC','DISCENTER','DISCORDER','DOCUMENT','FACTS','INST_MGMT','INSTLN','INSTLNCHA','MOVE_IN','PARTNER','PREMISE','SEALS','ZLINES','ZPAY_CA','ZSIGN_CA','ZTRANSF'];
+        $dn = 'DOCUMENT_POST';
+        $rem = [1=>'192.168.15.15',2=> 'Zv',3=> 'Vg',4=> 'Pv',5=> 'Kr',6=> 'Ap',7=> 'Gv',8=> 'In'];
+        $a = '04';
+        // date_default_timezone_set('UTC');
+        // $c = date ('Ymd');
+        $c1 = '20201106';
+        $d = '08_L.txt';
+        $i = 0;
+        $g = 0;
+        $k = 0;
+        $m = 0;
+        $n = 0;
+        $o = 0;
+        $e = 0;
+        $t = 0;
+        $r = 0;
+        $count1=0;
+        $count2=0;
+        $count3=0;
+        $count4=0;
+        $count5=0;
+        $count6=0;
+        $count7=0;
+        $count8=0;
+        for ($j=1;$j<9;$j++){
+            $b = 'CK0'.$j;
+        if ($j==1){
+            while ($i < count($arr_upload)) {
+                $file = file_get_contents($rem[1].chr(47).'var/www/html/Conv/web'.chr(47). $arr_upload[$i].'_'.$a.'_'.$b.'_'.$c1.'_'.$d);
+                
+                $folder = $rem[1].chr(47).'var/www/html/Conv/web'.chr(47).$arr_upload[$i].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                file_put_contents($folder, $file);
+//                        debug($file);
+//                        debug($folder);
+//                      return;
+//                echo copy($file,$folder);
+                $i++;
+                $count1++;
+            }
+        }
+         die;
+        if ($j==2){
+            while ($g < count($arr_upload)) {
+                $file = ''. chr(92).$rem[2]. chr(92).$arr_upload[$g].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                $folder = ''. chr(92).$arr_upload[$g].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                echo copy($file,$folder);
+                $g++;
+                $count2++;
+            }
+        }
+        if ($j==3){
+            while ($k < count($arr_upload)) {
+                $file = ''. chr(92).$rem[3]. chr(92).$arr_upload[$k].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                $folder = ''. chr(92).$arr_upload[$k].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                echo copy($file,$folder);
+                $k++;
+                $count3++;
+            }
+        }
+        if ($j==4){
+            while ($m < count($arr_upload)) {
+                $file = ''. chr(92).$rem[4]. chr(92).$arr_upload[$m].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                $folder = ''. chr(92).$arr_upload[$m].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                echo copy($file,$folder);
+                $m++;
+                $count4++;
+            }
+        }
+        if ($j==5){
+            while ($n < count($arr_upload)) {
+                $file = ''. chr(92).$rem[5]. chr(92).$arr_upload[$n].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                $folder = ''. chr(92).$arr_upload[$n].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                if ( copy($file,$folder) == true) $count5++;
+                $n++;
+            }
+        }
+        if ($j==6){
+            while ($o < count($arr_upload)) {
+                $file = ''. chr(92).$rem[6]. chr(92).$arr_upload[$o].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                $folder = ''. chr(92).$arr_upload[$o].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                if ( copy($file,$folder) == true) $count6++;
+                $o++;
+            }
+        }
+        if ($j==7){
+            while ($e < count($arr_upload)) {
+                $file = ''. chr(92).$rem[7]. chr(92).$arr_upload[$e].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                $folder = ''. chr(92).$arr_upload[$e].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                echo copy($file,$folder);
+                $e++;
+                $count7++;
+            }
+        }
+        if ($j==8){
+            while ($t < count($arr_upload)) {
+                $file = ''. chr(92).$rem[8]. chr(92).$arr_upload[$t].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                $folder = ''. chr(92).$arr_upload[$t].'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+                if ( copy($file,$folder) == true) $count8++;
+                $t++;
+            }
+        }
+        }
+        $file = ''. chr(92).$rem[1].chr(92).$dn.'_'.$a.'_'.'CK01'.'_'.$c1.'_'.$d;
+        $folder = ''. chr(92).$dn.'_'.$a.'_'.$b.'_'.$c1.'_'.$d;
+        // echo copy($file,$folder);
+        $r = $count1+$count2+$count3+$count4+$count5+$count6+$count7+$count8+1;
+        
+
+         return $this->render('downloadsap', compact('r'));
+
+    }
+
+
+    
+    
     
     public function actionMissingcategory(){
    
