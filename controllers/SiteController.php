@@ -9827,7 +9827,7 @@ where a.archive='0'
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
         // Главный запрос со всеми необходимыми данными
-        $sql = "select *,case when gg=1 then scode1 else scode1 || '_' || gg end as scode,
+        $sql = "select *,case when gg=100 then scode1 else scode1 || '_' || gg-100 end as scode,
 case when gg=100 then id1::text else id1 || '_' || gg end as id from (
 select *,row_number() over(partition by SCAT,scode1)+99 as gg from (
 select distinct 

@@ -2311,6 +2311,7 @@ function f_premise($n_struct,$rem,$v) {
     $house_num2 =$v['house_num2'];
     $pltxt=$v['pltxt'];
     $oldkey = $v['oldkey'];
+    if(substr(trim($v['code']),0,2)=='11')  $pltxt = 'C01O';
 
     if($n_struct=='EVBSD')
         $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru,zz_nameplvm)
@@ -3714,6 +3715,7 @@ function f_instln($n_struct,$rem,$v,$vid) {
     $zzcode4nkre_dop = $v['zzcode4nkre_dop'];
     $zzotherarea = $v['zzotherarea'];
     $begru = $v['begru'];
+    if(substr(trim($ableinh),0,2)=='OC')  $begru = 'C01O';
     $zz_eic = substr($v['zz_eic'],0,16);
     if(ord(substr($zz_eic,15,1))>90)
         $zz_eic = substr($zz_eic,0,15);
