@@ -1907,10 +1907,13 @@ function f_connobj($n_struct,$rem,$v) {
     $str_supll1 = '~';
     $str_supll2 = '~';
     $wo = $v['town_wo'];
+    $qq=trim($v['str_suppl1']);
 
     // Если садовое товарищество
-    if(!(empty($wo)) && !(empty($v['str_supll1']))) {
-        $str_supll1 = str_replace("'",'`',trim($v['str_supll1']));
+    if(!(empty($wo)) && (!empty($qq))) {
+        $str_supll1 = str_replace("'",'`',trim($v['str_suppl1']));
+        $str_supll1 = str_replace('"','`',$str_supll1);
+        $str_supll1 = mb_substr($str_supll1,0,40,"UTF-8");
         $str_supll2 = $house_num1;
         $town = trim($v['town_wo']);
         $post_code1 = trim($v['ind_wo']);
@@ -1928,7 +1931,7 @@ function f_connobj($n_struct,$rem,$v) {
     }
 
     // Если садовое товарищество
-    if(!empty($wo) && empty($v['str_supll1'])) {
+    if((!empty($wo)) && (empty($qq))) {
         $str_supll1 = str_replace("'",'`',trim($v['street_wo']));
         if(empty($str_supll1))
             $str_supll1 = 'вул. Взаємовиручки';
@@ -3212,6 +3215,7 @@ function f_move_in($rem,$v) {
     if($rem1==3){
         if($v['id_potr']==11201) $vkonto='04_C01P_12135';
         if($v['id_potr']==10786) $vkonto='04_C01P_12237';
+        if( $v['id_potr']==10746) $vkonto='04_C01P_14044';
         if($v['id_potr']==11173) $vkonto='04_C01P_14297';
         if($v['id_potr']==11246) $vkonto='04_C01P_11435';
         if($v['id_potr']==10696) $vkonto='04_C01P_10810';
@@ -3557,8 +3561,72 @@ function f_discenter1($rem,$v) {
 
 // Подписанты
 function f_zsign_ca($rem,$v) {
+    $code = (int) trim($v['oldkey']) ;
     $oldkey =  $v['oldkey_true'] ;
     $vkont =  $v['ref_acc'];
+    $rem1=(int) $rem;
+    // Подмена oldkey для сетевых потребителей
+    if($rem1==2){
+        if( $code==11305) $vkont='04_C01P_400000';
+        if( $code==11801) $vkont='04_C01P_14044';
+        if( $code==11485) $vkont='04_C01P_12237';
+        if( $code==11833) $vkont='04_C01P_14226';
+        if( $code==10902) $vkont='04_C01P_14241';
+        if( $code==10634) $vkont='04_C01P_11435';
+        if( $code==110446) $vkont='04_C01P_12135';
+        if( $code==110450) $vkont='04_C01P_14297';
+        if( $code==110432) $vkont='04_C01P_10810';
+    }
+
+    if($rem1==4){
+        if($code==11734) $vkont='04_C01P_300000';
+        if($code==11206) $vkont='04_C01P_14297';
+        if($code==11200) $vkont='04_C01P_12135';
+        if($code==11215) $vkont='04_C01P_12237';
+        if($code==11189) $vkont='04_C01P_14241';
+        if($code==11142) $vkont='04_C01P_14226';
+    }
+
+    if($rem1==5){
+        if($code==10876) $vkont='04_C01P_200000';
+        if($code==10763) $vkont='04_C01P_14297';
+        if($code==10816) $vkont='04_C01P_12135';
+        if($code==10877) $vkont='04_C01P_12237';
+        if($code==10324) $vkont='04_C01P_14226';
+    }
+
+    if($rem1==3){
+        if($code==11201) $vkont='04_C01P_12135';
+        if($code==10786) $vkont='04_C01P_12237';
+        if($code==10746) $vkont='04_C01P_14044';
+        if($code==11173) $vkont='04_C01P_14297';
+        if($code==11246) $vkont='04_C01P_11435';
+        if($code==10696) $vkont='04_C01P_10810';
+        if($code==11096) $vkont='04_C01P_14241';
+        if($code==10988) $vkont='04_C01P_400000';
+        if($code==11195) $vkont='04_C01P_14226';
+        if($code==11296) $vkont='04_C01P_200000';
+    }
+
+    if($rem1==6){
+        if($code==10679) $vkont='04_C01P_14297';
+        if($code==10675) $vkont='04_C01P_12237';
+        if($code==10666) $vkont='04_C01P_12135';
+        if($code==10370) $vkont='04_C01P_14241';
+    }
+    if($rem1==8){
+        if($code==15880) $vkont='04_C01P_12135';
+        if($code==10654) $vkont='04_C01P_14226';
+        if($code==10940) $vkont='04_C01P_14241';
+    }
+    if($rem1==7){
+        if($code==11205) $vkont='04_C01P_14297';
+        if($code==10852) $vkont='04_C01P_12237';
+        if($code==10877) $vkont='04_C01P_12135';
+        if($code==10678) $vkont='04_C01P_14226';
+        if($code==10844) $vkont='04_C01P_300000';
+    }
+
     $zsign=[];
     $zsign[0]=$oldkey;     // oldkey
     $zsign[1]='AUTO';
@@ -3585,6 +3653,7 @@ function f_zsign_ca($rem,$v) {
     $zsign[22]=$v['actual'];
     $zsign[23]=$v['eds'];
     $zsign[24]=$v['responsible'];
+
     return $zsign;
 }
 
@@ -3630,6 +3699,7 @@ function f_zpay_ca($rem,$v) {
     if($rem1==3){
         if($code==11201) $vkont='04_C01P_12135';
         if($code==10786) $vkont='04_C01P_12237';
+        if($code==10746) $vkont='04_C01P_14044';
         if($code==11173) $vkont='04_C01P_14297';
         if($code==11246) $vkont='04_C01P_11435';
         if($code==10696) $vkont='04_C01P_10810';

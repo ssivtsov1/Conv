@@ -2914,6 +2914,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
 	        and  c.code not in(20000556,20000565,20000753,
 	       20555555,20888888,20999999,30999999,40999999,41000000,42000000,43000000,
 	       10999999,11000000,19999369,50999999,1000000,1000001) 
+	       -- and m.code_eqp=121686
         order by 5";
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);
@@ -2994,6 +2995,9 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                     foreach ($data_f as $v2) {
                         $c = $c + 1;
                         $c1 = '00' . "$c";
+                        // Устранение перекрута по определенному потребителю для общей зоны
+                        if($oldkey == '04_C01P_01_121686_1' && $c==4)  $v2['pokaz_true']=substr($v2['pokaz_true'],1);
+
                         fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                             'DI_ZW' . "\t" . $c1 . "\t" .
                             $v2['kondigre'] . "\t" .
@@ -6882,8 +6886,10 @@ select * from (
                122878,123103,123108,123124,124528,124540,143928,146434,146469,146804,146888,
                148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
                143002,144466,148340,117581,117586,118341,145055,145063,145060,122491,145076,
-               145079,148554,148688,148692,150908,153405,153634,140390,140391,145320
-)  else 1=1 end 
+               145079,148554,148688,148692,150908,153405,153634,140390,140391,145320,
+             118084,118065,120903,120899,120907,120946,120945,120932,120929,120925,
+            121375,121381,121383,126936,126945)  else 1=1 end 
+ and  case when '$res'='3' then code_eqp not in(108264,108284,108287,108310,109605,108273)  else 1=1 end 
     	       ORDER BY 6
 ";
         else
@@ -7370,9 +7376,11 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 case when '$res'='1' then code_eqp not in(118347,118519,117601,120638,120634,
               120930,120875,120884,121363,121384,121422,121444,121735,121796,123227,117587,138263,
               138286,158826,139015,139775,149614,153875,153537,153824,153971,153827,
-              132803,132806,155666,153599,154276,154257,122507,118596,149671,149672
-
-)  else 1=1 end
+              132803,132806,155666,153599,154276,154257,122507,118596,149671,149672,
+              118055,126950,132794,148557,148784,148633,148690,149167,149179,149146,
+            149169,118085,120919,120923,132786,149117,126963,126938,120900,120933,120904,118499)
+            else 1=1 end
+            and case when '$res'='3' then code_eqp not in(108273,108302,108283,108242) else 1=1 end
 	       order by 1
  ";
         else
@@ -7440,8 +7448,8 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) 
                  order by 4) r
-                 where  case when '$res'='4' then code_eqp not in(118478,118479,149671,149672)  else 1=1 end
-    and  case when '$res'='5' then code_eqp not in(106232,116145,108551)  else 1=1 end
+                 where  case when '$res'='4' then code_eqp not in(118478,118479,149671,149672,117860)  else 1=1 end
+                and  case when '$res'='5' then code_eqp not in(106232,116145,108551)  else 1=1 end
 	       order by 1 ";
 
         if ($helper == 1)
@@ -9297,6 +9305,7 @@ www.short_name as real_name,const.ver,const.begru,
 case when q.id_cl=2062 then rr.id_client else q.id_cl end as id_potr,
 q1.num_eqp as zz_eic,q.* from
 (select  distinct 'DATA' as DATA,c2.id as id_cl,p.dt_b,
+max(p.dt_change) over(partition by p.eic_code) as max_dt,
 case when p.voltage_max = 0.22 then '02'
      when p.voltage_max = 0.4 then '03'
      when p.voltage_max = 10.00 then '05' 
@@ -9368,7 +9377,7 @@ when tgr.ident in('tgr8_101') then '666'
 '' as ZZCODE4NKRE_DOP,
 '' as ZZOTHERAREA,
 '1' as sort 
-from (select eq.num_eqp as eic_code,dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, 
+from (select eq.dt_change,eq.num_eqp as eic_code,dt.power,dt.connect_power, dt.id_tarif, tr.id_classtarif, dt.industry,dt.count_lost, dt.in_lost,dt.d, dt.wtm,dt.share,dt.id_position, cp.num_tab, dt.id_tg, p.val as kwedname,p.kod as kwedcode, tr.name as tarifname , tg.name as tgname, dt.id_voltage, 
 dt.ldemand, dt.pdays, dt.count_itr, dt.itr_comment, dt.cmp, dt.day_control, v.voltage_min, v.voltage_max, dt.zone, z.name as zname, dt.flag_hlosts, dt.id_depart, cla.name as department,dt.main_losts, dt.ldemandr,dt.ldemandg,dt.id_un, 
 dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, cp.represent_name, dt.con_power_kva, dt.safe_category, dt.disabled, dt.code_eqp, eq.name_eqp, eq.is_owner, eq.dt_install, eqh.dt_b, tr.id_grouptarif --, ph.id_extra --, tr.id_classtarif
 	from eqm_equipment_tbl as eq 
@@ -9413,6 +9422,7 @@ left join
    left join clm_client_tbl u1 on u1.id=u.id_client) rr 
    on rr.id=q1.id and (x.oldkey is null or q.id_cl=2062)
 where SPEBENE::text<>'' and q1.num_eqp is not null
+and q.max_dt=q1.dt_change
 )
  qqq
 left join eqm_eqp_use_tbl use on use.code_eqp=qqq.id 	
