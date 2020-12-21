@@ -13033,7 +13033,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
              ''::char(40) as HAUS,''::char(10) as house_num2,const.ver
              from eqm_area_tbl as eqa 
             join  eqm_equipment_tbl AS eq  on (eqa.code_eqp=eq.id) 
-            join  eqm_equipment_h AS eqh  on (eqa.code_eqp=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE eqm_equipment_h.id = eq.id and dt_b <= '$dt' order by dt_b desc limit 1 ) ) 
+            join  eqm_equipment_h AS eqh  on (eqa.code_eqp=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE eqm_equipment_h.id = eq.id and dt_b < '$dt' order by dt_b desc limit 1 ) ) 
             left join adv_address_tbl as a on (a.id=eq.id_addres) 
             left join adm_address_tbl as am on a.id=am.id
             join eqm_ground_tbl as g on (eq.id=g.code_eqp) 
@@ -13046,7 +13046,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             inner join sap_const const on
     1=1
             left join clm_statecl_h as sth on cl1.id = sth.id_client and
-    sth.mmgg_e is null and sth.mmgg_b = (SELECT mmgg_b FROM clm_statecl_h WHERE id_client = sth.id_client and mmgg_b <= '$dt' order by mmgg_b desc limit 1 )      
+    sth.mmgg_e is null and sth.mmgg_b = (SELECT mmgg_b FROM clm_statecl_h WHERE id_client = sth.id_client and mmgg_b < '$dt' order by mmgg_b desc limit 1 )      
             where (eq.type_eqp = 11) and cl1.book = -1 and coalesce(cl1.id_state,0) not in(50,99,49) and coalesce(cl1.idk_work,0) not in (0)
     and sth.mmgg_b is not null and st.doc_dat is not null  and st.id_section not in (205,206,207,208,209,218)  and sth.mmgg_b is not null and st.doc_dat is not null
     and cl1.id <> syi_resid_fun()
