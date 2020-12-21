@@ -6885,11 +6885,11 @@ select * from (
                and  case when '$res'='1' then code_eqp not in(114760,121176,118475,149669,122030,122872,
                122878,123103,123108,123124,124528,124540,143928,146434,146469,146804,146888,
                148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
-               143002,144466,148340,117581,117586,118341,145055,145063,145060,122491,145076,
+               143002,144466,148340,117581,117586,,117584,118341,145055,145063,145060,122491,145076,
                145079,148554,148688,148692,150908,153405,153634,140390,140391,145320,
              118084,118065,120903,120899,120907,120946,120945,120932,120929,120925,
-            121375,121381,121383,126936,126945)  else 1=1 end 
- and  case when '$res'='3' then code_eqp not in(108264,108284,108287,108310,109605,108273)  else 1=1 end 
+            121375,121381,121383,126936,126945,118498,139873,139874,139774,132960,153870,154780)  else 1=1 end 
+ and  case when '$res'='3' then code_eqp not in(108264,108284,108287,108310,109605,108273,108292,108293)  else 1=1 end 
     	       ORDER BY 6
 ";
         else
@@ -6975,6 +6975,7 @@ select * from (
         122878,123103,123108,123124,124528,124540,143928,146434,146469,146804,146888,
         148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
         143002,144466,148340)  else 1=1 end 
+         and  case when '$res'='2' then code_eqp not in(749712,106999,107069)  else 1=1 end 
     	       ORDER BY 6";
 
         if ($helper == 1)
@@ -7378,9 +7379,11 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
               138286,158826,139015,139775,149614,153875,153537,153824,153971,153827,
               132803,132806,155666,153599,154276,154257,122507,118596,149671,149672,
               118055,126950,132794,148557,148784,148633,148690,149167,149179,149146,
-            149169,118085,120919,120923,132786,149117,126963,126938,120900,120933,120904,118499)
+            149169,118085,120919,120923,132786,149117,126963,126938,120900,120933,120904,118499,118478,
+            118479,117595,118066,126986,126992,126947,126983,126989,132791,126942,120908,153871,153833,154798,124032,
+            154284,108416,108486,108487)
             else 1=1 end
-            and case when '$res'='3' then code_eqp not in(108273,108302,108283,108242) else 1=1 end
+            and case when '$res'='3' then code_eqp not in(108273,108302,108283,108242,108289,108265) else 1=1 end
 	       order by 1
  ";
         else
@@ -7449,7 +7452,7 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) 
                  order by 4) r
                  where  case when '$res'='4' then code_eqp not in(118478,118479,149671,149672,117860)  else 1=1 end
-                and  case when '$res'='5' then code_eqp not in(106232,116145,108551)  else 1=1 end
+                and  case when '$res'='5' then code_eqp not in(106232,116145,108551,108382)  else 1=1 end
 	       order by 1 ";
 
         if ($helper == 1)
@@ -13030,7 +13033,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
              ''::char(40) as HAUS,''::char(10) as house_num2,const.ver
              from eqm_area_tbl as eqa 
             join  eqm_equipment_tbl AS eq  on (eqa.code_eqp=eq.id) 
-            join  eqm_equipment_h AS eqh  on (eqa.code_eqp=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE eqm_equipment_h.id = eq.id and dt_b < '$dt' order by dt_b desc limit 1 ) ) 
+            join  eqm_equipment_h AS eqh  on (eqa.code_eqp=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE eqm_equipment_h.id = eq.id and dt_b <= '$dt' order by dt_b desc limit 1 ) ) 
             left join adv_address_tbl as a on (a.id=eq.id_addres) 
             left join adm_address_tbl as am on a.id=am.id
             join eqm_ground_tbl as g on (eq.id=g.code_eqp) 
@@ -13043,7 +13046,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             inner join sap_const const on
     1=1
             left join clm_statecl_h as sth on cl1.id = sth.id_client and
-    sth.mmgg_e is null and sth.mmgg_b = (SELECT mmgg_b FROM clm_statecl_h WHERE id_client = sth.id_client and mmgg_b < '$dt' order by mmgg_b desc limit 1 )      
+    sth.mmgg_e is null and sth.mmgg_b = (SELECT mmgg_b FROM clm_statecl_h WHERE id_client = sth.id_client and mmgg_b <= '$dt' order by mmgg_b desc limit 1 )      
             where (eq.type_eqp = 11) and cl1.book = -1 and coalesce(cl1.id_state,0) not in(50,99,49) and coalesce(cl1.idk_work,0) not in (0)
     and sth.mmgg_b is not null and st.doc_dat is not null  and st.id_section not in (205,206,207,208,209,218)  and sth.mmgg_b is not null and st.doc_dat is not null
     and cl1.id <> syi_resid_fun()
@@ -13189,6 +13192,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             }
         }
 
+        debug($data);
+        return;
 
         // Заполняем структуры
         foreach ($data as $w) {
