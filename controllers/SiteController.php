@@ -8888,7 +8888,7 @@ a.dat_ind,
  when a.id_zone in(6,7,8) then 6
  end as zone
  from clm_paccnt_tbl aa 
- left join acm_indication_tbl a on aa.id=a.id_paccnt and aa.archive='0' and dat_ind <= '2020-11-01'
+ left join acm_indication_tbl a on aa.id=a.id_paccnt and aa.archive='0' 
 left join
 (select max(dat_ind) as dat_ind,id_paccnt,id_zone,id_typemet from acm_indication_tbl group by id_paccnt,id_zone,id_typemet) b on
 a.id_paccnt=b.id_paccnt and a.id_zone=b.id_zone and a.dat_ind=b.dat_ind
@@ -8899,7 +8899,7 @@ left join clm_meter_zone_h b on a.id=b.id_meter) d  on d.id_paccnt=b.id_paccnt a
 left join (select (fun_mmgg() - interval '1 month')::date as mmgg_current) w1
 on 1=1
 left join clm_meterpoint_tbl m on m.id_paccnt=a.id_paccnt 
-left join clm_plandemand_tbl p on p.id_paccnt=a.id_paccnt and p.id_zone=a.id_zone and p.mmgg='2020-11-01' 
+left join clm_plandemand_tbl p on p.id_paccnt=a.id_paccnt and p.id_zone=a.id_zone  
 inner join sap_const const on 1=1
 where (a.id_operation<>5 or a.id_operation is null) and aa.archive='0' 
 and not(m.id_type_meter=0 or trim(m.num_meter)='0' or m.num_meter is null)
