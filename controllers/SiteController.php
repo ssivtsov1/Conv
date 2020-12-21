@@ -13192,8 +13192,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             }
         }
 
-        debug($data);
-        return;
+//        debug($data);
+//        return;
 
         // Заполняем структуры
         foreach ($data as $w) {
