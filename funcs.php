@@ -1351,7 +1351,7 @@ function f_partner($n_struct, $rem, $v) {
 
 //            $u_r=rand(1,23);
             $str_supll1 = str_replace("'",'`',trim($v['street_wo']));
-            $str_supll1 = substr($str_supll1,0,40);
+            $str_supll1 = mb_substr($str_supll1,0,40,"UTF-8");
             if(empty($str_supll1))
 //                $str_supll1 = 'вул. ' . $dacha[10];
                  $str_supll1 = 'вул. ' . $v['zz_nameshort'];
