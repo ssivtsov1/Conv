@@ -13192,8 +13192,12 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                 }
             }
             // Если код в CONNOBJ не найден
+
+
             if($flag==0) {
-                $z="select min(id) as id,
+                for ($oo = 0; $oo < $o; $oo++) {
+                    $code_tu = $mas[$oo];
+                    $z = "select min(id) as id,
 coalesce(town_sap,'') as town,coalesce(post_index,'') as post_index,
 coalesce(street_sap,'') as street,
 coalesce(house,'') as house,  
@@ -13265,33 +13269,34 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		
 	order by id  ";
 
-                debug($z);
-                debug($mas);
-
-                switch ($res) {
-                    case 1:
-                        $data_connobj = \Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
-                        break;
-                    case 2:
-                        $data_connobj = \Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
-                        break;
-                    case 3:
-                        $data_connobj = \Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
-                        break;
-                    case 4:
-                        $data_connobj = \Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
-                        break;
-                    case 5:
-                        $data_connobj = \Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
-                        break;
-                    case 6:
-                        $data_connobj = \Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
-                        break;
-                    case 7:
-                        $data_connobj = \Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
-                        break;
-                    case 8:
-                        $data_connobj = \Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+                    switch ($res) {
+                        case 1:
+                            $data_connobj = \Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+                            break;
+                        case 2:
+                            $data_connobj = \Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+                            break;
+                        case 3:
+                            $data_connobj = \Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+                            break;
+                        case 4:
+                            $data_connobj = \Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+                            break;
+                        case 5:
+                            $data_connobj = \Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
+                            break;
+                        case 6:
+                            $data_connobj = \Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+                            break;
+                        case 7:
+                            $data_connobj = \Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+                            break;
+                        case 8:
+                            $data_connobj = \Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+                            break;
+                    }
+                    if (count($data_connobj) == 0) continue;
+                    else
                         break;
                 }
 //                debug($z);
