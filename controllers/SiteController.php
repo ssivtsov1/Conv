@@ -13351,14 +13351,14 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
              when ks.shot_name='шосе' and trim(s.name)<>'Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)
          end)
        
-        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '05'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
-                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and '05'='05' then trim(ads.reg)='DNP' else 1=1 end
-                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and '05'='05' then trim(ads.reg)='DNP' else 1=1 end
-                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '05'='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
-                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and '05'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
-                and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and '05'='06' then trim(ads.reg)='DNP' else 1=1 end
-                and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Високе' and '05'='01' then trim(ads.reg)='VIN' else 1=1 end
-                and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Миколаївка' and '05'='01' then trim(ads.reg)='DNP' else 1=1 end
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Високе' and $res='01' then trim(ads.reg)='VIN' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Миколаївка' and $res='01' then trim(ads.reg)='DNP' else 1=1 end
                 -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
         LEFT JOIN (select distinct numtown,min(post_index) as post_index from (
                     select distinct trim(numtown) as numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) 
@@ -13366,7 +13366,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
          on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
         LEFT JOIN  sap_wo_adr u on ((coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
         and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')) or (a.id=u.id_client))
-        and u.res=5 and u.connobj=1
+        and u.res=$rem and u.connobj=1
         inner join sap_const const on
                 1=1
         WHERE a.type_eqp=12 and substr(trim(a.num_eqp)::text,1,3)='62Z'  and
