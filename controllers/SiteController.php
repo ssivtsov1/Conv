@@ -13412,7 +13412,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
                     foreach ($data1_connobj as $connobj1) {
                         $code_true=$connobj1['id'];
                         $house_num2=$connobj1['house_num2'];
-                        $haus='04_C0'.$rem.'P_'.$code_true;
+                        $haus='04_C'.$rem.'P_'.$code_true;
                         $data[$key]['haus'] = $haus;
                         $data[$key]['house_num2'] = $house_num2;
                         break;
