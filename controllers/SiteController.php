@@ -13160,7 +13160,6 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             $mas = [];
             $o = 0;
             foreach ($nd2 as $n2) {
-                $code_tu=0;
                 if ($n2['id_eq'] == $n1_id && $n2['code'] == $n1_code) {
                     $mas[$o] = $n2['id_tu'];
                     $code_tu=$n2['id_tu'];
