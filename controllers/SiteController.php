@@ -13409,6 +13409,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
                             $data1_connobj = \Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
                             break;
                     }
+                    debug($data1_connobj);
 
                     foreach ($data1_connobj as $connobj1) {
                         $code_true=$connobj1['id'];
