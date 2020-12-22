@@ -13291,9 +13291,9 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
                         $data_connobj = \Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
                         break;
                 }
-                debug($z);
-                debug($data_connobj);
-                return;
+//                debug($z);
+//                debug($data_connobj);
+//                return;
 
                 foreach ($data_connobj as $connobj) {
                     $suppl1 = $connobj['str_suppl1'];
