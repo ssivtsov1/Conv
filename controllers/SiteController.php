@@ -13063,7 +13063,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
         $sql_c = "select * from sap_export where objectsap='PREMISE' order by id_object";
         $zsql = 'delete from sap_evbsd';
         $sql_q = "select * from  sap_premise_dop ";
-        $sql_dd = "select * from  sap_co_adr";
+        $sql_dd = "select * from  sap_co_adr order by 1";
 
 
         if (1 == 1) {
@@ -13160,8 +13160,10 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
             $mas = [];
             $o = 0;
             foreach ($nd2 as $n2) {
+                $code_tu=0;
                 if ($n2['id_eq'] == $n1_id && $n2['code'] == $n1_code) {
                     $mas[$o] = $n2['id_tu'];
+                    $code_tu=$n2['id_tu'];
                     $o++;
                 }
             }
@@ -13256,7 +13258,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
         '10999999','11000000','19999369','50999999','1000000','1000001')
         order by 1
 	    ) u
-    where id=$n1_co
+    where id=$code_tu
 	   	    group by coalesce(town,''),coalesce(post_index,''),
 		coalesce(street,''),coalesce(house,''),stort,ver,begru,region,swerk,
 		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,
