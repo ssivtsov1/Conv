@@ -13190,6 +13190,233 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     break;
                 }
             }
+            // Если код в CONNOBJ не найден
+            if($flag==0) {
+                $z="select min(id) as id,
+coalesce(town_sap,'') as town,coalesce(post_index,'') as post_index,
+coalesce(street_sap,'') as street,
+coalesce(house,'') as house,  
+stort,ver,begru,region,swerk,
+case when coalesce(street,'')='' and coalesce(house,'')='' then name end as str_suppl1,
+' '::char(30) as str_suppl2,''::char(20) as house_num2,town_sap,reg,street_sap,numobl,
+ town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo from
+    (select a.id,'' as pltxt,c.name,s.name as town_cek,ks.shot_name||' '||trim(s.name) as street_cek,
+am.building as HOUSE_NUM1,
+am.office as HOUSE_NUM2,
+'UA' as COUNTRY,
+kt.shot_name||' '||t.name as town,b2.post_index,ks.shot_name||' '||s.name as street,
+-- am.building as house,
+-- upper(coalesce(am.building,''))||coalesce(upper(am.building_add),'') as house, 
+ f_get_number_house(am.building,am.building_add) as house,
+am.office as flat,
+const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town as town_sap,
+ads.street as street_sap,ads.reg,ads.numobl,
+u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.reg as reg_wo,u.id_client as id_wo
+ from eqm_equipment_tbl a
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+ 
+        LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+        LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+        LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+        LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+        LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+       
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name)
+
+    and (trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name) or 
+        case when ks.shot_name='шосе' and trim(s.name)='Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)||' шосе'
+             when ks.shot_name='шосе' and trim(s.name)<>'Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)
+         end)
+       
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and $res='05' then trim(ads.reg)='DNP' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and $res='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and $res='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and $res='06' then trim(ads.reg)='DNP' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Високе' and $res='01' then trim(ads.reg)='VIN' else 1=1 end
+    and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Миколаївка' and $res='01' then trim(ads.reg)='DNP' else 1=1 end
+    -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+        LEFT JOIN (select distinct numtown,min(post_index) as post_index from (
+        select distinct trim(numtown) as numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) 
+       b20 group by 1) b2
+         on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
+        LEFT JOIN  sap_wo_adr u on ((coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
+        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')) or (a.id=u.id_client))
+        and u.res=$rem and u.connobj=1
+        inner join sap_const const on
+    1=1
+        WHERE a.type_eqp=12 and substr(trim(a.num_eqp)::text,1,3)='62Z'  and
+    (c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0
+    and  c.code not in('20000556','20000565','20000753',
+        '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+        '10999999','11000000','19999369','50999999','1000000','1000001')
+        order by 1
+	    ) u
+    where id=$n1_co
+	   	    group by coalesce(town,''),coalesce(post_index,''),
+		coalesce(street,''),coalesce(house,''),stort,ver,begru,region,swerk,
+		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,
+		town_sap,reg,street_sap,numobl,id,town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo
+		
+	order by id  ";
+
+                switch ($res) {
+                    case 1:
+                        $data_connobj = \Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+                        break;
+                    case 2:
+                        $data_connobj = \Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+                        break;
+                    case 3:
+                        $data_connobj = \Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+                        break;
+                    case 4:
+                        $data_connobj = \Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+                        break;
+                    case 5:
+                        $data_connobj = \Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
+                        break;
+                    case 6:
+                        $data_connobj = \Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+                        break;
+                    case 7:
+                        $data_connobj = \Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+                        break;
+                    case 8:
+                        $data_connobj = \Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+                        break;
+                }
+                debug($z);
+                debug($data_connobj);
+                return;
+
+                foreach ($data_connobj as $connobj) {
+                    $suppl1 = $connobj['str_suppl1'];
+
+                    $z = "select min(id) as id,coalesce(town,'') as town,post_index,
+street,house,stort,ver,begru,region,swerk,str_suppl1,
+str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
+ town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo 
+from  (
+    select min(id) as id,
+coalesce(town_sap,'') as town,coalesce(post_index,'') as post_index,
+coalesce(street_sap,'') as street,
+coalesce(house,'') as house,  
+stort,ver,begru,region,swerk,
+case when coalesce(street,'')='' and coalesce(house,'')='' then name end as str_suppl1,
+' '::char(30) as str_suppl2,''::char(20) as house_num2,town_sap,reg,street_sap,numobl,
+ town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo from
+                (select a.id,'' as pltxt,c.name,s.name as town_cek,ks.shot_name||' '||trim(s.name) as street_cek,
+am.building as HOUSE_NUM1,
+am.office as HOUSE_NUM2,
+'UA' as COUNTRY,
+kt.shot_name||' '||t.name as town,b2.post_index,ks.shot_name||' '||s.name as street,
+-- am.building as house,
+-- upper(coalesce(am.building,''))||coalesce(upper(am.building_add),'') as house, 
+ f_get_number_house(am.building,am.building_add) as house,
+am.office as flat,
+const.id_res,const.swerk,const.stort,const.ver,const.begru,const.region,ads.town as town_sap,
+ads.street as street_sap,ads.reg,ads.numobl,
+u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.reg as reg_wo,u.id_client as id_wo
+ from eqm_equipment_tbl a
+     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
+     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
+     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
+     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+ 
+        LEFT JOIN adm_address_tbl am ON a.id_addres = am.id
+        LEFT JOIN adi_street_tbl s ON s.id = am.id_street
+        LEFT JOIN adi_town_tbl t ON t.id = s.id_town
+        LEFT JOIN adk_street_tbl ks ON ks.id = s.idk_street
+        LEFT JOIN adk_town_tbl kt ON kt.id = t.idk_town
+       
+       LEFT JOIN addr_sap ads on trim(ads.town)=trim(kt.shot_name)||' '||trim(t.name)
+
+                and (trim(ads.street)=get_typestreet1(trim(ks.shot_name))||' '||trim(s.name) or 
+        case when ks.shot_name='шосе' and trim(s.name)='Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)||' шосе'
+             when ks.shot_name='шосе' and trim(s.name)<>'Запорізьке' then trim(ads.street)=trim(ks.shot_name)||' '||trim(s.name)
+         end)
+       
+        and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '05'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Грузьке' and '05'='05' then trim(ads.reg)='DNP' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Червоне' and '05'='05' then trim(ads.reg)='DNP' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Вільне' and '05'='07' then trim(ads.rnobl)='Новомосковський район' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(t.name)='с. Степове' and '05'='05' then trim(ads.rnobl)='Криворізький район' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Камянка' and '05'='06' then trim(ads.reg)='DNP' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Високе' and '05'='01' then trim(ads.reg)='VIN' else 1=1 end
+                and case when trim(kt.shot_name)||' '||trim(replace(t.name,chr(39),'')) = 'с. Миколаївка' and '05'='01' then trim(ads.reg)='DNP' else 1=1 end
+                -- LEFT JOIN post_index_sap b2 on ads.numtown=b2.numtown and b2.post_index::integer=am.post_index
+        LEFT JOIN (select distinct numtown,min(post_index) as post_index from (
+                    select distinct trim(numtown) as numtown,first_value(post_index) over(partition by numtown) as post_index from  post_index_sap) 
+       b20 group by 1) b2
+         on trim(ads.numtown)=trim(b2.numtown) --and b2.post_index::integer=am.post_index
+        LEFT JOIN  sap_wo_adr u on ((coalesce(trim(ks.shot_name||' '||trim(s.name)),'')=coalesce(trim(trim(chr(13) from trim(chr(10) from u.street))),'')
+        and coalesce(trim(kt.shot_name||' '||trim(t.name)),'') = coalesce(trim(trim(chr(13) from trim(chr(10) from u.town))),'')) or (a.id=u.id_client))
+        and u.res=5 and u.connobj=1
+        inner join sap_const const on
+                1=1
+        WHERE a.type_eqp=12 and substr(trim(a.num_eqp)::text,1,3)='62Z'  and
+                (c.code>999 or c.code=900) AND coalesce(c.idk_work,0)<>0
+                and  c.code not in('20000556','20000565','20000753',
+                    '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+                    '10999999','11000000','19999369','50999999','1000000','1000001')
+        order by 1
+	    ) u
+                --where id=107423
+	   	    group by coalesce(town,''),coalesce(post_index,''),
+		coalesce(street,''),coalesce(house,''),stort,ver,begru,region,swerk,
+		case when coalesce(street,'')='' and coalesce(house,'')='' then name end,
+		town_sap,reg,street_sap,numobl,id,town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo
+		
+	order by id  
+	) u 
+	 where str_suppl1='$suppl1'
+		group by 2,post_index,
+		street,house,stort,ver,begru,region,swerk,str_suppl1,
+		str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
+		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo
+		 ORDER BY 1";
+
+                    switch ($res) {
+                        case 1:
+                            $data1_connobj = \Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+                            break;
+                        case 2:
+                            $data1_connobj = \Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+                            break;
+                        case 3:
+                            $data1_connobj = \Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+                            break;
+                        case 4:
+                            $data1_connobj = \Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+                            break;
+                        case 5:
+                            $data1_connobj = \Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
+                            break;
+                        case 6:
+                            $data1_connobj = \Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+                            break;
+                        case 7:
+                            $data1_connobj = \Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+                            break;
+                        case 8:
+                            $data1_connobj = \Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+                            break;
+                    }
+                    $code_true=$data1_connobj[0]['id'];
+                    $house_num2=$data1_connobj[0]['house_num1'];
+                    $haus='04_C0'.$rem.'P_'.$code_true;
+                    $data[$key]['haus'] = $haus;
+                    $data[$key]['house_num2'] = $house_num2;
+                    break;
+                }
+
+
+            }
         }
 
 //        debug($data);
