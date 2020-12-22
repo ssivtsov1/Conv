@@ -13408,9 +13408,10 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
                             $data1_connobj = \Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
                             break;
                     }
+
                     foreach ($data1_connobj as $connobj1) {
                         $code_true=$connobj1['id'];
-                        $house_num2=$connobj1['house_num1'];
+                        $house_num2=$connobj1['house_num2'];
                         $haus='04_C0'.$rem.'P_'.$code_true;
                         $data[$key]['haus'] = $haus;
                         $data[$key]['house_num2'] = $house_num2;
