@@ -13297,6 +13297,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 
                 foreach ($data_connobj as $connobj) {
                     $suppl1 = $connobj['str_suppl1'];
+                    $town_wo = $connobj['town_wo'];
 
                     $z = "select min(id) as id,coalesce(town,'') as town,post_index,
 street,house,stort,ver,begru,region,swerk,str_suppl1,
@@ -13375,7 +13376,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		
 	order by id  
 	) u 
-	 where str_suppl1='$suppl1'
+	 where str_suppl1='$suppl1' and town_wo='$town_wo'
 		group by 2,post_index,
 		street,house,stort,ver,begru,region,swerk,str_suppl1,
 		str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
