@@ -13266,6 +13266,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 	order by id  ";
 
                 debug($z);
+                debug($mas);
 
                 switch ($res) {
                     case 1:
