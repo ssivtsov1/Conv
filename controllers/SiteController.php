@@ -611,6 +611,53 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+    // Алгоритм Флойда
+    public function actionFloyd()
+    {
+        $f = fopen('a_matrix.txt', 'r');
+        $i = 0;
+        while (!feof($f)) {
+            $s = fgets($f);
+            if(!empty($s)){
+                $s=str_replace(',','',$s);
+                $data = explode(" ", $s);
+                $matrix[$i]=$data;
+                $i++;
+             }
+        }
+        fclose($f);
+        debug('Matrix of ways:');
+        debug($matrix);
+
+        $inf = 1000000000;
+        $w=count($matrix);
+    // Устанавливаем в вершины где нет путей inf
+     for ($i = 0; $i < $w; $i++)
+        for ($j = 0; $j < $w; $j++)
+            if ($matrix[$i][$j] == 0 && $i != $j)
+                $matrix[$i][$j] = $inf;
+
+//        debug($matrix);
+
+    // Собственно реализация алгоритма Флойда-Уоршелла
+    for ($k = 0; $k < $w; $k++)
+        for ($i = 0; $i < $w; $i++)
+            for ($j = 0; $j < $w; $j++)
+                if (( (int) $matrix[$i][$k] + (int) $matrix[$k][$j]) < ((int) $matrix[$i][$j]))
+                    $matrix[$i][$j] = ( (int) $matrix[$i][$k] + (int) $matrix[$k][$j]);
+        debug('Shortest ways:');
+        debug($matrix);
+    }
+
+    // Convert strig
+    public function actionCnvstr()
+    {
+        $s='магазин Козачок ЖОВТІ ВОДИ: Шевченка 15,17,19,21,АВШ на ж/б по вул.Шевченко, 21АВШ на ж/б по вул.Шевченко, 17АВШ на ж/б по вул.Шевченко, 15АВШ на ж/б по вул.Шевченко, 19';
+       $s1=converting_string($s);
+        debug($s);
+        debug($s1);
+    }
+
     // Добавление счетчиков (соотв с САП)
     public function actionAdd_cnt()
     {
@@ -6877,7 +6924,7 @@ select * from (
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17)  -- and p.loss_power=1  -- and  p.type_eqp<>2
                 ) r
                 where case when '$res'='5' then id_sap is not null and trim(id_sap)<>'' else 1=1 end
-              and  case when '$res'='5' then code_eqp not in(124614,116220)  else 1=1 end
+                and  case when '$res'='5' then code_eqp not in(124614,116220)  else 1=1 end
                 and  case when '$res'='4' then code_eqp not in(116758,116766,117269,118413)  else 1=1 end
                 and  case when '$res'='3' then code_eqp not in(107239,107747,107870,113325,107259)  else 1=1 end
                 and  case when '$res'='2' then code_eqp not in(108033,109456,110357,113908,113915,114059,232344,

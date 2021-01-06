@@ -1,1 +1,1 @@
-Yii::$app->db_pg_pv_energo->createCommand("INSERT  INTO sap_err VALUES('CONNOBJ','04_C04P_106002','Нет индекса',4)")->execute();
+Yii::$app->db_pg_ap_energo->createCommand("delete from sap_err where upload='ZTRANSF' and res=6")->execute();

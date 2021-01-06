@@ -2589,6 +2589,7 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     $anlage = $oldkey_const . $v['id_point'];
     $text = str_replace("'",'`',$text);
     $let = $v['id_type_eqp'];
+    $v_norm='~';
 
     if(substr($pnt,0,1)=='1')
          $xnegp = 'X';
@@ -2598,9 +2599,9 @@ function f_zlines($n_struct,$rem,$v,$vid) {
     if($let<>2) {
         if ($n_struct == 'AUTO')
             $z = "insert into sap_auto_zlines(oldkey,dat_type,anlage,linum,frdat,frtim,lityp,length,voltage,state,
-                                    wxshr,fshar,xnegp,text,element_id)
+                                    wxshr,fshar,xnegp,text,element_id,v_norm)
                     values('$oldkey','$n_struct','$anlage','$pnt','$datab','000000','$id_sap','$line_length',
-                            '$line_voltage_nom','L','100','X','$xnegp','$text','$pnt')";
+                            '$line_voltage_nom','L','100','X','$xnegp','$text','$pnt','$v_norm')";
 
 //        echo($z);
         exec_on_server($z, (int)$rem, $vid);
@@ -2614,6 +2615,7 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
     $oldkey_const='04_C'.$rem.'P_01_';
     $r = $v['code_eqp'];
     $pnt=$v['pnt'];
+    $v_norm='~';
 
     if(((int) $pnt)<1000)
         $pnt= substr((1000+$pnt),1,3);
@@ -2643,9 +2645,9 @@ function f_ztransf($n_struct,$rem,$v,$vid) {
 
         if ($n_struct == 'AUTO')
             $z = "insert into sap_auto_ztransf(oldkey,dat_type,anlage,frdat,frtim,trcat,trtyp,trsta,
-                                    xnegp,text,element_id)
+                                    xnegp,text,element_id,v_norm)
                     values('$oldkey','$n_struct','$anlage','$datab','000000','$swathe','$id_sap',
-                            'L','$xnegp','$text','$pnt')";
+                            'L','$xnegp','$text','$pnt','$v_norm')";
 //        debug($z);
 //        return;
 
@@ -6423,4 +6425,89 @@ function AllPermutations($InArray, $InProcessedArray = array())
         }
     }
     return $ReturnArray;
+}
+
+function converting_string ($str) {
+    $s = explode(chr(32), $str);
+    $res = '';
+    // debug($s);
+    // return;
+    $y = mb_strlen($str,'UTF-8');
+    $n = count($s);
+    $j = 0;
+    $arr=[];
+    $is_r=0;
+//    debug($s);
+    for($i=0; $i<$n; $i++){
+        $w = $s[$i];
+        $pos = strpos($w, ':');
+        if ($pos) {
+            $is_r=1;
+        }
+        if ($w == 'ВОДИ:') {
+            if($i>0){
+                $w = $s[$i-1].' '.$w;
+            }
+            else {
+                $w = 'ЖОВТІ ВОДИ:';
+            }
+        }
+        if ($w == 'РІГ:') {
+            if($i>0){
+                $w = $s[$i-1].' '.$w;
+            }
+            else {
+                $w = 'КРИВИЙ РІГ:';
+            }
+        }
+        if ($w == 'ШЛЯХ:') $w = 'НОВИЙ ШЛЯХ:';
+        if ($w == 'ДАЧА:') $w = 'ШИРОКА ДАЧА:';
+        if ($w == 'КОЛОНА:') $w = 'ЧЕРВОНА КОЛОНА:';
+        if ($w == 'КРЕМЕНЧУК:') $w = 'НОВИЙ КРЕМЕНЧУК:';
+        if ($w == 'РАЙОН/М.ДНІПРО:') $w = 'ДНІПРОВСЬКИЙ РАЙОН/М.ДНІПРО:';
+        if($pos){
+            $arr[$j]=$w;
+            $j++;
+        }
+    }
+    $n = count($arr);
+    $a = 0;
+    $pos2 = 0;
+//    debug($arr);
+    if($is_r==0) return trim($str);
+
+    for($i=0; $i<$n; $i++){
+        $w = $arr[$i];
+        if (($n-$i)==1)
+            $w1 = $arr[$i];
+        else
+            $w1 = $arr[$i+1];
+        //    debug($w.'<br>');
+        $l = mb_strlen($w,'UTF-8');
+        //    debug($l.'<br>');
+        $pos1 = mb_strpos($str, $w, $a+$pos2,'UTF-8');
+//            debug('pos1 = '.$pos1.'<br>');
+        $pos2 = mb_strpos($str, $w1, $a+$pos2+$l,'UTF-8');
+//            debug('pos2 = '.$pos2.'<br>');
+        $flag = 0;
+        if ($pos2 === false) {
+            $flag = 1;
+        }
+        if ($flag == 0){
+            $r = $pos2 - $pos1;
+            if($r==0) $c = mb_substr($str, $a+$pos1,$y-($a+$pos1),'UTF-8').'<br>';
+            else
+                $c = mb_substr($str, $a+$pos1, $r,'UTF-8').'<br>';
+            //    debug('r = '.$r.'<br>');
+            //   debug('$a+$pos1 = '.($a+$pos1).'<br>');
+            //    debug($c);
+            $res = $res. $c."\n";
+        } else {
+            $c = mb_substr($str, $a+$pos1,$y-($a+$pos1),'UTF-8').'<br>';
+            //    debug('$a+$pos1 = '.($a+$pos1).'<br>');
+            //    debug($c);
+            $res = $res. $c."\n";
+        }
+    }
+    return trim($res);
 }
