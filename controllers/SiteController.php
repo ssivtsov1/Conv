@@ -11168,7 +11168,7 @@ select SERNR2 as sernr,* from
                 case when m.dt_control is null then '2005' else substring(m.dt_control::varchar,1,4)  end as bgljahr,
                 case  when coalesce(eq.is_owner,0) = 0 then 'CK01230370' else '' end as KOSTL, 
                  trim(eq.num_eqp) as SERNR1,
-                 case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
+                 case when eq.is_owner <> 1 then f_matotv($res) else '' end as zz_pernr,
                   substring(replace(m.dt_control::varchar,'-',''),1,8) as CERT_DATE,
                   upper(sd.sap_meter_name) as matnr,
                  case when en1.kind_energy =1 then case when eqz1.zone in (4,5,9,10) then '2' when eqz1.zone in (1,2,3,6,7,8) then '3' when  eqz1.zone = 0 then '1' else '0' end ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
@@ -11219,7 +11219,7 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                  --get_element_str(trim(eq.num_eqp),row_number() OVER (PARTITION BY c.code_eqp)::int) as sernr,
                  -- substr(cyrillic_transliterate(gr.code_t_new::text),8) as sernr,
                f_get_sn(cyrillic_transliterate(gr.code_t_new::text),1) as sernr1,
-                  case when eq.is_owner <> 1 then '2189' else '' end as zz_pernr,
+                  case when eq.is_owner <> 1 then f_matotv_tr($res) else '' end as zz_pernr,
                  c.date_check::text as CERT_DATE,
                   coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
                   '' as zwgruppe,
@@ -11885,7 +11885,7 @@ order by tzap
         $baujj = mt_rand(1970, 1993);
 
         $sql = "select distinct w1.mmgg_current,(w1.mmgg_current- interval '4 month')::date as datab,a.id,'4001' as eqart,'$baujj' as baujj,
-                const.kostl as kostl,a.num_meter as sernr,'00000347' as zz_pernr,
+                const.kostl as kostl,a.num_meter as sernr,f_matotv($res) as zz_pernr,
                 replace(a.dt_control::char(10),'-','') as cert_date,b.id as id_meter,
                 date_part('year', a.dt_control) as bgljahr,get_gen_cq(a.id_paccnt,a.carry) as zwgruppe,
                 const.swerk,const.stort,const.ver,const.begru_b as begru,sd.sap_meter_name as matnr
