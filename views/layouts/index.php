@@ -28,7 +28,7 @@ AppAsset::register($this);
         <?php
         if($_SERVER['REMOTE_ADDR']<>'127.0.0.1') {
         NavBar::begin([
-            'brandLabel' =>  'Полезные инструменты',
+            'brandLabel' =>  'Полезные инструменты (СПС)',
             'brandUrl' => Yii::$app->homeUrl,
             'options' => [
                'class' => 'navbar-inverse navbar-fixed-top',
