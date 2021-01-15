@@ -1358,6 +1358,8 @@ function f_partner($n_struct, $rem, $v) {
 
         $str_supll1 = mb_substr($str_supll1,0,40,"UTF-8");
             $str_supll2 = $house_num1;
+            $house_num1='';
+
             if(!empty($v['id_wo']))
                 $str_supll2 = $v['id_wo'];
             $town = trim($v['town_wo']);

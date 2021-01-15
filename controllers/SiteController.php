@@ -2265,7 +2265,9 @@ left join vw_address as b on substr(sap.old_key,9)::int=b.id join sap_const as c
         $sql = "select *,case when nn>1 then trim(scode)||'_'||nn else trim(scode) end as plomb_num_t from (
 select *,row_number() over(partition by scat,scode) as nn from (
 select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place,coalesce(sp.short_name,'СЕЙФ-ПАКЕТ') as scat,a.id_type,a.dt_on,a.id,
-                'I' as status,'3' as color,'C010099' as utmas,'C010099' as reper,
+                'I' as status,'3' as color,
+                matotv.tab_nom_utmas as UTMAS,
+                matotv.tab_nom_reper as REPER,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as DPURCH,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as dissue,
                 substring(replace(a.dt_on::varchar, '-',''),1,8) as dinst,
@@ -2289,6 +2291,7 @@ select distinct a.id_paccnt,a.plomb_num as scode,coalesce(b.id_sap,'8') as place
                 inner join sap_const const on 1=1
                 left join sap_plomb_name sp on sp.id_cek::integer=a.id_type
                 left join clm_paccnt_tbl cl on cl.id=a.id_paccnt
+                inner join seals_matotv matotv on 1=1 and matotv.res=$res
                 where dt_off is null and length(a.plomb_num) <= 15 
 		         and cl.archive=0 
 		        -- and w.num_meter='10682627'
@@ -9898,9 +9901,9 @@ select distinct
         trim(p.plomb_num) as SCODE1,
         'I' as STATUS,
         '3' as COLOR,
-        'C010099' as UTMAS, 
+        matotv.tab_nom_utmas as UTMAS, 
         substring(replace(p.dt_b::varchar, '-',''),1,8) as DPURCH,
-        'C010099' as REPER,
+        matotv.tab_nom_reper as REPER,
         substring(replace(p.dt_b::varchar, '-',''),1,8) as DISSUE,
         u.matnr as MATNR,
         u.sernr as SERNR,
@@ -9920,8 +9923,9 @@ select distinct
         left join adv_address_tbl as adr on (adr.id = eq.id_addres ) 
         left join sap_recode_place_plomb p1 on trim(p1.place_cek)=trim(p.object_name)
         left join spr_place_plomb p2 on trim(p2.name)=trim(p1.place_sap)
-         inner join sap_const const on 1=1
-         left join (select a.oldkey,case when length(substr(a.oldkey,9))=6 then substr(a.oldkey,9,6) else substr(a.oldkey,9,7) end as code,
+        inner join sap_const const on 1=1
+        inner join seals_matotv matotv on 1=1 and matotv.res=$res
+        left join (select a.oldkey,case when length(substr(a.oldkey,9))=6 then substr(a.oldkey,9,6) else substr(a.oldkey,9,7) end as code,
 	a.matnr,a.sernr,get_tu(extract_n(case when length(substr(a.oldkey,9))=6 then substr(a.oldkey,9,6) else substr(a.oldkey,9,7) end)::integer) as id_tu 
 	from sap_equi a inner join sap_egerh b on trim(a.oldkey)=trim(b.oldkey) and trim(b.zwgruppe)<>'') u on u.id_tu=eq.id
          where (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
