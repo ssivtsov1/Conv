@@ -17,6 +17,7 @@ use app\models\index;
 use app\models\input_find_server;
 use app\models\input_find_server_mysql;
 use app\models\code_file;
+use app\models\conversion_model;
 use app\models\decode_file;
 use app\models\input_array;
 use app\models\input;
@@ -19754,51 +19755,59 @@ where issubmit = 1";
 //  Импорт csv файлов на SQL Server
     public function actionCsv2sql()
     {
-        $n = 8;  // Кол-во полей для импорта
-        $table_name = 'error_prom';
-        $file_csv = 'mig19_p19.csv';
-        $delimeter = '~';
-        $f = fopen($file_csv, 'r');
-        // Вычисляем кол-во полей для импорта если не задано кол-во полей
-        if($n==0) {
+        $model = new conversion_model();
+        if ($model->load(Yii::$app->request->post())) {
+            $model->file = UploadedFile::getInstance($model, 'file');
+//            debug($model);
+//            return;
+            $n = $model->number;  // Кол-во полей для импорта
+            $table_name = $model->table;
+//            $file_csv = $model->file->tempName.'/'.$model->file->name;
+            $file_csv = $model->file->name;
+            $delimeter =$model->delimiter;
+            $f = fopen($file_csv, 'r');
+            // Вычисляем кол-во полей для импорта если не задано кол-во полей
+            if($n==0) {
+                $i = 0;
+                while (!feof($f)) {
+                    $s = fgets($f);
+                    $data = explode($delimeter, $s);
+                    if ($i == 0) {
+                        $n = count($data);
+                        break;
+                    }
+                    $i++;
+                }
+            }
+            // Удаляем таблицу если она есть
+            $gen_drop = 'DROP TABLE IF EXISTS '.$table_name;
+            Yii::$app->db_phone->createCommand($gen_drop)->execute();
+            // Создаем таблицу
+            $gen_create = '';
+            $gen_insert='';
+            for($i=0;$i<=$n;$i++){
+                if($i==0)
+                    $gen_create .= 'id'  . ' integer,';
+                else {
+                    $gen_create .= 'field_' . $i . ' varchar(255),';
+                    $gen_insert .='field_' . $i.',';
+                }
+            }
+            $gen_create=substr($gen_create,0,strlen($gen_create)-1);
+            $gen_insert='INSERT INTO ' . $table_name . '(' . 'id,' . substr($gen_insert,0,strlen($gen_insert)-1)  . ')';
+            $gen_create = 'CREATE TABLE '.$table_name.'('.$gen_create.')';
+            Yii::$app->db_phone->createCommand($gen_create)->execute();
+            // Пишем построчно в таблицу с файла
             $i = 0;
             while (!feof($f)) {
                 $s = fgets($f);
                 $data = explode($delimeter, $s);
-                if ($i == 0) {
-                    $n = count($data);
-                    break;
-                }
-                $i++;
-            }
-        }
-        // Удаляем таблицу если она есть
-        $gen_drop = 'DROP TABLE IF EXISTS '.$table_name;
-        Yii::$app->db_phone->createCommand($gen_drop)->execute();
-        // Создаем таблицу
-        $gen_create = '';
-        $gen_insert='';
-       for($i=0;$i<=$n;$i++){
-           if($i==0)
-               $gen_create .= 'id'  . ' integer,';
-           else {
-               $gen_create .= 'field_' . $i . ' varchar(255),';
-               $gen_insert .='field_' . $i.',';
-           }
-        }
-        $gen_create=substr($gen_create,0,strlen($gen_create)-1);
-        $gen_insert='INSERT INTO ' . $table_name . '(' . 'id,' . substr($gen_insert,0,strlen($gen_insert)-1)  . ')';
-        $gen_create = 'CREATE TABLE '.$table_name.'('.$gen_create.')';
-        Yii::$app->db_phone->createCommand($gen_create)->execute();
-      // Пишем построчно в таблицу с файла
-        $i = 0;
-        while (!feof($f)) {
-            $s = fgets($f);
-            $data = explode($delimeter, $s);
-            if(!isset($data[1])) break;
-            $gen_values='';
-            $flag=0;
-            for($j=0;$j<$n;$j++) {
+//                debug($data);
+//                return;
+                if(!isset($data[1])) break;
+                $gen_values='';
+                $flag=0;
+                for($j=0;$j<$n;$j++) {
                     $p1=strpos($data[$j],"'");
                     $p2=strpos($data[$j],'"');
                     if($p1>0 && $p2>0) {
@@ -19810,17 +19819,25 @@ where issubmit = 1";
                         $gen_values .= '"'.$data[$j].'"' . ',';
                     else
                         $gen_values .= "'".$data[$j]."'" . ',';
+                }
+                $gen_values=$i . ',' . substr($gen_values,0,strlen($gen_values)-1);
+                $gen_values = 'VALUES('.$gen_values.')';
+                $sql=$gen_insert.' '.$gen_values;
+//                debug($sql);
+//                return;
+                if($i>0)
+                    // Шапку не записываем
+                    Yii::$app->db_phone->createCommand($sql)->execute();
+                $i++;
             }
-            $gen_values=$i . ',' . substr($gen_values,0,strlen($gen_values)-1);
-            $gen_values = 'VALUES('.$gen_values.')';
-            $sql=$gen_insert.' '.$gen_values;
-            if($i>0)
-                // Шапку не записываем
-                Yii::$app->db_phone->createCommand($sql)->execute();
-            $i++;
+
+            debug('Таблиця '. $table_name . ' сформована');
+        } else {
+            return $this->render('conversion_forma', [
+                'model' => $model,
+            ]);
         }
 
-    debug('Таблиця '. $table_name . ' сформована');
     }
 
     //  'INST_MGMT EN 57
