@@ -1912,10 +1912,7 @@ function f_connobj($n_struct,$rem,$v) {
     $str_supll2 = '~';
     $wo = $v['town_wo'];
     $qq=trim($v['str_suppl1']);
-    $tn=trim($town);
-    if(($tn=='Район магазину АТБ' || $tn=='Район автобусної зуп' ||
-        $tn=='Мікрорайон ім. 18 Ве' || $tn=='Район жд станції Пав' ) && $rem=='04')
-        $town='м. Павлоград';
+
 
     // Если садовое товарищество
     if(!(empty($wo)) && (!empty($qq))) {
@@ -1924,6 +1921,10 @@ function f_connobj($n_struct,$rem,$v) {
         $str_supll1 = mb_substr($str_supll1,0,40,"UTF-8");
         $str_supll2 = $house_num1;
         $town = trim($v['town_wo']);
+        $tn=trim($town);
+        if(($tn=='Район магазину АТБ' || $tn=='Район автобусної зуп' ||
+                $tn=='Мікрорайон ім. 18 Ве' || $tn=='Район жд станції Пав' ) && $rem=='04')
+            $town='м. Павлоград';
         $post_code1 = trim($v['ind_wo']);
 //        $region='DNP';
         $region=trim($v['reg_wo']);;
