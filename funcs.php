@@ -1912,6 +1912,10 @@ function f_connobj($n_struct,$rem,$v) {
     $str_supll2 = '~';
     $wo = $v['town_wo'];
     $qq=trim($v['str_suppl1']);
+    $tn=trim($town);
+    if(($tn=='Район магазину АТБ' || $tn=='Район автобусної зуп' ||
+        $tn=='Мікрорайон ім. 18 Ве' || $tn=='Район жд станції Пав' ) && $rem=='04')
+        $town='м. Павлоград';
 
     // Если садовое товарищество
     if(!(empty($wo)) && (!empty($qq))) {
