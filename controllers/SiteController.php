@@ -6858,7 +6858,9 @@ select * from (
 
         if ($res == '1' || $res == '3')
             $sql = "select case when topology is null then pnt1 else topology::int end as pnt,* from (
-            select DISTINCT on(p.code_eqp) h.topology,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
+            select DISTINCT on(p.code_eqp) 
+            get_topology(p.code_eqp,p.id_point,6,$res) as pnt2,
+            p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
             RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
@@ -7341,9 +7343,7 @@ select * from (
                  left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = p.id_point
                 left join eqm_tree_tbl tr on tr.id = ttr.id_tree
                 left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
-                
                 left join sap_transf as v on (v.id::int=eqk.id and v.kod_res=$res)
-                
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) -- and p.loss_power=1 
                 
@@ -7359,9 +7359,9 @@ select * from (
 //  New query
         if ($res == 1 || $res == 3)
             $sql = "
-select case when topology is null then pnt1 else topology::int end as pnt,* from (
-            select h.topology,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp,
-             RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
+        select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
+            select get_topology(p.code_eqp,p.id_point,2,$res) as pnt2,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp,
+                    RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -7503,7 +7503,7 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) 
                  order by 4) r
                  where  case when '$res'='4' then code_eqp not in(118478,118479,149671,149672,117860)  else 1=1 end
-                and  case when '$res'='5' then code_eqp not in(106232,116145,108551,108382)  else 1=1 end
+                and  case when '$res'='5' then code_eqp not in(106232,116145,108551,108382,108416,108486,108487)  else 1=1 end
 	       order by 1 ";
 
         if ($helper == 1)
