@@ -1959,8 +1959,12 @@ function f_connobj($n_struct,$rem,$v) {
         $region=trim($v['reg_wo']);;
         $iuru_pro=$v['numobl'];
         if(!empty($v['id_wo'])) {
-            $str_supll2 = $v['id_wo'];
-
+            if(!empty($house_num1)) {
+                $str_supll2 = $house_num1;
+                $house_num1='';
+            }
+            else
+                $str_supll2 = $v['id_wo'];
         }
         $iuru_pro=$v['numobl_wo'];
         if(!empty($street)) {
