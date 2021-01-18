@@ -1913,13 +1913,14 @@ function f_connobj($n_struct,$rem,$v) {
     $wo = $v['town_wo'];
     $qq=trim($v['str_suppl1']);
 
-
     // Если садовое товарищество
     if(!(empty($wo)) && (!empty($qq))) {
         $str_supll1 = str_replace("'",'`',trim($v['str_suppl1']));
         $str_supll1 = str_replace('"','`',$str_supll1);
         $str_supll1 = mb_substr($str_supll1,0,40,"UTF-8");
         $str_supll2 = $house_num1;
+        $street_wo = trim($v['street_wo']);
+        if(!empty($street_wo)) $str_supll2 = $street_wo;
         $town = trim($v['town_wo']);
         $tn=trim($town);
         if(($tn=='Район магазину АТБ' || $tn=='Район автобусної зуп' ||

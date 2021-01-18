@@ -12586,7 +12586,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		group by town,post_index,
 		street,house,stort,ver,begru,region,swerk,str_suppl1,
 		str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
-		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo";
+		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo
+		 order by id , street_wo asc";
 
 
         if ($rem == '09')
@@ -12748,9 +12749,12 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
             // Заполняем структуры
             foreach ($data as $w) {
                 $i = 0;
+                $code='0';
                 foreach ($cnt as $v) {
+                    if($code==$v['id']) continue;
                     $n_struct = trim($v['dattype']);
                     $i++;
+                    $code=$v['id'];
                     f_connobj($n_struct, $rem, $w);
                 }
             }
