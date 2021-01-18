@@ -6857,7 +6857,7 @@ select * from (
         $z_sql = 'select * from get_schema()';
 
         if ($res == '1' || $res == '3')
-            $sql = "select case when topology is null then pnt1 else topology::int end as pnt,* from (
+            $sql = "select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
             select DISTINCT on(p.code_eqp) 
             get_topology(p.code_eqp,p.id_point,6,$res) as pnt2,
             p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
