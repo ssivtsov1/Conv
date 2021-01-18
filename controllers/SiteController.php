@@ -12747,9 +12747,9 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 //            return;
 
             // Заполняем структуры
+            $code=0;
             foreach ($data as $w) {
                 $i = 0;
-                $code=0;
                 if(((int) $code)==((int) $w['id'])) continue;
                 foreach ($cnt as $v) {
                         $n_struct = trim($v['dattype']);
