@@ -1,0 +1,1 @@
+Yii::$app->db_pg_krg_energo->createCommand("delete from sap_err where upload='CONNOBJ' and res=5")->execute();
