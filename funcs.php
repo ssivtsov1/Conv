@@ -1960,8 +1960,8 @@ function f_connobj($n_struct,$rem,$v) {
         $iuru_pro=$v['numobl'];
         if(!empty($v['id_wo'])) {
             if(!empty($house_num1)) {
-                $str_supll2 = $house_num1;
-                $house_num1='';
+                 $str_supll2 = $house_num1;
+                 $house_num1='';
             }
             else
                 $str_supll2 = $v['id_wo'];
