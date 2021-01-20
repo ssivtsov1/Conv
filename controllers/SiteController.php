@@ -3289,7 +3289,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
@@ -3934,7 +3934,7 @@ and (trim(debet)<>'0.00')
         $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
@@ -4178,7 +4178,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
         }
 
         $sql="select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' else oldkey1 end as oldkey from (
-select '02' as kofiz,'04_C'||'$rem'||'P_'|| acc_id || '_' || case when trim(data_v_k)<>'' then
+select '02' as kofiz,'04_C'||'$rem'||'P_'|| gpart || '_' || case when trim(data_v_k)<>'' then
  replace(data_v_k,'.','_') else replace(data_v_d,'.','_') end as oldkey1,
 c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
@@ -4418,7 +4418,7 @@ order by 2
                     $v['begru'] . "\t" .
                     $v['gpart'] . "\t" .
                     "\t" .
-                    $v['gpart'] . "\t" .
+                    $v['kr_produktiv'] . "\t" .
                     '0068' . "\t" .
                     $param_count . "\t" .
                     $v['kofiz'] . "\t" .
@@ -4511,7 +4511,7 @@ order by 2
         $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
@@ -7029,6 +7029,7 @@ select * from (
         148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
         143002,144466,148340)  else 1=1 end 
          and  case when '$res'='2' then code_eqp not in(749712,106999,107069)  else 1=1 end 
+         and  case when '$res'='7' then code_eqp not in(107597)  else 1=1 end 
     	       ORDER BY 6";
 
         if ($helper == 1)
@@ -15846,7 +15847,14 @@ WHERE
               left join sap_const as const on 1=1
               left join clm_client_tbl b on
               case when a.vkonto<>'' then a.vkonto::int else 0 end = b.code
-              and coalesce(b.idk_work,0)<>0
+              and coalesce(b.idk_work,0)<>0 
+            and  ((b.code>999 or  b.code=900)
+	      and  b.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
+	     and case when $res=2 then b.code not in('110000011') else 1=1 end
+	     and case when $res=4 then b.code not in('110000010') else 1=1 end
+	     and case when $res=5 then b.code not in('110000009') else 1=1 end)
               ) f
             left join sap_init_acc acc on substr(acc.oldkey,9)=f.id1::character varying
             where id1 is not null
@@ -15854,7 +15862,6 @@ WHERE
 
         // Получаем необходимые данные
         $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
-
 
         // Заполняем массивы структур: $di_int и $di_zw
         $i = 0;
@@ -16138,6 +16145,13 @@ WHERE
                 left join clm_client_tbl b on
                 case when a.vkonto<>'' then a.vkonto::int else 0 end = b.code
                 and coalesce(b.idk_work,0)<>0
+               and  ((b.code>999 or  b.code=900)
+	      and  b.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
+	     and case when $res=2 then b.code not in('110000011') else 1=1 end
+	     and case when $res=4 then b.code not in('110000010') else 1=1 end
+	     and case when $res=5 then b.code not in('110000009') else 1=1 end ) 
              left join sap_const as const on 1=1
 ) f         
 where id1 is not null    
@@ -16234,6 +16248,13 @@ where id1 is not null
 left join clm_client_tbl b on
 case when a.vkonto<>" . "''" . " then a.vkonto::int else 0 end = b.code
 and coalesce(b.idk_work,0)<>0
+   and  ((b.code>999 or  b.code=900)
+	      and  b.code not in('20000556','20000565','20000753',
+	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
+	     '10999999','11000000','19999369','50999999','1000000','1000001')
+	     and case when $res=2 then b.code not in('110000011') else 1=1 end
+	     and case when $res=4 then b.code not in('110000010') else 1=1 end
+	     and case when $res=5 then b.code not in('110000009') else 1=1 end )  
 left join sap_const as const on 1=1
 ) f 
 where id1 is not null  
