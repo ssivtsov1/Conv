@@ -19711,11 +19711,9 @@ where id1 is not null
     }
 
 
-    //Проверка файлв на пустые поля. Быт
-
+    //Проверка файлов на пустые поля. Быт
     public function actionUploadbyt()
     {
-
         $model = new UploadBytForm();
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             $model->file = UploadedFile::getInstance($model, 'file');
