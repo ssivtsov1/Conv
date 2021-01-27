@@ -1972,7 +1972,7 @@ function f_connobj($n_struct,$rem,$v) {
             $str_supll1 = '';
             $str_supll2 = '';
         }
-        if($rem==2 && $v['id_wo']==112206)  $str_supll2='';
+        if($rem=='02' && $v['id_wo']==112206)  $str_supll2='';
     }
 
 
