@@ -17301,7 +17301,7 @@ where id1 is not null
     // Проверка топологии
     public function actionCheck_topology()
     {
-        $result = check_topology('ZTRANSF_04_CK01_20210119_08_L.txt');
+        $result = check_topology('ZTRANSF_04_CK01_20210127_08_L.txt');
         debug($result);
     }
 
