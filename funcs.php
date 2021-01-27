@@ -4691,6 +4691,44 @@ function empty_refer ($filename,$data_u)
     return $arr_k;
 }
 
+// Проверка топологии
+function check_topology ($filename)
+{
+    $f = fopen($filename, 'r');
+    $other='ZLINES' . substr($filename,7);
+    $ff = fopen($other, 'r');
+    $i = 0;
+    $j = 0;
+    $arr_k = [];
+    while (!feof($f)) {
+        $i++;
+        $s = fgets($f);
+        $data = explode("\t", $s);
+        if (isset($data[2])) {
+            $u=trim($data[2]);   // Установка
+            $n=trim($data[10]);   // № (топология)
+            // Проверка установки в другом файле (в линиях)
+            rewind($ff);
+            while (!feof($ff)) {
+                $sr = fgets($ff);
+                $data_r = explode("\t", $sr);
+                // Если для одинаковой установки одинаковый номер в топологии
+                // тогда записываем эти строки в массив ошибок
+                if(!isset($data_r[2])) continue;
+                if (trim($data_r[2]) == $u && trim($data_r[14]) == $n) {
+                    $arr_k[$j] = 'ZTransf_oldkey: '.$data[0] .
+                        ' ZLines_oldkey: '.$data_r[0] .' '.'Установка '. $u . ' № '.$n;
+                    $j++;
+                    break;
+                }
+            }
+        }
+    }
+    fclose($f);
+    fclose($ff);
+    return $arr_k;
+}
+
 // Проверка файла выгрузки - проверка адреса  на соответствие его с названием в САП или индекса
 // Аргументы:
 // $filename - имя файла выгрузки

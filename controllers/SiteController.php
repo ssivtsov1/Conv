@@ -6857,10 +6857,8 @@ select * from (
         $z_sql = 'select * from get_schema()';
 
         if ($res == '1' || $res == '3')
-            $sql = "select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
-            select DISTINCT on(p.code_eqp) 
-            get_topology(p.code_eqp,p.id_point,6,$res) as pnt2,
-            p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
+            $sql = "select case when topology is null then pnt1 else topology::int end as pnt,* from (
+            select DISTINCT on(p.code_eqp) h.topology,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, 
             RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
@@ -6940,7 +6938,7 @@ select * from (
                148961,149139,149589,149610,150130,159139,159301,142991,142992,142993,143000,143001,
                143002,144466,148340,117581,117586,117584,118341,145055,145063,145060,122491,145076,
                145079,148554,148688,148692,150908,153405,153634,140390,140391,145320,
-             118084,118065,120903,120899,120907,120946,120945,120932,120929,120925,
+             118084,118065,120903,120899,120907,120946,120945,120932,120929,120925,118514,
             121375,121381,121383,126936,126945,118498,139873,139874,139774,132960,153870,154780)  else 1=1 end 
  and  case when '$res'='3' then code_eqp not in(108264,108284,108287,108310,109605,108273,108292,108293)  else 1=1 end 
     	       ORDER BY 6
@@ -7360,9 +7358,9 @@ select * from (
 //  New query
         if ($res == 1 || $res == 3)
             $sql = "
-        select case when r.pnt2='0' then r.pnt1::int else r.pnt2::int end as pnt,* from (
-            select get_topology(p.code_eqp,p.id_point,2,$res) as pnt2,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp,
-                    RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
+           select case when topology is null then pnt1 else topology::int end as pnt,* from (
+            select h.topology,p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp,
+             RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt1, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -7425,8 +7423,13 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
                 inner join sap_const const on 1=1   
                 where p.type_eqp not in (1,12,3,4,5,9,15,16,17) 
                  order by 4) r
-                 where  
-                case when '$res'='1' then code_eqp not in(118347,118519,117601,120638,120634,
+                where case when '$res'='5' then id_sap is not null and trim(id_sap)<>'' else 1=1 end
+                and  case when '$res'='5' then code_eqp not in(124614,116220)  else 1=1 end
+                and  case when '$res'='4' then code_eqp not in(116758,116766,117269,118413)  else 1=1 end
+                and  case when '$res'='3' then code_eqp not in(107239,107747,107870,113325,107259)  else 1=1 end
+                and  case when '$res'='2' then code_eqp not in(108033,109456,110357,113908,113915,114059,232344,
+               1057436,1103582,1228227,1302623,108235)  else 1=1 end
+               and  case when '$res'='1' then code_eqp not in(118347,118519,117601,120638,120634,
               120930,120875,120884,121363,121384,121422,121444,121735,121796,123227,117587,138263,
               138286,158826,139015,139775,149614,153875,153537,153824,153971,153827,
               132803,132806,155666,153599,154276,154257,122507,118596,149671,149672,
@@ -7738,6 +7741,20 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
 
         }
         // пустая ссылка }
+
+        // проверка топологии {
+        $msg = 'проверка топологии';
+        $err = check_topology($fname);
+        if (count($err)) {
+            foreach ($err as $v) {
+//                    debug($v);
+                $z = "INSERT  INTO sap_err
+                        VALUES('$filename','$v','$msg',$res)";
+                exec_on_server($z, (int)$rem, $vid);
+            }
+
+        }
+        // проверка топологии }
 
         //kol struckt{
         $col = count_str($fname);
@@ -17281,6 +17298,13 @@ where id1 is not null
         return;
     }
 
+    // Проверка топологии
+    public function actionCheck_topology()
+    {
+        $result = check_topology('ZTRANSF_04_CK01_20210119_08_L.txt');
+        debug($result);
+    }
+
     // Установка даты для инструмента
     public function actionSet_date()
     {
@@ -19696,10 +19720,8 @@ where id1 is not null
 
 
 //Проверка файлв на пустые поля. Юр
-
     public function actionUpload()
     {
-
         $model = new UploadForm();
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             $model->file = UploadedFile::getInstance($model, 'file');
@@ -19709,7 +19731,6 @@ where id1 is not null
         }
 
     }
-
 
     //Проверка файлов на пустые поля. Быт
     public function actionUploadbyt()
