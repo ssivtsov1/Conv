@@ -1972,10 +1972,11 @@ function f_connobj($n_struct,$rem,$v) {
             $str_supll1 = '';
             $str_supll2 = '';
         }
-        if($rem=='02' && $v['id_wo']==112206)  $str_supll2='';
+
     }
 
-
+    if($rem=='02' && $r==112206)  $str_supll2='';
+    
     if($n_struct=='CO_EHA')
         $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
                     values('$oldkey','$n_struct','$pltxt','$begru','$swerk','$stort')";
