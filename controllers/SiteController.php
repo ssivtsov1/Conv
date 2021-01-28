@@ -1708,7 +1708,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл $fname сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -5353,7 +5353,6 @@ order by sort,devgrptyp";
             }
         }
 
-
         // Выдаем предупреждение на экран об окончании формирования файла
         $model = new info();
         $model->title = 'УВАГА!';
@@ -6123,7 +6122,7 @@ order by q.code_eqp
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл INSTLN сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -6273,7 +6272,7 @@ order by q.code_eqp
 
         $model = new info();
         $model->title = 'УВАГА!';
-        $model->info1 = "Файл сформовано.";
+        $model->info1 = "Файл $fname сформовано.";
         $model->style1 = "d15";
         $model->style2 = "info-text";
         $model->style_title = "d9";
@@ -7274,7 +7273,7 @@ select * from (
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл $fname сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -7777,7 +7776,7 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл $fname сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -8583,7 +8582,7 @@ order by 6
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл $fname сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -9656,7 +9655,7 @@ sap_data ust on substr(ust.oldkey,12)::int=r.id
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл $fname сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -10141,7 +10140,7 @@ select distinct
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл $fname сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -11528,9 +11527,7 @@ order by tzap
         //kol struckt}
         fclose($f);
 
-
         $sql_err = "select * from sap_err where upload = '$filename'";
-
 
         $sql_ab = data_from_server($sql_err, $res, $vid);
 
@@ -11538,7 +11535,7 @@ order by tzap
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл $fname сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -12973,7 +12970,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл CONNOBJ сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -13729,7 +13726,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл PREMISE сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
