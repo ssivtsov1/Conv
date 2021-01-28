@@ -3339,7 +3339,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
 
         $sql = "select *,case when substr(saldo1,1,2)='--' then substr(saldo1,3) else saldo1 end as saldo,
  case when substr(saldo1,1,2)='--' then '' else prepay1 end as prepay,
- case when kofiz1 is null or trim(kofiz1)='' then net1.kofiz else kofiz1 end as kofiz 
+ case when kofiz1 is null or trim(kofiz1)='' then net1.kofiz else kofiz1 end as kofiz,def_bank_day(date_format(date,1)::date,5) as faedn  
  from (
      select case when schet='010001306' then '02' else c.kofiz_sd end as kofiz1, 
 gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_')||'_01' as oldkey,c2.*,
@@ -3396,8 +3396,8 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                 $date = date('Ymd', strtotime($v['date_s']));
 
             $date_ = date('Y-m-d', strtotime($date));
-            $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
-
+           // $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
+            $faedn = date('Ymd', strtotime($v['faedn']));
             $nds = round($v['saldo'] / 6, 2);
             $wo_nds = round($v['saldo'] - $nds, 2);
             $prepay = $v['prepay'];
@@ -4177,7 +4177,9 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                 $end . "\n");
         }
 
-        $sql="select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' else oldkey1 end as oldkey from (
+        $sql="select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' else oldkey1 end as oldkey,
+ def_bank_day(date_format(date,1)::date,5) as faedn 
+ from (
 select '02' as kofiz,'04_C'||'$rem'||'P_'|| gpart || '_' || case when trim(data_v_k)<>'' then
  replace(data_v_k,'.','_') else replace(data_v_d,'.','_') end as oldkey1,
 c2.*,
@@ -4227,7 +4229,8 @@ order by 2
                 $date = date('Ymd', strtotime($v['date_s']));
 
             $date_ = date('Y-m-d', strtotime($date));
-            $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
+            //$faedn = date("Ymd", strtotime($date_ . ' +1 week'));
+            $faedn = date('Ymd', strtotime($v['faedn']));
 
             $nds = round($v['saldo'] / 6, 2);
             $wo_nds = round($v['saldo'] - $nds, 2);
@@ -4520,7 +4523,9 @@ order by 2
 //        Формируем данные по розподілу
         $sql = "
 
-select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' else oldkey1||'_'||row_number() over(partition by oldkey1) end as oldkey from (
+select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' 
+else oldkey1||'_'||row_number() over(partition by oldkey1) end as oldkey,
+ def_bank_day(date_format(date,1)::date,5) as faedn from (
 select '06' as kofiz,'04_C'||'01'||'P_'|| 
 gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_') as oldkey1,
 c2.*,
@@ -4575,7 +4580,8 @@ order by 2
                 $date = date('Ymd', strtotime($v['date_s']));
 
             $date_ = date('Y-m-d', strtotime($date));
-            $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
+           // $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
+            $faedn = date('Ymd', strtotime($v['faedn']));
 
             $nds = round($v['saldo'] / 6, 2);
             $wo_nds = round($v['saldo'] - $nds, 2);
@@ -6939,7 +6945,7 @@ select * from (
                143002,144466,148340,117581,117586,117584,118341,145055,145063,145060,122491,145076,
                145079,148554,148688,148692,150908,153405,153634,140390,140391,145320,
              118084,118065,120903,120899,120907,120946,120945,120932,120929,120925,118514,
-            121375,121381,121383,126936,126945,118498,139873,139874,139774,132960,153870,154780)  else 1=1 end 
+            121375,121381,121383,126936,126945,118498,139873,139874,139774,132960,153870,154780,153874)  else 1=1 end 
  and  case when '$res'='3' then code_eqp not in(108264,108284,108287,108310,109605,108273,108292,108293)  else 1=1 end 
     	       ORDER BY 6
 ";
@@ -7436,7 +7442,7 @@ select a.id as code_eqp,get_equipment_m(a.id,2,12,$res) as id_point,
               118055,126950,132794,148557,148784,148633,148690,149167,149179,149146,
             149169,118085,120919,120923,132786,149117,126963,126938,120900,120933,120904,118499,118478,
             118479,117595,118066,126986,126992,126947,126983,126989,132791,126942,120908,153871,153833,154798,124032,
-            154284,108416,108486,108487)
+            154284,108416,108486,108487,124022)
             else 1=1 end
             and case when '$res'='3' then code_eqp not in(108273,108302,108283,108242,108289,108265) else 1=1 end
 	       order by 1

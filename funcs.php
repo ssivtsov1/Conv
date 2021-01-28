@@ -1976,7 +1976,7 @@ function f_connobj($n_struct,$rem,$v) {
     }
 
     if($rem=='02' && $r==112206)  $str_supll2='';
-    
+
     if($n_struct=='CO_EHA')
         $z = "insert into sap_co_eha(oldkey,dat_type,pltxt,begru,swerk,stort)
                     values('$oldkey','$n_struct','$pltxt','$begru','$swerk','$stort')";
