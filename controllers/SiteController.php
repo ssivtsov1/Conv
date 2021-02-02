@@ -39,6 +39,7 @@ use yii\web\UploadedFile;
 use app\models\sap_connect;
 use app\models\TableForm;
 use app\models\Power_outages;
+//use Smalot\PdfParser\Parser;
 
 class SiteController extends Controller
 {
@@ -3254,7 +3255,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
 
                 $model = new info();
                 $model->title = 'УВАГА!';
-                $model->info1 = "Файл сформовано." . $col;
+                $model->info1 = "Файл $fname сформовано." . $col;
                 $model->style1 = "d15";
                 $model->style2 = "info-text";
                 $model->style_title = "d9";
@@ -15764,7 +15765,7 @@ WHERE
 
             $model = new info();
             $model->title = 'УВАГА!';
-            $model->info1 = "Файл сформовано." . $col;
+            $model->info1 = "Файл $fname сформовано." . $col;
             $model->style1 = "d15";
             $model->style2 = "info-text";
             $model->style_title = "d9";
@@ -17197,6 +17198,16 @@ where id1 is not null
 
         // debug($all_tmc);
         echo "OK";
+    }
+
+    // Работа с pdf файлами
+    public function actionGet_pdf()
+    {
+      //  $parser = new \Smalot\PdfParser\Parser();
+        $parser = new \Smalot\PdfParser\Parser();
+        $pdf = $parser->parseFile('1.5_2015.pdf');
+        $text = $pdf->getText();
+        echo $text;     //all text from mypdf.pdf
     }
 
     // Преобразование таблицы инструмента
