@@ -17,6 +17,7 @@ use app\models\index;
 use app\models\input_find_server;
 use app\models\input_find_server_mysql;
 use app\models\code_file;
+use app\models\search_into;
 use app\models\conversion_model;
 use app\models\decode_file;
 use app\models\input_array;
@@ -2099,10 +2100,13 @@ b.tax_number else null end else null end as tax_number,b.last_name,
 // Test
     public function actionTest_task()
     {
-        $mas = ['pole1' => [1, 2, 3], 'pole2' => ['a', 'b', 'c'], 'pole3' => [10, 100, 300]];
-        $r = a2sql('select pole1  from mas where pole1=2', $mas);
-
-        ///debug($r);
+//        $mas = ['pole1' => [1, 2, 3], 'pole2' => ['a', 'b', 'c'], 'pole3' => [10, 100, 300]];
+//        $r = a2sql('select pole1  from mas where pole1=2', $mas);
+        $fname='test.xlsx';
+        $objPHPExcel = \PHPExcel_IOFactory::load($fname);
+        $sheetData = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
+//        $sheetData = $objPHPExcel->getActiveSheet();
+        debug($sheetData);
     }
 
 // Тестовая функция для записи в файл
@@ -3945,7 +3949,7 @@ and (trim(debet)<>'0.00')
 select *,def_bank_day(date_format(date,1)::date,5) as date_sf from (
 select 
 
-case when kr_productiv in ('2420000007','2420000043') then '03'
+case when kr_productiv in ('2420000007','2420000043','2420003546') then '03'
  else '02' end as kofiz,
  
  '04_C'||'$rem'||'P_'|| gpart  || '_' || case when trim(data_v_k)<>'' then
@@ -17203,11 +17207,80 @@ where id1 is not null
     // Работа с pdf файлами
     public function actionGet_pdf()
     {
-      //  $parser = new \Smalot\PdfParser\Parser();
-        $parser = new \Smalot\PdfParser\Parser();
-        $pdf = $parser->parseFile('1.5_2015.pdf');
-        $text = $pdf->getText();
-        echo $text;     //all text from mypdf.pdf
+
+        $filename = '34.03.203-98.pdf';
+        $rawdata = file_get_contents($filename);
+        if ($rawdata === false) {
+            die('Unable to get the content of the file: '.$filename);
+        }
+// configuration parameters for parser
+        $cfg = array('ignore_filter_errors' => true);
+
+// parse PDF data
+        $pdf = new \Com\Tecnick\Pdf\Parser\Parser($cfg);
+        $data = $pdf->parse($rawdata);
+
+// display data
+        debug($data);
+
+//        $parser = new \Smalot\PdfParser\Parser();
+//        ini_set('memory_limit', '-1');
+//        $parser = new \Smalot\PdfParser\Parser();
+//        $pdf = $parser->parseFile('34.03.203-98.pdf');
+//    // Retrieve all pages from the pdf file.
+//
+//        $pages  = $pdf->getPages();
+////        debug($pages);
+//        $k=count($pages);
+//        debug($k);
+//////        return;
+////// Loop over each page to extract text.
+//        $i=0;
+//        foreach ($pages as $page) {
+//            $i++;
+//            echo $i;
+//            echo '<br>';
+//            $s=$page->getText();
+//            debug($s);
+//            $findme = 'Відстань';
+//            $pos2 = stripos($s, $findme);
+//            if ($pos2 !== false) {
+//                echo "Нашёл $findme на странице $i";
+//            }
+//        }
+//        header("Content-type: application/pdf");
+//        $file = readfile('34.03.203-98.pdf');
+//        header_remove();
+//        header("Content-type: text");
+//        $findme = 'вантаж';
+//            $pos2 = stripos($file, $findme);
+//            if ($pos2 !== false) {
+//                echo "Нашёл $findme";
+//            }
+
+
+            //----------
+        // Создаём поток
+//        $opts = array(
+//            'http'=>array(
+//                'method'=>"GET",
+//                'header'=>"Content-type: application/pdf"
+//            )
+//        );
+//
+//        $context = stream_context_create($opts);
+
+// Открываем файл с помощью установленных выше HTTP-заголовков
+//        $file = file_get_contents('34.03.203-98.pdf', false, $context);
+//            $findme = 'вантаж';
+//            $pos2 = stripos($file, $findme);
+//            if ($pos2 !== false) {
+//                echo "Нашёл $findme";
+//            }
+//            else
+//                echo "Не нашёл";
+
+
     }
 
     // Преобразование таблицы инструмента
@@ -19745,6 +19818,27 @@ where id1 is not null
         }
 
     }
+
+//Поиск внутри файлов
+    public function actionSearch_into()
+    {
+        $model = new Search_into();
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $dir    = $model->way;
+            $files = scandir($dir);
+//            debug($files);
+            $r=$model->search_into($model->find,$files,$dir);
+            $result=explode(',', $r);
+            $result = array_unique($result);
+//            debug($result);
+//            return;
+            return $this->render('search_into_result', compact('result'));
+        } else {
+            return $this->render('search_into', compact('model'));
+        }
+
+    }
+
 
     //Проверка файлов на пустые поля. Быт
     public function actionUploadbyt()

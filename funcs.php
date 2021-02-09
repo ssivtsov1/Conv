@@ -6569,3 +6569,24 @@ function converting_string ($str) {
     }
     return trim($res);
 }
+
+
+//  Определяет одинаковые-ли элементы в массиве
+//  Если одинаковые элементы - возвращает 1 - иначе 0
+function like_elements($arr)
+{
+    $flag_like = 0;
+    $len = count($arr);
+    if($len==0)  $flag_like = 0;
+    if ($len > 0) {
+        $first = $arr[0];
+        for ($i = 0; $i < $len; $i++) {
+            if ($arr[$i] == $first) $flag_like = 1;
+            else {
+                $flag_like = 0;
+                break;
+            }
+        }
+    }
+    return $flag_like;
+}

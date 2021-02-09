@@ -267,6 +267,7 @@ AppAsset::register($this);
                                     ['label' => 'Кодирование файла', 'url' => ['/site/code_file']],
                                     ['label' => 'Раскодирование файла', 'url' => ['/site/decode_file']],
                                     ['label' => 'Операции с множествами', 'url' => ['/site/oper_sets']],
+                                    ['label' => 'Поиск внутри файлов', 'url' => ['/site/search_into']],
 
                                 ]
                         ],
