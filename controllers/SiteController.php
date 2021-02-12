@@ -13349,12 +13349,12 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 //                debug($z);
 //                debug($data_connobj);
 //                return;
+if(isset($data_connobj)) {
+    foreach ($data_connobj as $connobj) {
+        $suppl1 = $connobj['str_suppl1'];
+        $town_wo = $connobj['town_wo'];
 
-                foreach ($data_connobj as $connobj) {
-                    $suppl1 = $connobj['str_suppl1'];
-                    $town_wo = $connobj['town_wo'];
-
-                    $z = "select min(id) as id,coalesce(town,'') as town,post_index,
+        $z = "select min(id) as id,coalesce(town,'') as town,post_index,
 street,house,stort,ver,begru,region,swerk,str_suppl1,
 str_suppl2, house_num2,town_sap,reg,street_sap,numobl,
  town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo 
@@ -13438,43 +13438,44 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
 		 town_wo,street_wo,ind_wo,numobl_wo,reg_wo,id_wo
 		 ORDER BY 1";
 
-                    switch ($res) {
-                        case 1:
-                            $data1_connobj = \Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
-                            break;
-                        case 2:
-                            $data1_connobj = \Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
-                            break;
-                        case 3:
-                            $data1_connobj = \Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
-                            break;
-                        case 4:
-                            $data1_connobj = \Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
-                            break;
-                        case 5:
-                            $data1_connobj = \Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
-                            break;
-                        case 6:
-                            $data1_connobj = \Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
-                            break;
-                        case 7:
-                            $data1_connobj = \Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
-                            break;
-                        case 8:
-                            $data1_connobj = \Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
-                            break;
-                    }
+        switch ($res) {
+            case 1:
+                $data1_connobj = \Yii::$app->db_pg_dn_energo->createCommand($z)->queryAll();
+                break;
+            case 2:
+                $data1_connobj = \Yii::$app->db_pg_zv_energo->createCommand($z)->queryAll();
+                break;
+            case 3:
+                $data1_connobj = \Yii::$app->db_pg_vg_energo->createCommand($z)->queryAll();
+                break;
+            case 4:
+                $data1_connobj = \Yii::$app->db_pg_pv_energo->createCommand($z)->queryAll();
+                break;
+            case 5:
+                $data1_connobj = \Yii::$app->db_pg_krg_energo->createCommand($z)->queryAll();
+                break;
+            case 6:
+                $data1_connobj = \Yii::$app->db_pg_ap_energo->createCommand($z)->queryAll();
+                break;
+            case 7:
+                $data1_connobj = \Yii::$app->db_pg_gv_energo->createCommand($z)->queryAll();
+                break;
+            case 8:
+                $data1_connobj = \Yii::$app->db_pg_in_energo->createCommand($z)->queryAll();
+                break;
+        }
 
 
-                    foreach ($data1_connobj as $connobj1) {
-                        $code_true=$connobj1['id'];
-                        $house_num2=$connobj1['house_num2'];
-                        $haus='04_C'.$rem.'P_'.$code_true;
-                        $data[$key]['haus'] = $haus;
-                        $data[$key]['house_num2'] = $house_num2;
-                        break;
-                    }
-                }
+        foreach ($data1_connobj as $connobj1) {
+            $code_true = $connobj1['id'];
+            $house_num2 = $connobj1['house_num2'];
+            $haus = '04_C' . $rem . 'P_' . $code_true;
+            $data[$key]['haus'] = $haus;
+            $data[$key]['house_num2'] = $house_num2;
+            break;
+        }
+    }
+}
 
             }
         }
