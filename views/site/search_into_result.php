@@ -42,6 +42,11 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php
                 $i=1;
                foreach ($result as $v) {
+                   $pos=strpos($v,'/');
+                   if($pos)
+                        $v=substr($v,$pos+1);
+                   else
+                       $v='';
                     echo('<tr class="tbl_row">');
                     echo('<td>' . $i . '</td>');
                     echo('<td>' . $v . '</td>');

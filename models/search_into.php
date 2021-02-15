@@ -30,6 +30,11 @@ class Search_into extends Model
         ];
     }
 
+    // Копирование файлов поиска на сервер
+    public function copy_to_server($s,$files,$dir)
+    {
+
+    }
     // Поиск внутри файлов в двух кодировках
     public function search_into($s,$files,$dir)
     {
@@ -53,21 +58,40 @@ class Search_into extends Model
         $i=0;
         $result='';
         $pp=0;
+        // Создаем временную папку со случайным именем
+        $rnd = random_int(1000000, 9999999);
+        mkdir($rnd);
+
         foreach ($files as $v) {
             if($v=='.' || $v=='..') continue;
             if(substr($v,0,1)=='.') continue;
             if (!pathinfo($v, PATHINFO_EXTENSION)) continue;
+            // Копирование файлов во временную папку
+
+//            debug($dir .'/' . $v);
+//            debug($dir .'/' . $v);
+//            debug($rnd .'/' . $v);
+//            return;
+
+//            copy($dir .'/' . $v, $rnd . '/' . $v);
+            $src = $dir .'/' . $v;
+            $dest = $rnd . '/' . $v;
+            shell_exec("cp $src $dest");
+            $v=$rnd . '/' . $v;
             $list[$i] = $v;
             $i++;
         }
         $q_all = count($list);
         $i=0;
 
+//        debug($list);
+//        return;
+
         foreach ($list as $v) {
             $pp++;
 
-            $fname = $dir .'/' . $v;
-
+            $fname =  $v;
+            if(! file_exists($fname)) continue;
 //            if($pp==29) {
 //                debug($fname);
 //                return;
@@ -279,7 +303,11 @@ class Search_into extends Model
                 case 'xlsx':
 
                     $objPHPExcel = \PHPExcel_IOFactory::load($fname);
+                    $sheet = $objPHPExcel->getSheet(0);
+                    $highestRow = $sheet->getHighestRow();
+                    if($highestRow>100000) break;
                     $sheetData = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
+
 //                if($pp==29) {
 //                    debug($sheetData);
 //                    return;
@@ -425,7 +453,10 @@ class Search_into extends Model
                     break;
             }
         }
+        // Удаляем папку со случайным именем и все файлы в ней
+        shell_exec("rm -R $rnd");
 //       debug('result '.$result);
+
         return $result;
     }
 

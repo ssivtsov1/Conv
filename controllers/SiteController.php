@@ -2102,10 +2102,57 @@ b.tax_number else null end else null end as tax_number,b.last_name,
     {
 //        $mas = ['pole1' => [1, 2, 3], 'pole2' => ['a', 'b', 'c'], 'pole3' => [10, 100, 300]];
 //        $r = a2sql('select pole1  from mas where pole1=2', $mas);
-        $fname='test.xlsx';
+        $fname='dev_err.xlsx';
         $objPHPExcel = \PHPExcel_IOFactory::load($fname);
+        $sheet = $objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestRow();
+//        $highestColumn = $sheet->getHighestColumn();
         $sheetData = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
+        $highestRow = $sheetData->getHighestRow();
+        $highestColumn = $sheetData->getHighestColumn();
+        debug($highestRow);
+        debug($highestColumn);
+        debug($sheetData);
+        return;
+        $sheet = $objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestRow();
+        $highestColumn = $sheet->getHighestColumn();
+//        debug($highestRow);
+//        debug($highestColumn);
+//        return;
+//  Loop through each row of the worksheet in turn
+        $a=[];
+        for ($row = 1; $row <= 1000; $row++){
+            //  Read a row of data into an array
+            $rowData = $sheet->rangeToArray('A' . $row . ':' . $highestColumn . $row,
+                NULL,
+                TRUE,
+                FALSE);
+            //  Insert row data array into your database of choice here
+            if(!empty($rowData))
+                 $a[$row]=$rowData;
+        }
+        debug($a);
+        return;
+//            ->toArray(null, true, true, true);
 //        $sheetData = $objPHPExcel->getActiveSheet();
+        $i=0;
+        $data=[];
+        $k1= (array) $sheetData;
+//        $k2=(array) $k1->PHPExcel_Worksheetparent;
+        debug($k1);
+        return;
+        $mas=$sheetData['cellCache'];
+        debug($mas);
+        return;
+
+                foreach ($sheetData['cellCache'] as $v) {
+            if ($v == 'PHPExcel_Cell Object') {
+                $v1=$v->value;
+                $data[$i]=$v1;
+                $i++;
+            }
+        }
         debug($sheetData);
     }
 
@@ -19832,6 +19879,7 @@ where id1 is not null
             $result = array_unique($result);
 //            debug($result);
 //            return;
+
             return $this->render('search_into_result', compact('result'));
         } else {
             return $this->render('search_into', compact('model'));
