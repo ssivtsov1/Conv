@@ -2156,6 +2156,46 @@ b.tax_number else null end else null end as tax_number,b.last_name,
         debug($sheetData);
     }
 
+    public function actionSort_comb()
+    {$arr = [10,2,4,1,54,12,5,7,3,65,57,32];
+        $gap = count($arr);
+        $swap = true;
+        while($gap > 1 || $swap){
+            if($gap > 1) $gap /= 1.25;
+            debug($gap);
+            $swap = false;
+            $i = 0;
+            while($i + $gap < count($arr)){
+                if($arr[$i] > $arr[$i + $gap]){
+                    list($arr[$i], $arr[$i + $gap]) = array($arr[$i + $gap], $arr[$i]);
+                    $swap = true;
+                }
+                ++$i;
+            }
+        }
+        debug($arr);
+    }
+
+    public function actionSort_comb1()
+    {$arr = [10,2,4,1,54,12,5,7,3,65,57,32];
+        $gap = count($arr);
+        $swap = true;
+        while($gap > 1 || $swap){
+            if($gap > 1) $gap /= 1.25;
+            debug($gap);
+            $swap = false;
+            $i = 0;
+            while($i + $gap < count($arr)){
+                if($arr[$i] > $arr[$i + $gap]){
+                    list($arr[$i], $arr[$i + $gap]) = array($arr[$i + $gap], $arr[$i]);
+                    $swap = true;
+                }
+                ++$i;
+            }
+        }
+        debug($arr);
+    }
+
 // Тестовая функция для записи в файл
     public function actionTest_recfile()
     {
@@ -14553,9 +14593,9 @@ case when (coalesce(st.flag_budjet,0)=0 and coalesce(cl.idk_work,0)=99) or cl.co
 	  case when st.id_section=213 then '2'
 	       when st.id_section=214 then '4'
 	       when st.id_section=215 then '3'
-	  else ''
+	  else '5'
 	  end
-     else '' end
+     else '5' end
 else '5' end as FKRU_FIS,
 case when st.id_section in(210,211) then '10'
      when st.id_section=212 then '20'

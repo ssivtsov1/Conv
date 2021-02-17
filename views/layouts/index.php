@@ -313,7 +313,8 @@ AppAsset::register($this);
                                                 ['label' => 'Импорт csv файлов на SQL Server', 'url' => ['/site/csv2sql']],
                                                 ['label' => 'INST_MGMT EN 57', 'url' => ['/site/form_en57']],
                                                 ['label' => 'Алгоритм Флойда', 'url' => ['/site/floyd']],
-                                                ['label' => 'Convert strig', 'url' => ['/site/cnvstr']],
+                                                ['label' => 'Сортировка расческой', 'url' => ['/site/sort_comb']],
+                                                ['label' => 'Convert string', 'url' => ['/site/cnvstr']],
                                             ]
                                     ],
                                 ]
