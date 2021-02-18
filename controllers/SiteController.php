@@ -5952,7 +5952,7 @@ dt.lost_nolost, dt.id_extra,dt.reserv,cla2.name as extra,vun.voltage_min as un, 
 	from eqm_equipment_tbl as eq 
 	
 	 join eqm_equipment_h as eqh on (eq.id=eqh.id and eqh.dt_b = (SELECT dt_b FROM eqm_equipment_h WHERE id = eq.id  order by dt_b desc limit 1 ) ) 
-	 join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
+    join eqm_point_tbl AS dt on (dt.code_eqp= eq.id) 
 	left join aci_tarif_tbl as tr on (tr.id=dt.id_tarif) 
 	left join cla_param_tbl as p on (dt.industry=p.id) 
 	left join eqk_tg_tbl as tg on (dt.id_tg=tg.id) 
@@ -9071,7 +9071,8 @@ left join clm_meterpoint_tbl m on m.id_paccnt=a.id_paccnt
 left join clm_plandemand_tbl p on p.id_paccnt=a.id_paccnt and p.id_zone=a.id_zone and p.mmgg=w1.mmgg_current 
 inner join sap_const const on 1=1
 where (a.id_operation<>5 or a.id_operation is null) and aa.archive='0' 
-and not(m.id_type_meter=0 or trim(m.num_meter)='0' or m.num_meter is null)
+and not(m.id_type_meter in(0,300000010 ,200000005,999) or trim(m.num_meter)='0' or m.num_meter is null) 
+--and not(m.id_type_meter=0 or trim(m.num_meter)='0' or m.num_meter is null)
 order by 1) t
 group by 1,9,10,11,12,13,20,21,22
 order by 1) w ) ww
@@ -13319,8 +13320,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 //debug($cnt);
 //            return;
 
-//                debug($data);
-//                return;
+                debug($data);
+                return;
 
         // Заполнение ссылок в памяти
         foreach ($data as $key => $n1) {
