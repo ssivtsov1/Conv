@@ -13320,8 +13320,8 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
 //debug($cnt);
 //            return;
 
-                debug($data);
-                return;
+//                debug($data);
+//                return;
 
         // Заполнение ссылок в памяти
         foreach ($data as $key => $n1) {
