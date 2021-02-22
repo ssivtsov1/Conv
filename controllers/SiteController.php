@@ -3428,7 +3428,6 @@ left join sap_vkp c on c.oldkey=c2.gpart
 ) z
       ";
 
-
         $sql = "select *,case when substr(saldo1,1,2)='--' then substr(saldo1,3) else saldo1 end as saldo,
  case when substr(saldo1,1,2)='--' then '' else prepay1 end as prepay,
  case when kofiz1 is null or trim(kofiz1)='' then net1.kofiz else kofiz1 end as kofiz,def_bank_day(date_format(date,1)::date,5) as faedn  
@@ -4614,7 +4613,7 @@ order by 2
 
 //        Формируем данные по розподілу
         $sql = "
-
+select *,case when substr(saldo2,1,2) = '--' then substr(saldo2,3) else saldo2 end as saldo from (
 select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' 
 else oldkey1||'_'||row_number() over(partition by oldkey1) end as oldkey,
  def_bank_day(date_format(date,1)::date,5) as faedn from (
@@ -4624,7 +4623,7 @@ c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
 -- case when trim(kredit)<>'' then '-'||kredit else debet end as saldo,
 case when trim(kredit)<>'' 
-then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' else debet end::dec(12,2)) else debet end as saldo,
+then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' else debet end::dec(12,2)) else debet end as saldo2,
 
  case when trim(kredit)<>'' then kredit else '' end as prepay
  from (
@@ -4638,7 +4637,7 @@ select b.partner_id as gpart,trim(b.acc_id) as acc_id,'' as schet,a.*,const.ver,
 ) c2
 order by 2
 ) qqq
-
+) qqqq
 
       ";
         // Получаем необходимые данные
