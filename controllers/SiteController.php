@@ -3385,7 +3385,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
-//        $date_p = '20200930';  // Потом нужно закомментировать это
+        $date_p = '20210131';  // Потом нужно закомментировать это
 
 //        Формируем данные по розподілу
         $sql_old = "select c.kofiz_sd as kofiz, gpart||'_'||date1||'_'||num as oldkey,c2.*
@@ -3432,7 +3432,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
  case when substr(saldo1,1,2)='--' then '' else prepay1 end as prepay,
  case when kofiz1 is null or trim(kofiz1)='' then net1.kofiz else kofiz1 end as kofiz,def_bank_day(date_format(date,1)::date,5) as faedn  
  from (
-     select case when schet='010001306' then '02' else c.kofiz_sd end as kofiz1, 
+     select case when schet in ('010001306','070000126') then '02' else c.kofiz_sd end as kofiz1, 
 gpart||'_'||replace(case when trim(data_v_k)<>'' then data_v_k else data_v_d end,'.','_')||'_01' as oldkey,c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
 case when trim(kredit)<>'' 
@@ -3444,7 +3444,7 @@ then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' e
         select '04_C'||'$rem'||'P_'||b.id as gpart1,split_part(a.dogovor,' ',1) as schet,a.*,const.ver,const.begru
      from ost_detal22r as a 
        inner join sap_const const on 1=1
-      left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
+      left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int and b.idk_work <> 0
      where (dogovor like '%розподіл%'
     and substr(dogovor,1,2)='$rem') or ('$rem'='07' and substr(dogovor,1,1)='7' and dogovor like '%розподіл%')
       or ('$rem'='01' and substr(dogovor,1,2)='11' and dogovor like '%розподіл%') 
@@ -3487,7 +3487,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                 $date = date('Ymd', strtotime($v['date_s']));
 
             $date_ = date('Y-m-d', strtotime($date));
-           // $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
+            // $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
             $faedn = date('Ymd', strtotime($v['faedn']));
             $nds = round($v['saldo'] / 6, 2);
             $wo_nds = round($v['saldo'] - $nds, 2);
@@ -3766,7 +3766,7 @@ select c1.* from (
 select '04_C'||'$rem'||'P_'||b.id as gpart,split_part(a.dogovor,' ',1) as schet,a.*,const.ver,const.begru
      from ost_detal22 as a 
       inner join sap_const const on 1=1
-      left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int 
+      left join clm_client_tbl b on b.code=split_part(a.dogovor,' ',1)::int and b.idk_work <> 0
      where (dogovor like '%перетоки%' 
      and substr(dogovor,1,2)='$rem') or ('$rem'='07' and substr(dogovor,1,1)='7' and dogovor like '%перетоки%')
      or ('$rem'='01' and substr(dogovor,1,2)='11' and dogovor like '%перетоки%') 
@@ -4002,6 +4002,8 @@ and (trim(debet)<>'0.00')
 
 
 
+
+
     // Формирование файла остатков по бухгалтерии - дополнительный (по которым нет лицевых счетов)
     //DOCUMENT_ADD (юридические лица поставщики - только для Днепра)
     public function actionSap_document_add($res)
@@ -4025,17 +4027,17 @@ and (trim(debet)<>'0.00')
         $routine = strtoupper(substr($method, 10));
         $filename = get_routine($method); // Получаем название подпрограммы для названия файла
 
-        $sql_p = " select (max(mmgg) + interval '1 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
+        $sql_p = " select (max(mmgg) + interval '0 month' -  interval '1 day')::date as mmgg from sys_month_tbl";
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
-//        $date_p = '20200930';  // Потом нужно закомментировать это
+        $date_p = '20210131';  // Потом нужно закомментировать это
 
         $sql1 = "
 select *,def_bank_day(date_format(date,1)::date,5) as date_sf from (
 select 
 
-case when kr_productiv in ('2420000007','2420000043','2420003546') then '03'
+case when kr_productiv in ('2420000007','2420000043','2420003546','2420003545','2420003845') then '03'
  else '02' end as kofiz,
  
  '04_C'||'$rem'||'P_'|| gpart  || '_' || case when trim(data_v_k)<>'' then
@@ -4064,6 +4066,8 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
         $f = fopen($fname, 'w+');
 
         $j = 0;
+//        debug($data);
+//        die;
         foreach ($data as $v) {
             $j++;
             $oldkey = trim($v['oldkey']);
@@ -4271,7 +4275,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
         $sql="select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' else oldkey1 end as oldkey,
  def_bank_day(date_format(date,1)::date,5) as faedn 
  from (
-select '02' as kofiz,'04_C'||'$rem'||'P_'|| gpart || '_' || case when trim(data_v_k)<>'' then
+select case when kr_productiv in ('2420003547') then '03' else '02' end as kofiz,'04_C'||'$rem'||'P_'|| gpart || '_' || case when trim(data_v_k)<>'' then
  replace(data_v_k,'.','_') else replace(data_v_d,'.','_') end as oldkey1,
 c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
@@ -4306,6 +4310,8 @@ order by 2
 
         $j = 0;
         foreach ($data as $v) {
+//            debug($v);
+//            die;
             $j++;
             $oldkey = trim($v['oldkey']);
             $date = date('Ymd', strtotime($v['date']));
@@ -4506,13 +4512,14 @@ order by 2
                     $sch = '6811310077';
                 else
                     $sch = '6811320077';
+
                 // предоплата розподіл
                 fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                     'OP' . "\t" .
                     $v['begru'] . "\t" .
                     $v['gpart'] . "\t" .
                     "\t" .
-                    $v['kr_produktiv'] . "\t" .
+                    $v['kr_productiv'] . "\t" .
                     '0068' . "\t" .
                     $param_count . "\t" .
                     $v['kofiz'] . "\t" .
@@ -4579,6 +4586,7 @@ order by 2
         return $this->render('info', [
             'model' => $model]);
     }
+
     // Формирование файла остатков по бухгалтерии DOCUMENT_POST (юридические лица поставщики - только для Днепра)
     public function actionSap_document_post($res)
     {
@@ -4609,7 +4617,7 @@ order by 2
         $data_p = data_from_server($sql_p, $res, $vid);
         $date_p = $data_p[0]['mmgg'];  // Получаем дату проводки
         $date_p = str_replace('-', '', $date_p);
-//        $date_p = '20200930';  // Потом нужно закомментировать это
+        $date_p = '20210131';  // Потом нужно закомментировать это
 
 //        Формируем данные по розподілу
         $sql = "
@@ -4671,7 +4679,7 @@ order by 2
                 $date = date('Ymd', strtotime($v['date_s']));
 
             $date_ = date('Y-m-d', strtotime($date));
-           // $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
+            // $faedn = date("Ymd", strtotime($date_ . ' +1 week'));
             $faedn = date('Ymd', strtotime($v['faedn']));
 
             $nds = round($v['saldo'] / 6, 2);
@@ -5148,6 +5156,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
         return $this->render('info', [
             'model' => $model]);
     }
+
 
 // Формирование файла группировки устройств DEVGRP (юридические лица)
     public function actionSap_devgrp($res)

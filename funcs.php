@@ -2631,9 +2631,12 @@ function f_zlines($n_struct,$rem,$v,$vid) {
 // Выгрузка по трансформаторам  юридич.
 function f_ztransf($n_struct,$rem,$v,$vid) {
     $day=((int) date('d'))-1;
+    $day1=((int) date('d'))-2;
     $datab = date('Ymd', strtotime("-$day day"));
+    $datab1 = date('Ymd', strtotime("-$day1 day"));
     $oldkey_const='04_C'.$rem.'P_01_';
     $r = $v['code_eqp'];
+    if($r=='153878')   $datab = $datab1; // Исключение
     $pnt=$v['pnt'];
     $v_norm='~';
 
