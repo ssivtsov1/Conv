@@ -4275,7 +4275,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
         $sql="select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' else oldkey1 end as oldkey,
  def_bank_day(date_format(date,1)::date,5) as faedn 
  from (
-select case when kr_productiv in ('2420003547') then '03' else '02' end as kofiz,'04_C'||'$rem'||'P_'|| gpart || '_' || case when trim(data_v_k)<>'' then
+select case when kr_productiv in ('2420003547','2420003545') then '03' else '02' end as kofiz,'04_C'||'$rem'||'P_'|| gpart || '_' || case when trim(data_v_k)<>'' then
  replace(data_v_k,'.','_') else replace(data_v_d,'.','_') end as oldkey1,
 c2.*,
  case when trim(data_v_k)<>'' then data_v_k else data_v_d end as date,
