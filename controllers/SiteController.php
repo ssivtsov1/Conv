@@ -3561,7 +3561,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                         "\t" .
                         $cod_nds . "\t" .
                         "\t" .
-                        '2020' . "\t" .
+                        '2021' . "\t" .
                         n2sap($nds) . "\t" .
                         n2sap($nds) . "\t" .
                         $priz
@@ -3596,7 +3596,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                         "\t" .
                         $cod_nds . "\t" .
                         "\t" .
-                        '2020' . "\t" .
+                        '2021' . "\t" .
                         "\t" .
                         "\t" .
                         $priz
@@ -3620,7 +3620,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                         "\t" .
                         "\t" .
                         $cod_nds . "\t" .
-                        '2020'
+                        '2021'
                     ));
 
 
@@ -3640,7 +3640,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                         '020000' . "\t" .
                         'MWAS' . "\t" .
                         $cod_nds . "\t" .
-                        '2020'
+                        '2021'
                     ));
 
 
@@ -3661,7 +3661,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                         "\t" .
                         "\t" .
                         "\t" .
-                        '2020'
+                        '2021'
                     ));
                     fwrite($f, "\n");
 
@@ -3701,7 +3701,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                     "\t" .
                     'UC' . "\t" .
                     "\t" .
-                    '2020' . "\t" .
+                    '2021' . "\t" .
                     "\t" .
                     "\t" .
                     'D'
@@ -3723,7 +3723,7 @@ left join network_client net1 on  net1.schet=split_part(z.dogovor,' ',1)";
                     "\t" .
                     "\t" .
                     "\t" .
-                    '2020'
+                    '2021'
                 ));
 
                 fwrite($f, "\n");
@@ -3824,7 +3824,7 @@ and (trim(debet)<>'0.00')
                     $sch = '3611220077';
 
                 $x = '';
-                if (substr($date, 0, 4) == 2020) {
+                if (substr($date, 0, 4) == 2021) {
                     $abr = 'VR';
                     $sch_nds = '6410203177';
 
@@ -3877,7 +3877,7 @@ and (trim(debet)<>'0.00')
                     "\t" .
                     $abr . "\t" .
                     "\t" .
-                    '2020' . "\t" .
+                    '2021' . "\t" .
                     n2sap($nds) . "\t" .
                     n2sap($nds) . "\t" .
                     $priz
@@ -3913,7 +3913,7 @@ and (trim(debet)<>'0.00')
                     "\t" .
                     $abr . "\t" .
                     "\t" .
-                    '2020' . "\t" .
+                    '2021' . "\t" .
                     "\t" .
                     "\t" .
                     $priz
@@ -3939,7 +3939,7 @@ and (trim(debet)<>'0.00')
                     "\t" .
                     "\t" .
                     $abr . "\t" .
-                    '2020'
+                    '2021'
                 ));
 
                 fwrite($f, "\n");
@@ -3958,7 +3958,7 @@ and (trim(debet)<>'0.00')
                     '020000' . "\t" .
                     'MWAS' . "\t" .
                     $abr . "\t" .
-                    '2020'
+                    '2021'
                 ));
 
                 fwrite($f, "\n");
@@ -3977,7 +3977,7 @@ and (trim(debet)<>'0.00')
                     "\t" .
                     "\t" .
                     "\t" .
-                    '2020'
+                    '2021'
                 ));
 
                 fwrite($f, "\n");
@@ -4107,7 +4107,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     $sch = '3611220077';
 
                 $x = '';
-                if (substr($date, 0, 4) == 2020) {
+                if (substr($date, 0, 4) == 2021) {
                     $abr = 'VR';
                     $sch_nds = '6410203177';
 
@@ -4160,7 +4160,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     "\t" .
                     $abr . "\t" .
                     "\t" .
-                    '2020' . "\t" .
+                    '2021' . "\t" .
                     n2sap($nds) . "\t" .
                     n2sap($nds) . "\t" .
                     $priz
@@ -4196,7 +4196,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     "\t" .
                     $abr . "\t" .
                     "\t" .
-                    '2020' . "\t" .
+                    '2021' . "\t" .
                     "\t" .
                     "\t" .
                     $priz
@@ -4222,7 +4222,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     "\t" .
                     "\t" .
                     $abr . "\t" .
-                    '2020'
+                    '2021'
                 ));
 
                 fwrite($f, "\n");
@@ -4241,7 +4241,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     '020000' . "\t" .
                     'MWAS' . "\t" .
                     $abr . "\t" .
-                    '2020'
+                    '2021'
                 ));
 
                 fwrite($f, "\n");
@@ -4260,7 +4260,7 @@ select a.partner_id as gpart,a.kr_productiv as acc_id,'' as schet,a.*,const.ver,
                     "\t" .
                     "\t" .
                     "\t" .
-                    '2020'
+                    '2021'
                 ));
 
                 fwrite($f, "\n");
@@ -4401,7 +4401,7 @@ order by 2
                         "\t" .
                         $cod_nds . "\t" .
                         "\t" .
-                        '2020' . "\t" .
+                        '2021' . "\t" .
                         n2sap($nds) . "\t" .
                         n2sap($nds) . "\t" .
                         $priz
@@ -4436,7 +4436,7 @@ order by 2
                         "\t" .
                         $cod_nds . "\t" .
                         "\t" .
-                        '2020' . "\t" .
+                        '2021' . "\t" .
                         "\t" .
                         "\t" .
                         $priz
@@ -4460,7 +4460,7 @@ order by 2
                         "\t" .
                         "\t" .
                         $cod_nds . "\t" .
-                        '2020'
+                        '2021'
                     ));
 
 
@@ -4480,7 +4480,7 @@ order by 2
                         '020000' . "\t" .
                         'MWAS' . "\t" .
                         $cod_nds . "\t" .
-                        '2020'
+                        '2021'
                     ));
 
 
@@ -4501,7 +4501,7 @@ order by 2
                         "\t" .
                         "\t" .
                         "\t" .
-                        '2020'
+                        '2021'
                     ));
                     fwrite($f, "\n");
 
@@ -4542,7 +4542,7 @@ order by 2
                     "\t" .
                     'UC' . "\t" .
                     "\t" .
-                    '2020' . "\t" .
+                    '2021' . "\t" .
                     "\t" .
                     "\t" .
                     'D'
@@ -4564,7 +4564,7 @@ order by 2
                     "\t" .
                     "\t" .
                     "\t" .
-                    '2020'
+                    '2021'
                 ));
 
                 fwrite($f, "\n");
@@ -4748,7 +4748,7 @@ order by 2
                         "\t" .
                         $cod_nds . "\t" .
                         "\t" .
-                        '2020' . "\t" .
+                        '2021' . "\t" .
                         n2sap($nds) . "\t" .
                         n2sap($nds) . "\t" .
                         $priz
@@ -4783,7 +4783,7 @@ order by 2
                         "\t" .
                         $cod_nds . "\t" .
                         "\t" .
-                        '2020' . "\t" .
+                        '2021' . "\t" .
                         "\t" .
                         "\t" .
                         $priz
@@ -4807,7 +4807,7 @@ order by 2
                         "\t" .
                         "\t" .
                         $cod_nds . "\t" .
-                        '2020'
+                        '2021'
                     ));
 
 
@@ -4827,7 +4827,7 @@ order by 2
                         '020000' . "\t" .
                         'MWAS' . "\t" .
                         $cod_nds . "\t" .
-                        '2020'
+                        '2021'
                     ));
 
 
@@ -4848,7 +4848,7 @@ order by 2
                         "\t" .
                         "\t" .
                         "\t" .
-                        '2020'
+                        '2021'
                     ));
                     fwrite($f, "\n");
 
@@ -4888,7 +4888,7 @@ order by 2
                     "\t" .
                     'UC' . "\t" .
                     "\t" .
-                    '2020' . "\t" .
+                    '2021' . "\t" .
                     "\t" .
                     "\t" .
                     'D'
@@ -4910,7 +4910,7 @@ order by 2
                     "\t" .
                     "\t" .
                     "\t" .
-                    '2020'
+                    '2021'
                 ));
 
                 fwrite($f, "\n");
@@ -4981,7 +4981,7 @@ left join sap_vkp c on c.oldkey=c2.gpart
                         $sch = '3611220077';
 
                     $x = '';
-                    if (substr($date, 0, 4) == 2020) {
+                    if (substr($date, 0, 4) == 2021) {
                         $abr = 'VR';
                         $sch_nds = '6410203177';
 
@@ -15562,8 +15562,10 @@ WHERE
                  '10999999','11000000','19999369','50999999','1000000','1000001')
                 and b.oldkey is not null";
 
-        $sql = "select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
-                  const.stort,const.begru_all as begru,const.ver
+        $sql = "
+select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
+                  const.stort,const.begru_all as begru1,const.ver,
+                  case when substr(c.code::char(10),1,2)='11' then 'C01O' else 'C01P' end as begru
                 from eqm_equipment_tbl a
 		     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
 		     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
@@ -15576,7 +15578,8 @@ WHERE
                  and  c.code not in('20000556','20000565','20000753',
                  '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
                  '10999999','11000000','19999369','50999999','1000000','1000001')
-                 and b.oldkey is not null";
+                 and b.oldkey is not null
+                 ";
 
         $sql_last_version = "select * from (
             select  distinct a.id*10+row_number() OVER (partition BY a.id,coalesce(b.oldkey,b1.oldkey)) as id,
