@@ -11534,8 +11534,8 @@ order by tzap
         $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
         $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
-debug($data);
-return;
+//debug($data);
+//return;
 
         // Удаляем данные в таблицах структур
         $i = 0;
