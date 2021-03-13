@@ -639,6 +639,7 @@ WHERE year_p=0 and year_q>0';
                   if(!isset($data[1])) continue;
                   if($data[1]=='OP') {
                       $oldkey=$data[0];
+                      $klient=$data[3];
                       $schet=$data[6];
                       $summa=$data[17];
                       $res=substr($oldkey,5,1);
@@ -647,8 +648,9 @@ WHERE year_p=0 and year_q>0';
                       $summa1=str_replace('-', '', $summa1);
                       if($last_c=='-') $saldo=(float) $summa1 * -1;
                       else $saldo=(float) $summa1;
-                      $sql = "INSERT INTO integrity_ost (res,schet,summa,saldo,vid) VALUES(" .
-                    '$$' . $res . '$$' . "," . '$$' . $schet . '$$' . ",".'$$' . $summa . '$$' . "," . $saldo . "," .'$$' . $vid . '$$' .
+                      $sql = "INSERT INTO integrity_ost (res,schet,summa,saldo,vid,klient) VALUES(" .
+                    '$$' . $res . '$$' . "," . '$$' . $schet . '$$' . ",".'$$' . $summa . '$$' . "," . $saldo . "," .
+                          '$$' . $vid . '$$' .  "," .  '$$' . $klient . '$$' .
                     ')';
                     Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
                   }
@@ -4666,7 +4668,9 @@ order by 2
 
 //        Формируем данные по розподілу
         $sql = "
-select *,case when substr(saldo2,1,2) = '--' then substr(saldo2,3) else saldo2 end as saldo from (
+select *,case when substr(saldo2,1,2) = '--' then substr(saldo2,3) else saldo2 end as saldo,
+ case when substr(saldo2,1,2)='--' then '' else prepay1 end as prepay 
+ from (
 select *,case when acc_id='2460000204' then '04_C01P_160019369_30_09_20' 
 else oldkey1||'_'||row_number() over(partition by oldkey1) end as oldkey,
  def_bank_day(date_format(date,1)::date,5) as faedn from (
@@ -4678,7 +4682,7 @@ c2.*,
 case when trim(kredit)<>'' 
 then '-'||(coalesce(kredit,'0')::dec(12,2))-(case when trim(debet)='' then '0' else debet end::dec(12,2)) else debet end as saldo2,
 
- case when trim(kredit)<>'' then kredit else '' end as prepay
+ case when trim(kredit)<>'' then kredit else '' end as prepay1
  from (
 select c1.* from (
 select b.partner_id as gpart,trim(b.acc_id) as acc_id,'' as schet,a.*,const.ver,const.begru
@@ -4731,7 +4735,7 @@ order by 2
             $wo_nds = round($v['saldo'] - $nds, 2);
             $prepay = $v['prepay'];
             if ($date > $date_p) $date = $date_p;
-
+//            || substr($v['saldo2'],0,2) == '--'
             if ($v['saldo'] > 0) {
                 if ($v['kofiz'] == '02' || $v['kofiz'] == '06')
                     $sch = '3611310077';
@@ -4763,6 +4767,7 @@ order by 2
             fwrite($f, "\n");
 
 // OP block
+//            || substr($v['saldo2'],0,2) == '--'
             if (empty($prepay) || is_null($prepay)) {
                 if ($cod_nds <> 'UC')
                     fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
