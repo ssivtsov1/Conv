@@ -15662,8 +15662,8 @@ select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
                  where haus is not null and vstelle is not null
                  ";
 
-        debug($sql);
-        return;
+//        debug($sql);
+//        return;
 
         $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";
         $zsql = 'delete from sap_egpld';
