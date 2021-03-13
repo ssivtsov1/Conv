@@ -614,6 +614,51 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+    // Проверка остатков - сборка счетов
+    public function actionIntegrity_ost()
+    { $dir    = './DOCUMENT';
+        $files = scandir($dir);
+//        debug($files);
+//        return;
+          $y=count($files);
+          $sql='DELETE FROM integrity_ost';
+          Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
+
+          for($i=2;$i<$y;$i++){
+              $file = $dir . '/' . $files[$i];
+              $vid='_OST';
+              if(strpos($file,'_ADD')) $vid='_ADD';
+              if(strpos($file,'_POST')) $vid='_POST';
+              $f = fopen($file, 'r');
+              $j = 0;
+              rewind($f);
+              while (!feof($f)) {
+                  $j++;
+                  $s = fgets($f);
+                  $data = explode("\t", $s);
+                  if(!isset($data[1])) continue;
+                  if($data[1]=='OP') {
+                      $oldkey=$data[0];
+                      $schet=$data[6];
+                      $summa=$data[17];
+                      $res=substr($oldkey,5,1);
+                      $last_c=substr($summa,-1);
+                      $summa1=str_replace(',', '.', $summa);
+                      $summa1=str_replace('-', '', $summa1);
+                      if($last_c=='-') $saldo=(float) $summa1 * -1;
+                      else $saldo=(float) $summa1;
+                      $sql = "INSERT INTO integrity_ost (res,schet,summa,saldo,vid) VALUES(" .
+                    '$$' . $res . '$$' . "," . '$$' . $schet . '$$' . ",".'$$' . $summa . '$$' . "," . $saldo . "," .'$$' . $vid . '$$' .
+                    ')';
+                    Yii::$app->db_pg_dn_energo->createCommand($sql)->execute();
+                  }
+              }
+              fclose($f);
+          }
+        echo "Інформацію записано";
+    }
+
+
     // Алгоритм Флойда
     public function actionFloyd()
     {
@@ -11305,7 +11350,8 @@ case when en2.kind_energy =3 then case when eqz2.zone in (4,5,9,10) then '2' whe
 case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' when eqz3.zone in (1,2,3,6,7,8) then '3' when  eqz3.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
 case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' when eqz4.zone in (1,2,3,6,7,8) then '1' when  eqz4.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end as ZWGRUPPE,
                   '' as wgruppe,
-                  const.swerk,const.stort,const.ver,const.begru_b as begru,1 as tzap
+                  case when substr(c.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+               1 as tzap
                 from eqm_meter_tbl as m 
                 join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
                 left join eqm_equipment_h as hm on (hm.id = eq.id) 
@@ -11353,7 +11399,8 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                   coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
                   '' as zwgruppe,
                  coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
-                  const.swerk,const.stort,const.ver,const.begru_b as begru,2 as tzap
+                  case when substr(cl1.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                  2 as tzap
                  from group_trans1 as gr
                  join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int
 		    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
@@ -15564,8 +15611,8 @@ WHERE
 
         $sql = "
 select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
-                  const.stort,const.begru_all as begru1,const.ver,
-                  case when substr(c.code::char(10),1,2)='11' then 'C01O' else 'C01P' end as begru
+                const.stort,const.begru_all as begru1,const.ver,
+                case when substr(c.code::char(10),1,2)='11' then 'C01O' else 'C01P' end as begru
                 from eqm_equipment_tbl a
 		     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
 		     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
