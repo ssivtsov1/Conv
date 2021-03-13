@@ -11350,6 +11350,7 @@ case when en2.kind_energy =3 then case when eqz2.zone in (4,5,9,10) then '2' whe
 case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' when eqz3.zone in (1,2,3,6,7,8) then '3' when  eqz3.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
 case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' when eqz4.zone in (1,2,3,6,7,8) then '1' when  eqz4.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end as ZWGRUPPE,
                   '' as wgruppe,
+                  const.swerk,const.stort,const.ver,
                   case when substr(c.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
                1 as tzap
                 from eqm_meter_tbl as m 
@@ -11399,6 +11400,7 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                   coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
                   '' as zwgruppe,
                  coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
+               const.swerk,const.stort,const.ver,
                   case when substr(cl1.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
                   2 as tzap
                  from group_trans1 as gr
@@ -11448,7 +11450,9 @@ case when en2.kind_energy =3 then case when eqz2.zone in (4,5,9,10) then '2' whe
 case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' when eqz3.zone in (1,2,3,6,7,8) then '3' when  eqz3.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end||
 case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' when eqz4.zone in (1,2,3,6,7,8) then '1' when  eqz4.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end as ZWGRUPPE,
                   '' as wgruppe,
-                  const.swerk,const.stort,const.ver,const.begru_b as begru,1 as tzap
+                  const.swerk,const.stort,const.ver,
+                  case when substr(c.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                  1 as tzap
                 from eqm_meter_tbl as m 
                 join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
                 left join eqm_equipment_h as hm on (hm.id = eq.id) 
@@ -11496,7 +11500,9 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                   coalesce(upper(type_tr.type_tr_sap),upper(type_tr_u.type_tr_sap)) as MATNR,
                   '' as zwgruppe,
                  coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
-                  const.swerk,const.stort,const.ver,const.begru_b as begru,2 as tzap
+                  const.swerk,const.stort,const.ver,
+                   case when substr(cl1.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                  2 as tzap
                  from group_trans1 as gr
                  join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int
 		    join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
@@ -11528,8 +11534,8 @@ order by tzap
         $data = data_from_server($sql, $res, $vid);   // Массив всех необходимых данных
         $cnt = data_from_server($sql_c, $res, $vid);  // Список структур
 
-//debug($data);
-//return;
+debug($data);
+return;
 
         // Удаляем данные в таблицах структур
         $i = 0;
