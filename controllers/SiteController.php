@@ -11351,7 +11351,8 @@ case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' whe
 case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' when eqz4.zone in (1,2,3,6,7,8) then '1' when  eqz4.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end as ZWGRUPPE,
                   '' as wgruppe,
                   const.swerk,const.stort,const.ver,
-                  case when substr(c.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                 -- case when substr(c.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+               const.begru_b as begru,
                1 as tzap
                 from eqm_meter_tbl as m 
                 join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
@@ -11401,7 +11402,8 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                   '' as zwgruppe,
                  coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
                const.swerk,const.stort,const.ver,
-                  case when substr(cl1.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                 -- case when substr(cl1.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                  const.begru_b as begru,
                   2 as tzap
                  from group_trans1 as gr
                  join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int
@@ -11451,7 +11453,8 @@ case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' whe
 case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' when eqz4.zone in (1,2,3,6,7,8) then '1' when  eqz4.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end as ZWGRUPPE,
                   '' as wgruppe,
                   const.swerk,const.stort,const.ver,
-                  case when substr(c.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                  -- case when substr(c.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                const.begru_b as begru,
                   1 as tzap
                 from eqm_meter_tbl as m 
                 join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
@@ -11501,7 +11504,8 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                   '' as zwgruppe,
                  coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
                   const.swerk,const.stort,const.ver,
-                   case when substr(cl1.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                   -- case when substr(cl1.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                 const.begru_b as begru,
                   2 as tzap
                  from group_trans1 as gr
                  join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int
@@ -15658,8 +15662,8 @@ select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
                  where haus is not null and vstelle is not null
                  ";
 
-//        debug($sql);
-//        return;
+        debug($sql);
+        return;
 
         $sql_c = "select * from sap_export where objectsap='DEVLOC' order by id_object";
         $zsql = 'delete from sap_egpld';
