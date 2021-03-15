@@ -11356,8 +11356,8 @@ case when en3.kind_energy =2 then case when eqz3.zone in (4,5,9,10) then '2' whe
 case when en4.kind_energy =4 then case when eqz4.zone in (4,5,9,10) then '1' when eqz4.zone in (1,2,3,6,7,8) then '1' when  eqz4.zone = 0 then '1' else '0' end  ||'_(' || case when t.carry<10 then '0' else '1' end ||case when t.carry< 10 then t.carry::varchar else '0' end ||coalesce(t1.count_round,'0')::varchar||')' else '0_(000)' end as ZWGRUPPE,
                   '' as wgruppe,
                   const.swerk,const.stort,const.ver,
-                 -- case when substr(c.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
-               const.begru_b as begru,
+                  case when substr(c.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+               -- const.begru_b as begru,
                1 as tzap
                 from eqm_meter_tbl as m 
                 join eqm_equipment_tbl as eq on (m.code_eqp = eq.id)
@@ -11407,8 +11407,8 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
                   '' as zwgruppe,
                  coalesce(type_tr.group_ob,type_tr_u.group_ob) as WGRUPPE,
                const.swerk,const.stort,const.ver,
-                 -- case when substr(cl1.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
-                  const.begru_b as begru,
+                  case when substr(cl1.code::char(12),1,2)='11' then 'C01O' else const.begru_b end as begru,
+                 -- const.begru_b as begru,
                   2 as tzap
                  from group_trans1 as gr
                  join eqm_compensator_i_tbl as c on c.code_eqp=gr.code_tt::int
@@ -13407,6 +13407,12 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     $o++;
                 }
             }
+//            if($n1_code == '110000002') {
+//
+//                debug( $mas);
+//                return;
+//            }
+
             $haus = '';
             foreach ($nd_dd as $n3) {
                 $n1_co = substr(trim($n3['oldkey']), 8);
@@ -13422,6 +13428,10 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                         $house_num2 = $n3['house_num2'];
 //                            debug($haus);
 //                            return;
+//                        if($n1_code == '110000002') {
+//                            debug($haus);
+//                            return;
+//                        }
                         $flag = 1;
                         break;
                     }
@@ -13432,6 +13442,7 @@ select distinct const.begru_all as pltxt,'PREMISE' as name,
                     break;
                 }
             }
+
             // Если код в CONNOBJ не найден
 
 
@@ -15632,8 +15643,11 @@ select a.id,b.haus as haus,b.oldkey as vstelle,const.swerk,
 		     left join eqm_eqp_use_tbl as use on (use.code_eqp = a.id) 
 		     left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = a.id
 		     left join eqm_tree_tbl tr on tr.id = ttr.id_tree
-		     left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+		    -- left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
                 left join sap_evbsd b on b.haus='04_C'||'$rem'||'P_'||a.id  
+                left join eqm_area_tbl eqm on eqm.code_eqp=substr(b.oldkey,11)::int
+                --left join clm_client_tbl as c on (c.id = coalesce (use.id_client, tr.id_client)) 
+                left join clm_client_tbl as c on c.id=eqm.id_client
                 inner join sap_const const on 1=1
                 WHERE a.type_eqp=12 and
                 (c.code>999 or  c.code=900) AND coalesce(c.idk_work,0)<>0 
