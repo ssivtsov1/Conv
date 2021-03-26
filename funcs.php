@@ -1468,6 +1468,15 @@ if($flag_r==1)
 function f_account($n_struct, $rem, $v) {
     $oldkey_const='04_C'.$rem.'P_';
     $r = $v['id'];
+    // Не записываем хоз. нужды (кроме Днепра)
+    if($rem=='02' && $r==11883) return;  // Ж-Воды
+    if($rem=='03' && $r==11333) return;
+    if($rem=='04' && $r==11711) return;
+    if($rem=='07' && $r==11066) return;
+    if($rem=='05' && $r==11526) return;
+    if($rem=='06' && $r==10873) return;
+    if($rem=='08' && $r==11246) return;  // Ингулец
+
     $gpart = $v['gpart'];
     $vktyp = $v['vktyp'];
 
@@ -3218,6 +3227,15 @@ function f_move_in($rem,$v) {
     $vkonto = $oldkey_const . $v['id_cl'];
 
     $rem1=(int) $rem;
+    // Подмена oldkey для  потребителей хоз. нужд на Днепровский код в ACCOUNT
+    if($rem1==2 && $v['id_potr']==11883) $vkonto='04_C01P_13385';  // Ж-Воды
+    if($rem1==3 && $v['id_potr']==11333) $vkonto='04_C01P_13385';
+    if($rem1==4 && $v['id_potr']==11711) $vkonto='04_C01P_13385';
+    if($rem1==7 && $v['id_potr']==11066) $vkonto='04_C01P_13385';
+    if($rem1==5 && $v['id_potr']==11526) $vkonto='04_C01P_13385';
+    if($rem1==6 && $v['id_potr']==10873) $vkonto='04_C01P_13385';
+    if($rem1==8 && $v['id_potr']==11246) $vkonto='04_C01P_13385';  // Ингулец
+
     // Подмена oldkey для сетевых потребителей
     if($rem1==2){
         if( $v['id_potr']==11305) $vkonto='04_C01P_400000';
