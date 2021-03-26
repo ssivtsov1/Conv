@@ -3060,11 +3060,12 @@ function f_facts($rem,$v) {
 
 
 //    F_RATE	ВТ_РЕАКТ
-    if (!empty($react_)) {
+//    if (!empty($react_)) {   // Это надо будет убрать
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_RATE','ВТ_РЕАКТ','','')";
 //        exec_on_server($z, (int)$rem, $vid);
-        if (trim($tariftyp) <> 'CK_2JE2_01' && trim($tariftyp) <> 'CK_2TH2_01' && trim($tariftyp) <> 'CK_2GR2_01') {
+        if ((!empty($eerm)) && empty($react_)) {
+//        if (trim($tariftyp) <> 'CK_2JE2_01' && trim($tariftyp) <> 'CK_2TH2_01' && trim($tariftyp) <> 'CK_2GR2_01') {
             if (!((($v['id']) == 124553 || $v['id'] == 115032 || $v['id'] == 144788) && $rem == '01')) {
                 $facts['data32'] = $oldkey . ';' . 'F_RATE' . ';' . 'ВТ_РЕАКТ' . ';' . ' ' . ';' . ' ';
 
@@ -3075,20 +3076,28 @@ function f_facts($rem,$v) {
                 $facts['data33'] = $oldkey . ';' . 'V_RATE' . ';' . $datab . ';' . $datae . ';' . 'Р_РОЗР';
             }
         }
+//    }
+
+    if (empty($v['id_cnt'])) {
+            $facts['data34'] = $oldkey . ';' . 'F_RATE' . ';' . 'ВТ_А_13' . ';' . ' ' . ';' . ' ';
+            $facts['data35'] = $oldkey . ';' . 'V_RATE' . ';' . $datab . ';' . $datae . ';' . 'А_ПОТ';
     }
-    if (!empty($gen_)) {
+
+    if(1==2) {  // Отключили за ненадобностью подачи этого операнда
+        if (!empty($gen_)) {
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'F_RATE','ВТ_ГЕН','','')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data34'] =  $oldkey.';'.'F_RATE'.';'.'ВТ_ГЕН'.';'.' '.';'.' ';
+            $facts['data34'] = $oldkey . ';' . 'F_RATE' . ';' . 'ВТ_ГЕН' . ';' . ' ' . ';' . ' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_RATE','$datab','$datae','Г_РОЗР')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-        $facts['data35'] =  $oldkey.';'.'V_RATE'.';'.$datab.';'.$datae.';'.'Г_РОЗР';
+            $facts['data35'] = $oldkey . ';' . 'V_RATE' . ';' . $datab . ';' . $datae . ';' . 'Г_РОЗР';
 
+        }
     }
 
     $facts['data36'] =  $oldkey.';'.'&ENDE'.';'.' '.';'.' '.';'.' ';
