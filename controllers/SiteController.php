@@ -3125,6 +3125,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 $j++;
 
                 $id_eq = $v['id_eq'];
+
                 if (($id_eq == 120744 || $id_eq == 120748) && $res = 4) continue;
                 $j++;
 //            debug( $id_eq);
@@ -3133,7 +3134,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                 $oldkey = $v['oldkey'];
                 $code = $v['code'];
                 $short_name = $v['short_name'];
-                $sql_f = "select di_zw($id_eq , '$period')";
+                $sql_f = "select di_zw($id_eq , '$period',$id)";
                 $data_f = data_from_server($sql_f, $res, $vid);
                 $sql_f = "select a.*,b.zwgruppe,f_exact(a.pokaz,b.zwgruppe,a.tarifart) as pokaz_true from di_zw_struc a 
                         left join sap_egerh b on substr(b.oldkey,9)::char(10)=$id_eq::char(10)     
