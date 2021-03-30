@@ -253,6 +253,7 @@ AppAsset::register($this);
                                     ['label' => 'Формирование файла partner для САП [бытовые]', 'url' => ['/site/sap_partner_ind']],
                                     ['label' => 'Формирование файла partner для САП [юридические]', 'url' => ['/site/sap_partner']],
                                     ['label' => 'Формирование вопросов для опросника', 'url' => ['/site/form_quest']],
+                                    ['label' => 'Формирование таблицы разрядности счетчиков для САП', 'url' => ['/site/form_razr']],
                                     ['label' => 'Проверка остатков - сборка счетов', 'url' => ['/site/integrity_ost']],
                                     ['label' => 'SAP идентификации данных', 'url' => ['/site/idfile']],
                                     ['label' => 'Експорт в САП', 'url' => ['/site/cek2sap']],

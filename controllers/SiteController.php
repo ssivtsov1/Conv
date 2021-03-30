@@ -614,6 +614,32 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+    // Формирование таблицы разрядности счетчиков для САП
+    public function actionForm_razr()
+    {
+        $f = fopen('in_r.csv', 'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            if($i==1) continue;
+            $s = fgets($f);
+
+            $data = explode("~", $s);
+            if (!isset($data[1])) continue;
+
+            $sql = "INSERT INTO types_meter (type,count_round) VALUES(" .
+                '$$' . $data[0] . '$$' . "," . '$$' . $data[1] . '$$' .
+                ')';
+
+            Yii::$app->db_pg_in_energo->createCommand($sql)->execute();
+
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
     // Проверка остатков - сборка счетов
     public function actionIntegrity_ost()
     { $dir    = './DOCUMENT';
@@ -5479,16 +5505,104 @@ order by sort,devgrptyp";
 //            debug($data_1);
 //            return;
 
+            // Определяем список измер. трансформаторов напряжения
+            //  с несколькими точками подключения
+$sql_list = "select met_id,count(*) as kol from (
+select * from (
+select distinct     grp.*, 
+                    '04_C'||'$rem'||'P_'||m.code_eqp::varchar  as oldkey,
+                    'DI_GER' as struc,
+                    '04_C'||'$rem'||'P_'||m.code_eqp::text  as EQUNRNEU,
+                    '04_C'||'$rem'||'P_'||extract_sn(cyrillic_transliterate(grp.code_t_new_old::text)) as met_id,
+                    '' as WANDNR,
+                    '' as WANDNRE --,dev.wgruppe
+                    from eqm_tree_tbl as tr 
+                    join eqm_eqp_tree_tbl as ttr on (tr.id = ttr.id_tree) 
+                    join eqm_equipment_tbl as eq on (ttr.code_eqp = eq.id) 
+                    join eqm_meter_tbl as m on (m.code_eqp = eq.id) 
+                    left join eqd_meter_energy_tbl as eqd on eqd.code_eqp = m.code_eqp
+                    left join eqm_equipment_h as hm on (hm.id = eq.id) 
+                    left join eqm_meter_point_h as mp on (mp.id_meter = eq.id and mp.dt_e is null) 
+                    left join eqm_point_tbl as pp on (pp.code_eqp = mp.id_point ) 
+                    left join ( select eq.id as id_comp,CASE WHEN eq2.type_eqp = 1 THEN eq2.id WHEN eq3.type_eqp = 1 THEN eq3.id END as id_meter, c.date_check, tt3.code_eqp_e as id_area, 
+                    ic.amperage_nom, ic.conversion , ic.type as tt_type,ic.accuracy, CASE WHEN coalesce(ic.amperage2_nom,0)=0 THEN 0 ELSE ic.amperage_nom/ic.amperage2_nom END as koef_i, eq.num_eqp, eq.is_owner --,
+                       from eqm_compensator_i_tbl as c 
+                            join eqm_equipment_tbl as eq on (eq.id =c.code_eqp ) 
+                            join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
+                            left join eqm_eqp_tree_tbl as tt3 on (tt3.code_eqp=c.code_eqp ) 
+                            left join eqm_eqp_tree_tbl as tt on (tt.code_eqp_e=c.code_eqp ) 
+                            left join eqm_eqp_tree_tbl as tt2 on (tt2.code_eqp_e=tt.code_eqp ) 
+                            left join eqm_equipment_tbl as eq2 on (eq2.id =tt.code_eqp ) 
+                            left join eqm_equipment_tbl as eq3 on (eq3.id =tt2.code_eqp )  
+                            ) as sti on (sti.id_meter = eq.id) 
+                    left join group_trans1 as grp on grp.id_meter=m.code_eqp
+                    ) r
+                    join (select * from sap_egerh where substr(wgruppe,1,1)='U') j on j.oldkey=r.met_id
+                    ) rr
+                    group by 1
+                    having count(*)>1
+                 order by 1   
+";
+
+            $data_list = data_from_server($sql_list, $res, $vid);
+
+
             // Запись в файл структуры DI_INT
             $oldkey2 = '';
             foreach ($data_1 as $v1) {
+
                 $link_tr = str_replace(chr(13), '', $v1['devgrptyp']);
                 $link_tr = str_replace(chr(10), '', $v1['devgrptyp']);
                 $oldkey2 = $oldkey1 . $v1['id_point'];
-                fwrite($f, iconv("utf-8", "windows-1251", $oldkey2 . "\t" .
-                    $v1['n_struct'] . "\t" .
-                    $link_tr . "\t" .
-                    $v1['keydate'] . "\n"));
+                // Исключаем из группы трансформаторы напряжения
+                //  с несколькими точками подключения и ставим № группы 0001
+//                debug($v1);
+//                return;
+
+                // Просмотр на одну запись вперед
+                if('EDEVGR'==$v1['n_struct']) {
+                    $flag_exclude1=0;
+                    for ($u = 0; $u < count($data_1); $u++) {
+                        if ($v1['id_point'] == $data_1[$u]['id_point'] && $data_1[$u]['n_struct'] == 'DEVICE') {
+                            foreach ($data_list as $v_list) {
+                                if ($data_1[$u]['devgrptyp'] == trim($v_list['met_id'])) {
+//                        if('EDEVGR'==$v1['n_struct'])
+//                                 $v1['keydate'] = '0001';
+                                    $flag_exclude1 = 1;
+                                    break;
+                                }
+                            }
+                            if($flag_exclude1==1)
+                                break;
+                        }
+                    }
+                }
+                $flag_exclude=0;
+                if('DEVICE'==$v1['n_struct']) {
+                    foreach ($data_list as $v_list) {
+                        if (trim($link_tr) == trim($v_list['met_id'])) {
+                            $flag_exclude = 1;
+                            break;
+                        }
+                    }
+                }
+                if('DEVICE'==$v1['n_struct'] && $flag_exclude==0)
+                        fwrite($f, iconv("utf-8", "windows-1251", $oldkey2 . "\t" .
+                            $v1['n_struct'] . "\t" .
+                            $link_tr . "\t" .
+                            $v1['keydate'] . "\n"));
+
+                if('EDEVGR'==$v1['n_struct'] && $flag_exclude1==1)
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey2 . "\t" .
+                        $v1['n_struct'] . "\t" .
+                        '0001' . "\t" .
+                        $v1['keydate'] . "\n"));
+
+                if('EDEVGR'==$v1['n_struct'] && $flag_exclude1==0)
+                    fwrite($f, iconv("utf-8", "windows-1251", $oldkey2 . "\t" .
+                        $v1['n_struct'] . "\t" .
+                        $link_tr . "\t" .
+                        $v1['keydate'] . "\n"));
 
             }
             if (trim($oldkey2) <> '') {
