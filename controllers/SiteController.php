@@ -640,6 +640,31 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+    // Формирование таблицы EERM для САП
+    public function actionForm_eerm()
+    {
+        $f = fopen('eerm_pv.csv', 'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+             $s = fgets($f);
+            if($i==1) continue;
+            $data = explode("~", $s);
+            if (!isset($data[1])) continue;
+
+            $sql = "INSERT INTO eerm2tu (code_eqp,eerm) VALUES(" .
+                 $data[0] .  "," . '$$' . $data[1] . '$$' .
+                ')';
+
+            Yii::$app->db_pg_pv_energo->createCommand($sql)->execute();
+
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
+
     // Проверка остатков - сборка счетов
     public function actionIntegrity_ost()
     { $dir    = './DOCUMENT';
@@ -8542,7 +8567,8 @@ left join eqm_meter_tbl as m on m.code_eqp = mp.id_meter
 left join eqm_equipment_tbl eq2 on  m.code_eqp = eq2.id
 left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (2,5) )as me on me.code_eqp = mp.id_meter
 left join (select kind_energy, code_eqp from  eqd_meter_energy_tbl where kind_energy in (4,6) )as me1 on me1.code_eqp = mp.id_meter
-left join eerm2cnt eerm on get_num_cnt(trim(eerm.cnt))=get_num_cnt(trim(eq2.num_eqp))
+-- left join eerm2cnt eerm on get_num_cnt(trim(eerm.cnt))=get_num_cnt(trim(eq2.num_eqp))
+left join eerm2tu eerm on eerm.code_eqp=p.code_eqp
 inner join sap_const const on 1=1
 left join
     (select t.code_area,t.name_area,t.name_tp,t.num_eqp,t.id,t.code_tu,idkl,power,type_eqp1,h_eqp,
