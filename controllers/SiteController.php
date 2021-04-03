@@ -3239,7 +3239,10 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                         $c1 = '00' . "$c";
                         // Устранение перекрута по определенному потребителю для общей зоны
                         if($oldkey == '04_C01P_01_121686_1' && $c==4)  $v2['pokaz_true']=substr($v2['pokaz_true'],1);
-
+                        if($v2['zwnabr']=='X' && $v2['tarifart']=='Р_1З') {
+                            $v2['tarifart']='РТ_1З';
+                            $v2['zwnabr']='';
+                        }
                         fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
                             'DI_ZW' . "\t" . $c1 . "\t" .
                             $v2['kondigre'] . "\t" .
@@ -19356,68 +19359,196 @@ where id1 is not null
         echo "Інформацію записано";
     }
 
+    // Импорт данных по не лицензированной деятельности
+    // в таблицу costwork в 1Click
+    public function actionData_1click_2021()
+    {
+//        $s='Вимірювання опору ізоляції силових кабельних ліній на напругу до 1 кВ включно, вимірювання повного опору петлі "фаза-нуль" (до 1 кВ) та вимірювання опору заземлюючих пристроїв напругою до 1 кВ включно  (1 кабель)';
+//        $r=norm_str($s);
+//        echo($s);
+//        echo '<br>';
+//        echo($r);
+//        return;
+
+       $sql = "SELECT a.*,b.brig,b.stavka_grn,b.time_transp,b.norm_time,b.zp FROM t_work a 
+                    left join tbrig_work b on trim(a.work)=trim(b.work)
+                     where b.work is not null 
+                   ";
+//       AND a.work like '%Вимірювання опору ізоляції силових кабельних ліній на напругу до 1 кВ включно, вимірювання повного опору петлі%'
+        $data = \Yii::$app->db->createCommand($sql)->queryAll();
+//        debug($data);
+//        return;
+        $sql = 'SELECT * FROM costwork';
+//        where work like
+//       "%Вимірювання опору ізоляції силових кабельних ліній на напругу до 1 кВ включно, вимірювання повного опору петлі%"';
+        $data_o = \Yii::$app->db->createCommand($sql)->queryAll();
+        $y=count($data);
+        $y1=count($data_o);
+        $k=0;
+        for ($i=0;$i<$y;$i++) {
+            $work = trim(norm_str(trim($data[$i]['work'])));
+//            $brig = mb_strtolower(norm_str(trim($v['brig'])),'UTF-8');
+            $common_minus = "'" . del_space1($data[$i]['common_minus']) . "'";
+            $norm_time = "'" . del_space1($data[$i]['norm_time']) . "'";
+            if(empty($data[$i]['repair'])) $repair='0';
+            else $repair="'".$data[$i]['repair']."'";
+            if(empty($data[$i]['zp'])) $zp='0';
+            else $zp="'".$data[$i]['zp']."'";
+            if(empty($data[$i]['tmc'])) $tmc='0';
+            else $tmc="'".$data[$i]['tmc']."'";
+            if(empty($data[$i]['other'])) $other='0';
+            else $other="'" . $data[$i]['other'] . "'";
+            for ($j=0;$j<$y1;$j++) {
+                $id = $data_o[$j]['id'];
+
+                $work_o = trim(norm_str(trim($data_o[$j]['work'])));
+//                $brig_o = mb_strtolower(norm_str(trim($v1['brig'])),'UTF-8');
+                // trim($v['brig']) == trim($v1['brig'])
+//                echo $work."\n";
+//                echo $work_o."\n";
+//                echo '<br>';
+//                echo $brig."\n";
+//                echo '<br>';
+//                echo $brig_o."\n";
+//                echo '--------------------------------------------------------------------------'."\n";
+//                echo '<br>';
+
+                 //&& $brig == $brig_o
+                if($work == $work_o) {
+                    $k++;
+                    $z='update costwork set cast_6='. $data[$i]['cast_6']   .
+                        ',cast_5='. $data[$i]['cast_6']   .  ',cast_4='. $data[$i]['cast_6']   .
+                        ',cast_3='. $data[$i]['cast_6']   . ',cast_2='. $data[$i]['cast_6']  . ',cast_1='. $data[$i]['cast_6']  .
+                        ',common_minus='. $common_minus   .
+                        ',tmc='. $tmc .  ',repair='. $repair .
+                        ',other='. $other .
+                        ',time_transp='. $data[$i]['time_transp'] . ',norm_time='. $data[$i]['norm_time'] .
+                        ',zp='. $zp .
+                        ' where id='.$id;
+                    Yii::$app->db->createCommand($z)->execute();
+                }
+            }
+        }
+        echo "Інформацію записано " . $k;
+    }
 
 
 // Импорт данных по не лицензированной деятельности
 // в справочник видов услуг в 1Click
     public function actionImport_notlic()
-    {
-        $sql = "CREATE TABLE tmp_notlic (
-              work varchar(255) NOT NULL,
-              cast_1 dec(7,2) NOT NULL,
-              cast_2 dec(7,2) NOT NULL,
-              cast_3 dec(7,2) NOT NULL,
-              cast_4 dec(7,2) NOT NULL,
-              cast_5 dec(7,2) NOT NULL,
-              cast_6 dec(7,2) NOT NULL,
-              id int(11) NOT NULL AUTO_INCREMENT,
-              PRIMARY KEY (`id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-        Yii::$app->db->createCommand($sql)->execute();
-        $f = fopen('work.csv', 'r');
+    { if(1==2) {
+        // Запись в таблицу t_work
+        $f = fopen('work_2021.csv', 'r');
         $i = 0;
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
 
-            if ($i < 6) continue;
-            $data = explode(";", $s);
-            //debug($data);
-            $work = str_replace("'", "`", trim($data[1]));
+            if ($i < 3) continue;
+            $data = explode("~", $s);
+//            debug($data);
+//            return;
 
-            $cast_1 = del_space($data[2]);
-            $cast_2 = del_space($data[4]);
-            $cast_3 = del_space($data[6]);
-            $cast_4 = del_space($data[8]);
-            $cast_5 = del_space($data[10]);
-            $cast_6 = del_space($data[12]);
+            $n_work = trim($data[0]);
+            $n_work = del_space1($n_work);
 
-            $cast_1 = str_replace(",", ".", $cast_1);
-            $cast_2 = str_replace(",", ".", $cast_2);
-            $cast_3 = str_replace(",", ".", $cast_3);
-            $cast_4 = str_replace(",", ".", $cast_4);
-            $cast_5 = str_replace(",", ".", $cast_5);
+            $work = trim($data[1]);
+            $work = str_replace("'", "`", $work);
+            $cast_6 = del_space($data[11]);
             $cast_6 = str_replace(",", ".", $cast_6);
 
-            if (empty($cast_1)) $cast_1 = '0';
-            if (empty($cast_2)) $cast_2 = '0';
-            if (empty($cast_3)) $cast_3 = '0';
-            if (empty($cast_4)) $cast_4 = '0';
-            if (empty($cast_5)) $cast_5 = '0';
+            $common_minus = trim($data[9]);
+            $common_minus = str_replace(",", ".", $common_minus);
+            $tmc = trim($data[2]);
+            $tmc = str_replace("-", "", $tmc);
+            $repair = trim($data[8]);
+            $repair = str_replace("-", "", $repair);
+            $other = trim($data[7]);
+            $other = str_replace("-", "", $other);
+            $verification = trim($data[6]);
+            $verification = str_replace("-", "", $verification);
+
             if (empty($cast_6)) $cast_6 = '0';
+            if (empty($verification)) $verification = '0.00';
 
-            $v = "'" . $work . "'" . "," . $cast_1 . "," . $cast_2 . "," . $cast_3 . "," . $cast_4 . "," . $cast_5 . "," . $cast_6;
+            $v = "'" . $n_work . "'" . "," . "'" . $work . "'" . "," . $cast_6 . "," . "'" . $common_minus . "'" . ',' .
+                "'" . $tmc . "'" . ',' . "'" . $repair . "'" . ',' . "'" . $other . "'" . ',' . $verification;
 
-            if (empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;
+//            if (empty($data[0]) && empty($data[1]) && empty($data[2]) && empty($data[3])) break;
             //echo $i.' '.$data[0].' '.$data[1].' '.$data[2].' '.$data[5]."\n";
-            echo $v . "\n";
-            $sql = "INSERT INTO tmp_notlic (work,cast_1,cast_2,cast_3,cast_4,cast_5,cast_6) VALUES(" . $v . ')';
+
+//            echo $v . "\n";
+//            return;
+
+            $sql = "INSERT INTO t_work (n_work,work,cast_6,common_minus,tmc,repair,other,verification) VALUES(" . $v . ')';
 
             Yii::$app->db->createCommand($sql)->execute();
         }
 
         fclose($f);
+    }
+        // Запись в таблицу tbrig_work
+        $f = fopen('work_brig_2021.csv', 'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
 
+            if ($i < 2) continue;
+            $data = explode("~", $s);
+
+//            debug($data);
+//            return;
+
+            if($i==1) {
+                $work='';
+                $gost = '';
+                $time_transp = 0;
+                $zp = 0;
+                $norm_time = 0;
+            }
+            $brig = '';
+            $stavka_grn = 0;
+
+            if(empty($data[0]) or is_null($data[0])) {
+                if(!empty($data[1]))
+                    $gost = trim($data[1]);
+                $brig = trim($data[2]);
+                $stavka_grn = trim($data[8]);
+
+            }
+            else    {
+                $gost = '';
+                $work = trim($data[1]);
+                $norm_time = trim($data[13]);
+                $zp = trim($data[17]);
+                $time_transp = trim($data[15]);
+            }
+
+            $work = str_replace("'", "`", $work);
+            $brig = str_replace(",", ".", $brig);
+            $time_transp = str_replace(",", ".", $time_transp);
+            $time_transp = str_replace("-", "", $time_transp);
+            if(empty($time_transp)) $time_transp = 0;
+            $stavka_grn = str_replace(",", ".", $stavka_grn);
+            $norm_time = str_replace(",", ".", $norm_time);
+            $zp = str_replace(",", ".", $zp);
+            $zp = del_space1($zp);
+
+            if($work=='Технічне обслуговування електрообладнання однотрансформаторної ЗТП 100-1000 кВА') break;
+
+            $v = "'" . $work . "'" . "," .  "'" . $brig . "'" . "," .  $stavka_grn .  ',' .
+                $time_transp .  ',' .  $norm_time .  ',' .  $zp . ',' .  "'" . $gost . "'" ;
+
+            $sql = "INSERT INTO tbrig_work (work,brig,stavka_grn,time_transp,norm_time,zp,gost) VALUES(" . $v . ')';
+
+//            debug($sql);
+//            debug($v);
+//            return;
+
+            Yii::$app->db->createCommand($sql)->execute();
+
+        }
         echo "Інформацію записано";
     }
 

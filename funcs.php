@@ -993,16 +993,54 @@ function str_decode($r,$shift,$type=0) {
   
   // Удаление пробелов из строки
     function del_space($str) {
-        $y= mb_strlen($str);
+        $y= mb_strlen($str,'UTF-8');
         $s = '';
+
         for($i=0;$i<=$y;$i++){
             $s1=substr($str,$i,1);
             $n=ord($s1);
-            //echo ord($s1).'  ';
-            if($n<>194 && $n<>160) $s.=$s1;
+//            echo ord($s1).'  ';
+            if($n<>194 && $n<>160 && $n<>32) $s.=$s1;
         }
         return $s;
     }
+
+// Удаление пробелов из строки
+function del_space1($str) {
+    $s = '';
+    $n=32;
+    $i=0;
+    while($n<>0){
+        $s1=substr($str,$i,1);
+        $n=ord($s1);
+//            echo ord($s1).'  ';
+        if($n<>194 && $n<>160 && $n<>32) $s.=$s1;
+        $i++;
+    }
+    return $s;
+}
+
+// Нормализация строки
+function norm_str($str) {
+    $y= mb_strlen($str,'UTF-8');
+    $s = '';
+    $flag=1;
+    $let=1;
+    for($i=0;$i<=$y;$i++){
+        $s1=mb_substr($str,$i,1,'UTF-8');
+        $n=ord($s1);
+//            echo ord($s1).'  ';
+        if($n==40) $let=0;
+        if($n==41) $let=1;
+        if($n==194 || $n==160 || $n==32 || $n==34 || $n==39 || $n==41)
+            $flag=0;
+        else
+            $flag=1;
+            if($flag==1 && $let==1)
+                $s.=$s1;
+    }
+    return $s;
+}
 
 function translit($s) {
     $s = (string) $s; // преобразуем в строковое значение
@@ -3076,19 +3114,21 @@ function f_facts($rem,$v) {
         if ((!empty($eerm)) && empty($react_)) {
 //        if (trim($tariftyp) <> 'CK_2JE2_01' && trim($tariftyp) <> 'CK_2TH2_01' && trim($tariftyp) <> 'CK_2GR2_01') {
             if (!((($v['id']) == 124553 || $v['id'] == 115032 || $v['id'] == 144788) && $rem == '01')) {
-                $facts['data32'] = $oldkey . ';' . 'F_RATE' . ';' . 'ВТ_РЕАКТ' . ';' . ' ' . ';' . ' ';
+                if(trim($v['tariftyp']) !="CK_2JE2_01" && $v['tariftyp'] !="CK_2TH2_01") {
+                    $facts['data32'] = $oldkey . ';' . 'F_RATE' . ';' . 'ВТ_РЕАКТ' . ';' . ' ' . ';' . ' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)
 //                     values($$$oldkey$$,'V_RATE','$datab','$datae','Р_РОЗР')";
 //        exec_on_server($z, (int)$rem, $vid);
 
-                $facts['data33'] = $oldkey . ';' . 'V_RATE' . ';' . $datab . ';' . $datae . ';' . 'Р_РОЗР';
+                    $facts['data33'] = $oldkey . ';' . 'V_RATE' . ';' . $datab . ';' . $datae . ';' . 'Р_РОЗР';
+                }
             }
         }
 //    }
 
     if (empty($v['id_cnt'])) {
-            $facts['data34'] = $oldkey . ';' . 'F_RATE' . ';' . 'ВТ_А_13' . ';' . ' ' . ';' . ' ';
+            $facts['data34'] = $oldkey . ';' . 'F_RATE' . ';' . 'ВТ_А_1З' . ';' . ' ' . ';' . ' ';
             $facts['data35'] = $oldkey . ';' . 'V_RATE' . ';' . $datab . ';' . $datae . ';' . 'А_ПОТ';
     }
 
