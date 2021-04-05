@@ -3114,7 +3114,7 @@ function f_facts($rem,$v) {
         if ((!empty($eerm)) && empty($react_)) {
 //        if (trim($tariftyp) <> 'CK_2JE2_01' && trim($tariftyp) <> 'CK_2TH2_01' && trim($tariftyp) <> 'CK_2GR2_01') {
             if (!((($v['id']) == 124553 || $v['id'] == 115032 || $v['id'] == 144788) && $rem == '01')) {
-                if(trim($v['tariftyp']) !="CK_2JE2_01" && $v['tariftyp'] !="CK_2TH2_01") {
+                if(trim($v['tariftyp']) !="CK_2JE2_01" && trim($v['tariftyp']) !="CK_2TH2_01") {
                     $facts['data32'] = $oldkey . ';' . 'F_RATE' . ';' . 'ВТ_РЕАКТ' . ';' . ' ' . ';' . ' ';
 
 //        $z = " insert into sap_facts(oldkey,pole1,pole2,pole3,pole4)

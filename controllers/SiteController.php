@@ -3240,7 +3240,7 @@ where a.archive='0' -- and a.id in(select id_paccnt from clm_meterpoint_tbl)
                         // Устранение перекрута по определенному потребителю для общей зоны
                         if($oldkey == '04_C01P_01_121686_1' && $c==4)  $v2['pokaz_true']=substr($v2['pokaz_true'],1);
                         if($v2['zwnabr']=='X' && $v2['tarifart']=='Р_1З') {
-                            $v2['tarifart']='РТ_1З';
+                            $v2['tarifart']='Р_Т1З';
                             $v2['zwnabr']='';
                         }
                         fwrite($f, iconv("utf-8", "windows-1251", $oldkey . "\t" .
@@ -8528,7 +8528,6 @@ uuu.id=p.id and uuu.vstelle is not null
 -- substr(trim(uuu.zz_eic),1,16)=substr(trim(p.neqp),1,16) and uuu.vstelle is not null
 ";
 
-
 // Самый правильный запрос
         $sql = "
 select res.*,ust.tariftyp,get_counter(id) as id_cnt from (
@@ -8845,9 +8844,10 @@ order by 6
         $f = fopen($fname, 'w+');
 
         // Считываем данные в файл с массива $facts
+        $id_u=0;
         foreach ($facts as $d) {
             foreach ($d as $v) {
-
+                if($v['id']==$id_u) break;  // Устранения повтора oldkey
                 $d1 = explode(';', $v);
                 $d1 = array_map('trim', $d1);
                 $s = implode("\t", $d1);
@@ -8855,6 +8855,7 @@ order by 6
                 $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
                 fputs($f, $s);
                 fputs($f, "\n");
+                $id_u=$v['id'];
             }
         }
 
@@ -14796,7 +14797,8 @@ WHERE
 	       ((a.code>999 or  a.code=900) AND coalesce(a.idk_work,0)<>0 
 	     and  a.code not in('20000556','20000565','20000753',
 	     '20555555','20888888','20999999','30999999','40999999','41000000','42000000','43000000',
-	     '10999999','11000000','19999369','50999999','1000000','1000001')) or  a.code in('10001306')  
+	     '10999999','11000000','19999369','50999999','1000000','1000001')) 
+	     -- or  a.code in('10001306')  
 	    ) s1
 left join
 --VK
