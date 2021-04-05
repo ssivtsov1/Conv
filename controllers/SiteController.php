@@ -8849,7 +8849,7 @@ order by 6
 //        return;
 
         foreach ($facts as $d) {
-            if($d['data1']==$id_u) break;  // Устранения повтора oldkey
+            if($d['data1']==$id_u) continue;  // Устранения повтора oldkey
             foreach ($d as $v) {
 
                 $d1 = explode(';', $v);
