@@ -8847,7 +8847,7 @@ order by 6
         $id_u=0;
         foreach ($facts as $d) {
             foreach ($d as $v) {
-                if($v['id']==$id_u) break;  // Устранения повтора oldkey
+                if($v['data1']==$id_u) break;  // Устранения повтора oldkey
                 $d1 = explode(';', $v);
                 $d1 = array_map('trim', $d1);
                 $s = implode("\t", $d1);
@@ -8855,7 +8855,7 @@ order by 6
                 $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
                 fputs($f, $s);
                 fputs($f, "\n");
-                $id_u=$v['id'];
+                $id_u=$v['data1'];
             }
         }
 
