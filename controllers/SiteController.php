@@ -8849,7 +8849,7 @@ order by 6
 //        return;
 
         foreach ($facts as $d) {
-            if($v['data1']==$id_u) break;  // Устранения повтора oldkey
+            if($d['data1']==$id_u) break;  // Устранения повтора oldkey
             foreach ($d as $v) {
 
                 $d1 = explode(';', $v);
@@ -8861,7 +8861,7 @@ order by 6
                 fputs($f, "\n");
 
             }
-            $id_u=$v['data1'];
+            $id_u=$d['data1'];
         }
 
         // нет объекта высшего уровня {
