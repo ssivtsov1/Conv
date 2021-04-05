@@ -8845,12 +8845,13 @@ order by 6
 
         // Считываем данные в файл с массива $facts
         $id_u=0;
-        debug($facts);
-        return;
-        
+//        debug($facts);
+//        return;
+
         foreach ($facts as $d) {
+            if($v['data1']==$id_u) break;  // Устранения повтора oldkey
             foreach ($d as $v) {
-                if($v['data1']==$id_u) break;  // Устранения повтора oldkey
+
                 $d1 = explode(';', $v);
                 $d1 = array_map('trim', $d1);
                 $s = implode("\t", $d1);
@@ -8858,8 +8859,9 @@ order by 6
                 $s = mb_convert_encoding($s, 'CP1251', mb_detect_encoding($s));
                 fputs($f, $s);
                 fputs($f, "\n");
-                $id_u=$v['data1'];
+
             }
+            $id_u=$v['data1'];
         }
 
         // нет объекта высшего уровня {
