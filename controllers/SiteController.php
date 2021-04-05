@@ -8845,6 +8845,9 @@ order by 6
 
         // Считываем данные в файл с массива $facts
         $id_u=0;
+        debug($facts);
+        return;
+        
         foreach ($facts as $d) {
             foreach ($d as $v) {
                 if($v['data1']==$id_u) break;  // Устранения повтора oldkey
