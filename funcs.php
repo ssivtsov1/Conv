@@ -2326,6 +2326,7 @@ function f_device($n_struct,$rem,$v,$vid) {
     $eqart=$v['eqart'];
     $baujj=$v['baujj'];
     if(((int) $baujj)==2020) $baujj='2019';
+    if(((int) $baujj)==2021) $baujj='2020';
     $datab = $v['datab'];
     $datab = str_replace('-','',$datab);
     $kostl =$v['kostl'];
@@ -2345,6 +2346,8 @@ function f_device($n_struct,$rem,$v,$vid) {
     $zwgruppe=$v['zwgruppe'];
     $wgruppe=$v['wgruppe'];
     $pp=strpos($r,'_');
+    // Проверка на корректность года выпуска счетчика
+    if(((int) $baujj)>((int) $bgljahr)) $baujj=$bgljahr-1;
 
     if($pp>0)
         $r=substr($r,$pp+1);

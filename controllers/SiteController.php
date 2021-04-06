@@ -13844,6 +13844,66 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.numobl as numobl_wo,u.
             $haus = '04_C' . $rem . 'P_' . $code_true;
             $data[$key]['haus'] = $haus;
             $data[$key]['house_num2'] = $house_num2;
+
+            // Дописываем данные в табл.
+            $sql="select * from sap_premise_dop where id_eq=$n1_id and code=$n1_code
+            and id_tu=$code_true";
+            switch ($res) {
+                case 1:
+                    $data1c = \Yii::$app->db_pg_dn_energo->createCommand($sql)->queryAll();
+                    break;
+                case 2:
+                    $data1c = \Yii::$app->db_pg_zv_energo->createCommand($sql)->queryAll();
+                    break;
+                case 3:
+                    $data1c = \Yii::$app->db_pg_vg_energo->createCommand($sql)->queryAll();
+                    break;
+                case 4:
+                    $data1c = \Yii::$app->db_pg_pv_energo->createCommand($sql)->queryAll();
+                    break;
+                case 5:
+                    $data1c = \Yii::$app->db_pg_krg_energo->createCommand($sql)->queryAll();
+                    break;
+                case 6:
+                    $data1c= \Yii::$app->db_pg_ap_energo->createCommand($sql)->queryAll();
+                    break;
+                case 7:
+                    $data1c= \Yii::$app->db_pg_gv_energo->createCommand($sql)->queryAll();
+                    break;
+                case 8:
+                    $data1c = \Yii::$app->db_pg_in_energo->createCommand($sql)->queryAll();
+                    break;
+            }
+            if (count($data1c) == 0) {
+                $z_sql = "insert into sap_premise_dop
+                            select $n1_id,$code_true,$n1_code ";
+                switch ($res) {
+                    case 1:
+                        $data_dop = \Yii::$app->db_pg_dn_energo->createCommand($z_sql)->queryAll();
+                        break;
+                    case 2:
+                        $data_dop = \Yii::$app->db_pg_zv_energo->createCommand($z_sql)->queryAll();
+                        break;
+                    case 3:
+                        $data_dop = \Yii::$app->db_pg_vg_energo->createCommand($z_sql)->queryAll();
+                        break;
+                    case 4:
+                        $data_dop = \Yii::$app->db_pg_pv_energo->createCommand($z_sql)->queryAll();
+                        break;
+                    case 5:
+                        $data_dop = \Yii::$app->db_pg_krg_energo->createCommand($z_sql)->queryAll();
+                        break;
+                    case 6:
+                        $data_dop = \Yii::$app->db_pg_ap_energo->createCommand($z_sql)->queryAll();
+                        break;
+                    case 7:
+                        $data_dop = \Yii::$app->db_pg_gv_energo->createCommand($z_sql)->queryAll();
+                        break;
+                    case 8:
+                        $data_dop = \Yii::$app->db_pg_in_energo->createCommand($z_sql)->queryAll();
+                        break;
+                }
+            }
             break;
         }
     }
