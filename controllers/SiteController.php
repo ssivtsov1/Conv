@@ -614,6 +614,37 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+    // Сравнение файлов FACTS
+    public function actionCmpfact()
+    {
+        $f = fopen('FACTS_04_CK02_20210330_09_R.txt', 'r');
+        $ff = fopen('FACTS_04_CK02_20210407_09_R.txt', 'r');
+        $i = 0;
+        $p='';
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            if($s==$p) continue;
+            $s=$p;
+            $data = explode("\t", $s);
+            $flag = 0;
+            rewind($ff);
+            while (!feof($ff)) {
+                $sf = fgets($ff);
+                $dataf = explode("\t", $sf);
+                if ($data[0] == $dataf[0]) {
+                    $flag = 1;
+                    break;
+                }
+            }
+            if ($flag == 0) {
+                echo $s;
+                echo '<br>';
+            }
+
+        }
+        }
+
     // Формирование таблицы разрядности счетчиков для САП
     public function actionForm_razr()
     {
@@ -14431,12 +14462,13 @@ inner join sap_const const on 1=1
                 b.name,b.patron_name,c.town,c.indx,c.street,
                 c.house,c.flat,b.mob_phone,b.e_mail,const.id_res,
                 const.swerk,const.stort,const.ver,const.begru,
-                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport,dd.oldkey as haus from clm_paccnt_tbl a
+                const.region,d.kod_reg,b.s_doc||' '||b.n_doc as pasport,dd.oldkey as haus,case when te.name is null then 'B0001' else te.name end as vbsart from clm_paccnt_tbl a
         left join clm_abon_tbl b on
         a.id_abon=b.id
         left join vw_address c on
         a.id=c.id
         left join sap_but020 c1 on c1.old_key='04_C'||'$rem'||'B_'||a.id
+        left join te102 te on te.id=a.idk_house
         left join sap_co_adr dd on
         (trim(c1.city1)=trim(dd.city1) and trim(c1.street)=trim(dd.street) and 
        upper(trim(c1.house_num1))=upper(trim(dd.house_num1))

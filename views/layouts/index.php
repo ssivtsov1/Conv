@@ -256,6 +256,7 @@ AppAsset::register($this);
                                     ['label' => 'Формирование таблицы разрядности счетчиков для САП', 'url' => ['/site/form_razr']],
                                     ['label' => 'Формирование таблицы EERM для САП', 'url' => ['/site/form_eerm']],
                                     ['label' => 'Запись новых данных в 1 Клик [2021]', 'url' => ['/site/data_1click_2021']],
+                                    ['label' => 'Сравнение файлов FACTS', 'url' => ['/site/cmpfact']],
                                     ['label' => 'Проверка остатков - сборка счетов', 'url' => ['/site/integrity_ost']],
                                     ['label' => 'SAP идентификации данных', 'url' => ['/site/idfile']],
                                     ['label' => 'Експорт в САП', 'url' => ['/site/cek2sap']],

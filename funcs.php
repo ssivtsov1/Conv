@@ -2081,12 +2081,13 @@ function f_premise_ind($n_struct,$rem,$v) {
     $begru=$v['begru'];
     $swerk=$v['swerk'];
     $stort=$v['stort'];
+    $vbsart=$v['vbsart'];
 
     $oldkey = $oldkey_const . $r;
 
     if($n_struct=='EVBSD')
         $z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru)
-                    values('$oldkey','$n_struct','$haus','$roomnumber','~','B0001','$pltxt')";
+                    values('$oldkey','$n_struct','$haus','$roomnumber','~',$vbsart,'$pltxt')";
 
     //$z = "insert into sap_evbsd(oldkey,dat_type,haus,haus_num2,lgzusatz,vbsart,begru)";
 
