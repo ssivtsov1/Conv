@@ -14546,7 +14546,7 @@ inner join sap_const const on 1=1
                 foreach ($cnt as $v) {
                     $n_struct = trim($v['dattype']);
                     $i++;
-//                    f_premise_ind($n_struct, $rem, $w);
+//                   f_premise_ind($n_struct, $rem, $w);
                     if ($j < $y)
                         $t_v = $t_v . f_premise_ind_new($n_struct, $rem, $w) . ',';
                     else
