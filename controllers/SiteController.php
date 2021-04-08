@@ -620,29 +620,42 @@ WHERE year_p=0 and year_q>0';
         $f = fopen('FACTS_04_CK02_20210330_09_R.txt', 'r');
         $ff = fopen('FACTS_04_CK02_20210407_09_R.txt', 'r');
         $i = 0;
-        $p='';
+        $p='111';
+        /*
         while (!feof($f)) {
             $i++;
             $s = fgets($f);
-            if($s==$p) continue;
-            $s=$p;
+//            debug($s);
             $data = explode("\t", $s);
-            $flag = 0;
-            rewind($ff);
+
+            if ($data[0] == $p) continue;
+            $p = $data[0];
+
+            $sql = "INSERT INTO cmpfacts_old (oldkey) VALUES(" .
+                '$$' . $data[0] . '$$' .
+                ')';
+
+            Yii::$app->db_pg_zv_energo->createCommand($sql)->execute();
+        }
+        */
+
             while (!feof($ff)) {
                 $sf = fgets($ff);
                 $dataf = explode("\t", $sf);
-                if ($data[0] == $dataf[0]) {
-                    $flag = 1;
-                    break;
-                }
-            }
-            if ($flag == 0) {
-                echo $s;
-                echo '<br>';
+//                debug('----------------');
+//                debug($dataf);
+                if($dataf[0] ==$p) continue;
+                $p=$dataf[0] ;
+                $sql = "INSERT INTO cmpfacts (oldkey) VALUES(" .
+                    '$$' . $dataf[0] . '$$' .
+                    ')';
+
+                Yii::$app->db_pg_zv_energo->createCommand($sql)->execute();
+
             }
 
-        }
+        echo "Інформацію записано";
+
         }
 
     // Формирование таблицы разрядности счетчиков для САП
@@ -1263,7 +1276,8 @@ or position('ФІЗИЧНА  ОСОБА' in a.name)>0
 or position('ПРИВАТНИЙ НОТАРІУС' in a.name)>0 or position('Приватний нотаріус' in a.name)>0)  
 then '0003' else '0002' end as BPKIND,
 'MKK' as ROLE1,
-case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end  as ROLE2,
+-- case when coalesce(a.id_state,0) in (80,49) then 'ZLIQ' else '' end  as ROLE2,
+'' as ROLE2,
 '00010101' as VALID_FROM_1,
 'I' as CHIND_1,
 case when coalesce(a.id_state,0) in (80,49) then substring(replace(a.dt_close::varchar, '-',''),1,8) else '' end  as VALID_FROM_2,
@@ -1649,6 +1663,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
                 if ($code_id == '110432') continue;
                 if ($code_id == '11833') continue;
                 if ($code_id == '10902') continue;
+                if ($code_id == '11391') continue;
             }
             if ($res == 3) {
                 if ($code_id == '11096') continue;
@@ -1661,6 +1676,8 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
                 if ($code_id == '11195') continue;
                 if ($code_id == '11296') continue;
                 if ($code_id == '10696') continue;
+                if ($code_id == '10865') continue;
+                if ($code_id == '35674') continue;
             }
             if ($res == 4) {
                 if ($code_id == '11200') continue;
@@ -1680,6 +1697,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
                 if ($code_id == '10675') continue;
                 if ($code_id == '10666') continue;
                 if ($code_id == '10370') continue;
+                if ($code_id == '15230') continue;
             }
             if ($res == 7) {
                 if ($code_id == '10877') continue;
@@ -1692,6 +1710,7 @@ u.town as town_wo,u.street as street_wo,u.ind as ind_wo,u.reg as reg_wo,u.id_cli
                 if ($code_id == '15880') continue;
                 if ($code_id == '10654') continue;
                 if ($code_id == '10940') continue;
+                if ($code_id == '15970') continue;
             }
 
             $d = array_map('trim', $d);
@@ -7132,7 +7151,8 @@ order by code_ust,lvl";
         // Главный запрос со всеми необходимыми данными
         $sql_old = "
 select * from (
-              select DISTINCT on(p.code_eqp) p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp, p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
+              select DISTINCT on(p.code_eqp) p.type_eqp as id_type_eqp,c.code,c.idk_work,p.id_point, p2.name_point, p.code_eqp,
+               p.name, p.lvl, p.type_eqp, RANK() OVER(PARTITION BY p.id_point ORDER BY p.lvl desc) as pnt, 
                 case when p.type_eqp=6 then replace(round(line_c.length::numeric/1000,3)::varchar, '.', ',')
                     when p.type_eqp=7 then replace(round(line_a.length::numeric/1000,3)::varchar, '.', ',')
                 end as line_length,
@@ -8876,6 +8896,7 @@ order by 6
 
         // Считываем данные в файл с массива $facts
         $id_u=0;
+
 //        debug($facts);
 //        return;
 
@@ -11617,7 +11638,8 @@ select distinct cyrillic_transliterate(gr.code_t_new::text) as id,0 as id_type_e
 		    and trim(coalesce(num_eqp,'')) = trim(coalesce(eq.num_eqp,''))  and dt_e is null order by dt_b desc limit 1 )
 		    join eqi_compensator_i_tbl as ic on (ic.id = c.id_type_eqp) 
 		    left join sap_type_tr_i_tbl as type_tr on type_tr.id_type = ic.id 
-		     left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = ic.id left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
+		     left join sap_type_tr_u_tbl as type_tr_u on type_tr_u.id_type = ic.id 
+		     left join eqm_eqp_use_tbl as use on (use.code_eqp = eq.id) 
 		    left join eqm_eqp_tree_tbl ttr on ttr.code_eqp = eq.id
 			left join eqm_tree_tbl tr on tr.id = ttr.id_tree
 			left join clm_client_tbl as cl1 on (cl1.id = coalesce (use.id_client, tr.id_client)) 
@@ -15589,6 +15611,7 @@ WHERE
                 if ($code_id == '110432') continue;
                 if ($code_id == '11833') continue;
                 if ($code_id == '10902') continue;
+                if ($code_id == '11391') continue;
             }
             if ($res == 3) {
                 if ($code_id == '11096') continue;
@@ -15601,6 +15624,8 @@ WHERE
                 if ($code_id == '11195') continue;
                 if ($code_id == '11296') continue;
                 if ($code_id == '10696') continue;
+                if ($code_id == '35674') continue;
+                if ($code_id == '10865') continue;
             }
             if ($res == 4) {
                 if ($code_id == '11200') continue;
@@ -15620,6 +15645,7 @@ WHERE
                 if ($code_id == '10675') continue;
                 if ($code_id == '10666') continue;
                 if ($code_id == '10370') continue;
+                if ($code_id == '15230') continue;
             }
             if ($res == 7) {
                 if ($code_id == '10877') continue;
@@ -15635,6 +15661,7 @@ WHERE
                 }
                 if ($code_id == '10654') continue;
                 if ($code_id == '10940') continue;
+                if ($code_id == '15970') continue;
             }
 
             $d = array_map('trim', $d);

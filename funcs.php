@@ -1543,7 +1543,7 @@ function f_account($n_struct, $rem, $v) {
 
     $mahnv = $v['mahnv'];
     $begru = $v['begru'];
-    $adrnb_ext = $v['adrnb_ext'];
+    $adrnb_ext = $v['id'];
     $zahlkond = $v['zahlkond'];
     $vertyp = $v['vertyp'];
 
@@ -3029,10 +3029,11 @@ function f_facts($rem,$v) {
 //        exec_on_server($z, (int)$rem, $vid);
 
         $facts['data11'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$tg_fi;
+
+    }
     if(!empty($eerm)) {
         $facts['data12'] = $oldkey . ';' . 'F_FACT' . ';' . 'ЕЕРП' . ';' . ' ' . ';' . ' ';
         $facts['data13'] = $oldkey . ';' . 'V_FACT' . ';' . $datab . ';' . $datae . ';' . $eerm;
-    }
     }
 
     //ГРРОБ_ДНІ
@@ -3292,6 +3293,7 @@ function f_move_in($rem,$v) {
         if( $v['id_potr']==110446) $vkonto='04_C01P_12135';
         if( $v['id_potr']==110450) $vkonto='04_C01P_14297';
         if( $v['id_potr']==110432) $vkonto='04_C01P_10810';
+        if( $v['id_potr']==11391) $vkonto='04_C01P_13504';
     }
 
     if($rem1==4){
@@ -3322,6 +3324,8 @@ function f_move_in($rem,$v) {
         if($v['id_potr']==10988) $vkonto='04_C01P_400000';
         if($v['id_potr']==11195) $vkonto='04_C01P_14226';
         if($v['id_potr']==11296) $vkonto='04_C01P_200000';
+        if($v['id_potr']==10865) $vkonto='04_C01P_13504';
+        if($v['id_potr']==35674) $vkonto='04_C01P_12135';
     }
 
     if($rem1==6){
@@ -3329,11 +3333,13 @@ function f_move_in($rem,$v) {
         if($v['id_potr']==10675) $vkonto='04_C01P_12237';
         if($v['id_potr']==10666) $vkonto='04_C01P_12135';
         if($v['id_potr']==10370) $vkonto='04_C01P_14241';
+        if($v['id_potr']==15230) $vkonto='04_C01P_12135';
     }
     if($rem1==8){
         if($v['id_potr']==15880) $vkonto='04_C01P_12135';
         if($v['id_potr']==10654) $vkonto='04_C01P_14226';
         if($v['id_potr']==10940) $vkonto='04_C01P_14241';
+        if($v['id_potr']==15970) $vkonto='04_C01P_12135';
     }
     if($rem1==7){
         if($v['id_potr']==11205) $vkonto='04_C01P_14297';
