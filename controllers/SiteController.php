@@ -20642,8 +20642,8 @@ where issubmit = 1";
 
 //        flv_10002A1011D1
 //        flv_10002A111AD1
-        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
-//        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+//        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
+        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
         $lSoap='CKSOAPMETER'; /*логін*/
         $pSoap='aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/'; /*пароль*/
         $eic_post = '62Z6932162193026';
@@ -20661,7 +20661,7 @@ where issubmit = 1";
                 'IvEic'=>			$eic_post, //eic
                 'IvMrData'=>		'',
                 'IvPhone'=>			'',  //tel
-                'IvSrccode'=>		$dherelo,//джерело
+                'IvSrccode'=>		'',//джерело
                 'IvVkona'=>			$op_post,//OP
             ),
         );
