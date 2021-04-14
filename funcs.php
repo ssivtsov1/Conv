@@ -6719,6 +6719,7 @@ function neuro_hopfild_func2(
             else
                 $n4=0;
             $n = $n1 + $n2 + $n3 + $n4;
+            if($i==$m) $n=0;  // Обнуление главной диагонали
             $r[$i][$m] = $n;
         }
     }
