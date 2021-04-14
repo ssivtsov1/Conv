@@ -258,6 +258,7 @@ AppAsset::register($this);
                                     ['label' => 'Запись новых данных в 1 Клик [2021]', 'url' => ['/site/data_1click_2021']],
                                     ['label' => 'Сравнение файлов FACTS', 'url' => ['/site/cmpfact']],
                                     ['label' => 'Проверка остатков - сборка счетов', 'url' => ['/site/integrity_ost']],
+                                    ['label' => 'Получение информации из САП', 'url' => ['/site/sap2cek']],
                                     ['label' => 'SAP идентификации данных', 'url' => ['/site/idfile']],
                                     ['label' => 'Експорт в САП', 'url' => ['/site/cek2sap']],
 
@@ -275,7 +276,15 @@ AppAsset::register($this);
                                     ['label' => 'Раскодирование файла', 'url' => ['/site/decode_file']],
                                     ['label' => 'Операции с множествами', 'url' => ['/site/oper_sets']],
                                     ['label' => 'Поиск внутри файлов', 'url' => ['/site/search_into']],
-
+                                    ['label' => 'Сеть Хопфилда', 'url' => ['/site/index'],
+                                        'options' => ['class' => 'dropdown'],
+                                        'items' => [
+                                            ['label' => 'Умножение на транспониров. образец', 'url' => ['/site/neuro_hopfild_fun1']],
+                                            ['label' => 'Суммирование векторов', 'url' => ['/site/neuro_hopfild_fun2']],
+                                            ['label' => 'Умножение матрицы на вектор', 'url' => ['/site/neuro_hopfild_fun3']],
+                                            ['label' => 'Функция активации', 'url' => ['/site/neuro_hopfild_fun4']],
+                                            ['label' => 'Сравненме векторов', 'url' => ['/site/neuro_hopfild_fun5']],
+                                        ]],
                                 ]
                         ],
 

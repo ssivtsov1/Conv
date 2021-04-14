@@ -3032,6 +3032,8 @@ function f_facts($rem,$v) {
 
     }
     if(!empty($eerm)) {
+        $facts['data10'] =  $oldkey.';'.'F_FACT'.';'.'ТАНГ_ФІ'.';'.' '.';'.' ';
+        $facts['data11'] =  $oldkey.';'.'V_FACT'.';'.$datab.';'.$datae.';'.$tg_fi;
         $facts['data12'] = $oldkey . ';' . 'F_FACT' . ';' . 'ЕЕРП' . ';' . ' ' . ';' . ' ';
         $facts['data13'] = $oldkey . ';' . 'V_FACT' . ';' . $datab . ';' . $datae . ';' . $eerm;
     }
@@ -6670,4 +6672,73 @@ function like_elements($arr)
         }
     }
     return $flag_like;
+}
+
+/*
+ * Функции для работы с нейросетью Хопфилда
+ */
+// Функция умножения на транспонированный образец
+// аргумент - вектор (массив)
+function neuro_hopfild_func1($v) {
+    $y=count($v);
+    for($i=0;$i<$y;$i++)
+        for($j=0;$j<$y;$j++) {
+            $r[$i][$j] = $v[$i] * $v[$j];
+        }
+    return $r;
+}
+
+// Функция суммирования векторов
+// аргументы - векторы (массивы)
+function neuro_hopfild_func2(
+    $v1=[],
+    $v2=[],
+    $v3=[],
+    $v4=[]
+) {
+    $r=[];
+    $y1 = func_num_args();
+    $y=count($v1);
+    for($m=0;$m<=$y1;$m++) {
+        $sum = 0;
+        for ($i = 0; $i < $y; $i++) {
+            if(isset($v1[$m][$i]))
+                $n1 = $v1[$m][$i];
+            else
+                $n1=0;
+            if(isset($v2[$m][$i]))
+                $n2 = $v2[$m][$i];
+            else
+                $n2=0;
+            if(isset($v3[$m][$i]))
+                $n3 = $v3[$m][$i];
+            else
+                $n3=0;
+            if(isset($v4[$m][$i]))
+                $n4 = $v4[$m][$i];
+            else
+                $n4=0;
+            $n = $n1 + $n2 + $n3 + $n4;
+            $r[$i][$m] = $n;
+        }
+    }
+    return $r;
+}
+
+// Функция активации
+// аргументы - $level (уровень сигнала)
+// $n - версия функции (1 - функция знака, 2 - сигмоидная функция)
+function neuro_activation($level,$n) {
+if($n==1) {
+//    функция знака
+    if ($level >= 0)
+        $r = 1;
+    else
+        $r = 0;
+}
+if($n==2) {
+//    сигмоидная функция
+    $r=round(1/(1+exp(-1*$level)),16);
+}
+return $r;
 }

@@ -5,6 +5,7 @@ namespace app\controllers;
 use app\models\off_site;
 use app\models\PoweroutagesForm;
 use app\models\Pract1;
+use app\models\ccon_soap;
 use app\models\UploadBytForm;
 use app\models\UploadForm;
 use Yii;
@@ -20629,6 +20630,81 @@ where issubmit = 1";
         }
         debug('Файл  сформований');
     }
+
+    // Получение данных из САП
+    public function actionSap2cek()
+    {
+//        phpinfo();
+//        return;
+//        ini_set("soap.wsdl_cache_enabled", "0");
+        $hIPsap="192.168.1.7"; //1.7 - качество
+//        $hHost="http://".$hIPsap.":8000/ZISU/ZCRM_UENS_API/";
+
+//        flv_10002A1011D1
+//        flv_10002A111AD1
+        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
+//        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+        $lSoap='CKSOAPMETER'; /*логін*/
+        $pSoap='aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/'; /*пароль*/
+        $eic_post = '62Z6932162193026';
+        $dherelo = 5;
+        $op_post = '011000950';
+        $res = 'CK01';
+        $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
+        $proc="ZintWsMrFindAccounts";
+//        $proc="ZintUplMrdataInd";
+        $arr=array(
+            $proc=>array(
+                'IvArea'=>			$res,//якшо пошук по ОР то тут дільн нада
+                'IvCheckPeriod'=>	'',
+                'IvCompany'=>		'CK',
+                'IvEic'=>			$eic_post, //eic
+                'IvMrData'=>		'',
+                'IvPhone'=>			'',  //tel
+                'IvSrccode'=>		$dherelo,//джерело
+                'IvVkona'=>			$op_post,//OP
+            ),
+        );
+
+        $result=(array) ($adapter->soap_blina($arr[$proc],$proc));
+        debug($result);
+    }
+
+
+// Тест функций нейросети Хопфилда
+    public function actionNeuro_hopfild_fun1()
+    {
+       $mas=[-1,1,-1,1];
+       $res=Neuro_hopfild_func1($mas);
+       debug($res);
+    }
+
+    // Тест функций нейросети Хопфилда
+    public function actionNeuro_hopfild_fun2()
+    {
+        $v1=[-1,1,-1,1];
+        $v2=[1,-1,1,1];
+        $v3=[-1,1,-1,-1];
+        $vv1=Neuro_hopfild_func1($v1);
+//        debug($vv1);
+        $vv2=Neuro_hopfild_func1($v2);
+//        debug($vv2);
+        $vv3=Neuro_hopfild_func1($v3);
+//        debug($vv3);
+        $res=Neuro_hopfild_func2($vv1,$vv2,$vv3);
+       debug($res);
+    }
+    // Тест функций нейросети Хопфилда
+    // Функция активации
+    public function actionNeuro_hopfild_fun4()
+    {
+        for($i=-15;$i<16;$i++) {
+            $res = Neuro_activation($i, 2);
+            debug($i . ' ' . $res);
+
+        }
+    }
+
 }
 
 
