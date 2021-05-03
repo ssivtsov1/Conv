@@ -236,6 +236,7 @@ AppAsset::register($this);
                             'options' => ['id' => 'down_menu'],
                             'items' =>
                                 [
+                                    ['label' => 'Импорт подстанций в photo_tp', 'url' => ['/site/import_tp']],
                                     ['label' => 'Добавление типов счетчиков', 'url' => ['/site/add_cnt']],
                                     ['label' => 'Добавление типов пломб', 'url' => ['/site/add_type_plomb']],
                                     ['label' => 'Импорт street с Ингульца [Энерго]', 'url' => ['/site/imp_street']],
@@ -259,8 +260,13 @@ AppAsset::register($this);
                                     ['label' => 'Сравнение файлов FACTS', 'url' => ['/site/cmpfact']],
                                     ['label' => 'Проверка остатков - сборка счетов', 'url' => ['/site/integrity_ost']],
                                     ['label' => 'Получение информации из САП', 'url' => ['/site/sap2cek']],
+                                    ['label' => 'Запись информации в САП', 'url' => ['/site/value2sap']],
                                     ['label' => 'SAP идентификации данных', 'url' => ['/site/idfile']],
                                     ['label' => 'Експорт в САП', 'url' => ['/site/cek2sap']],
+                                    ['label' => 'Передача показаний лич. кабинета в САП', 'url' => ['/site/lk2sap']],
+                                    ['label' => 'Заполнение таблицы indications для САП', 'url' => ['/site/fill_indications']],
+                                    ['label' => 'Обработка таблицы indications для САП', 'url' => ['/site/proc_indications']],
+                                    ['label' => 'Передача показаний из indications в САП', 'url' => ['/site/indic2sap']],
 
                                 ]
                         ],
@@ -330,6 +336,7 @@ AppAsset::register($this);
                                                 ['label' => 'Алгоритм Флойда', 'url' => ['/site/floyd']],
                                                 ['label' => 'Сортировка расческой', 'url' => ['/site/sort_comb']],
                                                 ['label' => 'Convert string', 'url' => ['/site/cnvstr']],
+                                                ['label' => 'Рекурсия: печать строки', 'url' => ['/site/recurs_print']],
                                             ]
                                     ],
                                 ]

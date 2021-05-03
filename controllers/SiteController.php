@@ -96,7 +96,7 @@ class SiteController extends Controller
 
     }
 
-    // Импорт бюджета использрвался в 2019 году
+    // Импорт бюджета использовался в 2019 году
     public function actionImport_budget()
     {
         $f = fopen('budget_18.csv', 'r');
@@ -614,6 +614,29 @@ WHERE year_p=0 and year_q>0';
 
         echo "Інформацію записано";
     }
+
+    // Импорт подстанций в photo_tp на локальный MySQL
+    public function actionImport_tp()
+    {
+        $f = fopen('spr_tp.csv', 'r');
+        $id_res=3;  // Гвардейский РЭС
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+            $data = explode(";", $s);
+//            debug($data);
+//            return;
+            if (!isset($data[0])) break;
+
+            $sql = "INSERT INTO spr_tp (id,id_res,nazv,geo_koord) VALUES(" .
+                 $data[0]  . "," . $id_res . ',' . "'" . $data[1] . "'" . ',' . 'null' .')';
+
+            Yii::$app->db_photo_tp->createCommand($sql)->execute();
+        }
+        fclose($f);
+        echo "Інформацію записано";
+    }
+
 
     // Сравнение файлов FACTS
     public function actionCmpfact()
@@ -20631,6 +20654,14 @@ where issubmit = 1";
         debug('Файл  сформований');
     }
 
+    // Рекурсия: печать строки
+    public function actionRecurs_print()
+    {
+        $s='String';
+        rec_print($s,0);
+//        debug($res);
+    }
+
     // Получение данных из САП
     public function actionSap2cek()
     {
@@ -20643,13 +20674,19 @@ where issubmit = 1";
 //        flv_10002A1011D1
 //        flv_10002A111AD1
 //        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
-        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
-        $lSoap='CKSOAPMETER'; /*логін*/
-        $pSoap='aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/'; /*пароль*/
-        $eic_post = '62Z6932162193026';
+
+//        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
+        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+//        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+        $lSoap='WEBFRGATE_CK'; /*логін*/
+        $pSoap='sjgi5n27'; /*пароль*/
+        $eic_post = '62Z8616696794223';
         $dherelo = 5;
-        $op_post = '011000950';
-        $res = 'CK01';
+//        $op_post = '011039519';
+//        $op_post ="011020939";  // 3 zones
+//        $op_post ="011010394";
+//        $op_post = "061113053";
+        $res = 'CK0103';
         $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
         $proc="ZintWsMrFindAccounts";
 //        $proc="ZintUplMrdataInd";
@@ -20662,12 +20699,1172 @@ where issubmit = 1";
                 'IvMrData'=>		'',
                 'IvPhone'=>			'',  //tel
                 'IvSrccode'=>		'05', //джерело
-                'IvVkona'=>			$op_post,//OP
+//                'IvVkona'=>			$op_post ,//OP
+                'IvVkona'=>			'' ,//OP
             ),
         );
 
-        $result=(array) ($adapter->soap_blina($arr[$proc],$proc));
+        $result=objectToArray($adapter->soap_blina($arr[$proc],$proc));
         debug($result);
+//        return;
+
+        if(isset($result['EtAccounts']['item'])) {
+            $a_account = $result['EtAccounts']['item']['Vkona'];
+            $address = $result['EtAccounts']['item']['Address'];
+            $eic = $result['EtAccounts']['item']['Eic'];
+            $anlg = $result['EtAccounts']['item']['Anlage'];
+            $fio = $result['EtAccounts']['item']['Fio'];
+        }
+        debug($a_account);
+        debug($address);
+        debug($eic);
+        debug($fio);
+
+            //////SOAP інфа про ту --------------------------------
+            $proc2="ZintWsMrGetDeviceByanlage";
+            $arr2=array(
+                $proc2=>array(
+                    'IvAnlage'=>		$anlg,
+                    'IvMrDate'=>		Date('Y-m-d'),
+                ),
+            );
+            $result2=objectToArray($adapter->soap_blina($arr2[$proc2],$proc2));
+        debug($result2);
+        return;
+
+        if(isset($result2['EvZones'])){
+            $typ_li4	=	$result2['EvBauform'];
+            $counterSN	=	$result2['EvSernr'];
+            $zonna		=	$result2['EvZones'];
+            $EvEqunr	=	$result2['EvEqunr'];
+            $EvFactor	=	$result2['EvFactor'];
+            $zonnG		=	'';
+
+            $i=0;$sprt='(*_*)';$MrdatPrev='';$Srctxt='';$arr_p=array();
+            foreach($result2['EtScales']['item'] as $k=>$v){
+                if(!is_array($v)){
+                    $arr_p_k=$result2['EtScales']['item']['Zwart'].$sprt.$result2['EtScales']['item']['Zwkenn'];
+                    $arr_p[$arr_p_k]=$result2['EtScales']['item']['MrvalPrev'];
+                    if($k=='MrdatPrev') {$MrdatPrev=$v;  }
+                    if($k=='Srctxt') {$Srctxt=$v;  }
+                }else{
+                    $arr_p_k=$result2['EtScales']['item'][$k]['Zwart'].$sprt.$result2['EtScales']['item'][$k]['Zwkenn'];
+                    $arr_p[$arr_p_k]=$result2['EtScales']['item'][$k]['MrvalPrev'];
+                    foreach($v as $k2=>$v2){
+                        //$i++;
+                        if($k2=='MrdatPrev' && $v2<>'') {$MrdatPrev=$v2;  	}
+                        if($k2=='Srctxt' && $v2<>'') {$Srctxt=$v2;    }
+                        //if($i==1) break;
+                    }
+                }
+            }
+
+            $m_sp1=$m_sp2="";
+            if($dherelo=='05'){//форма
+                $m_sp1="<span class='sop_anl_st1'>"; $m_sp2="</span>";
+            }
+
+            $my_st='';
+            //$dherelo $zonna $anlg $EvEqunr $EvFactor
+
+            $tel='';
+            $tel2='';
+            $my_st = "{$m_sp1}ОР:{$m_sp2} $a_account <br>";
+            $my_st.= "{$m_sp1}Адрес:{$m_sp2} $address <br>";
+            $my_st.= "{$m_sp1}ПІБ:{$m_sp2} $fio <br>";
+            if(!empty($tel)) {$tel2=substr_replace($tel,'***',5,-3);}//не заремлювать  substr_replace($tel,'**',-2)=806670959**
+            $tel64='';$tel64=base64_encode($tel);
+            //$my_st.= "{$m_sp1}tel:{$m_sp2} $tel <br>";
+            $my_st.="{$m_sp1}ЕІС-код:{$m_sp2} $eic <br>";
+            $my_st.="{$m_sp1}Номер лічил.:{$m_sp2} $counterSN <br>";
+            $my_st.="{$m_sp1}Тип лічил.:{$m_sp2} $typ_li4<br>";
+            $my_st.="{$m_sp1}Дата ост. показ:{$m_sp2} $MrdatPrev<br>";
+            $my_st.="{$m_sp1}Вид зчитув:{$m_sp2} $Srctxt<br>";
+            echo str_replace(array("'","\\"),"",$my_st);
+
+
+
+            //розшифровуєм зон=показ
+            $arr_z=array("АВ"=>"Аварійний", "ДН"=>"Денний", "ЗГ"=>"Загальний", "НП"=>"Н/піковий", "НЧ"=>"Нічний", "ПК"=>"Піковий");
+            //new dBug($arr_p);
+            $str_='';	$zonnG='';$zonnGv='';
+            $a_z1last=$a_z2last=$a_z3last='';
+            foreach($arr_p as $a_k=>$a_v){
+                $za=explode($sprt,$a_k);
+                $A=$za[1];
+                $zaZ=$arr_z[$za[0]];
+                $str_.="{$za[0]} $zaZ ($A): $a_v <br>";
+
+                if($A=='A-') {$zonnG='G';$zonnGv=$arr_p[$a_k];}
+                if($zonna==1 && $A<>'A-') $a_z1last=$arr_p[$a_k];
+                elseif($zonna==2){
+                    if($za[0]=='ДН' && $A<>'A-') $a_z1last=$arr_p[$a_k];
+                    if($za[0]=='НЧ' && $A<>'A-') $a_z2last=$arr_p[$a_k];
+                }
+                elseif($zonna==3){
+                    if($za[0]=='НП' && $A<>'A-') $a_z1last=$arr_p[$a_k];
+                    if($za[0]=='НЧ' && $A<>'A-') $a_z2last=$arr_p[$a_k];
+                    if($za[0]=='ПК' && $A<>'A-') $a_z3last=$arr_p[$a_k];
+                }
+
+            }
+
+            $str1="й";$str2='';
+            if(count($arr_p) > 1){$str1='';$str2='и';}
+            $str="{$m_sp1}Останні{$str1} показ{$str2}:{$m_sp2}<br>";
+            echo $str.$str_;
+
+            if($dherelo=='05'){//форма
+                $sty="style='display:none;'";
+                echo "<div id='zzzzz' $sty>$zonna</div>
+					  <div id='ggggg' $sty>$zonnG</div>
+					  <div id='sncounter' $sty>$counterSN</div>
+					  <div id='dherelo' $sty>$dherelo</div>
+					  <div id='anlg' $sty>$anlg</div>
+					  <div id='EvEqunr' $sty>$EvEqunr</div>
+					  <div id='EvFactor' $sty>$EvFactor</div>
+					  <div id='tel' $sty>$tel2</div>
+					  <div id='op' $sty>$a_account</div>
+					  <div id='eic' $sty>$eic</div>
+					  <div id='a_z1last' $sty>$a_z1last</div>
+					  <div id='a_z2last' $sty>$a_z2last</div>
+					  <div id='a_z3last' $sty>$a_z3last</div>
+					
+					  <div id='tel64' $sty>$tel64</div>
+					  ";
+            }
+
+        }
+
+     else echo"<span class='error'>помилка даних приладу обліку</span>";
+
+        //////SOAP инфпрмация по потреблению
+        ///
+//        $anlg = substr($anlg,3);
+//        $proc2="GETBILLINGINFO";
+//        $arr2=array(
+//            $proc2=>array(
+//                'X_BUKRS'=>'CK01',
+//                'X_ANLAGE'=>	$anlg,
+//                'X_AB' => '2021-03-01',
+//                'X_BIS'=> '2021-04-22',
+//            ),
+//        );
+   debug($anlg);
+//      return;
+        $proc2="GETBILLINGINFO";
+        $arr2=array(
+            $proc2=>array(
+                'X_BUKRS'=>'CK01',
+                'X_ANLAGE'=>	$anlg,
+                'X_AB' => '2021-03-01',
+                'X_BIS'=> '2021-04-22',
+            ),
+        );
+//        $result3=objectToArray($adapter->soap_blina($arr2[$proc2],$proc2));
+//        debug($result3);
+    }
+
+    // Запись информации в САП
+    public function actionValue2sap()
+    {
+        // Данные подключения для приема показаний
+        $hIPsap="192.168.1.7"; //1.7 - качество
+//        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
+        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $lSoap='WEBFRGATE_CK'; /*логін*/
+        $pSoap='sjgi5n27'; /*пароль*/
+
+        // Данные подключения для передачи показаний
+        $lSoap_s= 'CKSOAPMETER';
+        $pSoap_s= 'aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/';
+//        $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+        $hSoap_s = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
+        $eic_post = '62Z5491766185404';
+//        $op_post = '011039519';  // 2 zones
+//        $op_post ="011053029";  // 3 zones
+        $op_post = '011037491';   // 1 zone
+
+//        $op_post = '021001823';  // 1 zone Ж-Воды
+        $res = 'CK0103';
+        $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
+
+        $proc="ZintWsMrFindAccounts";
+//        $proc="ZintUplMrdataInd";
+        $arr=array(
+            $proc=>array(
+                'IvArea'=>			$res,//якшо пошук по ОР то тут дільн нада
+                'IvCheckPeriod'=>	'',
+                'IvCompany'=>		'CK',
+                'IvEic'=>			$eic_post, //eic
+                'IvMrData'=>		'',
+                'IvPhone'=>			'',  //tel
+                'IvSrccode'=>		'05', //джерело
+//                'IvVkona'=>			$op_post ,//OP
+                'IvVkona'=>			'' ,//OP
+            ),
+        );
+
+        $result=objectToArray($adapter->soap_blina($arr[$proc],$proc));
+//        debug($result);
+//        return;
+
+        if(isset($result['EtAccounts']['item'])) {
+            $a_account = $result['EtAccounts']['item']['Vkona'];
+            $address = $result['EtAccounts']['item']['Address'];
+            $eic = $result['EtAccounts']['item']['Eic'];
+            $anlg = $result['EtAccounts']['item']['Anlage'];
+            $fio = $result['EtAccounts']['item']['Fio'];
+        }
+
+        debug($a_account);
+        debug($address);
+        debug($eic);
+        debug($fio);
+
+        //////SOAP інфа про ту --------------------------------
+        $proc2="ZintWsMrGetDeviceByanlage";
+        $arr2=array(
+            $proc2=>array(
+                'IvAnlage'=>		$anlg,
+                'IvMrDate'=>		Date('Y-m-d'),
+            ),
+        );
+        $result2=objectToArray($adapter->soap_blina($arr2[$proc2],$proc2));
+
+
+        if(isset($result2['EvZones'])){
+            $typ_li4	=	$result2['EvBauform'];
+            $counterSN	=	$result2['EvSernr'];
+            $zonna		=	$result2['EvZones'];
+            $EvEqunr	=	$result2['EvEqunr'];
+            $EvFactor	=	$result2['EvFactor'];
+            $zonnG		=	'';
+        }
+
+        debug($result2);
+        debug($zonna);
+//        return;
+
+        $cls='';
+        $a_zG = 0;
+        $client = new \SoapClient(
+            "$hSoap_s",
+            array('login' => "$lSoap_s",
+                'password' => "$pSoap_s",
+                'trace' => 1)
+        );
+
+        $arrG=array(
+            'Id' => '400',
+            'Zon' => '40',
+            'Device' => $counterSN,
+            'Data' => $a_zG,
+            'Zwkenn' => ''
+        );
+
+     //   $curdate = $result2['EtScales']['item']['MrdatPrev'];
+
+        $curdate = '2021-05-01';
+//        $curdate = date("Y-m-d");
+        $curtime = date("Hi");
+        $bukrs = 'CK01';
+
+//        debug($a_z1);
+        debug($curtime);
+
+        ini_set('display_errors','On');
+        ini_set("soap.wsdl_cache_enabled", "0");
+
+        if($zonna==1) {
+//            $a_z1 = ((int)$result2['EtScales']['item']['MrvalPrev']) + 125;
+            $a_z1 = 40013;
+            $params = array(
+                'Srccode' => '05',
+                'Bukrs' => $bukrs,
+                'Consdata' => array('item' => array(
+                    'Eic' => "$eic",
+                    'Account' => "$a_account",
+                    'Date' => $curdate,
+                    'DateDb' => $curdate,
+                    'TimeDb' => $curtime,
+                    'Mrdata' => array(
+                        'item' => array(
+                            array('Id' => '121',
+                                'Zon' => '11',
+                                'Device' => $counterSN,
+                                'Data' => $a_z1,
+                                'Zwkenn' => ''
+                            )
+                        )
+                    )
+                )
+
+                )
+            );
+        }
+
+            if ($zonna==2) {
+                $a_z1 = 4246;
+                $a_z2 = 1141;
+                $params = array(
+                    'Srccode' => '01',
+                    'Bukrs' => $bukrs,
+                    'Consdata' => array('item' => array(
+                        'Eic' => '',
+                        'Account' => $a_account,
+                        'Date' => $curdate,
+                        'DateDb' => $curdate,
+                        'TimeDb' => $curtime,
+                        'Mrdata' => array('item' =>
+                            array(
+                                array('Id' => '121',
+                                    'Zon' => '21',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z1,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '122',
+                                    'Zon' => '22',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z2,
+                                    'Zwkenn' => ''
+                                )
+                            )
+                        )
+                    )
+                    )
+                );
+            }
+
+        if ($zonna==3) {
+            $a_z3 = ((int) $result2['EtScales']['item'][0]['MrvalPrev']) + 200;
+            $a_z1 = ((int) $result2['EtScales']['item'][1]['MrvalPrev']) + 100;
+            $a_z2 = ((int) $result2['EtScales']['item'][2]['MrvalPrev']) + 300;
+            $params = array(
+                'Srccode' => '01',
+                'Bukrs' => $bukrs,
+                'Consdata' => array('item' => array(
+                    'Eic' => '',
+                    'Account' => $a_account,
+                    'Date' => $curdate,
+                    'DateDb' => $curdate,
+                    'TimeDb' => $curtime,
+                    'Mrdata' => array('item' =>
+                        array(
+                            array(  'Id' => '300',
+                                'Zon' => '31',
+                                'Device' => $counterSN,
+                                'Data' => $a_z3,
+                                'Zwkenn' => ''
+                            ),
+                            array(  'Id' => '200',
+                                'Zon' => '33',
+                                'Device' => $counterSN,
+                                'Data' => $a_z2,
+                                'Zwkenn' => ''
+                            ),
+                            array(  'Id' => '100',
+                                'Zon' => '32',
+                                'Device' => $counterSN,
+                                'Data' => $a_z1,
+                                'Zwkenn' => ''
+                            )
+                        )
+                    )
+                )
+                )
+            );
+        }
+
+//            array_push($params['Consdata']['item']['Mrdata']['item'],$arrG);
+        $anlg = substr($anlg,3);
+        $proc2="GETBILLINGINFO";
+        $arr2=array(
+            $proc2=>array(
+                'X_BUKRS'=>'CK01',
+                'X_ANLAGE'=>	$anlg,
+                'X_AB' => '2021-03-01',
+                'X_BIS'=> '2021-04-22',
+            ),
+        );
+
+            try{
+
+                $result = $client->__soapCall('ZintUplMrdataInd',  array($params));
+//                $result = $client->__soapCall('GETBILLINGINFO',  array($arr2));
+                debug($result);
+
+                //new dBug($result);
+//                if(isset($_POST['a_zG'])) @$done = $result->Retdata->item[0]->Retcode[0];
+//                else
+                    if($zonna==1)
+                        $done = $result->Retdata->item->Retcode;
+                    else
+                        $done = $result->Retdata->item[0]->Retcode;
+
+                if ($done=='1'){
+                    echo "Ваші показники внесено!";
+                    $cls='okok';
+                }else $cls='error';
+
+            }catch(SoapFault $e) {
+                echo $e;
+            }
+    }
+
+    //  Заполнение таблицы indications для САП
+    public function actionFill_indications()
+    {
+        $sql = "
+             select eic,value_ind,dat_ind,
+                case when id_operation=100 then '01' 
+                when id_operation=300 then '02' 
+                when id_operation=1000 then '05' end as src,
+              case when id_zone=0 then '11' 
+              when id_zone=10 then '21' 
+                when id_zone=9 then '22' 
+                when id_zone=8 then '31' 
+                when id_zone=7 then '32' 
+                when id_zone=6 then '33' 
+                end as zone_sap,num_eqp,code as acc
+              from
+                (
+                select distinct a.value_ind,a.num_eqp,a.id_operation,b.* from acd_cabindication_tbl a join
+                (select y.eic,x.id_paccnt,x.id_zone,x.code,max(x.dat_ind) as dat_ind 
+                from acd_cabindication_tbl x join 
+                clm_paccnt_tbl  y on x.id_paccnt=y.id
+                where x.id_paccnt>0 and y.archive=0
+                group by 1,2,3,4
+                order by 1) b on 
+                a.id_paccnt=b.id_paccnt and a.id_zone=b.id_zone and a.dat_ind=b.dat_ind
+                where a.id_paccnt>0
+                order by eic
+                ) g
+                --where eic='62Z3175160717593'
+                --group by eic,dat_ind,id_operation,id_zone,num_eqp,code
+             
+                order by eic
+                          ";
+        $res_cek = 7;
+        $data = data_from_server($sql, $res_cek, 1);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        $z='insert into indications(id,bo,bo2,src,eic,acc,dt,hhmm,oid,device,zon,val) select ';
+        foreach ($data as $v) {
+            $id=rand(10000000000,100000000000);
+            $bo='CK01';
+            $bo2='CK010' . $res_cek;
+            $src = $v['src'];
+            $eic = $v['eic'];
+            $acc = $v['acc'];
+            $dt = $v['dat_ind'];
+            $hhmm = date("Hi");
+            $oid = rand(10000000000,100000000000);
+            $device = trim($v['num_eqp']);
+            $zon = $v['zone_sap'];
+            $val = (int) $v['value_ind'];
+            $z1=$z.' '.$id.','."'$bo'".','."'$bo2'".','."'$src'".','.
+                "'$eic'".','."'$acc'".','."'$dt'".','."'$hhmm'".','.$oid.','.
+                "'$device'".','. "'$zon'".','.$val;
+            data_from_server($z1, $res_cek, 1);
+        }
+        debug('Інформацію записано');
+    }
+
+    //  Обработка таблицы indications для САП
+    public function actionProc_indications()
+    {
+        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $lSoap='WEBFRGATE_CK'; /*логін*/
+        $pSoap='sjgi5n27'; /*пароль*/
+
+        // Данные подключения для передачи показаний
+        $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
+        $sql = "select * from indications where retcode in ('0')";
+        $data = \Yii::$app->db_pg_first_server->createCommand($sql)->queryAll();
+
+        foreach ($data as $v) {
+            $eic = $v['eic'];
+            $device = $v['device'];
+            $val = $v['val'];
+            $zon = $v['zon'];
+            $dt = $v['dt'];
+            $bo2 = $v['bo2'];
+
+            $proc = "ZintWsMrFindAccounts";
+            $arr = array(
+                $proc => array(
+                    'IvArea' => $bo2,//якшо пошук по ОР то тут дільн нада
+                    'IvCheckPeriod' => '',
+                    'IvCompany' => 'CK',
+                    'IvEic' => $eic, //eic
+                    'IvMrData' => '',
+                    'IvPhone' => '',  //tel
+                    'IvSrccode' => '05', //джерело
+                    'IvVkona' => ''  //OP
+                ),
+            );
+
+            $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
+
+//            debug($result);
+//        return;
+
+            if (isset($result['EtAccounts']['item'])) {
+                $a_account = $result['EtAccounts']['item']['Vkona'];
+                $address = $result['EtAccounts']['item']['Address'];
+                $eic = $result['EtAccounts']['item']['Eic'];
+                $anlg = $result['EtAccounts']['item']['Anlage'];
+                $fio = $result['EtAccounts']['item']['Fio'];
+            }
+//        debug($a_account);
+//        debug($address);
+//        debug($eic);
+//        debug($fio);
+
+            //////SOAP інфа про ту --------------------------------
+            $proc2 = "ZintWsMrGetDeviceByanlage";
+            $arr2 = array(
+                $proc2 => array(
+                    'IvAnlage' => $anlg,
+                    'IvMrDate' => Date('Y-m-d'),
+                ),
+            );
+            $result2 = objectToArray($adapter->soap_blina($arr2[$proc2], $proc2));
+//debug($result2);
+//return;
+
+            if (isset($result2['EvZones'])) {
+                $typ_li4 = $result2['EvBauform'];
+                $counterSN = $result2['EvSernr'];
+                $zonna = $result2['EvZones'];
+                $EvEqunr = $result2['EvEqunr'];
+                $EvFactor = $result2['EvFactor'];
+                $EvMaxmr = $result2['EvMaxmr'];
+                $single_zone=1;  // Признак однозонного счетчика
+                if(isset($result2['EtScales']['item'][0]['MrvalPrev'])) {
+                    $single_zone=0;  // Не однозонный счетчик
+                    $MrvalPrev = 0;
+                    $MrdatPrev = '';
+                    $Zwart='';
+                }
+                if(isset($result2['EtScales']['item']))
+                    $y= count($result2['EtScales']['item']);
+                else
+                    continue;
+
+                if($single_zone==1) {
+                    $MrvalPrev = $result2['EtScales']['item']['MrvalPrev'];
+                    $MrdatPrev = $result2['EtScales']['item']['MrdatPrev'];
+                    $Zwart = $result2['EtScales']['item']['Zwart'];
+                }
+                if($y==2)  // 2 zones
+                {
+                    $MrvalPrev1 = $result2['EtScales']['item'][0]['MrvalPrev'];
+                    $MrdatPrev1 = $result2['EtScales']['item'][0]['MrdatPrev'];
+                    $MrvalPrev2 = $result2['EtScales']['item'][1]['MrvalPrev'];
+                    $MrdatPrev2 = $result2['EtScales']['item'][1]['MrdatPrev'];
+                }
+                if($y==3)  // 3 zones
+                {
+                    $MrvalPrev1 = $result2['EtScales']['item'][0]['MrvalPrev'];
+                    $MrdatPrev1 = $result2['EtScales']['item'][0]['MrdatPrev'];
+                    $MrvalPrev2 = $result2['EtScales']['item'][1]['MrvalPrev'];
+                    $MrdatPrev2 = $result2['EtScales']['item'][1]['MrdatPrev'];
+                    $MrvalPrev3 = $result2['EtScales']['item'][2]['MrvalPrev'];
+                    $MrdatPrev3 = $result2['EtScales']['item'][2]['MrdatPrev'];
+                }
+            }
+
+
+//        debug($counterSN);
+//        debug($device);
+//        return;
+
+            if(trim($counterSN)!=trim($device)){
+                if($single_zone==1) {
+                    $z = "update indications 
+                            set err_cek='другой № счетчика',device='$counterSN',val=$MrvalPrev,dt='$MrdatPrev'
+                            where eic='$eic'";
+                            $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                            debug($eic . ' ' . $counterSN);
+                }
+
+                if($single_zone==0) {
+                    $z = "update indications 
+                    set err_cek='другой № счетчика',device='$counterSN',val=$MrvalPrev1,dt='$MrdatPrev1'
+                     where eic='$eic' and zon='21'";
+                    $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+
+                    $z = "update indications 
+                    set err_cek='другой № счетчика',device='$counterSN',val=$MrvalPrev2,dt='$MrdatPrev2'
+                     where eic='$eic' and zon='22'";
+                    $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                    debug($eic . ' ' . $counterSN);
+                }
+            }
+
+
+        }
+        return;
+
+        $z='insert into indications(id,bo,bo2,src,eic,acc,dt,hhmm,oid,device,zon,val) select ';
+        foreach ($data as $v) {
+            $id=rand(10000000000,100000000000);
+            $bo='CK01';
+            $bo2='CK010' . $res_cek;
+            $src = $v['src'];
+            $eic = $v['eic'];
+            $acc = $v['acc'];
+            $dt = $v['dat_ind'];
+            $hhmm = date("Hi");
+            $oid = rand(10000000000,100000000000);
+            $device = trim($v['num_eqp']);
+            $zon = $v['zone_sap'];
+            $val = (int) $v['value_ind'];
+            $z1=$z.' '.$id.','."'$bo'".','."'$bo2'".','."'$src'".','.
+                "'$eic'".','."'$acc'".','."'$dt'".','."'$hhmm'".','.$oid.','.
+                "'$device'".','. "'$zon'".','.$val;
+            data_from_server($z1, $res_cek, 1);
+        }
+        debug('Інформацію записано');
+    }
+
+
+//  Передача показаний лич. кабинета в САП
+    public function actionLk2sap()
+    {
+        // Данные подключения для приема показаний
+        $hIPsap="192.168.1.7"; //1.7 - качество
+        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
+        $lSoap='WEBFRGATE_CK'; /*логін*/
+        $pSoap='sjgi5n27'; /*пароль*/
+
+        // Данные подключения для передачи показаний
+        $lSoap_s= 'CKSOAPMETER';
+        $pSoap_s= 'aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/';
+        $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+        $op_post = '011030775';   // 1 zone
+        $res = 'CK0108';
+        $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
+        $res_cek=8;
+        $sql = "
+                select code,sum(case when id_zone=0 then coalesce(value_ind,0) end) as val0,
+                sum(case when id_zone=9 then coalesce(value_ind,0) end) as val9,
+                sum(case when id_zone=10 then coalesce(value_ind,0) end) as val10,
+                sum(case when id_zone=6 then coalesce(value_ind,0) end) as val6,
+                sum(case when id_zone=7 then coalesce(value_ind,0) end) as val7,
+                sum(case when id_zone=8 then coalesce(value_ind,0) end) as val8,dat_ind from
+                (
+                select distinct a.value_ind,b.* from acd_cabindication_tbl a join
+                (select code,id_zone,max(dat_ind) as dat_ind 
+                from acd_cabindication_tbl
+                where id_paccnt>0
+                group by 1,2
+                order by 1) b on 
+                a.code=b.code and a.id_zone=b.id_zone and a.dat_ind=b.dat_ind
+                where a.id_paccnt>0
+                order by code
+                ) g
+               -- where code='011033149'
+                group by code,dat_ind
+               -- limit 30
+                          ";
+        $data = data_from_server($sql, $res_cek, 1);   // Массив всех необходимых данных
+//        debug($data);
+//        return;
+
+        foreach ($data as $v) {
+            $op_post = $v['code'];
+//            $id_zone =  $v['id_zone'];
+            $val0 =  $v['val0'];
+            $val9 =  $v['val9'];
+            $val10 =  $v['val10'];
+            $val6 =  $v['val6'];
+            $val7 =  $v['val7'];
+            $val8 =  $v['val8'];
+            $curdate =  $v['dat_ind'];
+
+            $proc = "ZintWsMrFindAccounts";
+            $arr = array(
+                $proc => array(
+                    'IvArea' => $res,//якшо пошук по ОР то тут дільн нада
+                    'IvCheckPeriod' => '',
+                    'IvCompany' => 'CK',
+                    'IvEic' => '', //eic
+                    'IvMrData' => '',
+                    'IvPhone' => '',  //tel
+                    'IvSrccode' => '05', //джерело
+                    'IvVkona' => $op_post,//OP
+                ),
+            );
+
+            $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
+//        debug($result);
+//        return;
+
+            if (isset($result['EtAccounts']['item'])) {
+                $a_account = $result['EtAccounts']['item']['Vkona'];
+                $address = $result['EtAccounts']['item']['Address'];
+                $eic = $result['EtAccounts']['item']['Eic'];
+                $anlg = $result['EtAccounts']['item']['Anlage'];
+                $fio = $result['EtAccounts']['item']['Fio'];
+            }
+//        debug($a_account);
+//        debug($address);
+//        debug($eic);
+//        debug($fio);
+
+            //////SOAP інфа про ту --------------------------------
+            $proc2 = "ZintWsMrGetDeviceByanlage";
+            $arr2 = array(
+                $proc2 => array(
+                    'IvAnlage' => $anlg,
+                    'IvMrDate' => Date('Y-m-d'),
+                ),
+            );
+            $result2 = objectToArray($adapter->soap_blina($arr2[$proc2], $proc2));
+
+            if (isset($result2['EvZones'])) {
+                $typ_li4 = $result2['EvBauform'];
+                $counterSN = $result2['EvSernr'];
+                $zonna = $result2['EvZones'];
+                $EvEqunr = $result2['EvEqunr'];
+                $EvFactor = $result2['EvFactor'];
+                $zonnG = '';
+            }
+
+//        debug($result2);
+//        debug($zonna);
+//        return;
+
+            $cls = '';
+            $a_zG = 0;
+            $client = new \SoapClient(
+                "$hSoap_s",
+                array('login' => "$lSoap_s",
+                    'password' => "$pSoap_s",
+                    'trace' => 1)
+            );
+
+            $arrG = array(
+                'Id' => '400',
+                'Zon' => '40',
+                'Device' => $counterSN,
+                'Data' => $a_zG,
+                'Zwkenn' => ''
+            );
+
+//            $curdate = date("Y-m-d");
+            $curtime = date("Hi");
+            $bukrs = 'CK01';
+
+            if (!empty($val0)) {
+                $zonna = 1;
+                $a_z1 = $val0;
+                $params = array(
+                    'Srccode' => '01',
+                    'Bukrs' => $bukrs,
+                    'Consdata' => array('item' => array(
+                        'Eic' => "$eic",
+                        'Account' => "$a_account",
+                        'Date' => $curdate,
+                        'DateDb' => $curdate,
+                        'TimeDb' => $curtime,
+                        'Mrdata' => array(
+                            'item' => array(
+                                array('Id' => '121',
+                                    'Zon' => '11',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z1,
+                                    'Zwkenn' => ''
+                                )
+                            )
+                        )
+                    )
+
+                    )
+                );
+            }
+
+            if (!empty($val9) || !empty($val10)) {
+                $zonna = 2;
+                $params = array(
+                    'Srccode' => '01',
+                    'Bukrs' => $bukrs,
+                    'Consdata' => array('item' => array(
+                        'Eic' => '',
+                        'Account' => $a_account,
+                        'Date' => $curdate,
+                        'DateDb' => $curdate,
+                        'TimeDb' => $curtime,
+                        'Mrdata' => array('item' =>
+                            array(
+                                array('Id' => '121',
+                                    'Zon' => '21',
+                                    'Device' => $counterSN,
+                                    'Data' => $val10,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '122',
+                                    'Zon' => '22',
+                                    'Device' => $counterSN,
+                                    'Data' => $val9,
+                                    'Zwkenn' => ''
+                                )
+                            )
+                        )
+                    )
+                    )
+                );
+            }
+
+            if (!empty($val6) || !empty($val7) || !empty($val8)) {
+                $zonna = 3;
+                $a_z3 =$val8;
+                $a_z1 = $val7;
+                $a_z2 = $val6;
+                $params = array(
+                    'Srccode' => '01',
+                    'Bukrs' => $bukrs,
+                    'Consdata' => array('item' => array(
+                        'Eic' => '',
+                        'Account' => $a_account,
+                        'Date' => $curdate,
+                        'DateDb' => $curdate,
+                        'TimeDb' => $curtime,
+                        'Mrdata' => array('item' =>
+                            array(
+                                array('Id' => '300',
+                                    'Zon' => '31',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z3,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '200',
+                                    'Zon' => '33',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z2,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '100',
+                                    'Zon' => '32',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z1,
+                                    'Zwkenn' => ''
+                                )
+                            )
+                        )
+                    )
+                    )
+                );
+            }
+
+            try {
+                $result = $client->__soapCall('ZintUplMrdataInd', array($params));
+//                debug($result);
+
+//                if(isset($_POST['a_zG'])) @$done = $result->Retdata->item[0]->Retcode[0];
+//                else
+                if ($zonna == 1) {
+                    if (is_object($result->Retdata->item))
+                        $done = $result->Retdata->item->Retcode;
+                    else
+                        $done = '0';
+                }
+                else {
+                    if (is_object($result->Retdata->item[0]))
+                        $done = $result->Retdata->item[0]->Retcode;
+                    else
+                        $done = '0';
+                }
+
+                if ($done == '1') {
+                    echo "Ваші показники внесено!";
+                    echo "<br>";
+                    $cls = 'okok';
+                } else {
+                    $cls = 'error';
+                    echo "<br>";
+                    echo "Показники не внесено по ".$op_post;
+                    echo "<br>";
+                }
+            } catch (SoapFault $e) {
+                echo $e;
+            }
+        }
+    }
+
+    // Передача показаний из indications в САП
+    public function actionIndic2sap()
+    {
+        // Данные подключения для приема показаний
+        $hIPsap="192.168.1.7"; //1.7 - качество
+
+        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $lSoap='WEBFRGATE_CK'; /*логін*/
+        $pSoap='sjgi5n27'; /*пароль*/
+
+        // Данные подключения для передачи показаний
+        $lSoap_s= 'CKSOAPMETER';
+        $pSoap_s= 'aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/';
+//        $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+        $hSoap_s = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
+
+        $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
+
+        $sql = "
+select bo2,src,eic,dt,device,
+sum(coalesce(val11,0)) as val11,sum(coalesce(val21,0)) as val21,sum(coalesce(val22,0)) as val22,
+sum(coalesce(val31,0)) as val31,sum(coalesce(val32,0)) as val32,sum(coalesce(val33,0)) as val33 from (
+select bo2,src,eic,dt,hhmm,device,zon,
+sum(case when zon='11' then coalesce(val,0) end) as val11,
+sum(case when zon='21' then coalesce(val,0) end) as val21, 
+sum(case when zon='22' then coalesce(val,0) end) as val22,
+sum(case when zon='31' then coalesce(val,0) end) as val31,
+sum(case when zon='32' then coalesce(val,0) end) as val32,
+sum(case when zon='33' then coalesce(val,0) end) as val33
+ from indications where retcode='2' and zon<>'11'
+ group by  bo2,src,eic,dt,hhmm,device,zon
+ order by eic) x
+ group by  bo2,src,eic,dt,device
+ order by eic
+ ";
+        $data = \Yii::$app->db_pg_first_server->createCommand($sql)->queryAll();
+
+        foreach ($data as $v) {
+            $eic = $v['eic'];
+            $device = $v['device'];
+            $val21 = $v['val21'];
+            $val22 = $v['val22'];
+            $val31 = $v['val31'];
+            $val32 = $v['val32'];
+            $val33 = $v['val33'];
+//            $zon = $v['zon'];
+            $dt = $v['dt'];
+            $bo2 = $v['bo2'];
+            $src = $v['src'];
+
+            $proc = "ZintWsMrFindAccounts";
+            $arr = array(
+                $proc => array(
+                    'IvArea' =>  $bo2,//якшо пошук по ОР то тут дільн нада
+                    'IvCheckPeriod' => '',
+                    'IvCompany' => 'CK',
+                    'IvEic' => $eic, //eic
+                    'IvMrData' => '',
+                    'IvPhone' => '',  //tel
+                    'IvSrccode' => '05', //джерело
+                    'IvVkona' => '',//OP
+                ),
+            );
+
+            $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
+//        debug($result);
+//        return;
+
+            if (isset($result['EtAccounts']['item'])) {
+                $a_account = $result['EtAccounts']['item']['Vkona'];
+                $address = $result['EtAccounts']['item']['Address'];
+                $eic = $result['EtAccounts']['item']['Eic'];
+                $anlg = $result['EtAccounts']['item']['Anlage'];
+                $fio = $result['EtAccounts']['item']['Fio'];
+            }
+//        debug($a_account);
+//        debug($address);
+//        debug($eic);
+//        debug($fio);
+
+            //////SOAP інфа про ту --------------------------------
+            $proc2 = "ZintWsMrGetDeviceByanlage";
+            $arr2 = array(
+                $proc2 => array(
+                    'IvAnlage' => $anlg,
+                    'IvMrDate' => Date('Y-m-d'),
+                ),
+            );
+            $result2 = objectToArray($adapter->soap_blina($arr2[$proc2], $proc2));
+
+            if (isset($result2['EvZones'])) {
+                $typ_li4 = $result2['EvBauform'];
+                $counterSN = $result2['EvSernr'];
+                $zonna = $result2['EvZones'];
+                $EvEqunr = $result2['EvEqunr'];
+                $EvFactor = $result2['EvFactor'];
+                $zonnG = '';
+            }
+
+//        debug($result2);
+//        debug($zonna);
+//        return;
+
+            $cls = '';
+            $a_zG = 0;
+            $client = new \SoapClient(
+                "$hSoap_s",
+                array('login' => "$lSoap_s",
+                    'password' => "$pSoap_s",
+                    'trace' => 1)
+            );
+
+            $arrG = array(
+                'Id' => '400',
+                'Zon' => '40',
+                'Device' => $counterSN,
+                'Data' => $a_zG,
+                'Zwkenn' => ''
+            );
+
+//            $curdate = date("Y-m-d");
+            $curtime = date("Hi");
+            $bukrs = 'CK01';
+
+            if(1==2) {
+                if ($zonna == 1) {
+
+                    $a_z1 = $val;
+                    $params = array(
+                        'Srccode' => $src,
+                        'Bukrs' => $bukrs,
+                        'Consdata' => array('item' => array(
+                            'Eic' => "$eic",
+                            'Account' => "$a_account",
+                            'Date' => $dt,
+                            'DateDb' => $dt,
+                            'TimeDb' => $curtime,
+                            'Mrdata' => array(
+                                'item' => array(
+                                    array('Id' => '121',
+                                        'Zon' => '11',
+                                        'Device' => $counterSN,
+                                        'Data' => $a_z1,
+                                        'Zwkenn' => ''
+                                    )
+                                )
+                            )
+                        )
+
+                        )
+                    );
+                }
+            }
+
+
+                if ($zonna == 2) {
+
+                    $params = array(
+                        'Srccode' => $src,
+                        'Bukrs' => $bukrs,
+                        'Consdata' => array('item' => array(
+                            'Eic' => '',
+                            'Account' => $a_account,
+                            'Date' => $dt,
+                            'DateDb' => $dt,
+                            'TimeDb' => $curtime,
+                            'Mrdata' => array('item' =>
+                                array(
+                                    array('Id' => '121',
+                                        'Zon' => '21',
+                                        'Device' => $counterSN,
+                                        'Data' => $val21,
+                                        'Zwkenn' => ''
+                                    ),
+                                    array('Id' => '122',
+                                        'Zon' => '22',
+                                        'Device' => $counterSN,
+                                        'Data' => $val22,
+                                        'Zwkenn' => ''
+                                    )
+                                )
+                            )
+                        )
+                        )
+                    );
+                }
+
+                if ($zonna == 3) {
+                    $a_z3 = $val31;
+                    $a_z1 = $val32;
+                    $a_z2 = $val33;
+                    $params = array(
+                        'Srccode' => '01',
+                        'Bukrs' => $bukrs,
+                        'Consdata' => array('item' => array(
+                            'Eic' => '',
+                            'Account' => $a_account,
+                            'Date' => $dt,
+                            'DateDb' => $dt,
+                            'TimeDb' => $curtime,
+                            'Mrdata' => array('item' =>
+                                array(
+                                    array('Id' => '300',
+                                        'Zon' => '31',
+                                        'Device' => $counterSN,
+                                        'Data' => $a_z3,
+                                        'Zwkenn' => ''
+                                    ),
+                                    array('Id' => '200',
+                                        'Zon' => '33',
+                                        'Device' => $counterSN,
+                                        'Data' => $a_z2,
+                                        'Zwkenn' => ''
+                                    ),
+                                    array('Id' => '100',
+                                        'Zon' => '32',
+                                        'Device' => $counterSN,
+                                        'Data' => $a_z1,
+                                        'Zwkenn' => ''
+                                    )
+                                )
+                            )
+                        )
+                        )
+                    );
+                }
+
+
+            try {
+                $result = $client->__soapCall('ZintUplMrdataInd', array($params));
+//                debug($result);
+
+//                if(isset($_POST['a_zG'])) @$done = $result->Retdata->item[0]->Retcode[0];
+//                else
+                if ($zonna == 1) {
+                    if (is_object($result->Retdata->item))
+                        $done = $result->Retdata->item->Retcode;
+                    else
+                        $done = '0';
+                }
+                else {
+                    if (is_object($result->Retdata->item[0]))
+                        $done = $result->Retdata->item[0]->Retcode;
+                    else
+                        $done = '0';
+//                    continue;
+                }
+
+                if ($done == '1') {
+                    echo "Ваші показники внесено!";
+                    echo "<br>";
+                    $cls = 'okok';
+                    $z = "update indications 
+                            set err_cek='обновлено в САП'
+                            where eic='$eic'";
+
+                    $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+
+                } else {
+                    $cls = 'error';
+                    echo "<br>";
+                    echo "Показники не внесено по ";
+                    echo "<br>";
+                }
+            } catch (SoapFault $e) {
+                echo $e;
+            }
+        }
     }
 
 
