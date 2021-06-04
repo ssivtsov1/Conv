@@ -238,7 +238,8 @@ AppAsset::register($this);
                                 [
                                     ['label' => 'Импорт подстанций в photo_tp', 'url' => ['/site/import_tp']],
                                     ['label' => 'Добавление типов счетчиков', 'url' => ['/site/add_cnt']],
-                                    ['label' => 'Добавление типов пломб', 'url' => ['/site/add_type_plomb']],
+//                                    ['label' => 'Добавление типов пломб', 'url' => ['/site/add_type_plomb']],
+                                    ['label' => 'Обработка таблицы indications для САП (сравнение показателей)', 'url' => ['/site/check_value_indications']],
                                     ['label' => 'Импорт street с Ингульца [Энерго]', 'url' => ['/site/imp_street']],
                                     ['label' => 'Импорт таблицы областей', 'url' => ['/site/imp_obl']],
                                     ['label' => 'Импорт таблицы районов', 'url' => ['/site/imp_region']],
@@ -282,6 +283,9 @@ AppAsset::register($this);
                                     ['label' => 'Раскодирование файла', 'url' => ['/site/decode_file']],
                                     ['label' => 'Операции с множествами', 'url' => ['/site/oper_sets']],
                                     ['label' => 'Поиск внутри файлов', 'url' => ['/site/search_into']],
+                                    ['label' => 'Поиск подстроки в строке', 'url' => ['/site/find_str']],
+                                    ['label' => 'Перестановки рекурсия', 'url' => ['/site/permute']],
+                                    ['label' => 'Перебор рекурсия', 'url' => ['/site/perebor1']],
                                     ['label' => 'Сеть Хопфилда', 'url' => ['/site/index'],
                                         'options' => ['class' => 'dropdown'],
                                         'items' => [
@@ -289,7 +293,7 @@ AppAsset::register($this);
                                             ['label' => 'Суммирование векторов', 'url' => ['/site/neuro_hopfild_fun2']],
                                             ['label' => 'Умножение матрицы на вектор', 'url' => ['/site/neuro_hopfild_fun3']],
                                             ['label' => 'Функция активации', 'url' => ['/site/neuro_hopfild_fun4']],
-                                            ['label' => 'Сравненме векторов', 'url' => ['/site/neuro_hopfild_fun5']],
+                                            ['label' => 'Сравнение векторов', 'url' => ['/site/neuro_hopfild_fun5']],
                                         ]],
                                 ]
                         ],

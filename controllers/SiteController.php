@@ -20662,6 +20662,31 @@ where issubmit = 1";
 //        debug($res);
     }
 
+    // Поиск подстроки в строке
+    public function actionFind_str()
+    {
+        $f='from';
+        $s = 'The 1962 turquoise from Ford Anglia went missing from the South West Film Studios in Cornwall, England from. ';
+        $r = find_str($s,$f);
+        debug($r);
+    }
+
+    // Перестановки рекурсия
+    public function actionPermute()
+    {
+        $str = "01";
+        permute($str,0,strlen($str));
+//        debug($r);
+    }
+
+    // Переборр рекурсия
+    public function actionPerebor1()
+    {
+        $str = [0];
+        perebor1(0,$str);
+//        debug($r);
+    }
+
     // Получение данных из САП
     public function actionSap2cek()
     {
@@ -21171,6 +21196,176 @@ where issubmit = 1";
             data_from_server($z1, $res_cek, 1);
         }
         debug('Інформацію записано');
+    }
+
+
+    //  Обработка таблицы indications для САП
+    public function actionCheck_value_indications()
+    {
+        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $lSoap = 'WEBFRGATE_CK'; /*логін*/
+        $pSoap = 'sjgi5n27'; /*пароль*/
+
+        // Данные подключения для передачи показаний
+        $adapter = new ccon_soap($hSoap, $lSoap, $pSoap);
+        $sql = "select * from indications where src='05' and zon<>'11'"; // and dt='2021-05-05'  order by dt";
+        $data = \Yii::$app->db_pg_first_server->createCommand($sql)->queryAll();
+        $j=0;
+        $f=fopen('a_indic.txt','w+');
+        foreach ($data as $v) {
+            $j++;
+            fputs($f,$j);
+            fputs($f,"\n");
+            $eic = $v['eic'];
+            $device = $v['device'];
+            $val = $v['val'];
+            $zon = $v['zon'];
+            $dt = $v['dt'];
+            $bo2 = $v['bo2'];
+
+            $proc = "ZintWsMrFindAccounts";
+            $arr = array(
+                $proc => array(
+                    'IvArea' => $bo2,//якшо пошук по ОР то тут дільн нада
+                    'IvCheckPeriod' => '',
+                    'IvCompany' => 'CK',
+                    'IvEic' => $eic, //eic
+                    'IvMrData' => '',
+                    'IvPhone' => '',  //tel
+                    'IvSrccode' => '05', //джерело
+                    'IvVkona' => ''  //OP
+                ),
+            );
+
+            $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
+
+//            debug($result);
+//        return;
+
+            if (isset($result['EtAccounts']['item'])) {
+                $a_account = $result['EtAccounts']['item']['Vkona'];
+                $address = $result['EtAccounts']['item']['Address'];
+                $eic = $result['EtAccounts']['item']['Eic'];
+                $anlg = $result['EtAccounts']['item']['Anlage'];
+                $fio = $result['EtAccounts']['item']['Fio'];
+            }
+//        debug($a_account);
+//        debug($address);
+//        debug($eic);
+//        debug($fio);
+
+            //////SOAP інфа про ту --------------------------------
+            $proc2 = "ZintWsMrGetDeviceByanlage";
+            $arr2 = array(
+                $proc2 => array(
+                    'IvAnlage' => $anlg,
+                    'IvMrDate' => Date('Y-m-d'),
+                ),
+            );
+            $result2 = objectToArray($adapter->soap_blina($arr2[$proc2], $proc2));
+//debug($result2);
+//return;
+
+            if (isset($result2['EvZones'])) {
+                $typ_li4 = $result2['EvBauform'];
+                $counterSN = $result2['EvSernr'];
+                $zonna = $result2['EvZones'];
+                $EvEqunr = $result2['EvEqunr'];
+                $EvFactor = $result2['EvFactor'];
+                $EvMaxmr = $result2['EvMaxmr'];
+                $single_zone = 1;  // Признак однозонного счетчика
+                if (isset($result2['EtScales']['item'][0]['MrvalPrev'])) {
+                    $single_zone = 0;  // Не однозонный счетчик
+                    $MrvalPrev = 0;
+                    $MrdatPrev = '';
+                    $Zwart = '';
+                }
+                if (isset($result2['EtScales']['item']))
+                    $y = count($result2['EtScales']['item']);
+                else
+                    continue;
+
+                if ($single_zone == 1) {
+                    $MrvalPrev = $result2['EtScales']['item']['MrvalPrev'];
+                    $MrdatPrev = $result2['EtScales']['item']['MrdatPrev'];
+                    $Zwart = $result2['EtScales']['item']['Zwart'];
+                }
+                if ($y == 2)  // 2 zones
+                {
+                    $MrvalPrev1 = $result2['EtScales']['item'][0]['MrvalPrev'];
+                    $MrdatPrev1 = $result2['EtScales']['item'][0]['MrdatPrev'];
+                    $MrvalPrev2 = $result2['EtScales']['item'][1]['MrvalPrev'];
+                    $MrdatPrev2 = $result2['EtScales']['item'][1]['MrdatPrev'];
+                }
+                if ($y == 3)  // 3 zones
+                {
+                    $MrvalPrev1 = $result2['EtScales']['item'][0]['MrvalPrev'];
+                    $MrdatPrev1 = $result2['EtScales']['item'][0]['MrdatPrev'];
+                    $MrvalPrev2 = $result2['EtScales']['item'][1]['MrvalPrev'];
+                    $MrdatPrev2 = $result2['EtScales']['item'][1]['MrdatPrev'];
+                    $MrvalPrev3 = $result2['EtScales']['item'][2]['MrvalPrev'];
+                    $MrdatPrev3 = $result2['EtScales']['item'][2]['MrdatPrev'];
+                }
+            }
+
+
+//        debug($counterSN);
+//        debug($MrdatPrev);
+//        return;
+
+//            if (trim($counterSN) != trim($device)) {
+                if ($single_zone == 1) {
+                    // $MrvalPrev>=$val
+                    if($MrvalPrev==$val && $MrdatPrev>'2021-05-30') {
+                        $z = "update indications 
+                            set err_value=1
+                            where eic='$eic' and src='05'";
+                        $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                    }
+                }
+
+                if ($y == 2) {
+                    if($MrvalPrev1==$val && $zon=='21' && $MrdatPrev1>'2021-05-30') {
+                        $z = "update indications 
+                    set err_value=1
+                     where eic='$eic' and zon='21'  and src='05' ";
+                        $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                    }
+
+                    if($MrvalPrev2==$val && $zon=='22' && $MrdatPrev2>'2021-05-30') {
+                        $z = "update indications 
+                    set err_value=1
+                     where eic='$eic' and zon='22'  and src='05' ";
+                        $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                    }
+                }
+
+            if ($y == 3) {
+                if($MrvalPrev1==$val && $zon=='31' && $MrdatPrev1>'2021-05-30') {
+                    $z = "update indications 
+                    set err_value=1
+                     where eic='$eic' and zon='31'  and src='05' ";
+                    $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                }
+
+                if($MrvalPrev2==$val && $zon=='32' && $MrdatPrev2>'2021-05-30') {
+                    $z = "update indications 
+                    set err_value=1
+                     where eic='$eic' and zon='32'  and src='05' ";
+                    $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                }
+
+                if($MrvalPrev3==$val && $zon=='33' && $MrdatPrev3>'2021-05-30') {
+                    $z = "update indications 
+                    set err_value=1
+                     where eic='$eic' and zon='33'  and src='05' ";
+                    $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                }
+            }
+        }
+
+        debug('Таблица indications обработана');
+        return;
     }
 
     //  Обработка таблицы indications для САП
