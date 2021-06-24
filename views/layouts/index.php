@@ -259,7 +259,7 @@ AppAsset::register($this);
                                     ['label' => 'Формирование таблицы EERM для САП', 'url' => ['/site/form_eerm']],
                                     ['label' => 'Запись новых данных в 1 Клик [2021]', 'url' => ['/site/data_1click_2021']],
 //                                    ['label' => 'Сравнение файлов FACTS', 'url' => ['/site/cmpfact']],
-                                    ['label' => 'Получение информации из САП - потребление', 'url' => ['/site/consumption']],
+                                    ['label' => 'Получение информации из САП - Потребление', 'url' => ['/site/consumption']],
                                     ['label' => 'Проверка остатков - сборка счетов', 'url' => ['/site/integrity_ost']],
                                     ['label' => 'Получение информации из САП - общая', 'url' => ['/site/sap2cek']],
                                     ['label' => 'Запись информации в САП', 'url' => ['/site/value2sap']],
