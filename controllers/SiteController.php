@@ -20687,6 +20687,81 @@ where issubmit = 1";
 //        debug($r);
     }
 
+    // Получение данных из САП - потребление
+    public function actionConsumption()
+    {
+//        phpinfo();
+//        return;
+
+//        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
+        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/scs/sap/zint_ws_cconline_exp?sap-client=100';
+//        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
+//        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+//        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+        $lSoap = 'WEBFRGATE_CK'; /*логін*/
+        $pSoap = 'sjgi5n27'; /*пароль*/
+//        $eic_post = '62Z4276071413740';
+        $dherelo = 5;
+        $vkont = '2420002746';
+//        $vkont = '2120024753';
+//        $op_post ="011020939";  // 3 zones
+//        $op_post ="011010394";
+//        $op_post = "061113053";
+        $res = 'CK0101';
+
+        $options = [
+            'cache_wsdl'     => WSDL_CACHE_NONE,
+            'trace'          => 1,
+            'stream_context' => stream_context_create(
+                [
+                    'ssl' => [
+                        'verify_peer'       => false,
+                        'verify_peer_name'  => false,
+                        'allow_self_signed' => true
+                    ]
+                ]
+            )
+        ];
+
+        $adapter = new ccon_soap($hSoap, $lSoap, $pSoap);
+        $proc = "ZintCconlineGetData";
+        $arr = array(
+            $proc => array(
+                'IpPhone' => '',  //tel
+                'IpVkont' => $vkont,//OP
+            ),
+        );
+
+        $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
+//        $result = objectToArray($adapter->soap_blina($vkont, $proc));
+        debug($result);
+        return;
+
+        if (isset($result['EtAccounts']['item'])) {
+            $a_account = $result['EtAccounts']['item']['Vkona'];
+            $address = $result['EtAccounts']['item']['Address'];
+            $eic = $result['EtAccounts']['item']['Eic'];
+            $anlg = $result['EtAccounts']['item']['Anlage'];
+            $fio = $result['EtAccounts']['item']['Fio'];
+        }
+        debug($a_account);
+        debug($address);
+        debug($eic);
+        debug($fio);
+
+        //////SOAP інфа про ту --------------------------------
+        $proc2 = "ZintWsMrGetDeviceByanlage";
+        $arr2 = array(
+            $proc2 => array(
+                'IvAnlage' => $anlg,
+                'IvMrDate' => Date('Y-m-d'),
+            ),
+        );
+        $result2 = objectToArray($adapter->soap_blina($arr2[$proc2], $proc2));
+        debug($result2);
+        return;
+    }
+
     // Получение данных из САП
     public function actionSap2cek()
     {
@@ -20705,13 +20780,13 @@ where issubmit = 1";
 //        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
         $lSoap='WEBFRGATE_CK'; /*логін*/
         $pSoap='sjgi5n27'; /*пароль*/
-        $eic_post = '62Z8616696794223';
+//        $eic_post = '62Z4276071413740';
         $dherelo = 5;
-//        $op_post = '011039519';
+        $op_post = '011059763';
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
 //        $op_post = "061113053";
-        $res = 'CK0103';
+        $res = 'CK0101';
         $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
         $proc="ZintWsMrFindAccounts";
 //        $proc="ZintUplMrdataInd";
@@ -20720,12 +20795,13 @@ where issubmit = 1";
                 'IvArea'=>			$res,//якшо пошук по ОР то тут дільн нада
                 'IvCheckPeriod'=>	'',
                 'IvCompany'=>		'CK',
-                'IvEic'=>			$eic_post, //eic
+//                'IvEic'=>			$eic_post, //eic
+                'IvEic'=>			'', //eic
                 'IvMrData'=>		'',
                 'IvPhone'=>			'',  //tel
                 'IvSrccode'=>		'05', //джерело
-//                'IvVkona'=>			$op_post ,//OP
-                'IvVkona'=>			'' ,//OP
+                'IvVkona'=>			$op_post ,//OP
+//                'IvVkona'=>			'' ,//OP
             ),
         );
 
@@ -21198,7 +21274,6 @@ where issubmit = 1";
         debug('Інформацію записано');
     }
 
-
     //  Обработка таблицы indications для САП
     public function actionCheck_value_indications()
     {
@@ -21527,12 +21602,12 @@ where issubmit = 1";
         debug('Інформацію записано');
     }
 
-
 //  Передача показаний лич. кабинета в САП
     public function actionLk2sap()
     {
         // Данные подключения для приема показаний
         $hIPsap="192.168.1.7"; //1.7 - качество
+        // Это качество
         $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
         $lSoap='WEBFRGATE_CK'; /*логін*/
         $pSoap='sjgi5n27'; /*пароль*/
@@ -21540,6 +21615,7 @@ where issubmit = 1";
         // Данные подключения для передачи показаний
         $lSoap_s= 'CKSOAPMETER';
         $pSoap_s= 'aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/';
+        // Это качество
         $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
         $op_post = '011030775';   // 1 zone
         $res = 'CK0108';
@@ -21790,6 +21866,8 @@ where issubmit = 1";
                 echo $e;
             }
         }
+
+        // --------------------------------------------
     }
 
     // Передача показаний из indications в САП
@@ -22086,6 +22164,48 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
         $res=Neuro_hopfild_func2($vv1,$vv2,$vv3);
        debug($res);
     }
+
+    // Тест функций нейросети Хопфилда
+    public function actionNeuro_hopfild_fun3()
+    {
+        $y=[1,-1,1,-1,1];
+        $v1=[-1,1,-1,1,1];
+        $v2=[1,-1,1,1,-1];
+        $v3=[-1,1,-1,-1,1];
+
+        $vv1=Neuro_hopfild_func1($v1);
+//        debug($vv1);
+        $vv2=Neuro_hopfild_func1($v2);
+//        debug($vv2);
+        $vv3=Neuro_hopfild_func1($v3);
+//        debug($vv3);
+        $x=Neuro_hopfild_func2($vv1,$vv2,$vv3);
+        debug($x);
+        $res=Neuro_hopfild_func3($x,$y);
+        debug($res);
+
+//        if(eq_vector($v4,$v5)==1)
+        $r='$q=eq_vector($res,$v';
+        $k=0;
+        for($j=0;$j<10;$j++) {
+            $out = 0;
+            for ($i = 1; $i <= 3; $i++) {
+                eval($r . $i . ');');
+
+                if ($q == 1) {
+                    $out = $i;
+                    $u[$k] = $i;
+                    $k++;
+                    break;
+                }
+
+            }
+            $res=Neuro_hopfild_func3($x,$res);
+        }
+        debug($u);
+
+    }
+
     // Тест функций нейросети Хопфилда
     // Функция активации
     public function actionNeuro_hopfild_fun4()

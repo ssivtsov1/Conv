@@ -14,10 +14,17 @@ class Ccon_soap{
         $result='';
         $this->params = $params;
         $this->proc = $proc;
-        $client = new \SoapClient($this->hSoap,array('login' => $this->lSoap,'password' => $this->pSoap,'soap_version' => SOAP_1_2,'encoding' => 'UTF-8','trace' => true,));
+        $context = stream_context_create(array(     'ssl' => array(         'verify_peer' => false,         'verify_peer_name' => false,         'allow_self_signed' => true     ) ));
+        $client = new \SoapClient($this->hSoap,array('login' => $this->lSoap,'password' => $this->pSoap,'soap_version' => SOAP_1_2,'encoding' => 'UTF-8','trace' => true,
+            'cache_wsdl' => WSDL_CACHE_NONE,
+            'verify_peer' => false,
+            'verify_peer_name' =>false,
+            'allow_self_signed' => true
+            ));
 
         try{
             $result = $client->__soapCall($this->proc, array($this->params));
+
         }
         catch(Exception $e){
             echo($client->__getLastResponse());
