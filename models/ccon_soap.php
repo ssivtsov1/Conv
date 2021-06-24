@@ -19,7 +19,9 @@ class Ccon_soap{
             'cache_wsdl' => WSDL_CACHE_NONE,
             'verify_peer' => false,
             'verify_peer_name' =>false,
-            'allow_self_signed' => true
+            'allow_self_signed' => true,
+            "exception" => 0,
+            
             ));
 
         try{
