@@ -16,12 +16,12 @@ class Ccon_soap{
         $this->proc = $proc;
         $context = stream_context_create(array(     'ssl' => array(         'verify_peer' => false,         'verify_peer_name' => false,         'allow_self_signed' => true     ) ));
         $client = new \SoapClient($this->hSoap,array('login' => $this->lSoap,'password' => $this->pSoap,'soap_version' => SOAP_1_2,'encoding' => 'UTF-8','trace' => true,
-            'cache_wsdl' => WSDL_CACHE_NONE,
-            'verify_peer' => false,
-            'verify_peer_name' =>false,
-            'allow_self_signed' => true,
-            "exception" => 0,
-            
+//            'cache_wsdl' => WSDL_CACHE_NONE,
+//            'verify_peer' => false,
+//            'verify_peer_name' =>false,
+//            'allow_self_signed' => true,
+//            "exception" => 0,
+
             ));
 
         try{
