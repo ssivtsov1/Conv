@@ -20694,7 +20694,11 @@ where issubmit = 1";
 //        return;
 
 //        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
-        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/scs/sap/zint_ws_cconline_exp?sap-client=100';
+//        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/scs/sap/zint_ws_cconline_exp?sap-client=100';
+
+//        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_cconline_exp?sap-client=100';
+        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_cconline_exp?sap-client=100';
+
 //        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
 //        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
 //        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
@@ -20702,7 +20706,7 @@ where issubmit = 1";
         $pSoap = 'sjgi5n27'; /*пароль*/
 //        $eic_post = '62Z4276071413740';
         $dherelo = 5;
-        $vkont = '2420002746';
+        $vkont = '2410050546';
 //        $vkont = '2120024753';
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
@@ -20780,12 +20784,13 @@ where issubmit = 1";
 //        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
         $lSoap='WEBFRGATE_CK'; /*логін*/
         $pSoap='sjgi5n27'; /*пароль*/
-//        $eic_post = '62Z4276071413740';
+        $eic_post = '62Z2793955512253';
         $dherelo = 5;
-        $op_post = '011059763';
+//        $op_post = '011059763';
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
 //        $op_post = "061113053";
+        $op_post = "";
         $res = 'CK0101';
         $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
         $proc="ZintWsMrFindAccounts";
@@ -20796,7 +20801,7 @@ where issubmit = 1";
                 'IvCheckPeriod'=>	'',
                 'IvCompany'=>		'CK',
 //                'IvEic'=>			$eic_post, //eic
-                'IvEic'=>			'', //eic
+                'IvEic'=>			$eic_post, //eic
                 'IvMrData'=>		'',
                 'IvPhone'=>			'',  //tel
                 'IvSrccode'=>		'05', //джерело
@@ -21283,7 +21288,12 @@ where issubmit = 1";
 
         // Данные подключения для передачи показаний
         $adapter = new ccon_soap($hSoap, $lSoap, $pSoap);
-        $sql = "select * from indications where src='05' and zon<>'11'"; // and dt='2021-05-05'  order by dt";
+//        $sql = "select * from indications where src='05'"; // and zon<>'11'"; // and dt='2021-05-05'  order by dt";
+        $sql = "select a.*,b.total from indications a 
+                    left join
+                    (select eic,sum(val) as total from indications
+                    group by 1) b on a.eic=b.eic
+                    where a.src='05'";
         $data = \Yii::$app->db_pg_first_server->createCommand($sql)->queryAll();
         $j=0;
         $f=fopen('a_indic.txt','w+');
@@ -21294,6 +21304,7 @@ where issubmit = 1";
             $eic = $v['eic'];
             $device = $v['device'];
             $val = $v['val'];
+            $total = $v['total'];
             $zon = $v['zon'];
             $dt = $v['dt'];
             $bo2 = $v['bo2'];
@@ -21371,6 +21382,7 @@ where issubmit = 1";
                     $MrdatPrev1 = $result2['EtScales']['item'][0]['MrdatPrev'];
                     $MrvalPrev2 = $result2['EtScales']['item'][1]['MrvalPrev'];
                     $MrdatPrev2 = $result2['EtScales']['item'][1]['MrdatPrev'];
+                    $total_all = $MrvalPrev1+$MrvalPrev2;
                 }
                 if ($y == 3)  // 3 zones
                 {
@@ -21380,6 +21392,7 @@ where issubmit = 1";
                     $MrdatPrev2 = $result2['EtScales']['item'][1]['MrdatPrev'];
                     $MrvalPrev3 = $result2['EtScales']['item'][2]['MrvalPrev'];
                     $MrdatPrev3 = $result2['EtScales']['item'][2]['MrdatPrev'];
+                    $total_all = $MrvalPrev1+$MrvalPrev2+$MrvalPrev3;
                 }
             }
 
@@ -21389,25 +21402,39 @@ where issubmit = 1";
 //        return;
 
 //            if (trim($counterSN) != trim($device)) {
-                if ($single_zone == 1) {
+
+                   if ($single_zone == 1) {
                     // $MrvalPrev>=$val
-                    if($MrvalPrev==$val && $MrdatPrev>'2021-05-30') {
+                    if($MrvalPrev>$val) {
                         $z = "update indications 
                             set err_value=1
                             where eic='$eic' and src='05'";
                         $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                     }
+                    if(($val-$MrvalPrev)>=3000) {
+                        $z = "update indications 
+                            set err_value=2
+                            where eic='$eic' and src='05'";
+                        $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                    }
+
                 }
 
                 if ($y == 2) {
-                    if($MrvalPrev1==$val && $zon=='21' && $MrdatPrev1>'2021-05-30') {
+                    if($MrvalPrev1>$val && $zon=='21') {
                         $z = "update indications 
                     set err_value=1
                      where eic='$eic' and zon='21'  and src='05' ";
                         $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                     }
+                    if(($total-$total_all)>=3000 && $zon=='21') {
+                        $z = "update indications 
+                         set err_value=2
+                        where eic='$eic'  and src='05' ";
+                        $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                    }
 
-                    if($MrvalPrev2==$val && $zon=='22' && $MrdatPrev2>'2021-05-30') {
+                    if($MrvalPrev2>$val && $zon=='22') {
                         $z = "update indications 
                     set err_value=1
                      where eic='$eic' and zon='22'  and src='05' ";
@@ -21416,26 +21443,40 @@ where issubmit = 1";
                 }
 
             if ($y == 3) {
-                if($MrvalPrev1==$val && $zon=='31' && $MrdatPrev1>'2021-05-30') {
+                if($MrvalPrev1>$val && $zon=='31') {
                     $z = "update indications 
                     set err_value=1
                      where eic='$eic' and zon='31'  and src='05' ";
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                 }
 
-                if($MrvalPrev2==$val && $zon=='32' && $MrdatPrev2>'2021-05-30') {
+                if($MrvalPrev2>$val && $zon=='32') {
                     $z = "update indications 
                     set err_value=1
                      where eic='$eic' and zon='32'  and src='05' ";
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                 }
 
-                if($MrvalPrev3==$val && $zon=='33' && $MrdatPrev3>'2021-05-30') {
+                if(($total-$total_all)>=3000 && $zon=='31') {
+                    $z = "update indications 
+                         set err_value=2
+                        where eic='$eic'  and src='05' ";
+                    $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+                }
+
+                if($MrvalPrev3>$val && $zon=='33') {
                     $z = "update indications 
                     set err_value=1
                      where eic='$eic' and zon='33'  and src='05' ";
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                 }
+            }
+
+            if(trim($counterSN)<>trim($device)) {
+                $z = "update indications 
+                            set err_value=3
+                            where eic='$eic' and src='05'";
+                $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
             }
         }
 
@@ -21899,7 +21940,9 @@ sum(case when zon='22' then coalesce(val,0) end) as val22,
 sum(case when zon='31' then coalesce(val,0) end) as val31,
 sum(case when zon='32' then coalesce(val,0) end) as val32,
 sum(case when zon='33' then coalesce(val,0) end) as val33
- from indications where retcode='2' and zon<>'11'
+ from indications 
+ -- where retcode='2' and zon<>'11' 
+ where src='05' and err_value is null
  group by  bo2,src,eic,dt,hhmm,device,zon
  order by eic) x
  group by  bo2,src,eic,dt,device
@@ -21910,6 +21953,7 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
         foreach ($data as $v) {
             $eic = $v['eic'];
             $device = $v['device'];
+            $val11 = $v['val11'];
             $val21 = $v['val21'];
             $val22 = $v['val22'];
             $val31 = $v['val31'];
@@ -21994,10 +22038,10 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
             $curtime = date("Hi");
             $bukrs = 'CK01';
 
-            if(1==2) {
+            if(1==1) {
                 if ($zonna == 1) {
 
-                    $a_z1 = $val;
+                    $a_z1 = $val11;
                     $params = array(
                         'Srccode' => $src,
                         'Bukrs' => $bukrs,
@@ -22123,7 +22167,7 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
                     echo "<br>";
                     $cls = 'okok';
                     $z = "update indications 
-                            set err_cek='обновлено в САП'
+                            set report='обновлено в САП'
                             where eic='$eic'";
 
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
@@ -22220,4 +22264,26 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
 }
 
 
-
+//
+//protected function getTree()
+//{
+//    $tree = [];
+//    $j=0;
+//    $f=fopen('aaaaa.txt','w+');
+//    foreach ($this->data as $id => &$node) {
+//        $k=$id;
+//        if (!$node['parent_id']) {
+//            $tree[$id] = &$node;
+//        }
+//        else {
+//            fputs($f,$node['parent_id']);
+//            if ($node['parent_id'] == $k) {
+//                if ($j == 0)
+//                    $this->data[$node['parent_id']]['childs'][$node['id']] = &$node;
+//                $j++;
+//            }
+//        }
+//
+//    }
+//    return $tree;
+//}
