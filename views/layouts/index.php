@@ -178,6 +178,15 @@ AppAsset::register($this);
                                     ['label' => 'Сравнение строк', 'url' => ['/site/cmp_str']],
                                 ]
                         ],
+                        ['label' => 'Экспорт в САП', 'url' => ['/sprav/sprav_pokaz'],
+                            'options' => ['id' => 'down_menu'],
+                            'items' =>
+                                [
+                                    ['label' => 'Обработка таблицы indications для САП (сравнение показателей)', 'url' => ['/site/check_value_indications']],
+                                    ['label' => 'Передача показаний из indications в САП', 'url' => ['/site/indic2sap']],
+
+                                ]
+                        ],
                         ['label' => 'Текущие работы', 'url' => ['/sprav/sprav_pokaz'],
                             'options' => ['id' => 'down_menu'],
                             'items' =>
@@ -346,7 +355,7 @@ AppAsset::register($this);
                                     ],
                                 ]
                          ],
-                        ['label' => 'миг. САП', 'url' => ['/sap/general']],
+//                        ['label' => 'миг. САП', 'url' => ['/sap/general']],
                         ['label' => 'О сайте', 'url' => ['/site/about']],
                     ],
             ]);

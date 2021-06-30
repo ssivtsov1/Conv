@@ -15,7 +15,7 @@ body {
 }
 
 .navbar > .container .navbar-brand, .navbar > .container-fluid .navbar-brand{
-    margin-left: -115px;
+    margin-left: -175px;
 }
 
 .footer {
@@ -378,4 +378,7 @@ width: 220px;
 .test {
     margin-left: 5%;
     margin-top: 5%;
+}
+.navbar-right {
+    margin-right: -85px;
 }

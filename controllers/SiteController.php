@@ -21295,6 +21295,19 @@ where issubmit = 1";
                     group by 1) b on a.eic=b.eic
                     where a.src='05'";
         $data = \Yii::$app->db_pg_first_server->createCommand($sql)->queryAll();
+
+        $z1 = "Select *
+        From INFORMATION_SCHEMA.COLUMNS
+        Where Table_Name = 'indications' and column_name='report'";
+        $data_1 = \Yii::$app->db_pg_first_server->createCommand($z1)->queryAll();
+
+        if (count($data_1) == 0){
+        // Создаем колонку report
+            $z = "alter table indications
+                add column report char(255)";
+        $data_0 = \Yii::$app->db_pg_first_server->createCommand($z)->queryAll();
+    }
+
         $j=0;
         $f=fopen('a_indic.txt','w+');
         foreach ($data as $v) {
