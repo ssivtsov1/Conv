@@ -22166,6 +22166,7 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
                     echo "Ваші показники внесено!";
                     echo "<br>";
                     $cls = 'okok';
+                    // Признак ставим
                     $z = "update indications 
                             set report='обновлено в САП'
                             where eic='$eic'";
