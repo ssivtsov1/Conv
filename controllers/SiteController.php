@@ -20784,7 +20784,7 @@ where issubmit = 1";
 //        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
         $lSoap='WEBFRGATE_CK'; /*логін*/
         $pSoap='sjgi5n27'; /*пароль*/
-        $eic_post = '62Z2793955512253';
+        $eic_post = '62Z1899153225220';
         $dherelo = 5;
 //        $op_post = '011059763';
 //        $op_post ="011020939";  // 3 zones
@@ -20812,7 +20812,7 @@ where issubmit = 1";
 
         $result=objectToArray($adapter->soap_blina($arr[$proc],$proc));
         debug($result);
-//        return;
+        return;
 
         if(isset($result['EtAccounts']['item'])) {
             $a_account = $result['EtAccounts']['item']['Vkona'];
@@ -21313,9 +21313,11 @@ where issubmit = 1";
         $f=fopen('a_indic.txt','w+');
         foreach ($data as $v) {
             $j++;
-            fputs($f,$j);
-            fputs($f,"\n");
             $eic = $v['eic'];
+            fputs($f,$j);
+            fputs($f,' ');
+            fputs($f,$eic);
+            fputs($f,"\n");
             $device = $v['device'];
             $val = $v['val'];
             $total = $v['total'];
@@ -21339,10 +21341,10 @@ where issubmit = 1";
 
             $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
 
-//            debug($result);
+            debug($eic);
 //        return;
 
-            if (isset($result['EtAccounts']['item'])) {
+            if (isset($result['EtAccounts']['item']['Vkona'])) {
                 $a_account = $result['EtAccounts']['item']['Vkona'];
                 $address = $result['EtAccounts']['item']['Address'];
                 $eic = $result['EtAccounts']['item']['Eic'];
