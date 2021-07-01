@@ -21341,15 +21341,19 @@ where issubmit = 1";
 
             $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
 
-            debug($eic);
+//            debug($eic);
 //        return;
-
+            $flag=0;
             if (isset($result['EtAccounts']['item']['Vkona'])) {
                 $a_account = $result['EtAccounts']['item']['Vkona'];
                 $address = $result['EtAccounts']['item']['Address'];
                 $eic = $result['EtAccounts']['item']['Eic'];
                 $anlg = $result['EtAccounts']['item']['Anlage'];
                 $fio = $result['EtAccounts']['item']['Fio'];
+            }
+            else
+            {
+                $flag=1;
             }
 //        debug($a_account);
 //        debug($address);
@@ -21491,6 +21495,13 @@ where issubmit = 1";
             if(trim($counterSN)<>trim($device)) {
                 $z = "update indications 
                             set err_value=3,retcode='0'
+                            where eic='$eic' and src='05'";
+                $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
+            }
+            if($flag==1) {
+                // нет счета в САП
+                $z = "update indications 
+                            set err_value=4,retcode='0'
                             where eic='$eic' and src='05'";
                 $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
             }
