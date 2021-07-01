@@ -21289,12 +21289,6 @@ where issubmit = 1";
         // Данные подключения для передачи показаний
         $adapter = new ccon_soap($hSoap, $lSoap, $pSoap);
 //        $sql = "select * from indications where src='05'"; // and zon<>'11'"; // and dt='2021-05-05'  order by dt";
-        $sql = "select a.*,b.total from indications a 
-                    left join
-                    (select eic,sum(val) as total from indications
-                    group by 1) b on a.eic=b.eic
-                    where a.src='05'";
-        $data = \Yii::$app->db_pg_first_server->createCommand($sql)->queryAll();
 
         $z1 = "Select *
         From INFORMATION_SCHEMA.COLUMNS
@@ -21302,11 +21296,18 @@ where issubmit = 1";
         $data_1 = \Yii::$app->db_pg_first_server->createCommand($z1)->queryAll();
 
         if (count($data_1) == 0){
-        // Создаем колонку report
+            // Создаем колонку report
             $z = "alter table indications
                 add column report char(255)";
-        $data_0 = \Yii::$app->db_pg_first_server->createCommand($z)->queryAll();
-    }
+            $data_0 = \Yii::$app->db_pg_first_server->createCommand($z)->queryAll();
+        }
+
+        $sql = "select a.*,b.total from indications a 
+                    left join
+                    (select eic,sum(val) as total from indications
+                    group by 1) b on a.eic=b.eic
+                    where a.src='05' and report is null";
+        $data = \Yii::$app->db_pg_first_server->createCommand($sql)->queryAll();
 
         $j=0;
         $f=fopen('a_indic.txt','w+');
@@ -21420,13 +21421,13 @@ where issubmit = 1";
                     // $MrvalPrev>=$val
                     if($MrvalPrev>$val) {
                         $z = "update indications 
-                            set err_value=1
+                            set err_value=1,retcode='0'
                             where eic='$eic' and src='05'";
                         $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                     }
                     if(($val-$MrvalPrev)>=3000) {
                         $z = "update indications 
-                            set err_value=2
+                            set err_value=2,retcode='0'
                             where eic='$eic' and src='05'";
                         $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                     }
@@ -21436,20 +21437,20 @@ where issubmit = 1";
                 if ($y == 2) {
                     if($MrvalPrev1>$val && $zon=='21') {
                         $z = "update indications 
-                    set err_value=1
+                    set err_value=1,retcode='0'
                      where eic='$eic' and zon='21'  and src='05' ";
                         $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                     }
                     if(($total-$total_all)>=3000 && $zon=='21') {
                         $z = "update indications 
-                         set err_value=2
+                         set err_value=2,retcode='0'
                         where eic='$eic'  and src='05' ";
                         $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                     }
 
                     if($MrvalPrev2>$val && $zon=='22') {
                         $z = "update indications 
-                    set err_value=1
+                    set err_value=1,retcode='0'
                      where eic='$eic' and zon='22'  and src='05' ";
                         $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                     }
@@ -21458,28 +21459,28 @@ where issubmit = 1";
             if ($y == 3) {
                 if($MrvalPrev1>$val && $zon=='31') {
                     $z = "update indications 
-                    set err_value=1
+                    set err_value=1,retcode='0'
                      where eic='$eic' and zon='31'  and src='05' ";
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                 }
 
                 if($MrvalPrev2>$val && $zon=='32') {
                     $z = "update indications 
-                    set err_value=1
+                    set err_value=1,retcode='0'
                      where eic='$eic' and zon='32'  and src='05' ";
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                 }
 
                 if(($total-$total_all)>=3000 && $zon=='31') {
                     $z = "update indications 
-                         set err_value=2
+                         set err_value=2,retcode='0'
                         where eic='$eic'  and src='05' ";
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                 }
 
                 if($MrvalPrev3>$val && $zon=='33') {
                     $z = "update indications 
-                    set err_value=1
+                    set err_value=1,retcode='0'
                      where eic='$eic' and zon='33'  and src='05' ";
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                 }
@@ -21487,7 +21488,7 @@ where issubmit = 1";
 
             if(trim($counterSN)<>trim($device)) {
                 $z = "update indications 
-                            set err_value=3
+                            set err_value=3,retcode='0'
                             where eic='$eic' and src='05'";
                 $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
             }
@@ -21955,7 +21956,7 @@ sum(case when zon='32' then coalesce(val,0) end) as val32,
 sum(case when zon='33' then coalesce(val,0) end) as val33
  from indications 
  -- where retcode='2' and zon<>'11' 
- where src='05' and err_value is null
+ where src='05' and (err_value is null or report is null)
  group by  bo2,src,eic,dt,hhmm,device,zon
  order by eic) x
  group by  bo2,src,eic,dt,device
@@ -22181,7 +22182,7 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
                     $cls = 'okok';
                     // Признак ставим
                     $z = "update indications 
-                            set report='обновлено в САП'
+                            set report='обновлено в САП',retcode='1'
                             where eic='$eic'";
 
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
