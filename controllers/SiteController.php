@@ -20784,13 +20784,13 @@ where issubmit = 1";
 //        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
         $lSoap='WEBFRGATE_CK'; /*логін*/
         $pSoap='sjgi5n27'; /*пароль*/
-        $eic_post = '62Z1899153225220';
+//        $eic_post = '62Z1899153225220';
         $dherelo = 5;
-//        $op_post = '011059763';
+        $op_post = '011010394';
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
 //        $op_post = "061113053";
-        $op_post = "";
+//        $op_post = "";
         $res = 'CK0101';
         $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
         $proc="ZintWsMrFindAccounts";
@@ -20801,7 +20801,7 @@ where issubmit = 1";
                 'IvCheckPeriod'=>	'',
                 'IvCompany'=>		'CK',
 //                'IvEic'=>			$eic_post, //eic
-                'IvEic'=>			$eic_post, //eic
+                'IvEic'=>			'', //eic
                 'IvMrData'=>		'',
                 'IvPhone'=>			'',  //tel
                 'IvSrccode'=>		'05', //джерело
@@ -20812,7 +20812,7 @@ where issubmit = 1";
 
         $result=objectToArray($adapter->soap_blina($arr[$proc],$proc));
         debug($result);
-        return;
+//        return;
 
         if(isset($result['EtAccounts']['item'])) {
             $a_account = $result['EtAccounts']['item']['Vkona'];
@@ -21979,6 +21979,7 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
 
         foreach ($data as $v) {
             $eic = $v['eic'];
+//            debug($eic);
             $device = $v['device'];
             $val11 = $v['val11'];
             $val21 = $v['val21'];
@@ -22008,14 +22009,16 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
             $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
 //        debug($result);
 //        return;
-
-            if (isset($result['EtAccounts']['item'])) {
+            $flag=0;
+            if (isset($result['EtAccounts']['item']['Vkona'])) {
                 $a_account = $result['EtAccounts']['item']['Vkona'];
                 $address = $result['EtAccounts']['item']['Address'];
                 $eic = $result['EtAccounts']['item']['Eic'];
                 $anlg = $result['EtAccounts']['item']['Anlage'];
                 $fio = $result['EtAccounts']['item']['Fio'];
             }
+            else
+                $flag=1;
 //        debug($a_account);
 //        debug($address);
 //        debug($eic);
@@ -22182,11 +22185,31 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
                         $done = '0';
                 }
                 else {
-                    if (is_object($result->Retdata->item[0]))
-                        $done = $result->Retdata->item[0]->Retcode;
-                    else
-                        $done = '0';
+                    $flag_r=1;
+//                    if($eic=='62Z0621029388682') {
+//                        debug($result);
+//                        return;
+//                    }
+                    $q=objectToArray($result->Retdata);
+//                    debug($q);
+//                    return;
+//                    if (!isset(objectToArray($result->Retdata->item[0])))  {$done = '0'; $flag_r=0;}
+                    if($flag_r==1) {
+                        if (isset($q['item'][0]))
+                            $done = $q['item'][0]['Retcode'];
+                        else
+                            $done = '0';
+                    }
 //                    continue;
+                }
+
+
+                if($flag==1){
+                    $z = "update indications 
+                            set retcode='1'
+                            where eic='$eic'";
+
+                    $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                 }
 
                 if ($done == '1') {
