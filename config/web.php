@@ -115,7 +115,8 @@ $config = [
         'db_sap'    => require(__DIR__ . '/db_sap.php'),
         'db_photo_tp'   => require(__DIR__ . '/db_photo_tp.php'),
         'db_pg_first_server'    => require(__DIR__ . '/db_pg_first_server.php'),
-
+        'db_pg_call_center'    => require(__DIR__ . '/db_pg_call_center.php'),
+        'db_sqlite'    => require(__DIR__ . '/db_sqlite.php'),
         'formatter' => [
         'class' => 'yii\i18n\Formatter',
         'decimalSeparator' => '.',

@@ -1,7 +1,7 @@
 <?php
 
 namespace app\controllers;
-
+use SQLite3;
 use app\models\off_site;
 use app\models\PoweroutagesForm;
 use app\models\Pract1;
@@ -589,6 +589,30 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+    // Импорт групп должностей для тел. справочника
+    public function actionImp_post()
+    {
+        $f = fopen('post.csv', 'r');
+        $i = 0;
+        while (!feof($f)) {
+            $i++;
+            $s = fgets($f);
+
+            $data = explode("~", $s);
+            if (!isset($data[1])) continue;
+
+            $sql = "INSERT INTO group_post (post,gpost) VALUES(" .
+                "'" . $data[0] . "'" . "," . "'" . $data[1] . "'" .
+                ')';
+
+            Yii::$app->db_phone->createCommand($sql)->execute();
+
+        }
+
+        fclose($f);
+
+        echo "Інформацію записано";
+    }
 
     // Импорт областей
     public function actionImp_obl()
@@ -637,6 +661,262 @@ WHERE year_p=0 and year_q>0';
         echo "Інформацію записано";
     }
 
+    // Импорт данных для фотофиксации
+    public function actionImp_photo_data(){
+        $file='task.xml';
+        $s = file_get_contents($file);
+        $p = xml_parser_create();
+        xml_parse_into_struct($p, $s, $vals, $index);
+        xml_parser_free($p);
+        $y=count($vals);
+//            debug($vals);
+//            return;
+        $lock=0;
+        $ready=0;
+        $j=0;
+        for($i=0;$i<$y;$i++){
+            $cur = trim($vals[$i]['tag']);
+            $mode = trim($vals[$i]['type']);
+            if(isset($vals[$i]['value']))
+                $value = trim($vals[$i]['value']);
+            else
+                $value = '';
+            if($cur=='TABLE') $lock=1;
+            if($cur=='ROW' &&  $mode=='open' && $lock==1) $ready=1;
+            if($cur=='DATA' && $ready==1 && !empty($value)) {
+                $mas[$j] = $value;
+                $j++;
+            }
+            if($cur=='CELL' &&  $mode=='close' && $lock==1) $ready=0;
+            if( $lock==1 &&  $mode=='complete' ) $lock=0;
+        }
+        // Преобразуем массив $mas в удобный для использования
+//        debug($mas);
+//        return;
+        $y=count($mas);
+        $j=0;
+        $output = [];
+        $k=0;
+        $start=0;
+        for($i=0;$i<$y;$i++){
+            $v=trim($mas[$i]);
+            if(mb_substr($v,0,1,'UTF-8')=='0' && mb_strlen($v,'UTF-8')==9) {
+                $j=$mas[$i-1];
+                $output[$j]['lic'] = $v;
+                if(isset($mas[$i+1]))
+                    $output[$j]['fio'] = $mas[$i+1];
+                if(isset($mas[$i+2]))
+                    $output[$j]['adr'] = $mas[$i+2];
+                if(isset($mas[$i+3]))
+                    $output[$j]['cnt'] = $mas[$i+3];
+                if(isset($mas[$i+4]))
+                    $output[$j]['val'] = $mas[$i+4];
+                if(isset($mas[$i+5]))
+                    $output[$j]['date'] = $mas[$i+5];
+                if(isset($mas[$i+6])) {
+                    if(mb_substr($mas[$i + 6],0,4,'UTF-8') == 'зона')  $output[$j]['zone'] = $mas[$i + 6];
+                    else
+                        $output[$j]['zone'] = '';
+                    $k=1;
+                }
+                else {
+                    $k = 0;
+                  }
+
+                if($k==1)
+                    $i=$i+6;
+                else
+                    $i=$i+5;
+            }
+        }
+
+//        debug($output);
+        // Формируем строку из списка лицевых счетов для запроса в WHERE
+        $s='';
+        $i=0;
+        foreach ($output as $v) {
+            $s = $s . "'" . $v['lic'] . "',";
+            $lic[$i] = $v['lic'];
+            $i++;
+        }
+        $s=substr($s,0,-1);
+//        Составляем запрос для выборки из кол-центра
+        $sql = "select a.*,e.resparentid as res,e.xcity,g.stype,c.street,b.house_no,b.corpus,d.htype from accounts a
+                    left join house b on a.houseid=b.houseid
+                    left join street c on a.streetid=c.streetid
+                    left join housetype d on b.htypeid=d.htypeid
+                    left join xcity e on c.koid=e.kocode::int
+                    left join stype g on c.stypeid=g.stypeid
+                    WHERE a.account in ($s)";
+
+        $data = \Yii::$app->db_pg_call_center->createCommand($sql)->queryAll();
+//        $i=0;
+//        $res=[];
+//        foreach ($data as $v) {
+//            $acc = trim($v['account']);
+//            if(find_str($s,$acc)==-1) {
+//                $res[$i] = $acc;
+//                $i++;
+//            }
+//        }
+//        debug($data);
+//        return;
+
+        // Формируем базу SQLite
+        $db = new SQLite3("LS.db");
+//        return;
+        $sql = "DELETE FROM LSTable";
+        $result = $db->exec($sql);
+        $sql = "DELETE FROM region";
+        $result = $db->exec($sql);
+        $sql = "DELETE FROM prom";
+        $result = $db->exec($sql);
+        $sql = "DELETE FROM street";
+        $result = $db->exec($sql);
+        $sql = "DELETE FROM tochki_uchota";
+        $result = $db->exec($sql);
+//        return;
+// Заполняем таблицу LSTable
+        foreach ($data as $v) {
+            $res = trim($v['res']);
+            $pib = str_replace("'", '`', $v['pib']);
+            $adr = trim(str_replace("'", '`',$v['xcity'])) . ' ' . trim(str_replace("'", '`',$v['stype'])) . ' ' .
+                trim(str_replace("'", '`',$v['street'])) . ' ' . trim($v['house_no']) .  ' ' . trim($v['corpus']) . ' ' . trim($v['flat']) ;
+            $region_id=$res;
+            $ls = trim($v['account']);
+            if(!empty($v['corpus']))
+                $home = trim($v['house_no']) .  ' ' . trim($v['corpus']);
+            else
+                $home = trim($v['house_no']);
+
+            $street_id = trim($v['streetid']);
+
+                $flat = trim($v['flat']);
+            if(empty($flat))
+                $flat = '';
+
+            $sql = "INSERT INTO LSTable (res,ls,name,adres,region_id,street_id,home,flat) VALUES ($res, '$ls','$pib','$adr',
+                                                            $region_id,$street_id,'$home','$flat')";
+//            debug($sql);
+//            return;
+            $result = $db->exec($sql);
+
+        }
+        // Заполняем таблицу street
+        $sql = "select coalesce(e.resparentid,100) as res_id,a.streetid as id,b.stype as types,
+                    a.street as names,upper(a.street) as name_up from street a 
+                    left join stype b on a.stypeid=b.stypeid
+                    left join xcity e on a.koid=e.kocode::int";
+        $data = \Yii::$app->db_pg_call_center->createCommand($sql)->queryAll();
+        foreach ($data as $v) {
+            $names = str_replace("'", '`', $v['names']);
+            $name_up = str_replace("'", '`', $v['name_up']);
+            $res_id = $v['res_id'];
+            $id = $v['id'];
+            $types = trim($v['types']);
+            $sql = "INSERT INTO street (res_id,id,types,names,name_up) VALUES ($res_id, $id,'$types',
+                                                           '$names','$name_up')";
+//            debug($sql);
+//            return;
+            $result = $db->exec($sql);
+//            return;
+
+        }
+
+// Заполняем таблицу region
+        $sql = "INSERT INTO region (res_id,id,names) VALUES (100, 100,'Дніпро')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO region (res_id,id,names) VALUES (200, 200 ,'Жовті Води')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO region (res_id,id,names) VALUES (300, 300 , 'Вільногірськ')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO region (res_id,id,names) VALUES (400, 400, 'Павлоград')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO region (res_id,id,names) VALUES (500, 500, 'Кривий Ріг')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO region (res_id,id,names) VALUES (600, 600, 'Апостолово')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO region (res_id,id,names) VALUES (700, 700, 'Гвардійське')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO region (res_id,id,names) VALUES (800, 800, 'Інгулець')";
+        $result = $db->exec($sql);
+
+        debug('Базу сформовано');
+    }
+
+    // Гипотеза Коллатца
+    public function actionKollats(){
+        for($a=32;$a<=140;$a++) {
+            $i = 0;
+            $n=$a;
+            $s='';
+            while ($n <> 1) {
+                if ($n % 2 == 0) {
+                    $n = $n / 2;
+                    $s.='0';
+                }
+                else {
+                    $n = 3 * $n + 1;
+                    $s.='1';
+                }
+                $mas[$a][$i] = $n;
+                $mas1[$a][$i] = $s;
+                $i++;
+
+            }
+            echo $a . ' ' . ($i-1);
+            echo '<br>';
+        }
+        debug($mas);
+//        debug($mas1);
+    }
+
+// Импорт данных для фотофиксации - формирование базы spr.db
+    public function actionForm_spr_db(){
+        // Формируем базу SQLite
+        $db = new SQLite3("spr.db");
+        $sql = "DELETE FROM spr_res";
+        $result = $db->exec($sql);
+        $sql = "DELETE FROM users";
+        $result = $db->exec($sql);
+
+// Заполняем таблицу spr_res
+            $sql = "INSERT INTO spr_res (id,names) VALUES (100, 'Дніпропетровський РЕМ')";
+            $result = $db->exec($sql);
+        $sql = "INSERT INTO spr_res (id,names) VALUES (200, 'Жовтоводський РЕМ')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO spr_res (id,names) VALUES (300, 'Вільногірська дільниця')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO spr_res (id,names) VALUES (400, 'Павлоградський РЕМ')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO spr_res (id,names) VALUES (500, 'Криворізький РЕМ')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO spr_res (id,names) VALUES (600, 'Апостолівська дільниця')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO spr_res (id,names) VALUES (700, 'Гвардійська дільниця')";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO spr_res (id,names) VALUES (800, 'Інгулецька дільниця')";
+        $result = $db->exec($sql);
+
+        // Заполняем таблицу users
+        $sql = "INSERT INTO users (id,user,password,fio,prof,res_id,tn) VALUES (1, 'Dnepr','100','Дніпропетровський РЕМ','',100,1)";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO users (id,user,password,fio,prof,res_id,tn) VALUES (2, 'Zv','200','Жовтоводський РЕМ','',200,2)";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO users (id,user,password,fio,prof,res_id,tn) VALUES (3, 'Vg','300','Вільногірська дільниця','',300,3)";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO users (id,user,password,fio,prof,res_id,tn) VALUES (4, 'Pv','400','Павлоградський РЕМ','',400,4)";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO users (id,user,password,fio,prof,res_id,tn) VALUES (5, 'Krg','500','Криворізький РЕМ','',500,5)";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO users (id,user,password,fio,prof,res_id,tn) VALUES (6, 'Ap','600','Апостолівська дільниця','',600,6)";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO users (id,user,password,fio,prof,res_id,tn) VALUES (7, 'Gv','700','Гвардійська дільниця','',700,7)";
+        $result = $db->exec($sql);
+        $sql = "INSERT INTO users (id,user,password,fio,prof,res_id,tn) VALUES (8, 'In','800','Інгулецька дільниця','',800,8)";
+        $result = $db->exec($sql);
+        debug('Базу spr.db сформовано');
+    }
 
     // Сравнение файлов FACTS
     public function actionCmpfact()
@@ -20697,7 +20977,7 @@ where issubmit = 1";
 //        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/scs/sap/zint_ws_cconline_exp?sap-client=100';
 
 //        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_cconline_exp?sap-client=100';
-        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_cconline_exp?sap-client=100';
+        $hSoap='http://erppr3.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_cconline_exp?sap-client=100';
 
 //        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
 //        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
@@ -20706,7 +20986,7 @@ where issubmit = 1";
         $pSoap = 'sjgi5n27'; /*пароль*/
 //        $eic_post = '62Z4276071413740';
         $dherelo = 5;
-        $vkont = '2410050546';
+        $vkont = '2410015917';
 //        $vkont = '2120024753';
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
@@ -20780,13 +21060,15 @@ where issubmit = 1";
 //        $hSoap='http://192.168.1.7:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
 
 //        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
-        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $hSoap = 'http://erppr3.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+//        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
 //        $hSoap='http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
         $lSoap='WEBFRGATE_CK'; /*логін*/
         $pSoap='sjgi5n27'; /*пароль*/
 //        $eic_post = '62Z1899153225220';
         $dherelo = 5;
-        $op_post = '011010394';
+        $op_post = '011017620';
+//        $op_post =  "011000243";
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
 //        $op_post = "061113053";
@@ -20976,23 +21258,23 @@ where issubmit = 1";
     {
         // Данные подключения для приема показаний
         $hIPsap="192.168.1.7"; //1.7 - качество
-//        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
-        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
+//        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
         $lSoap='WEBFRGATE_CK'; /*логін*/
         $pSoap='sjgi5n27'; /*пароль*/
 
         // Данные подключения для передачи показаний
         $lSoap_s= 'CKSOAPMETER';
         $pSoap_s= 'aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/';
-//        $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
-        $hSoap_s = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
-        $eic_post = '62Z5491766185404';
+        $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+//        $hSoap_s = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
+        $eic_post = '';
 //        $op_post = '011039519';  // 2 zones
 //        $op_post ="011053029";  // 3 zones
-        $op_post = '011037491';   // 1 zone
-
+//        $op_post = '011013046';   // 1 zone
+        $op_post = '011004299';
 //        $op_post = '021001823';  // 1 zone Ж-Воды
-        $res = 'CK0103';
+        $res = 'CK0101';
         $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
 
         $proc="ZintWsMrFindAccounts";
@@ -21006,8 +21288,8 @@ where issubmit = 1";
                 'IvMrData'=>		'',
                 'IvPhone'=>			'',  //tel
                 'IvSrccode'=>		'05', //джерело
-//                'IvVkona'=>			$op_post ,//OP
-                'IvVkona'=>			'' ,//OP
+                'IvVkona'=>			$op_post ,//OP
+//                'IvVkona'=>			'' ,//OP
             ),
         );
 
@@ -21071,7 +21353,7 @@ where issubmit = 1";
 
      //   $curdate = $result2['EtScales']['item']['MrdatPrev'];
 
-        $curdate = '2021-05-01';
+        $curdate = '2021-07-07';
 //        $curdate = date("Y-m-d");
         $curtime = date("Hi");
         $bukrs = 'CK01';
@@ -21081,15 +21363,15 @@ where issubmit = 1";
 
         ini_set('display_errors','On');
         ini_set("soap.wsdl_cache_enabled", "0");
-
+//        $eic
         if($zonna==1) {
 //            $a_z1 = ((int)$result2['EtScales']['item']['MrvalPrev']) + 125;
-            $a_z1 = 40013;
+            $a_z1 =23000;
             $params = array(
                 'Srccode' => '05',
                 'Bukrs' => $bukrs,
                 'Consdata' => array('item' => array(
-                    'Eic' => "$eic",
+                    'Eic' => "",
                     'Account' => "$a_account",
                     'Date' => $curdate,
                     'DateDb' => $curdate,
@@ -21108,11 +21390,13 @@ where issubmit = 1";
 
                 )
             );
+
+            debug($params);
         }
 
             if ($zonna==2) {
-                $a_z1 = 4246;
-                $a_z2 = 1141;
+                $a_z1 = 11000;
+                $a_z2 = 11000;
                 $params = array(
                     'Srccode' => '01',
                     'Bukrs' => $bukrs,
@@ -21134,6 +21418,12 @@ where issubmit = 1";
                                     'Zon' => '22',
                                     'Device' => $counterSN,
                                     'Data' => $a_z2,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '100',
+                                    'Zon' => '11',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z1+$a_z2,
                                     'Zwkenn' => ''
                                 )
                             )
@@ -21200,6 +21490,7 @@ where issubmit = 1";
                 $result = $client->__soapCall('ZintUplMrdataInd',  array($params));
 //                $result = $client->__soapCall('GETBILLINGINFO',  array($arr2));
                 debug($result);
+                return;
 
                 //new dBug($result);
 //                if(isset($_POST['a_zG'])) @$done = $result->Retdata->item[0]->Retcode[0];
@@ -21282,7 +21573,7 @@ where issubmit = 1";
     //  Обработка таблицы indications для САП
     public function actionCheck_value_indications()
     {
-        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $hSoap = 'http://erppr3.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
         $lSoap = 'WEBFRGATE_CK'; /*логін*/
         $pSoap = 'sjgi5n27'; /*пароль*/
 
@@ -21306,7 +21597,9 @@ where issubmit = 1";
                     left join
                     (select eic,sum(val) as total from indications
                     group by 1) b on a.eic=b.eic
-                    where a.src='05' and report is null";
+                    where a.src='05' and (report is null or err_value is null)
+                    --OFFSET 4090
+                    ";
         $data = \Yii::$app->db_pg_first_server->createCommand($sql)->queryAll();
 
         $j=0;
@@ -21431,7 +21724,7 @@ where issubmit = 1";
                             where eic='$eic' and src='05'";
                         $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                     }
-                    if(($val-$MrvalPrev)>=3000) {
+                    if(($val-$MrvalPrev)>=10000) {
                         $z = "update indications 
                             set err_value=2,retcode='0'
                             where eic='$eic' and src='05'";
@@ -21447,7 +21740,7 @@ where issubmit = 1";
                      where eic='$eic' and zon='21'  and src='05' ";
                         $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                     }
-                    if(($total-$total_all)>=3000 && $zon=='21') {
+                    if(($total-$total_all)>=10000 && $zon=='21') {
                         $z = "update indications 
                          set err_value=2,retcode='0'
                         where eic='$eic'  and src='05' ";
@@ -21477,7 +21770,7 @@ where issubmit = 1";
                     $data = Yii::$app->db_pg_first_server->createCommand($z)->execute();
                 }
 
-                if(($total-$total_all)>=3000 && $zon=='31') {
+                if(($total-$total_all)>=10000 && $zon=='31') {
                     $z = "update indications 
                          set err_value=2,retcode='0'
                         where eic='$eic'  and src='05' ";
@@ -21944,7 +22237,7 @@ where issubmit = 1";
         // Данные подключения для приема показаний
         $hIPsap="192.168.1.7"; //1.7 - качество
 
-        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $hSoap = 'http://erppr3.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
         $lSoap='WEBFRGATE_CK'; /*логін*/
         $pSoap='sjgi5n27'; /*пароль*/
 
@@ -21974,11 +22267,18 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
  order by eic) x
  group by  bo2,src,eic,dt,device
  order by eic
+ --offset 2328
  ";
         $data = \Yii::$app->db_pg_first_server->createCommand($sql)->queryAll();
-
+        $f=fopen('a_indic.txt','w+');
+        $j=0;
         foreach ($data as $v) {
             $eic = $v['eic'];
+            $j++;
+            fputs($f,$j);
+            fputs($f,' ');
+            fputs($f,$eic);
+            fputs($f,"\n");
 //            debug($eic);
             $device = $v['device'];
             $val11 = $v['val11'];
@@ -22123,6 +22423,12 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
                                         'Device' => $counterSN,
                                         'Data' => $val22,
                                         'Zwkenn' => ''
+                                    ),
+                                    array('Id' => '100',
+                                        'Zon' => '11',
+                                        'Device' => $counterSN,
+                                        'Data' =>  $val21+$val22,
+                                        'Zwkenn' => ''
                                     )
                                 )
                             )
@@ -22162,6 +22468,12 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
                                         'Zon' => '32',
                                         'Device' => $counterSN,
                                         'Data' => $a_z1,
+                                        'Zwkenn' => ''
+                                    ),
+                                    array('Id' => '100',
+                                        'Zon' => '11',
+                                        'Device' => $counterSN,
+                                        'Data' =>  $a_z1+$a_z2+$a_z3,
                                         'Zwkenn' => ''
                                     )
                                 )
@@ -22312,8 +22624,50 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
         }
     }
 
-}
+    // Динамическое программирование: подсчет ступенек
+    public function actionCstep()
+    {  $a[0]=1;
+        $a[1]=2;
 
+        $b[0]=1;
+        $b[1]=0;
+        $b[2]=1;
+        $b[3]=5;
+        $b[4]=2;
+        $b[5]=12;
+        $b[6]=4;
+        $b[7]=6;
+        $b[8]=1;
+//        $b[9]=2;
+        $n=9;  // Всего ступенек
+        $s=0;
+        $r=[];
+        $f=fopen('a_qqq.txt','w+');
+        for($i=2; $i<$n; $i++){
+             $a[$i] = $a[$i-1]+$a[$i-2];
+            fputs($f,$i);
+            if($b[$i-1]<$b[$i-2]) {
+                $z[$i - 2] = $b[$i - 1];
+
+                if(is_elem($r,($i - 1))==0) {
+                    $r[$i - 2] = $i - 1;
+                }
+            }
+            else {
+                $z[$i - 2] = $b[$i - 2];
+                if(is_elem($r,($i - 2))==0) {
+                    $r[$i - 2] = $i - 2;
+
+                }
+            }
+            $s=$s+$z[$i-2];
+        }
+            debug($z);
+            debug($r);
+            debug($s);
+            debug($a);
+        }
+}
 
 //
 //protected function getTree()
