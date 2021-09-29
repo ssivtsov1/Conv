@@ -107,6 +107,7 @@ $config = [
         'db_pg_local_energo'    => require(__DIR__ . '/db_pg_local_energo.php'),
         
         'db_mysql_loc' => require(__DIR__ . '/db_mysql_loc.php'),
+        'db_mysql_loc1' => require(__DIR__ . '/db_mysql_loc1.php'),
         'db_mysql_1'   => require(__DIR__ . '/db_mysql_1.php'),
         'db_mysql_2'   => require(__DIR__ . '/db_mysql_2.php'),
         'db_budget'   => require(__DIR__ . '/db_budget.php'),
@@ -115,6 +116,7 @@ $config = [
         'db_sap'    => require(__DIR__ . '/db_sap.php'),
         'db_photo_tp'   => require(__DIR__ . '/db_photo_tp.php'),
         'db_pg_first_server'    => require(__DIR__ . '/db_pg_first_server.php'),
+        'db_pg_viber'    => require(__DIR__ . '/db_pg_viber.php'),
         'db_pg_call_center'    => require(__DIR__ . '/db_pg_call_center.php'),
         'db_sqlite'    => require(__DIR__ . '/db_sqlite.php'),
         'formatter' => [

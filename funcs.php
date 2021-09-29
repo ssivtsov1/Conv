@@ -6922,3 +6922,84 @@ function is_elem($mas,$v) {
         return $flag;
 
 }
+
+// Преобразование числа в двоичную последовательность Коллатца
+    function num2Kollats($a){
+        $n=$a;
+        $s='';
+        $i = 0;
+        while ($n <> 1) {
+            if ($n % 2 == 0) {
+                $n = $n / 2;
+                $s.='0';
+            }
+            else {
+                $n = 3 * $n + 1;
+                $s.='1';
+            }
+            $mas[$i] = $s;
+            $i++;
+        }
+    return $mas[$i-1];
+}
+
+function mb_str_replace($search, $replace, $string)
+{
+    $charset = mb_detect_encoding($string);
+
+    $unicodeString = iconv($charset, "UTF-8", $string);
+
+    return str_replace($search, $replace, $unicodeString);
+}
+
+// Является ли данное число 5
+function proceed($number,$weights,$bias)
+{
+//    global $bias;
+    // Рассчитываем взвешенную сумму
+    $net = 0;
+    for ($i = 0; $i < 15; $i++)
+    {
+        $net = $net + $number[$i] * $weights[$i];
+    }
+//    debug($number);
+//    debug($weights);
+//    debug($net);
+//    debug($bias);
+
+    // Превышен ли порог? (Да - сеть думает, что это 5. Нет - сеть думает, что это другая цифра)
+    if($net >= $bias)
+        return 1;
+    else
+        return 0;
+}
+
+// Уменьшение значений весов, если сеть ошиблась и выдала 1
+function decrease($number,$weights)
+{
+//    global $weights;
+//    $weights = explode(',' , $weights);
+//    debug($weights);
+//    return;
+    for ($i = 0; $i < 15; $i++)
+    {
+        // Возбужденный ли вход
+        if ($number[$i] == '1')
+            // Уменьшаем связанный с ним вес на единицу
+            $weights[$i] = $weights[$i] - 1;
+    }
+    return $weights;
+}
+// Увеличение значений весов, если сеть ошиблась и выдала 0
+function increase($number,$weights)
+{
+//    global $weights;
+    for ($i = 0; $i < 15; $i++)
+    {
+        // Возбужденный ли вход
+        if ($number[$i] == '1')
+            // Увеличиваем связанный с ним вес на единицу
+            $weights[$i] = $weights[$i] + 1;
+    }
+    return $weights;
+}

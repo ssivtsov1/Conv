@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 use SQLite3;
+
 use app\models\off_site;
 use app\models\PoweroutagesForm;
 use app\models\Pract1;
@@ -42,6 +43,7 @@ use app\models\sap_connect;
 use app\models\TableForm;
 use app\models\Power_outages;
 //use Smalot\PdfParser\Parser;
+
 
 class SiteController extends Controller
 {
@@ -846,7 +848,7 @@ WHERE year_p=0 and year_q>0';
 
     // Гипотеза Коллатца
     public function actionKollats(){
-        for($a=32;$a<=140;$a++) {
+        for($a=32;$a<=36;$a++) {
             $i = 0;
             $n=$a;
             $s='';
@@ -867,9 +869,59 @@ WHERE year_p=0 and year_q>0';
             echo $a . ' ' . ($i-1);
             echo '<br>';
         }
-        debug($mas);
-//        debug($mas1);
+//        debug($mas);
+        debug($mas1);
+        debug(num2Kollats(36));
     }
+
+    // Кодирование файла по алгоритму Коллатца (расширение строки - антиархивация)
+    public function actionCodeclt(){
+        $byte = 8; // Константа
+        $filename = 'add_info_acc.txt';
+        $f=fopen('code.clt','w+');
+        $fr = fopen($filename,'r');
+        $str = fread($fr, filesize($filename));
+//        while (!feof($fr)) {
+//            $str = fgets($fr);
+//            $str='12345678';
+            // Преобразование строки в двоичный код Коллатца
+            $s = '';
+            $y = mb_strlen($str, 'UTF-8');
+            for ($i = 0; $i < $y; $i++) {
+                $c = mb_substr($str, $i, 1, 'UTF-8');
+                $code = ord($c);
+                $n = num2Kollats($code);  // Преобразуем код символа в код Коллатца
+//            debug($n);
+//            debug('<br>');
+                $n = substr($n, 0, -4) . '11';
+                $s .= $n;   // Сдесь создается код
+            }
+            // Разделяем длинную строку на байты (по 8 бит)
+            $y = ceil((strlen($s)) / $byte);
+            $k = 0;
+            for ($i = 0; $i < $y; $i++) {
+                $buf = substr($s, $k, $byte);
+                $k += 8; // Делаем смещение
+                $buf_r = str_pad($buf, $byte, '0');
+                $m = 8 - strlen($buf);  // Кол-во дополненных нулей в последнем байте
+                $dec = bindec($buf_r);  // Преобразуем двоичный код в десятичный
+                $c = chr($dec);
+                fputs($f, $c, 1);
+//                debug($c);
+//                debug('<br>');
+            }
+//        }
+//        debug($s);
+//        return;
+
+        // Формируем заголовок файла
+        fclose($f);
+        $head='CLT'.$m;
+        $head.= file_get_contents('code.clt') . PHP_EOL;
+        file_put_contents('code.clt', $head);
+        debug("Файл перекодирован");
+    }
+
 
 // Импорт данных для фотофиксации - формирование базы spr.db
     public function actionForm_spr_db(){
@@ -21067,7 +21119,7 @@ where issubmit = 1";
         $pSoap='sjgi5n27'; /*пароль*/
 //        $eic_post = '62Z1899153225220';
         $dherelo = 5;
-        $op_post = '011017620';
+        $op_post = '011053268';
 //        $op_post =  "011000243";
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
@@ -21804,6 +21856,589 @@ where issubmit = 1";
         return;
     }
 
+    //  Передача показаний из Viber в САП
+    public function actionViber2sap()
+    {
+        $hSoap = 'http://erppr3.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $lSoap = 'WEBFRGATE_CK'; /*логін*/
+        $pSoap = 'sjgi5n27'; /*пароль*/
+
+        // Данные подключения для передачи показаний
+        $adapter = new ccon_soap($hSoap, $lSoap, $pSoap);
+//        $sql = "select * from indications where src='05'"; // and zon<>'11'"; // and dt='2021-05-05'  order by dt";
+
+        $sql = "select v.*,
+case when zones=1 then '11'
+when zones=2 and id_zone=1 then '21'
+when zones=2 and id_zone=2 then '22' 
+when zones=3 and id_zone=1 then '32'
+when zones=3 and id_zone=2 then '33'
+when zones=3 and id_zone=3 then '31'
+end as zon,
+'CK010'||id_res/10 as bo2 from (
+select distinct a.*,
+q.total,q.zones from
+(select distinct a.id_res,a.id_zone,a.lic,a.dt_ind as dt,a.curr_ind::int as val,a.meter_num as device,status 
+from cc_indication a join 
+(select lic,id_zone,max(curr_dt) as curr_dt from cc_indication group by 1,2 order by 1) b
+on a.lic=b.lic and a.id_zone=b.id_zone and a.curr_dt=b.curr_dt) a
+left join
+	(select lic,sum(val) as total,count(*) as zones from 
+	(select distinct a.id_res,a.id_zone,a.lic,a.dt_ind,a.curr_ind::int as val,a.meter_num as device,status 
+from cc_indication a join 
+(select lic,id_zone,max(curr_dt) as curr_dt from cc_indication group by 1,2 order by 1) b
+on a.lic=b.lic and a.id_zone=b.id_zone and a.curr_dt=b.curr_dt) e group by 1) q on a.lic=q.lic
+order by lic) v    
+                    ";
+        $data = \Yii::$app->db_pg_viber->createCommand($sql)->queryAll();
+
+        $j=0;
+        $f=fopen('a_indic.txt','w+');
+        foreach ($data as $v) {
+            $j++;
+            $lic = $v['lic'];
+            fputs($f,$j);
+            fputs($f,' ');
+            fputs($f,"\n");
+            $device = $v['device'];
+            $val = $v['val'];
+            $total = $v['total'];
+            $zon = $v['zon'];
+            $dt = $v['dt'];
+            $bo2 = $v['bo2'];
+
+            $proc = "ZintWsMrFindAccounts";
+            $arr = array(
+                $proc => array(
+                    'IvArea' => $bo2,//якшо пошук по ОР то тут дільн нада
+                    'IvCheckPeriod' => '',
+                    'IvCompany' => 'CK',
+                    'IvEic' => '', //eic
+                    'IvMrData' => '',
+                    'IvPhone' => '',  //tel
+                    'IvSrccode' => '05', //джерело
+                    'IvVkona' => $lic  //OP
+                ),
+            );
+
+            $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
+
+//            debug($eic);
+//        return;
+            $flag=0;
+            if (isset($result['EtAccounts']['item']['Vkona'])) {
+                $a_account = $result['EtAccounts']['item']['Vkona'];
+                $address = $result['EtAccounts']['item']['Address'];
+                $eic = $result['EtAccounts']['item']['Eic'];
+                $anlg = $result['EtAccounts']['item']['Anlage'];
+                $fio = $result['EtAccounts']['item']['Fio'];
+            }
+            else
+            {
+                $flag=1;
+            }
+//        debug($a_account);
+//        debug($address);
+//        debug($eic);
+//        debug($fio);
+
+            //////SOAP інфа про ту --------------------------------
+            $proc2 = "ZintWsMrGetDeviceByanlage";
+            $arr2 = array(
+                $proc2 => array(
+                    'IvAnlage' => $anlg,
+                    'IvMrDate' => Date('Y-m-d'),
+                ),
+            );
+            $result2 = objectToArray($adapter->soap_blina($arr2[$proc2], $proc2));
+//debug($result2);
+//return;
+
+            if (isset($result2['EvZones'])) {
+                $typ_li4 = $result2['EvBauform'];
+                $counterSN = $result2['EvSernr'];
+                $zonna = $result2['EvZones'];
+                $EvEqunr = $result2['EvEqunr'];
+                $EvFactor = $result2['EvFactor'];
+                $EvMaxmr = $result2['EvMaxmr'];
+                $single_zone = 1;  // Признак однозонного счетчика
+                if (isset($result2['EtScales']['item'][0]['MrvalPrev'])) {
+                    $single_zone = 0;  // Не однозонный счетчик
+                    $MrvalPrev = 0;
+                    $MrdatPrev = '';
+                    $Zwart = '';
+                }
+                if (isset($result2['EtScales']['item']))
+                    $y = count($result2['EtScales']['item']);
+                else
+                    continue;
+
+                if ($single_zone == 1) {
+                    $MrvalPrev = $result2['EtScales']['item']['MrvalPrev'];
+                    $MrdatPrev = $result2['EtScales']['item']['MrdatPrev'];
+                    $Zwart = $result2['EtScales']['item']['Zwart'];
+                }
+                if ($y == 2)  // 2 zones
+                {
+                    $MrvalPrev1 = $result2['EtScales']['item'][0]['MrvalPrev'];
+                    $MrdatPrev1 = $result2['EtScales']['item'][0]['MrdatPrev'];
+                    $MrvalPrev2 = $result2['EtScales']['item'][1]['MrvalPrev'];
+                    $MrdatPrev2 = $result2['EtScales']['item'][1]['MrdatPrev'];
+                    $total_all = $MrvalPrev1+$MrvalPrev2;
+                }
+                if ($y == 3)  // 3 zones
+                {
+                    $MrvalPrev1 = $result2['EtScales']['item'][0]['MrvalPrev'];
+                    $MrdatPrev1 = $result2['EtScales']['item'][0]['MrdatPrev'];
+                    $MrvalPrev2 = $result2['EtScales']['item'][1]['MrvalPrev'];
+                    $MrdatPrev2 = $result2['EtScales']['item'][1]['MrdatPrev'];
+                    $MrvalPrev3 = $result2['EtScales']['item'][2]['MrvalPrev'];
+                    $MrdatPrev3 = $result2['EtScales']['item'][2]['MrdatPrev'];
+                    $total_all = $MrvalPrev1+$MrvalPrev2+$MrvalPrev3;
+                }
+            }
+
+
+//        debug($counterSN);
+//        debug($MrdatPrev);
+//        return;
+
+//            if (trim($counterSN) != trim($device)) {
+// Проставляем статусы показаний в таблице cc_indication
+/*
+ * Статусы:
+ * 0 - нет ошибок - показания не переданы
+ * 1 - Показание передано в САП
+ * 2 - текущие показания меньше предыдущих
+ * 3 - Большое потребление более 10000кВт*ч
+
+ * 5 - нет счета в САП
+ */
+            if ($single_zone == 1) {
+                // $MrvalPrev>=$val
+                if($MrvalPrev>$val) {
+                    // Если предыдущие показания больше текущих
+                    $z = "update cc_indication 
+                            set status=2
+                            where lic='$lic' and status=0";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+                if(($val-$MrvalPrev)>=10000) {
+                    // Большое потребление более 10000кВт*ч
+                    $z = "update cc_indication 
+                            set status=3
+                            where lic='$lic' and status=0";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+
+            }
+
+            if ($y == 2) {
+                if($MrvalPrev1>$val && $zon=='21') {
+                    // Если предыдущие показания больше текущих
+                    $z = "update cc_indication 
+                    set status=2
+                     where lic='$lic'  and status=0";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+                if(($total-$total_all)>=10000 && $zon=='21') {
+                    // Большое потребление более 10000кВт*ч
+                    $z = "update cc_indication 
+                         set status=3
+                        where lic='$lic'  and status=0";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+
+                if($MrvalPrev2>$val && $zon=='22') {
+                    // Если предыдущие показания больше текущих
+                    $z = "update cc_indication 
+                    set status=2
+                     where lic='$lic'  and status=0 ";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+            }
+
+            if ($y == 3) {
+                if($MrvalPrev1>$val && $zon=='31') {
+                    // Если предыдущие показания больше текущих
+                    $z = "update cc_indication 
+                    set status=2
+                    where lic='$lic'  and status=0 ";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+
+                if($MrvalPrev2>$val && $zon=='32') {
+                    // Если предыдущие показания больше текущих
+                    $z = "update cc_indication 
+                    set status=2
+                    where lic='$lic'  and status=0";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+
+                  if($MrvalPrev3>$val && $zon=='33') {
+                     // Если предыдущие показания больше текущих
+                    $z = "update cc_indication 
+                    set status=2
+                     where lic='$lic'  and status=0";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+
+                if(($total-$total_all)>=10000 && $zon=='31') {
+                    // Большое потребление более 10000кВт*ч
+                    $z = "update cc_indication 
+                         set status=3
+                         where lic='$lic'  and status=0";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+            }
+
+//            if(trim($counterSN)<>trim($device)) {
+//                // Несоответствие № счетчика с САПом
+//                $z = "update cc_indication
+//                            set status=4
+//                            where lic='$lic'  and status=0";
+//                $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+//            }
+
+            if($flag==1) {
+                // нет счета в САП
+                $z = "update cc_indication 
+                            set status=5
+                            where lic='$lic'  and status=0";
+                $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+            }
+        }
+        // Передача в САП
+        // Данные подключения для передачи показаний
+        $lSoap_s= 'CKSOAPMETER';
+        $pSoap_s= 'aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/';
+//        $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+        $hSoap_s = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
+
+        $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
+
+        $sql = "select bo2,lic,dt,device,
+sum(coalesce(val11,0)) as val11,sum(coalesce(val21,0)) as val21,sum(coalesce(val22,0)) as val22,
+sum(coalesce(val31,0)) as val31,sum(coalesce(val32,0)) as val32,sum(coalesce(val33,0)) as val33 from (
+select bo2,lic,dt,device,zon,
+sum(case when zon='11' then coalesce(val,0) end) as val11,
+sum(case when zon='21' then coalesce(val,0) end) as val21, 
+sum(case when zon='22' then coalesce(val,0) end) as val22,
+sum(case when zon='31' then coalesce(val,0) end) as val31,
+sum(case when zon='32' then coalesce(val,0) end) as val32,
+sum(case when zon='33' then coalesce(val,0) end) as val33
+ from (
+ select v.*,
+case when zones=1 then '11'
+when zones=2 and id_zone=1 then '21'
+when zones=2 and id_zone=2 then '22' 
+when zones=3 and id_zone=1 then '32'
+when zones=3 and id_zone=2 then '33'
+when zones=3 and id_zone=3 then '31'
+end as zon,
+'CK010'||id_res/10 as bo2 from (
+select distinct a.*,
+q.total,q.zones from
+(select distinct a.id_res,a.id_zone,a.lic,a.dt_ind as dt,a.curr_ind::int as val,a.meter_num as device,status 
+from cc_indication a join 
+(select lic,id_zone,max(curr_dt) as curr_dt from cc_indication group by 1,2 order by 1) b
+on a.lic=b.lic and a.id_zone=b.id_zone and a.curr_dt=b.curr_dt) a
+left join
+	(select lic,sum(val) as total,count(*) as zones from 
+	(select distinct a.id_res,a.id_zone,a.lic,a.dt_ind,a.curr_ind::int as val,a.meter_num as device,status 
+from cc_indication a join 
+(select lic,id_zone,max(curr_dt) as curr_dt from cc_indication group by 1,2 order by 1) b
+on a.lic=b.lic and a.id_zone=b.id_zone and a.curr_dt=b.curr_dt) e group by 1) q on a.lic=q.lic
+order by lic) v   
+) r 
+ where status=0
+ group by  bo2,lic,dt,device,zon
+ order by lic) x
+ group by  bo2,lic,dt,device
+ order by lic";
+
+        $data = \Yii::$app->db_pg_viber->createCommand($sql)->queryAll();
+//        debug($data);
+//        return;
+
+        $f=fopen('a_indic.txt','w+');
+        $j=0;
+        foreach ($data as $v) {
+            $lic = $v['lic'];
+            $j++;
+            fputs($f,$j);
+            fputs($f,' ');
+            fputs($f,$lic);
+            fputs($f,"\n");
+            $device = $v['device'];
+            $val11 = $v['val11'];
+            $val21 = $v['val21'];
+            $val22 = $v['val22'];
+            $val31 = $v['val31'];
+            $val32 = $v['val32'];
+            $val33 = $v['val33'];
+//            $zon = $v['zon'];
+            $dt = $v['dt'];
+            $bo2 = $v['bo2'];
+            $src = '05';
+
+            $proc = "ZintWsMrFindAccounts";
+            $arr = array(
+                $proc => array(
+                    'IvArea' =>  $bo2,//якшо пошук по ОР то тут дільн нада
+                    'IvCheckPeriod' => '',
+                    'IvCompany' => 'CK',
+                    'IvEic' => '', //eic
+                    'IvMrData' => '',
+                    'IvPhone' => '',  //tel
+                    'IvSrccode' => '05', //джерело
+                    'IvVkona' => $lic,//OP
+                ),
+            );
+
+            $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
+//        debug($result);
+//        return;
+            $flag=0;
+            if (isset($result['EtAccounts']['item']['Vkona'])) {
+                $a_account = $result['EtAccounts']['item']['Vkona'];
+                $address = $result['EtAccounts']['item']['Address'];
+                $eic = $result['EtAccounts']['item']['Eic'];
+                $anlg = $result['EtAccounts']['item']['Anlage'];
+                $fio = $result['EtAccounts']['item']['Fio'];
+            }
+            else
+                $flag=1;
+//        debug($a_account);
+//        debug($address);
+//        debug($eic);
+//        debug($fio);
+
+            //////SOAP інфа про ту --------------------------------
+            $proc2 = "ZintWsMrGetDeviceByanlage";
+            $arr2 = array(
+                $proc2 => array(
+                    'IvAnlage' => $anlg,
+                    'IvMrDate' => Date('Y-m-d'),
+                ),
+            );
+            $result2 = objectToArray($adapter->soap_blina($arr2[$proc2], $proc2));
+
+            if (isset($result2['EvZones'])) {
+                $typ_li4 = $result2['EvBauform'];
+                $counterSN = $result2['EvSernr'];
+                $zonna = $result2['EvZones'];
+                $EvEqunr = $result2['EvEqunr'];
+                $EvFactor = $result2['EvFactor'];
+                $zonnG = '';
+            }
+
+//        debug($result2);
+//        debug($zonna);
+//        return;
+
+            $cls = '';
+            $a_zG = 0;
+            $client = new \SoapClient(
+                "$hSoap_s",
+                array('login' => "$lSoap_s",
+                    'password' => "$pSoap_s",
+                    'trace' => 1)
+            );
+
+            $arrG = array(
+                'Id' => '400',
+                'Zon' => '40',
+                'Device' => $counterSN,
+                'Data' => $a_zG,
+                'Zwkenn' => ''
+            );
+
+//            $curdate = date("Y-m-d");
+            $curtime = date("Hi");
+            $bukrs = 'CK01';
+
+            if(1==1) {
+                if ($zonna == 1) {
+
+                    $a_z1 = $val11;
+                    $params = array(
+                        'Srccode' => $src,
+                        'Bukrs' => $bukrs,
+                        'Consdata' => array('item' => array(
+                            'Eic' => "$eic",
+                            'Account' => "$a_account",
+                            'Date' => $dt,
+                            'DateDb' => $dt,
+                            'TimeDb' => $curtime,
+                            'Mrdata' => array(
+                                'item' => array(
+                                    array('Id' => '121',
+                                        'Zon' => '11',
+                                        'Device' => $counterSN,
+                                        'Data' => $a_z1,
+                                        'Zwkenn' => ''
+                                    )
+                                )
+                            )
+                        )
+
+                        )
+                    );
+                }
+            }
+
+
+            if ($zonna == 2) {
+
+                $params = array(
+                    'Srccode' => $src,
+                    'Bukrs' => $bukrs,
+                    'Consdata' => array('item' => array(
+                        'Eic' => '',
+                        'Account' => $a_account,
+                        'Date' => $dt,
+                        'DateDb' => $dt,
+                        'TimeDb' => $curtime,
+                        'Mrdata' => array('item' =>
+                            array(
+                                array('Id' => '121',
+                                    'Zon' => '21',
+                                    'Device' => $counterSN,
+                                    'Data' => $val21,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '122',
+                                    'Zon' => '22',
+                                    'Device' => $counterSN,
+                                    'Data' => $val22,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '100',
+                                    'Zon' => '11',
+                                    'Device' => $counterSN,
+                                    'Data' =>  $val21+$val22,
+                                    'Zwkenn' => ''
+                                )
+                            )
+                        )
+                    )
+                    )
+                );
+            }
+
+            if ($zonna == 3) {
+                $a_z3 = $val31;
+                $a_z1 = $val32;
+                $a_z2 = $val33;
+                $params = array(
+                    'Srccode' => '05',
+                    'Bukrs' => $bukrs,
+                    'Consdata' => array('item' => array(
+                        'Eic' => '',
+                        'Account' => $a_account,
+                        'Date' => $dt,
+                        'DateDb' => $dt,
+                        'TimeDb' => $curtime,
+                        'Mrdata' => array('item' =>
+                            array(
+                                array('Id' => '300',
+                                    'Zon' => '31',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z3,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '200',
+                                    'Zon' => '33',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z2,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '100',
+                                    'Zon' => '32',
+                                    'Device' => $counterSN,
+                                    'Data' => $a_z1,
+                                    'Zwkenn' => ''
+                                ),
+                                array('Id' => '100',
+                                    'Zon' => '11',
+                                    'Device' => $counterSN,
+                                    'Data' =>  $a_z1+$a_z2+$a_z3,
+                                    'Zwkenn' => ''
+                                )
+                            )
+                        )
+                    )
+                    )
+                );
+            }
+
+
+            try {
+                $result = $client->__soapCall('ZintUplMrdataInd', array($params));
+//                debug($result);
+
+//                if(isset($_POST['a_zG'])) @$done = $result->Retdata->item[0]->Retcode[0];
+//                else
+                if ($zonna == 1) {
+                    if (is_object($result->Retdata->item))
+                        $done = $result->Retdata->item->Retcode;
+                    else
+                        $done = '0';
+                }
+                else {
+                    $flag_r=1;
+//                    if($eic=='62Z0621029388682') {
+//                        debug($result);
+//                        return;
+//                    }
+                    $q=objectToArray($result->Retdata);
+//                    debug($q);
+//                    return;
+//                    if (!isset(objectToArray($result->Retdata->item[0])))  {$done = '0'; $flag_r=0;}
+                    if($flag_r==1) {
+                        if (isset($q['item'][0]))
+                            $done = $q['item'][0]['Retcode'];
+                        else
+                            $done = '0';
+                    }
+//                    continue;
+                }
+
+                if($flag==1){
+                    $z = "update cc_indication 
+                            set status=5
+                            where lic='$lic' and status=0";
+
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+
+                if ($done == '1') {
+                    echo "Ваші показники внесено!";
+                    echo "<br>";
+                    $cls = 'okok';
+                    // Признак ставим
+                    $z = "update cc_indication 
+                            set status=1
+                            where lic='$lic' and status=0";
+
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+
+                } else {
+                    $cls = 'error';
+                    echo "<br>";
+                    echo "Показники не внесено по ";
+                    echo "<br>";
+                }
+            } catch (SoapFault $e) {
+                echo $e;
+            }
+        }
+
+        debug('Показники в САП передано.');
+        return;
+    }
+
     //  Обработка таблицы indications для САП
     public function actionProc_indications()
     {
@@ -22262,7 +22897,7 @@ sum(case when zon='32' then coalesce(val,0) end) as val32,
 sum(case when zon='33' then coalesce(val,0) end) as val33
  from indications 
  -- where retcode='2' and zon<>'11' 
- where src='05' and (err_value is null or report is null)
+ where src='05' and err_value is null
  group by  bo2,src,eic,dt,hhmm,device,zon
  order by eic) x
  group by  bo2,src,eic,dt,device
@@ -22515,7 +23150,6 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
 //                    continue;
                 }
 
-
                 if($flag==1){
                     $z = "update indications 
                             set retcode='1'
@@ -22667,6 +23301,197 @@ sum(case when zon='33' then coalesce(val,0) end) as val33
             debug($s);
             debug($a);
         }
+
+    // Распознавание текста в картинке
+    public function actionRecognise_pict() {
+//        require_once './tesseract-ocr-for-php/src/TesseractOCR.php';
+
+        return $this->render('recognise_pict');
+    }
+
+    // Простая нейросеть
+    public function actionNeuronet() {
+        // Цифры (Обучающая выборка)
+        $num0 = str_split('111101101101111');
+        $num1 = str_split('001001001001001');
+        $num2 = str_split('111001111100111');
+        $num3 = str_split('111001111001111');
+        $num4 = str_split('101101111001001');
+        $num5 = str_split('111100111001111');
+        $num6 = str_split('111100111101111');
+        $num7 = str_split('111001001001001');
+        $num8 = str_split('111101111101111');
+        $num9 = str_split('111101111001111');
+
+        // Список всех вышеуказанных цифр
+        $nums = array($num0, $num1, $num2, $num3, $num4, $num5, $num6, $num7, $num8, $num9);
+
+        // Виды цифры 5 (Тестовая выборка)
+        $num51 = str_split('111100111000111');
+        $num52 = str_split('111100010001111');
+        $num53 = str_split('111100011001111');
+        $num54 = str_split('110100111001111');
+        $num55 = str_split('110100111001011');
+        $num56 = str_split('111100101001111');
+
+        // Инициализация весов сети
+        $weights = array_fill(0, 15, 0);
+
+        // Порог функции активации
+        $bias = 9;
+        // Количество итераций
+        $iterations=2000000;
+        // Распознаваемая цифра
+        $digit=5;
+
+// Тренировка сети
+        for ($i = 0; $i < $iterations; $i++)
+        {
+            // Генерируем случайное число от 0 до 9
+            $option = rand(0, 9);
+//            debug($option);
+//            debug("i=$i");
+            $r = proceed($nums[$option], $weights, $bias);
+            if ($option != $digit) {
+                // Если получилось НЕ число $digit
+                // Если сеть выдала True/Да/1, то наказываем ее
+                if ($r==1) {
+                    $weights = decrease($nums[$option], $weights);
+//                    debug('Dec');
+//                    debug($weights);
+                }
+            }
+                // Если получилось число $digit
+                else {
+                    // Если сеть выдала False/Нет/0, то показываем, что эта цифра - то, что нам нужно
+                    if ($r==0) {
+                        $weights = increase($num5, $weights);
+//                        debug('Inc');
+//                        debug($weights);
+                    }
+                }
+//                    debug($weights);
+        }
+
+        // Вывод значений весов
+        echo join(", ", $weights) . '<br>';
+        echo '<br>';
+        echo '<br>';
+//        return;
+
+        // Прогон по обучающей выборке
+        echo "0 is $digit? " . var_export(proceed($num0,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "1 is $digit? " . var_export(proceed($num1,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "2 is $digit? " . var_export(proceed($num2,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "3 is $digit? " . var_export(proceed($num3,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "4 is $digit? " . var_export(proceed($num4,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "6 is $digit? " . var_export(proceed($num6,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "7 is $digit? " . var_export(proceed($num7,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "8 is $digit? " . var_export(proceed($num8,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "9 is $digit? " . var_export(proceed($num9,$weights,$bias), true) . PHP_EOL . PHP_EOL;
+        echo '<br>';
+
+        // Прогон по тестовой выборке
+        echo "Recognize $digit? " . var_export(proceed($num5,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "Recognize $digit - 1? " . var_export(proceed($num51,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "Recognize $digit - 2? " . var_export(proceed($num52,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "Recognize $digit - 3? " . var_export(proceed($num53,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "Recognize $digit - 4? " . var_export(proceed($num54,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "Recognize $digit - 5? " . var_export(proceed($num55,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+        echo "Recognize $digit - 6? " . var_export(proceed($num56,$weights,$bias), true) . PHP_EOL;
+        echo '<br>';
+    }
+
+    // Анализ цифр в картинке
+    public function actionAnalise_pict() {
+        // Создание изображений
+        $image = imagecreatefrompng('2_1.png');
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $colors = array();
+        $mas =[];
+        $v =[];
+        $dx =[];
+        debug($width);
+        debug($height);
+        $k=0;
+        $i=0;
+        for ($y = 0; $y < $height; $y++) {
+            $y_array = array() ;
+            $x1=0;
+            for ($x = 0; $x < $width; $x++) {
+                $rgb = imagecolorat($image, $x, $y);
+                $r = ($rgb >> 16) & 0xFF;
+                if(!in_array($r,$v)) {
+                    $k++;
+                    $x1++;
+                    $v[$k] = $r;
+                    $dx[$x][$x1] = $rgb;
+                }
+                $g = ($rgb >> 8) & 0xFF;
+                $b = $rgb & 0xFF;
+                $mas[$y][$x]['r'] = $r;
+                $mas[$y][$x]['g'] = $g;
+                $mas[$y][$x]['b'] = $b;
+                $mas[$y][$x]['q'] = $rgb;
+
+                $x_array = array($r, $g, $b) ;
+                $y_array[] = $x_array ;
+                $r1=$r;
+                if($i==0) {
+                    $v[$k] = $r;
+                }
+                if($x==0) {
+                    $dx[$x][$x1] = $rgb;
+                }
+                $i++;
+            }
+            debug('Analise string:' );
+            debug($dx);
+            $colors[] = $y_array ;
+        }
+        debug($v);
+        debug($mas);
+    }
+    public function actionEdittable()
+    {
+        $sql = "select * from short_work";
+        $data = \Yii::$app->db_mysql_loc1->createCommand($sql)->queryAll();
+
+        foreach ($data as $v) {
+            $pole = $v['work'];
+            $pos = mb_strpos($pole,chr(194),0,'UTF-8');
+            if($pos === false){
+                $a=1;
+            }
+             else   {
+                 debug($pole);
+//                 debug($pos);
+//                 $y = mb_strlen($pole,'UTF-8');
+//                 $pole1 = mb_substr($pole,0,$pos-1,'UTF-8') ;
+//                 $r = $pole1 . ' ' . mb_substr($pole,$pos+1,$y-($pos+1),'UTF-8') ;
+
+//                 $pole1 = preg_replace("/[^x\d|*\.]/", " ", $data[11]);
+//                 debug($r);
+//                 $sql = "update short_work set work = '$pole1' where work = '$pole' ";
+//                 Yii::$app->db_mysql_loc1->createCommand($sql)->queryAll();
+            }
+        }
+    }
 }
 
 //

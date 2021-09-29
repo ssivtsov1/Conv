@@ -1,0 +1,86 @@
+int main(int argc, char** argv)
+{
+    cv::Mat input = cv::imread("img.jpg");
+
+    //rectangle containing just the kWh numbers
+    Rect roi(358,327,532,89);
+
+    //convert to gray scale
+    Mat input_gray;
+    cvtColor(input(roi),input_gray,CV_BGR2GRAY);
+
+    //threshold image
+    Mat binary_img = input_gray>200;
+
+    //make a copy to use on findcontours
+    Mat copy_binary_img = binary_img.clone();
+
+    vector<vector<Point> > contours;
+    vector<Vec4i> hierarchy;
+
+    //identify each blob in order to eliminate the small ones 
+    findContours(copy_binary_img, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
+
+    //filter blobs by their sizes
+    for (vector<vector<Point> >::iterator it = contours.begin(); it!=contours.end(); )
+    {
+        if (it->size()>20)
+            it=contours.erase(it);
+        else
+            ++it;
+    }
+
+    //Erase blobs which have countour size smaller than 20
+    for( int i = 0; i< contours.size(); i++ )
+    {
+        drawContours( binary_img, contours, i, 0, -1, 8, hierarchy, 0, Point() );
+    }
+
+    //initialize tesseract OCR
+    tesseract::TessBaseAPI tess;
+    tess.Init(NULL, "eng", tesseract::OEM_DEFAULT);
+
+    tess.SetVariable("tessedit_char_whitelist", "0123456789-.");
+
+    tess.SetPageSegMode(tesseract::PSM_SINGLE_BLOCK);
+
+    //set input 
+    tess.SetImage((uchar*)binary_img.data
+            , binary_img.cols
+            , binary_img.rows
+            , 1
+            , binary_img.cols);
+
+    // Get the text
+    char* out = tess.GetUTF8Text();
+    std::cout << out << std::endl;
+    waitKey();
+    return 0;
+}
+
+
+https://rche.ru/1350_php-raspoznat-cifry-bukvy-s-kartinki.html
+
+https://ru.stackoverflow.com/questions/429097/php-%D0%9A%D0%B0%D0%BA-%D1%80%D0%B0%D1%81%D0%BF%D0%BE%D0%B7%D0%BD%D0%B0%D1%82%D1%8C-%D1%86%D0%B8%D1%84%D1%80%D1%8B-%D0%BD%D0%B0-%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B8-%D0%BD%D0%B5-%D0%BA%D0%B0%D0%BF%D1%87%D0%B0
+
+
+
+
+Повторне підключення електроустановки споживача до електричної мережі  при однофазному вводі (підключення відгалужень від опори 0,4 кВ  до ізоляторів та однофазних вводів в будівлю) із застосуванням автовишки за ініціативою замовника
+
+Повторне підключення електроустановки споживача до електричної мережі  при однофазному вводі (підключення відгалужень від опори 0,4 кВ  до ізоляторів та однофазних вводів в будівлю) із застосуванням автовишки за ініціативою замовника
+
+Повторне підключення електроустановки споживача до електричної мережі  при однофазному вводі (підключення відгалужень від опори 0,4 кВ  до ізоляторів та однофазних вводів в будівлю) із застосуванням автовишки за ініціативою замовника
+
+
+SELECT * FROM costwork a 
+left join short_work b on TRIM(BOTH CHAR(160 using ASCII) FROM a.work) = TRIM(BOTH CHAR(160 using ASCII) FROM b.work)
+where a.work like '%Повторне підключення електроустановки споживача до електричної мережі  при однофазному вводі%'
+
+
+
+
+
+
+
+

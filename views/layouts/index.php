@@ -193,6 +193,7 @@ AppAsset::register($this);
                                 [
                                     ['label' => 'Обработка таблицы indications для САП (сравнение показателей)', 'url' => ['/site/check_value_indications']],
                                     ['label' => 'Передача показаний из indications в САП', 'url' => ['/site/indic2sap']],
+                                    ['label' => 'Передача показаний из Viber в САП', 'url' => ['/site/viber2sap']],
 
                                 ]
                         ],
@@ -290,6 +291,7 @@ AppAsset::register($this);
                                     ['label' => 'Заполнение таблицы indications для САП', 'url' => ['/site/fill_indications']],
                                     ['label' => 'Обработка таблицы indications для САП', 'url' => ['/site/proc_indications']],
                                     ['label' => 'Передача показаний из indications в САП', 'url' => ['/site/indic2sap']],
+                                    ['label' => 'Редактирование таблицы MySQL', 'url' => ['/site/edittable']],
 
                                 ]
                         ],
@@ -309,6 +311,10 @@ AppAsset::register($this);
                                     ['label' => 'Перестановки рекурсия', 'url' => ['/site/permute']],
                                     ['label' => 'Перебор рекурсия', 'url' => ['/site/perebor1']],
                                     ['label' => 'Гипотеза Коллатца', 'url' => ['/site/kollats']],
+                                    ['label' => 'Кодирование файла по алгоритму Коллатца', 'url' => ['/site/codeclt']],
+                                    ['label' => 'Распознавание текста в картинке', 'url' => ['/site/recognise_pict']],
+                                    ['label' => 'Анализ цифр в картинке', 'url' => ['/site/analise_pict']],
+                                    ['label' => 'Простая нейросеть', 'url' => ['/site/neuronet']],
                                     ['label' => 'Сеть Хопфилда', 'url' => ['/site/index'],
                                         'options' => ['class' => 'dropdown'],
                                         'items' => [
