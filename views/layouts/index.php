@@ -55,6 +55,7 @@ AppAsset::register($this);
                             [
                                 ['label' => 'Обработка таблицы indications для САП (сравнение показателей)', 'url' => ['/site/check_value_indications']],
                                 ['label' => 'Передача показаний из indications в САП', 'url' => ['/site/indic2sap']],
+                                ['label' => 'Передача показаний из Viber в САП', 'url' => ['/site/viber2sap']],
 
                             ]
                     ],
