@@ -1,12 +1,14 @@
 <?php
 
 namespace app\controllers;
+use app\models\Err_trans;
 use SQLite3;
 
 use app\models\off_site;
 use app\models\PoweroutagesForm;
 use app\models\Pract1;
 use app\models\ccon_soap;
+use app\models\viber2sap;
 use app\models\UploadBytForm;
 use app\models\UploadForm;
 use Yii;
@@ -21119,13 +21121,13 @@ where issubmit = 1";
         $pSoap='sjgi5n27'; /*пароль*/
 //        $eic_post = '62Z1899153225220';
         $dherelo = 5;
-        $op_post = '011053268';
+        $op_post = '021019009';
 //        $op_post =  "011000243";
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
 //        $op_post = "061113053";
 //        $op_post = "";
-        $res = 'CK0101';
+        $res = 'CK0102';
         $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
         $proc="ZintWsMrFindAccounts";
 //        $proc="ZintUplMrdataInd";
@@ -22163,6 +22165,7 @@ order by lic) v
 
         $f=fopen('a_indic.txt','w+');
         $j=0;
+        $trans_id=rand(10000000,100000000);  // Номер передачи
         foreach ($data as $v) {
             $lic = $v['lic'];
             $j++;
@@ -22285,6 +22288,7 @@ order by lic) v
 
                         )
                     );
+
                 }
             }
 
@@ -22414,8 +22418,8 @@ order by lic) v
                 }
 
                 if ($done == '1') {
-                    echo "Ваші показники внесено!";
-                    echo "<br>";
+//                    echo "Ваші показники внесено по особовому рахунку $lic";
+//                    echo "<br>";
                     $cls = 'okok';
                     // Признак ставим
                     $z = "update cc_indication 
@@ -22423,21 +22427,57 @@ order by lic) v
                             where lic='$lic' and status=0";
 
                     $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                    // Логирование переданных показаний
+                    $z = "INSERT INTO viber2sap(id,lic,date_t,val11,val21,val22,val31,val32,val33,status,trans_num) 
+                                VALUES(CAST(EXTRACT(EPOCH FROM NOW()) * 1000 AS BIGINT),'$lic',now(),$val11,
+                                $val21,$val22,$val31,$val32,$val33,1,$trans_id)";
 
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
                 } else {
                     $cls = 'error';
                     echo "<br>";
-                    echo "Показники не внесено по ";
+                    echo mb_strtoupper("Показники не внесено по особовому рахунку $lic",'UTF-8');
                     echo "<br>";
+
+                    // Логирование не переданных показаний
+                    $z = "INSERT INTO viber2sap(id,lic,date_t,val11,val21,val22,val31,val32,val33,status,trans_num) 
+                                VALUES(CAST(EXTRACT(EPOCH FROM NOW()) * 1000 AS BIGINT),'$lic',now(),$val11,
+                                $val21,$val22,$val31,$val32,$val33,0,$trans_id)";
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
                 }
             } catch (SoapFault $e) {
                 echo $e;
             }
         }
+        // Формирование отчета по переданным/не переданным показаниям
+        $searchModel = new viber2sap();
+        $sql="select * from viber2sap where trans_num=$trans_id order by status";
+        $report = viber2sap::findBySql($sql)->all();
+//        debug($report);
+//        return;
+        if(count($report)>0) {
+            $dataProvider = $searchModel->search(Yii::$app->request->queryParams, $sql);
+            $dataProvider->pagination = false;
 
-        debug('Показники в САП передано.');
-        return;
-    }
+            return $this->render('viber2sap_report', ['model' => $report,
+                'dataProvider' => $dataProvider]);}
+       else
+            {$z='select max(date_t) as dt from viber2sap where status=1';
+                $data = viber2sap::findBySql($z)->asarray()->all();
+
+                $dt=$data[0]['dt'];
+                $model = new info();
+                $model->title =  "Показників для передачі не знайдено.";
+                $model->info1 = "Показників для передачі не знайдено.Останній раз показники передавались $dt";
+                $model->style1 = "d15";
+                $model->style2 = "info-text";
+                $model->style_title = "d9";
+
+                return $this->render('about_u', [
+                    'model' => $model]);
+            }
+        }
+
 
     //  Обработка таблицы indications для САП
     public function actionProc_indications()
