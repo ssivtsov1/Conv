@@ -21121,7 +21121,7 @@ where issubmit = 1";
         $pSoap='sjgi5n27'; /*пароль*/
 //        $eic_post = '62Z1899153225220';
         $dherelo = 5;
-        $op_post = '011026640';
+        $op_post = '010200018';
 //        $op_post =  "011000243";
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
@@ -21901,6 +21901,7 @@ order by lic) v
             $lic = $v['lic'];
             fputs($f,$j);
             fputs($f,' ');
+            fputs($f,$lic);
             fputs($f,"\n");
             $device = $v['device'];
             $val = $v['val'];
@@ -21925,8 +21926,9 @@ order by lic) v
 
             $result = objectToArray($adapter->soap_blina($arr[$proc], $proc));
 
-//            debug($eic);
+//            debug($lic);
 //        return;
+            
             $flag=0;
             if (isset($result['EtAccounts']['item']['Vkona'])) {
                 $a_account = $result['EtAccounts']['item']['Vkona'];
@@ -21938,6 +21940,12 @@ order by lic) v
             else
             {
                 $flag=1;
+                // нет счета в САП
+                $z = "update cc_indication 
+                            set status=5
+                            where lic='$lic'  and status=0";
+                $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                continue;
             }
 //        debug($a_account);
 //        debug($address);
