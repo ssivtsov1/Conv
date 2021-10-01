@@ -21121,13 +21121,13 @@ where issubmit = 1";
         $pSoap='sjgi5n27'; /*пароль*/
 //        $eic_post = '62Z1899153225220';
         $dherelo = 5;
-        $op_post = '021019009';
+        $op_post = '011026640';
 //        $op_post =  "011000243";
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
 //        $op_post = "061113053";
 //        $op_post = "";
-        $res = 'CK0102';
+        $res = 'CK0101';
         $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
         $proc="ZintWsMrFindAccounts";
 //        $proc="ZintUplMrdataInd";
@@ -22115,8 +22115,8 @@ order by lic) v
         $lSoap_s= 'CKSOAPMETER';
         $pSoap_s= 'aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/';
 //        $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
-        $hSoap_s = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
-
+//        $hSoap_s = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
+        $hSoap_s = 'http://erppr3.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
         $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
 
         $sql = "select bo2,lic,dt,device,
