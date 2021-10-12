@@ -21121,7 +21121,7 @@ where issubmit = 1";
         $pSoap='sjgi5n27'; /*пароль*/
 //        $eic_post = '62Z1899153225220';
         $dherelo = 5;
-        $op_post = '010200018';
+        $op_post = '010000124';
 //        $op_post =  "011000243";
 //        $op_post ="011020939";  // 3 zones
 //        $op_post ="011010394";
@@ -21312,21 +21312,28 @@ where issubmit = 1";
     {
         // Данные подключения для приема показаний
         $hIPsap="192.168.1.7"; //1.7 - качество
-        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
-//        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
-        $lSoap='WEBFRGATE_CK'; /*логін*/
-        $pSoap='sjgi5n27'; /*пароль*/
+//        $hSoap='http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100';
+////        $hSoap = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+//        $lSoap='WEBFRGATE_CK'; /*логін*/
+//        $pSoap='sjgi5n27'; /*пароль*/
+
+        $hSoap = 'http://erppr3.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_source_mr_interact?sap-client=100'; // Prod
+        $lSoap = 'WEBFRGATE_CK'; /*логін*/
+        $pSoap = 'sjgi5n27'; /*пароль*/
 
         // Данные подключения для передачи показаний
         $lSoap_s= 'CKSOAPMETER';
         $pSoap_s= 'aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/';
-        $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
+        $hSoap_s = 'http://erppr3.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
+//        $lSoap_s= 'CKSOAPMETER';
+//        $pSoap_s= 'aTmy9Z<faLNcJ))gTJMwYut(#eJ)NSlcY[2%Meo/';
+//        $hSoap_s = 'http://erpqs1.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A101AD1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100';
 //        $hSoap_s = 'http://erppr2.esf.ext:8000/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/scs/sap/zint_ws_upl_mrdata?sap-client=100'; // prod
         $eic_post = '';
 //        $op_post = '011039519';  // 2 zones
 //        $op_post ="011053029";  // 3 zones
 //        $op_post = '011013046';   // 1 zone
-        $op_post = '011004299';
+        $op_post = '011000959';
 //        $op_post = '021001823';  // 1 zone Ж-Воды
         $res = 'CK0101';
         $adapter = new ccon_soap($hSoap,$lSoap,$pSoap);
@@ -21449,8 +21456,8 @@ where issubmit = 1";
         }
 
             if ($zonna==2) {
-                $a_z1 = 11000;
-                $a_z2 = 11000;
+                $a_z1 = 8040;
+                $a_z2 = 2002;
                 $params = array(
                     'Srccode' => '01',
                     'Bukrs' => $bukrs,
@@ -21890,7 +21897,8 @@ left join
 from cc_indication a join 
 (select lic,id_zone,max(curr_dt) as curr_dt from cc_indication group by 1,2 order by 1) b
 on a.lic=b.lic and a.id_zone=b.id_zone and a.curr_dt=b.curr_dt) e group by 1) q on a.lic=q.lic
-order by lic) v    
+order by lic) v
+where status<>1    
                     ";
         $data = \Yii::$app->db_pg_viber->createCommand($sql)->queryAll();
 
@@ -21928,7 +21936,7 @@ order by lic) v
 
 //            debug($lic);
 //        return;
-            
+
             $flag=0;
             if (isset($result['EtAccounts']['item']['Vkona'])) {
                 $a_account = $result['EtAccounts']['item']['Vkona'];
@@ -22413,6 +22421,10 @@ order by lic) v
                             $done = $q['item'][0]['Retcode'];
                         else
                             $done = '0';
+                        if (isset($q['item'][0]['Msg'])) {
+                            if($q['item'][0]['Msg']=='Заплан. дата считывания относится к уже рассчитанному периоду')
+                                $flag=2;
+                        }
                     }
 //                    continue;
                 }
@@ -22421,6 +22433,19 @@ order by lic) v
                     $z = "update cc_indication 
                             set status=5
                             where lic='$lic' and status=0";
+
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                }
+                if($flag==2){
+                    $z = "update cc_indication 
+                            set status=6
+                            where lic='$lic' and status=0";
+
+                    $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
+                    // Логирование переданных показаний
+                    $z = "INSERT INTO viber2sap(id,lic,date_t,val11,val21,val22,val31,val32,val33,status,trans_num) 
+                                VALUES(CAST(EXTRACT(EPOCH FROM NOW()) * 1000 AS BIGINT),'$lic',now(),$val11,
+                                $val21,$val22,$val31,$val32,$val33,6,$trans_id)";
 
                     $data = Yii::$app->db_pg_viber->createCommand($z)->execute();
                 }
